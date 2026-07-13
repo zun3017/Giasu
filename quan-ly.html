@@ -1,0 +1,2672 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Cổng Quản Lý Học Vụ Nội Bộ</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        /* ================= RESET & CƠ BẢN ================= */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background-color: #03081D;
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(91, 46, 255, 0.15) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(245, 158, 11, 0.08) 0%, transparent 40%);
+            color: #FFFFFF;
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* ================= HEADER ================= */
+        header {
+            width: 100%;
+            max-width: 1200px;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 100;
+        }
+        .btn-header {
+            text-decoration: none;
+            padding: 10px 20px;
+            font-size: 14px;
+            font-weight: 600;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: #E2D1FF;
+            background: rgba(142, 77, 255, 0.1);
+            border: 1px solid rgba(142, 77, 255, 0.3);
+        }
+        .btn-header:hover {
+            background: rgba(142, 77, 255, 0.2);
+            border-color: #8E4DFF;
+            box-shadow: 0 0 15px rgba(142, 77, 255, 0.2);
+            transform: translateY(-1px);
+        }
+
+        /* ================= MAIN CONTAINER ================= */
+        .main-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            max-width: 1200px;
+            padding: 0 20px 60px;
+            position: relative;
+            z-index: 20;
+            text-align: center;
+        }
+        .badge {
+            background: linear-gradient(90deg, rgba(30, 15, 60, 0.9), rgba(50, 20, 90, 0.9));
+            border: 1px solid rgba(142, 77, 255, 0.4);
+            padding: 6px 18px;
+            border-radius: 30px;
+            font-size: 11px;
+            font-weight: 700;
+            color: #E2D1FF;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 15px;
+            letter-spacing: 0.5px;
+            box-shadow: 0 0 20px rgba(91, 46, 255, 0.4);
+            text-transform: uppercase;
+        }
+        .main-title {
+            font-size: 40px;
+            font-weight: 900;
+            line-height: 1.2;
+            margin-bottom: 25px;
+            letter-spacing: -1.5px;
+        }
+        .main-title span { color: #FFD23F; }
+
+        /* ================= KHUNG ĐĂNG NHẬP ================= */
+        .login-card {
+            background: rgba(11, 8, 38, 0.6);
+            border: 1px solid rgba(142, 77, 255, 0.4);
+            border-radius: 20px;
+            padding: 35px 40px;
+            width: 100%;
+            max-width: 500px;
+            box-shadow: inset 0 0 20px rgba(142, 77, 255, 0.1), 0 15px 40px rgba(5, 5, 20, 0.8);
+            backdrop-filter: blur(16px);
+            margin-bottom: 30px;
+            text-align: left;
+        }
+        .login-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #FFFFFF;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-transform: uppercase;
+        }
+        .login-title i { color: #8E4DFF; }
+        
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .form-row {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .form-row label {
+            font-size: 11px;
+            color: #8E95BE;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+        .input-wrapper {
+            display: flex;
+            gap: 12px;
+            background: #04020A;
+            border: 1px solid rgba(142, 77, 255, 0.3);
+            border-radius: 12px;
+            padding: 12px 15px;
+            align-items: center;
+        }
+        .input-icon { opacity: 0.5; font-size: 16px; color: #fff;}
+        .input-wrapper input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: #FFF;
+            font-size: 14px;
+            outline: none;
+        }
+        .btn-submit {
+            background: linear-gradient(90deg, #9933ff, #7a1aff);
+            color: white;
+            border: none;
+            width: 100%;
+            height: 46px;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 15px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(153, 51, 255, 0.4);
+        }
+        .btn-submit:hover {
+            box-shadow: 0 6px 20px rgba(153, 51, 255, 0.7);
+            transform: translateY(-1px);
+        }
+        .error-msg { color: #FF4D4D; font-size: 13px; margin-top: 10px; display: none; text-align: center; font-weight: 500;}
+        .loading-text { display: none; color: #8E4DFF; margin-top: 10px; font-style: italic; font-size: 13px; text-align: center;}
+
+        /* ================= DASHBOARD LAYOUT ================= */
+        .dashboard-box {
+            width: 100%;
+            display: none;
+            text-align: left;
+        }
+        .dashboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(142, 77, 255, 0.2);
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        .dashboard-header h3 {
+            font-size: 24px;
+            font-weight: 800;
+            color: #FFD23F;
+        }
+        .dashboard-header-right {
+            display: flex;
+            gap: 12px;
+        }
+        .btn-action-header {
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            border: 1px solid;
+            background: transparent;
+            transition: 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .btn-action-primary {
+            background: rgba(142, 77, 255, 0.1);
+            color: #E2D1FF;
+            border-color: rgba(142, 77, 255, 0.3);
+        }
+        .btn-action-primary:hover { background: rgba(142, 77, 255, 0.2); border-color: #8E4DFF; }
+        .btn-action-danger {
+            background: rgba(239, 68, 68, 0.1);
+            color: #EF4444;
+            border-color: rgba(239, 68, 68, 0.3);
+        }
+        .btn-action-danger:hover { background: rgba(239, 68, 68, 0.2); border-color: #EF4444; }
+
+        /* Dashboard Tabs */
+        .dashboard-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 25px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            padding-bottom: 10px;
+        }
+        .tab-btn {
+            background: transparent;
+            border: none;
+            color: #8E95BE;
+            font-size: 14px;
+            font-weight: 600;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .tab-btn:hover { color: #FFF; background: rgba(255, 255, 255, 0.02); }
+        .tab-btn.active {
+            color: #FFF;
+            background: rgba(142, 77, 255, 0.15);
+            box-shadow: inset 0 0 10px rgba(142, 77, 255, 0.1);
+        }
+
+        .dashboard-section {
+            background: rgba(11, 8, 38, 0.7);
+            border: 1px solid rgba(142, 77, 255, 0.2);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+            margin-bottom: 30px;
+        }
+        .dashboard-section h4 {
+            color: #8E4DFF;
+            margin-bottom: 20px;
+            font-size: 16px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-transform: uppercase;
+        }
+        .dashboard-section h4 i { font-size: 18px; }
+
+        /* Student Selection Grid */
+        .student-selector-grid {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 25px;
+        }
+        .student-btn {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            color: #A6ADCE;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .student-btn:hover { background: rgba(255, 255, 255, 0.06); color: #FFF; }
+        .student-btn.active {
+            background: #8E4DFF;
+            color: #FFF;
+            border-color: #8E4DFF;
+            box-shadow: 0 4px 15px rgba(142, 77, 255, 0.4);
+        }
+
+        /* Summary Cards Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+            margin-bottom: 25px;
+        }
+        .stat-card {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            transition: 0.3s;
+        }
+        .stat-card:hover {
+            transform: translateY(-2px);
+            border-color: rgba(142, 77, 255, 0.3);
+            background: rgba(20, 22, 60, 0.4);
+        }
+        .stat-icon {
+            width: 46px; height: 46px; border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 18px; color: #FFF;
+        }
+        .stat-icon-purple { background: linear-gradient(135deg, #8E4DFF, #5B2EFF); }
+        .stat-icon-blue { background: linear-gradient(135deg, #3399FF, #0066FF); }
+        .stat-icon-yellow { background: linear-gradient(135deg, #FFD23F, #FF9900); }
+        .stat-info { display: flex; flex-direction: column; gap: 4px; }
+        .stat-label { font-size: 11px; color: #8E95BE; font-weight: bold; text-transform: uppercase; }
+        .stat-val { font-size: 20px; font-weight: 800; color: #FFF; }
+
+        /* Canvas charts */
+        .chart-wrapper { width: 100%; height: 260px; position: relative; margin-bottom: 10px; }
+
+        /* Tables styles */
+        .table-wrapper { width: 100%; overflow-x: auto; border-radius: 12px; }
+        table { width: 100%; border-collapse: collapse; min-width: 700px; }
+        th, td { border-bottom: 1px solid rgba(142, 77, 255, 0.15); padding: 12px 16px; text-align: left; font-size: 13px; color: #E2D1FF;}
+        th { background-color: rgba(91, 46, 255, 0.1); color: #FFF; font-weight: 600; }
+        tr:hover td { background-color: rgba(142, 77, 255, 0.03); }
+
+        .btn-icon {
+            background: transparent;
+            border: none;
+            color: #A6ADCE;
+            font-size: 15px;
+            cursor: pointer;
+            padding: 4px;
+            transition: 0.2s;
+        }
+        .btn-icon:hover { color: #8E4DFF; }
+
+        /* Badges status */
+        .status-badge { display: inline-block; padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; text-align: center; }
+        .badge-dahoc { background: rgba(16, 185, 129, 0.15); color: #10B981; border: 1px solid rgba(16, 185, 129, 0.3); }
+        .badge-hocbu { background: rgba(59, 130, 246, 0.15); color: #3B82F6; border: 1px solid rgba(59, 130, 246, 0.3); }
+        .badge-nghi { background: rgba(239, 68, 68, 0.15); color: #EF4444; border: 1px solid rgba(239, 68, 68, 0.3); }
+        
+        .badge-hoanthanh { background: rgba(16, 185, 129, 0.15); color: #10B981; }
+        .badge-thieu { background: rgba(245, 158, 11, 0.15); color: #F59E0B; }
+
+        /* ================= SLIDE DOWN HOMEWORK SECTION ================= */
+        .hw-slidedown-box {
+            display: none;
+            overflow: hidden;
+            background: rgba(14, 15, 45, 0.6);
+            border: 1px solid rgba(142, 77, 255, 0.3);
+            border-radius: 16px;
+            padding: 24px;
+            margin-top: 20px;
+            margin-bottom: 25px;
+            animation: slideDown 0.4s ease forwards;
+        }
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .hw-sub-grid {
+            display: grid;
+            grid-template-columns: 1.12fr 1.88fr;
+            gap: 24px;
+        }
+        .hw-sub-card {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 20px;
+        }
+        .hw-sub-card h5 {
+            font-size: 14px;
+            font-weight: 700;
+            color: #E2D1FF;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-transform: uppercase;
+        }
+        
+        /* Form styling */
+        .form-layout { display: flex; flex-direction: column; gap: 12px; }
+        .form-field { display: flex; flex-direction: column; gap: 4px; }
+        .form-field label { font-size: 11px; color: #8E95BE; font-weight: 700; text-transform: uppercase; }
+        .form-field input, .form-field select {
+            background: #04020A;
+            border: 1px solid rgba(142, 77, 255, 0.25);
+            border-radius: 8px;
+            color: #FFF;
+            padding: 8px 12px;
+            font-size: 13px;
+            outline: none;
+            width: 100%;
+        }
+        .form-field input:focus, .form-field select:focus { border-color: #8E4DFF; }
+
+        .btn-action-small {
+            background: linear-gradient(90deg, #9933ff, #7a1aff);
+            color: #FFF;
+            border: none;
+            padding: 8px 16px;
+            font-size: 13px;
+            font-weight: bold;
+            border-radius: 6px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            transition: 0.3s;
+        }
+        .btn-action-small:hover { box-shadow: 0 4px 15px rgba(153, 51, 255, 0.4); }
+
+        /* Invoice Collapse */
+        .invoice-card {
+            background: #FFF;
+            color: #333;
+            border-radius: 12px;
+            padding: 30px;
+            width: 100%;
+            max-width: 500px;
+            margin: 20px auto;
+            border: 1px solid #E5E7EB;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            font-family: 'Inter', sans-serif;
+            text-align: left;
+        }
+
+        /* Modal Overlay Styles */
+        .modal {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(8px);
+            z-index: 200;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .modal-content {
+            background: #0B0826;
+            border: 1px solid rgba(142, 77, 255, 0.4);
+            border-radius: 20px;
+            width: 100%;
+            max-width: 600px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(142, 77, 255, 0.15);
+            text-align: left;
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 1px solid rgba(142, 77, 255, 0.15);
+            padding-bottom: 12px;
+        }
+        .modal-header h3 { color: #FFF; font-size: 18px; font-weight: bold; display: flex; align-items: center; gap: 8px;}
+        .close-modal { background: transparent; border: none; color: #A6ADCE; font-size: 20px; cursor: pointer; }
+        .close-modal:hover { color: #FFF; }
+
+        /* Toast notifications container */
+        #toastContainer {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            z-index: 300;
+            pointer-events: none;
+        }
+
+        /* Responsive styling */
+        @media (max-width: 900px) {
+            .hw-sub-grid { grid-template-columns: 1fr; }
+            .dashboard-header { flex-direction: column; align-items: flex-start; gap: 15px; }
+            .dashboard-header-right { width: 100%; justify-content: space-between; }
+        }
+        @media (max-width: 600px) {
+            .stats-grid { grid-template-columns: 1fr; }
+            .modal-content { padding: 20px; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <a href="index.html" class="btn-header"><i class="fa-solid fa-arrow-left"></i> Trang chủ</a>
+    </header>
+
+    <main class="main-container">
+        <div class="badge" id="roleBadge">Học vụ nội bộ</div>
+        <h2 class="main-title" id="pageTitle">Hệ thống <span>Quản trị & Quản vụ</span></h2>
+
+        <!-- Khung Đăng nhập bảo mật -->
+        <div class="login-card" id="loginCard">
+            <div class="login-title">
+                <i class="fa-solid fa-shield-halved"></i> Xác thực tài khoản nhân sự
+            </div>
+            <div class="form-group">
+                <div class="form-row">
+                    <label for="phoneInput">Số điện thoại đăng ký</label>
+                    <div class="input-wrapper">
+                        <i class="fa-solid fa-phone input-icon"></i>
+                        <input type="text" id="phoneInput" placeholder="Ví dụ: 0975546830...">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <label for="pinInput">Mã PIN bảo mật</label>
+                    <div class="input-wrapper">
+                        <i class="fa-solid fa-lock-open input-icon"></i>
+                        <input type="password" id="pinInput" placeholder="Mã PIN 4-6 số...">
+                    </div>
+                </div>
+            </div>
+            <button class="btn-submit" onclick="dangNhap()">
+                Đăng nhập hệ thống <i class="fa-solid fa-right-to-bracket"></i>
+            </button>
+            <p id="errorMsg" class="error-msg"></p>
+            <p id="loadingText" class="loading-text"><i class="fa-solid fa-circle-notch fa-spin"></i> Đang xác thực tài khoản...</p>
+        </div>
+
+        <!-- ================= PHÂN HỆ GIA SƯ ================= -->
+        <div class="dashboard-box" id="tutorDashboardBox">
+            <div class="dashboard-header">
+                <h3 id="tutorGreeting">Xin chào, Gia sư</h3>
+                <div class="dashboard-header-right">
+                    <button class="btn-action-header btn-action-primary" onclick="openTutorAccountModal()"><i class="fa-solid fa-user-gear"></i> Tài khoản QR</button>
+                    <button class="btn-action-header btn-action-danger" onclick="dangXuat()"><i class="fa-solid fa-power-off"></i> Đăng xuất</button>
+                </div>
+            </div>
+
+            <!-- Tabs Gia sư -->
+            <div class="dashboard-tabs">
+                <button class="tab-btn active" id="btnTutorTabStudent" onclick="switchTutorTab('student')"><i class="fa-solid fa-user-graduate"></i> Quản lý Học sinh</button>
+                <button class="tab-btn" id="btnTutorTabSchedule" onclick="switchTutorTab('schedule')"><i class="fa-solid fa-calendar-days"></i> Lịch dạy tuần</button>
+            </div>
+
+            <!-- Tab 1: Quản lý học sinh -->
+            <div id="tutorTabStudent">
+                <div class="student-selector-grid" id="tutorStudentBtnContainer">
+                    <!-- Nạp động danh sách học sinh nút bấm -->
+                </div>
+
+                <!-- Thông tin chi tiết học sinh được chọn -->
+                <div id="tutorStudentDetail" style="display: none;">
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-icon stat-icon-purple"><i class="fa-solid fa-money-bill-wave"></i></div>
+                            <div class="stat-info">
+                                <div class="stat-label">Học phí chưa đóng</div>
+                                <div class="stat-val" id="tutorUnpaidRevenue">0đ</div>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon stat-icon-blue"><i class="fa-solid fa-wallet"></i></div>
+                            <div class="stat-info">
+                                <div class="stat-label">Học phí đã đóng tháng</div>
+                                <div class="stat-val" id="tutorPaidRevenue">0đ</div>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon stat-icon-yellow"><i class="fa-solid fa-user-check"></i></div>
+                            <div class="stat-info">
+                                <div class="stat-label">Tỷ lệ chuyên cần</div>
+                                <div class="stat-val" id="tutorAttendanceRate">0%</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Slide down Giao bài tập & nộp bài -->
+                    <div class="hw-slidedown-box" id="homeworkSlidedownContainer" style="display: block;">
+                        <h4 style="color:#FFD23F; font-size:15px; margin-bottom:15px;"><i class="fa-solid fa-book"></i> Phân hệ Quản lý Bài tập: <span id="hwDetailStudentName" style="color:#FFF;">-</span></h4>
+                        <div class="hw-sub-grid">
+                            <!-- Cột trái: Giao bài tập -->
+                            <div class="hw-sub-card">
+                                <h5><i class="fa-solid fa-square-plus"></i> Giao bài tập mới</h5>
+                                <div class="form-layout">
+                                    <div class="form-field">
+                                        <label>Mã bài tập</label>
+                                        <input type="text" id="giaoMaBt" placeholder="Ví dụ: BT-MATH9-01">
+                                    </div>
+                                    <div class="form-field">
+                                        <label>Môn học</label>
+                                        <select id="giaoMon">
+                                            <option value="Toán học">Toán học</option>
+                                            <option value="Vật lý">Vật lý</option>
+                                            <option value="Hóa học">Hóa học</option>
+                                            <option value="Tiếng Anh">Tiếng Anh</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-field">
+                                        <label>Tên bài tập</label>
+                                        <input type="text" id="giaoTen" placeholder="Nhập tên bài/chuyên đề...">
+                                    </div>
+                                    <div class="form-field">
+                                        <label>Hạn nộp</label>
+                                        <input type="text" id="giaoHanNop" placeholder="Ví dụ: 15/07/2026">
+                                    </div>
+                                    <div class="form-field">
+                                        <label>Tải file đề bài (.pdf/ảnh)</label>
+                                        <input type="file" id="giaoFileSelector" onchange="onGiaoFileSelected(this)">
+                                        <div id="giaoFileNameDisplay" style="font-size:11px; color:#FFD23F; margin-top:4px; display:none;"></div>
+                                    </div>
+                                    <button class="btn-action-small" onclick="saveGiaoBaiTap()" style="margin-top:10px;"><i class="fa-solid fa-cloud-arrow-up"></i> Giao bài ngay</button>
+                                </div>
+                            </div>
+                            
+                            <!-- Cột phải: Danh sách đã nộp -->
+                            <div class="hw-sub-card">
+                                <h5><i class="fa-solid fa-list-check"></i> Các bài đã nộp</h5>
+                                <div class="table-wrapper">
+                                    <table id="tutorHomeworkNopTable">
+                                        <thead>
+                                            <tr>
+                                                <th>Thời gian nộp</th>
+                                                <th>Mã bài</th>
+                                                <th>Tên bài học</th>
+                                                <th>File bài làm</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <!-- Điền động học sinh nộp -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Điểm học sinh -->
+                    <div class="dashboard-section">
+                        <h4><i class="fa-solid fa-chart-line"></i> Biểu đồ điểm số cá nhân</h4>
+                        <div class="chart-wrapper">
+                            <canvas id="tutorStudentDiemChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Nhật ký học tập & đóng học phí -->
+                    <div class="dashboard-section">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                            <h4><i class="fa-solid fa-book-open"></i> Nhật ký giảng dạy & Học phí</h4>
+                            <div style="display:flex; gap:10px;">
+                                <button class="btn-action-small" onclick="openAddLessonModal()"><i class="fa-solid fa-circle-plus"></i> Đăng nhật ký</button>
+                                <button class="btn-action-small" onclick="toggleInvoiceCollapse()" style="background:rgba(255,210,63,0.1); border:1px solid #FFD23F; color:#FFD23F;"><i class="fa-solid fa-file-invoice-dollar"></i> Xuất hóa đơn</button>
+                            </div>
+                        </div>
+                        
+                        <!-- Lịch sử nhật ký table -->
+                        <div class="table-wrapper" id="tutorStudentHistoryContainer">
+                            <!-- Nạp động table/accordion -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab 2: Lịch dạy -->
+            <div id="tutorTabSchedule" style="display: none;">
+                <div class="dashboard-section">
+                    <h4><i class="fa-solid fa-calendar-week"></i> Thời khóa biểu các lớp phụ trách</h4>
+                    <div class="table-wrapper">
+                        <table id="tutorScheduleTable">
+                            <thead>
+                                <tr>
+                                    <th>Học sinh</th>
+                                    <th>Thứ 2</th>
+                                    <th>Thứ 3</th>
+                                    <th>Thứ 4</th>
+                                    <th>Thứ 5</th>
+                                    <th>Thứ 6</th>
+                                    <th>Thứ 7</th>
+                                    <th>Chủ nhật</th>
+                                    <th style="width: 50px;">Sửa</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Điền động lịch dạy -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= PHÂN HỆ ADMIN ================= -->
+        <div class="dashboard-box" id="adminDashboardBox">
+            <div class="dashboard-header">
+                <h3 id="adminGreeting">Xin chào, Admin</h3>
+                <div class="dashboard-header-right">
+                    <button class="btn-action-header btn-action-primary" onclick="openAdminAccountModal()"><i class="fa-solid fa-user-gear"></i> Tài khoản Admin</button>
+                    <button class="btn-action-header btn-action-danger" onclick="dangXuat()"><i class="fa-solid fa-power-off"></i> Đăng xuất</button>
+                </div>
+            </div>
+
+            <!-- Tabs Admin -->
+            <div class="dashboard-tabs">
+                <button class="tab-btn active" id="btnAdminTabReport" onclick="switchAdminTab('report')"><i class="fa-solid fa-chart-column"></i> Báo cáo Tài chính</button>
+                <button class="tab-btn" id="btnAdminTabTutors" onclick="switchAdminTab('tutors')"><i class="fa-solid fa-chalkboard-user"></i> Quản lý Gia sư</button>
+                <button class="tab-btn" id="btnAdminTabStudents" onclick="switchAdminTab('students')"><i class="fa-solid fa-user-graduate"></i> Quản lý Học sinh</button>
+            </div>
+
+            <!-- Tab 1: Báo cáo doanh thu -->
+            <div id="adminTabReport">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon stat-icon-purple"><i class="fa-solid fa-file-invoice-dollar"></i></div>
+                        <div class="stat-info">
+                            <div class="stat-label">Tổng doanh thu dự kiến</div>
+                            <div class="stat-val" id="adminExpectedRevenue">0đ</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon stat-icon-blue"><i class="fa-solid fa-hand-holding-dollar"></i></div>
+                        <div class="stat-info">
+                            <div class="stat-label">Tổng thực tế đã thu</div>
+                            <div class="stat-val" id="adminPaidRevenue">0đ</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon stat-icon-yellow"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                        <div class="stat-info">
+                            <div class="stat-label">Học phí nợ đọng</div>
+                            <div class="stat-val" id="adminUnpaidRevenue">0đ</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="dashboard-section">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                        <h4><i class="fa-solid fa-chart-area"></i> Biểu đồ doanh thu theo tháng</h4>
+                        <div class="form-field" style="width: 180px;">
+                            <select id="adminReportMonthSelect" onchange="renderAdminReportData()">
+                                <!-- Điền động danh sách tháng -->
+                            </select>
+                        </div>
+                    </div>
+                    <div class="chart-wrapper">
+                        <canvas id="adminRevenueChartCanvas"></canvas>
+                    </div>
+                </div>
+
+                <div class="dashboard-section">
+                    <h4><i class="fa-solid fa-list-check"></i> Chi tiết doanh thu từng gia sư trong tháng</h4>
+                    <div class="table-wrapper">
+                        <table id="adminReportTable">
+                            <thead>
+                                <tr>
+                                    <th>Họ tên gia sư</th>
+                                    <th>Doanh thu dự kiến</th>
+                                    <th>Thực thu đã đóng</th>
+                                    <th>Số tiền nợ</th>
+                                    <th style="width: 100px; text-align: center;">Tỷ lệ thu</th>
+                                </tr>
+                            </thead>
+                            <tbody id="adminReportTableBody">
+                                <!-- Điền động breakdown -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab 2: Quản lý Gia sư -->
+            <div id="adminTabTutors" style="display: none;">
+                <div class="dashboard-section">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                        <h4><i class="fa-solid fa-chalkboard-user"></i> Danh sách gia sư toàn hệ thống</h4>
+                        <div style="display:flex; gap:10px;">
+                            <button class="btn-action-small" onclick="openAdminAddTutorModal()"><i class="fa-solid fa-user-plus"></i> Thêm gia sư</button>
+                            <button class="btn-action-small" onclick="openTutorTrashModal()" style="background:rgba(239,68,68,0.1); border:1px solid #EF4444; color:#EF4444;"><i class="fa-solid fa-trash-can"></i> Thùng rác</button>
+                        </div>
+                    </div>
+                    <div class="table-wrapper">
+                        <table id="adminTutorsTable">
+                            <thead>
+                                <tr>
+                                    <th>Họ tên gia sư</th>
+                                    <th>Số điện thoại</th>
+                                    <th>Mã PIN</th>
+                                    <th style="width: 80px; text-align: center;">Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Điền động ds gia sư -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab 3: Quản lý học sinh -->
+            <div id="adminTabStudents" style="display: none;">
+                <div class="dashboard-section">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                        <h4><i class="fa-solid fa-user-graduate"></i> Danh sách học sinh toàn hệ thống</h4>
+                        <button class="btn-action-small" onclick="openAdminAddStudentModal()"><i class="fa-solid fa-circle-plus"></i> Thêm học sinh</button>
+                    </div>
+                    <div class="table-wrapper">
+                        <table id="adminStudentsTable">
+                            <thead>
+                                <tr>
+                                    <th>Họ tên học sinh</th>
+                                    <th>Họ tên phụ huynh</th>
+                                    <th>Số điện thoại</th>
+                                    <th>Học phí / Buổi</th>
+                                    <th>Gia sư phụ trách</th>
+                                    <th>Trạng thái</th>
+                                    <th style="width: 80px; text-align: center;">Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Điền động ds học sinh -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- ================= MODALS HỆ THỐNG GIA SƯ ================= -->
+    
+    <!-- Modal Sửa thời khóa biểu (Gia sư) -->
+    <div class="modal" id="editScheduleModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-calendar-week"></i> Sửa thời khóa biểu</h3>
+                <button class="close-modal" onclick="closeEditScheduleModal()">&times;</button>
+            </div>
+            <div class="form-layout">
+                <input type="hidden" id="schStudentName">
+                <div class="form-field">
+                    <label>Thứ hai</label>
+                    <input type="text" id="schMon" placeholder="Ví dụ: 19:00 - 21:00">
+                </div>
+                <div class="form-field">
+                    <label>Thứ ba</label>
+                    <input type="text" id="schTue" placeholder="Ví dụ: 19:00 - 21:00">
+                </div>
+                <div class="form-field">
+                    <label>Thứ tư</label>
+                    <input type="text" id="schWed" placeholder="Ví dụ: 19:00 - 21:00">
+                </div>
+                <div class="form-field">
+                    <label>Thứ năm</label>
+                    <input type="text" id="schThu" placeholder="Ví dụ: 19:00 - 21:00">
+                </div>
+                <div class="form-field">
+                    <label>Thứ sáu</label>
+                    <input type="text" id="schFri" placeholder="Ví dụ: 19:00 - 21:00">
+                </div>
+                <div class="form-field">
+                    <label>Thứ bảy</label>
+                    <input type="text" id="schSat" placeholder="Ví dụ: 19:00 - 21:00">
+                </div>
+                <div class="form-field">
+                    <label>Chủ nhật</label>
+                    <input type="text" id="schSun" placeholder="Ví dụ: 19:00 - 21:00">
+                </div>
+                <button class="btn-submit" id="btnSaveSchedule" onclick="saveSchedule()" style="margin-top:15px;">Lưu cập nhật</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Thùng rác Học sinh (Gia sư) -->
+    <div class="modal" id="trashModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-trash-can"></i> Học sinh đã xóa tạm thời</h3>
+                <button class="close-modal" onclick="closeTrashModal()">&times;</button>
+            </div>
+            <div class="form-layout" id="trashStudentList" style="gap:12px;">
+                <!-- Điền động ds học sinh xóa -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Tài khoản QR (Gia sư) -->
+    <div class="modal" id="tutorAccountModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-user-gear"></i> Tài khoản gia sư & QR Code</h3>
+                <button class="close-modal" onclick="closeTutorAccountModal()">&times;</button>
+            </div>
+            <div class="form-layout">
+                <div class="form-field">
+                    <label>Tên gia sư</label>
+                    <input type="text" id="accTutorName">
+                </div>
+                <div class="form-field">
+                    <label>Số điện thoại</label>
+                    <input type="text" id="accTutorPhone">
+                </div>
+                <div class="form-field">
+                    <label>Mã PIN đăng nhập</label>
+                    <input type="password" id="accTutorPin">
+                </div>
+                <div class="form-field">
+                    <label>Số lượng học sinh phụ trách</label>
+                    <input type="text" id="accClassCount" readonly style="background:rgba(255,255,255,0.02);">
+                </div>
+                <div class="form-field">
+                    <label>Học phí nợ đọng tạm tính</label>
+                    <input type="text" id="accUnpaidIncome" readonly style="background:rgba(255,255,255,0.02);">
+                </div>
+                <div class="form-field" style="text-align: center; margin-top:10px;">
+                    <label>QR Code nhận chuyển khoản</label>
+                    <div id="accQrText" style="display:none; font-size:13px; color:#EF4444; font-style:italic;">Gia sư chưa cập nhật link QR chuyển khoản. Vui lòng nhờ Admin cập nhật.</div>
+                    <img id="accQrImg" src="" alt="QR thanh toán" style="max-width:200px; display:block; margin: 10px auto; border-radius:8px;">
+                </div>
+                <button class="btn-submit" onclick="saveTutorAccount()" style="margin-top:15px;">Lưu thay đổi</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Thêm buổi học mới (Gia sư) -->
+    <div class="modal" id="addLessonModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-circle-plus"></i> Đăng nhật ký buổi học mới</h3>
+                <button class="close-modal" onclick="closeAddLessonModal()">&times;</button>
+            </div>
+            <div class="form-layout">
+                <div class="form-field">
+                    <label>Tuần dạy học</label>
+                    <input type="number" id="lesTuan" value="1">
+                </div>
+                <div class="form-field">
+                    <label>Ngày dạy</label>
+                    <input type="text" id="lesNgay" placeholder="Ví dụ: 13/07">
+                </div>
+                <div class="form-field">
+                    <label>Môn dạy</label>
+                    <select id="lesMon">
+                        <option value="Toán học">Toán học</option>
+                        <option value="Vật lý">Vật lý</option>
+                        <option value="Hóa học">Hóa học</option>
+                        <option value="Tiếng Anh">Tiếng Anh</option>
+                    </select>
+                </div>
+                <div class="form-field">
+                    <label>Trạng thái</label>
+                    <select id="lesTrangThai">
+                        <option value="Đã học">Đã học</option>
+                        <option value="Học bù">Học bù</option>
+                        <option value="Hủy/ nghỉ">Hủy/ nghỉ</option>
+                    </select>
+                </div>
+                <div class="form-field">
+                    <label>Bài tập về nhà</label>
+                    <select id="lesBtvn">
+                        <option value="Hoàn thành">Hoàn thành</option>
+                        <option value="Thiếu">Thiếu</option>
+                        <option value="Không có">Không có</option>
+                    </select>
+                </div>
+                <div class="form-field">
+                    <label>Điểm kiểm tra đầu giờ</label>
+                    <input type="text" id="lesDiemDau" value="Không có">
+                </div>
+                <div class="form-field">
+                    <label>Điểm kiểm tra định kỳ</label>
+                    <input type="text" id="lesDiemDinhKi" value="Không có">
+                </div>
+                <div class="form-field">
+                    <label>Nội dung buổi dạy & Nhận xét</label>
+                    <textarea id="lesNoiDung" style="background:#04020A; border:1px solid rgba(142,77,255,0.25); border-radius:8px; color:#FFF; padding:8px; font-family:inherit; font-size:13px; height:80px; resize:none;" placeholder="Bé tiếp thu bài tốt, tuy nhiên..."></textarea>
+                </div>
+                <button class="btn-submit" onclick="previewLessonLog()" style="margin-top:15px;">Xem trước & Xác nhận</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Xem trước nhật ký buổi dạy -->
+    <div class="modal" id="previewLessonModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-magnifying-glass"></i> Xác nhận đăng nhật ký</h3>
+                <button class="close-modal" onclick="closePreviewLessonModal()">&times;</button>
+            </div>
+            <div style="font-size:13px; color:#E2D1FF; display:flex; flex-direction:column; gap:10px;">
+                <p><b>Học sinh:</b> <span id="prevStudentName">Nguyễn Văn A</span></p>
+                <p><b>Tuần:</b> <span id="prevTuan">1</span> | <b>Ngày:</b> <span id="prevNgay">13/07</span></p>
+                <p><b>Môn:</b> <span id="prevMon">Toán</span> | <b>Trạng thái:</b> <span id="prevTrangThai">Đã học</span></p>
+                <p><b>BTVN:</b> <span id="prevBtvn">Hoàn thành</span></p>
+                <p><b>Điểm kiểm tra đầu giờ:</b> <span id="prevDiemDau">Không có</span></p>
+                <p><b>Điểm kiểm tra định kỳ:</b> <span id="prevDiemDinhKi">Không có</span></p>
+                <p style="border-top:1px dashed rgba(255,255,255,0.1); padding-top:10px;"><b>Nội dung dạy & Nhận xét:</b></p>
+                <p id="prevNoiDung" style="background:rgba(255,255,255,0.02); padding:10px; border-radius:8px; color:#FFF;"></p>
+            </div>
+            <button class="btn-submit" id="btnSubmitLesson" onclick="submitLessonLog()" style="margin-top:20px; background:linear-gradient(90deg, #10B981, #059669);">Đăng nhật ký ngay</button>
+        </div>
+    </div>
+
+    <!-- Modal Xem/Sửa thông tin chi tiết buổi học (Gia sư) -->
+    <div class="modal" id="editLessonModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-pen-to-square"></i> Cập nhật/Xóa buổi học</h3>
+                <button class="close-modal" onclick="closeEditLessonModal()">&times;</button>
+            </div>
+            <div class="form-layout">
+                <input type="hidden" id="editLesRowIndex">
+                <div class="form-field">
+                    <label>Tuần dạy học</label>
+                    <input type="number" id="editLesTuan">
+                </div>
+                <div class="form-field">
+                    <label>Ngày dạy</label>
+                    <input type="text" id="editLesNgay">
+                </div>
+                <div class="form-field">
+                    <label>Môn học</label>
+                    <select id="editLesMon">
+                        <option value="Toán học">Toán học</option>
+                        <option value="Vật lý">Vật lý</option>
+                        <option value="Hóa học">Hóa học</option>
+                        <option value="Tiếng Anh">Tiếng Anh</option>
+                    </select>
+                </div>
+                <div class="form-field">
+                    <label>Trạng thái</label>
+                    <select id="editLesTrangThai">
+                        <option value="Đã học">Đã học</option>
+                        <option value="Học bù">Học bù</option>
+                        <option value="Hủy/ nghỉ">Hủy/ nghỉ</option>
+                    </select>
+                </div>
+                <div class="form-field">
+                    <label>Bài tập về nhà</label>
+                    <select id="editLesBtvn">
+                        <option value="Hoàn thành">Hoàn thành</option>
+                        <option value="Thiếu">Thiếu</option>
+                        <option value="Không có">Không có</option>
+                    </select>
+                </div>
+                <div class="form-field">
+                    <label>Điểm kiểm tra đầu giờ</label>
+                    <input type="text" id="editLesDiemDau">
+                </div>
+                <div class="form-field">
+                    <label>Điểm kiểm tra định kỳ</label>
+                    <input type="text" id="editLesDiemDinhKi">
+                </div>
+                <div class="form-field">
+                    <label>Nội dung buổi dạy & Nhận xét</label>
+                    <textarea id="editLesNoiDung" style="background:#04020A; border:1px solid rgba(142,77,255,0.25); border-radius:8px; color:#FFF; padding:8px; font-family:inherit; font-size:13px; height:80px; resize:none;"></textarea>
+                </div>
+                
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px; margin-top:20px;">
+                    <button class="btn-submit" id="btnSaveEditedLesson" onclick="saveEditedLesson()" style="background:linear-gradient(90deg, #10B981, #059669);">Cập nhật</button>
+                    <button class="btn-submit" onclick="confirmDeleteLesson()" style="background:linear-gradient(90deg, #EF4444, #DC2626); shadow:none;">Xóa buổi học</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Xác thực mã PIN để Xóa (Bảo mật cho Gia sư / Admin) -->
+    <div class="modal" id="pinConfirmModal">
+        <div class="modal-content" style="max-width: 400px; border-color:#EF4444;">
+            <div class="modal-header">
+                <h3 style="color:#EF4444;"><i class="fa-solid fa-triangle-exclamation"></i> Xác thực mã PIN</h3>
+                <button class="close-modal" onclick="closePinConfirmModal()">&times;</button>
+            </div>
+            <div class="form-layout">
+                <div class="form-field">
+                    <label>Nhập mã PIN của bạn để xác thực xóa</label>
+                    <input type="password" id="confirmTutorPinInput" placeholder="Nhập mã PIN để tiếp tục...">
+                </div>
+                <button class="btn-submit" onclick="submitPinVerifyForDelete()" style="background:linear-gradient(90deg,#EF4444,#DC2626); margin-top:15px;">Xác nhận xóa</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= MODALS HỆ THỐNG ADMIN ================= -->
+
+    <!-- Modal Tài khoản Admin -->
+    <div class="modal" id="adminAccountModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-user-shield"></i> Tài khoản quản trị cơ sở</h3>
+                <button class="close-modal" onclick="closeAdminAccountModal()">&times;</button>
+            </div>
+            <div class="form-layout">
+                <div class="form-field">
+                    <label>Tên Admin</label>
+                    <input type="text" id="adminAccName">
+                </div>
+                <div class="form-field">
+                    <label>Số điện thoại quản trị</label>
+                    <input type="text" id="adminAccPhone">
+                </div>
+                <div class="form-field">
+                    <label>Mã PIN đăng nhập</label>
+                    <input type="password" id="adminAccPin">
+                </div>
+                <button class="btn-submit" id="btnSaveAdminAccount" onclick="saveAdminAccount()" style="margin-top:15px;">Lưu thông tin</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Thêm/Sửa Gia sư (Admin) -->
+    <div class="modal" id="adminEditTutorModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="adminTutorModalTitle"><i class="fa-solid fa-chalkboard-user"></i> Sửa Gia Sư</h3>
+                <button class="close-modal" onclick="closeAdminEditTutorModal()">&times;</button>
+            </div>
+            <div class="form-layout">
+                <input type="hidden" id="adminTutorOldPhone">
+                <div class="form-field">
+                    <label>Họ và tên gia sư</label>
+                    <input type="text" id="adminTutorName" placeholder="Nhập họ và tên...">
+                </div>
+                <div class="form-field">
+                    <label>Số điện thoại</label>
+                    <input type="text" id="adminTutorPhone" placeholder="SĐT đăng nhập...">
+                </div>
+                <div class="form-field">
+                    <label>Mã PIN bảo mật</label>
+                    <input type="password" id="adminTutorPin" placeholder="Mã PIN gia sư...">
+                </div>
+                <div class="form-field">
+                    <label>Link hình ảnh QR Code thanh toán</label>
+                    <input type="text" id="adminTutorQrUrl" placeholder="Link ảnh QR Code chuyển khoản của Gia sư...">
+                </div>
+                
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px; margin-top:20px;">
+                    <button class="btn-submit" id="btnSaveAdminTutor" onclick="saveAdminTutor()">Lưu lại</button>
+                    <button class="btn-submit" id="btnDeleteAdminTutor" onclick="confirmDeleteAdminTutor()" style="background:linear-gradient(90deg,#EF4444,#DC2626); shadow:none;">Khóa/Xóa gia sư</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Thùng rác Gia sư (Admin) -->
+    <div class="modal" id="tutorTrashModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-trash-can"></i> Gia sư đã xóa tạm thời</h3>
+                <button class="close-modal" onclick="closeTutorTrashModal()">&times;</button>
+            </div>
+            <div class="form-layout" id="trashTutorList" style="gap:12px;">
+                <!-- Điền động ds gia sư bị xóa -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Thêm/Sửa Học sinh (Admin) -->
+    <div class="modal" id="adminEditStudentModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="adminStudentModalTitle"><i class="fa-solid fa-user-graduate"></i> Học Sinh</h3>
+                <button class="close-modal" onclick="closeAdminEditStudentModal()">&times;</button>
+            </div>
+            <div class="form-layout">
+                <input type="hidden" id="adminStudentOldPhone">
+                <div class="form-field">
+                    <label>Họ và tên học sinh</label>
+                    <input type="text" id="adminStudentName" placeholder="Tên học sinh...">
+                </div>
+                <div class="form-field">
+                    <label>Họ và tên phụ huynh</label>
+                    <input type="text" id="adminStudentParentName" placeholder="Tên phụ huynh liên hệ...">
+                </div>
+                <div class="form-field">
+                    <label>Số điện thoại Phụ huynh (SĐT Liên kết)</label>
+                    <input type="text" id="adminStudentPhone" placeholder="SĐT phụ huynh đăng nhập...">
+                </div>
+                <div class="form-field">
+                    <label>Mức học phí / buổi học</label>
+                    <input type="number" id="adminStudentTuition" placeholder="Ví dụ: 150000...">
+                </div>
+                <div class="form-field">
+                    <label>Gia sư phụ trách</label>
+                    <select id="adminStudentTutorSelect">
+                        <!-- Điền động gia sư -->
+                    </select>
+                </div>
+                
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px; margin-top:20px;">
+                    <button class="btn-submit" id="btnSaveAdminStudent" onclick="saveAdminStudent()">Lưu lại</button>
+                    <button class="btn-submit" onclick="confirmDeleteStudent()" style="background:linear-gradient(90deg,#EF4444,#DC2626);">Khóa học sinh</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Hóa đơn Collapse Container (Gia sư) -->
+    <div class="modal" id="invoiceCollapseModal" style="overflow-y: auto;">
+        <div class="modal-content" style="max-width: 550px; background:#111827; border-color:#FFD23F;">
+            <div class="modal-header" style="border-color:rgba(255,210,63,0.2)">
+                <h3 style="color:#FFD23F;"><i class="fa-solid fa-file-invoice-dollar"></i> Phiếu học tập & Học phí</h3>
+                <button class="close-modal" onclick="toggleInvoiceCollapse()">&times;</button>
+            </div>
+            
+            <div class="form-field" style="margin-bottom:15px;">
+                <label style="color:#FFF;">Lọc học phí theo tháng</label>
+                <select id="invoiceMonthSelect" onchange="renderInvoice()" style="background:#04020A; color:#FFF; border-color:#8E4DFF; height:38px;">
+                    <option value="all">Các buổi học chưa thanh toán (Mặc định)</option>
+                    <option value="1">Tháng 1</option>
+                    <option value="2">Tháng 2</option>
+                    <option value="3">Tháng 3</option>
+                    <option value="4">Tháng 4</option>
+                    <option value="5">Tháng 5</option>
+                    <option value="6">Tháng 6</option>
+                    <option value="7">Tháng 7</option>
+                    <option value="8">Tháng 8</option>
+                    <option value="9">Tháng 9</option>
+                    <option value="10">Tháng 10</option>
+                    <option value="11">Tháng 11</option>
+                    <option value="12">Tháng 12</option>
+                </select>
+            </div>
+
+            <!-- Khung Hóa đơn xuất hình ảnh -->
+            <div id="invoiceCollapseContainer" style="background:#FFF; color:#333; border-radius:12px; padding:20px; font-family:'Inter', sans-serif;">
+                <div id="invoiceElement">
+                    <div style="text-align:center; border-bottom: 2px solid #8E4DFF; padding-bottom:10px; margin-bottom:15px;">
+                        <h4 style="font-size:18px; font-weight:800; color:#8E4DFF; margin:0;">PHIẾU TỔNG HỢP HỌC TẬP</h4>
+                        <p style="font-size:10px; color:#6B7280; font-weight:bold; margin-top:2px;" id="invMonthDisplay">THÁNG ...</p>
+                    </div>
+                    <div style="font-size:12px; line-height:1.5; margin-bottom:12px; color:#374151;">
+                        <p><b>Học sinh:</b> <span id="invStudentName" style="color:#111; font-weight:bold;">Nguyễn Văn A</span></p>
+                        <p><b>Gia sư phụ trách:</b> <span id="invTutorName" style="color:#111;">Tiến Dũng</span></p>
+                    </div>
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:12px; font-size:11px; background:#F9FAFB; padding:8px; border-radius:8px;">
+                        <div>
+                            <p style="color:#6B7280;">Đi học: <b style="color:#10B981;" id="invAttP">0</b> buổi</p>
+                            <p style="color:#6B7280;">Vắng học: <b style="color:#EF4444;" id="invAttA">0</b> buổi</p>
+                            <p style="color:#6B7280;">Học bù: <b style="color:#3B82F6;" id="invAttB">0</b> buổi</p>
+                        </div>
+                        <div>
+                            <p style="color:#6B7280;">Làm BTVN: <b style="color:#10B981;" id="invHwDone">0</b> buổi</p>
+                            <p style="color:#6B7280;">Thiếu BTVN: <b style="color:#EF4444;" id="invHwMiss">0</b> buổi</p>
+                        </div>
+                    </div>
+                    <div style="font-size:10px; color:#6B7280; margin-bottom:12px; padding:0 4px;" id="invAbsentDates">Không vắng buổi nào</div>
+                    
+                    <div style="border-top:1px dashed #E5E7EB; border-bottom:1px dashed #E5E7EB; padding:10px 0; margin-bottom:12px; font-size:11px;">
+                        <p style="font-weight:bold; margin-bottom:4px; color:#111;">Chi tiết ngày thiếu BTVN:</p>
+                        <div id="invHwMissDates" style="color:#EF4444;">• Không thiếu bài</div>
+                    </div>
+                    
+                    <div style="display:flex; justify-content:space-between; align-items:center; background:#EEF2FF; padding:10px 15px; border-radius:8px; margin-bottom:15px;">
+                        <span style="font-size:12px; font-weight:bold; color:#4338CA;" id="invFeeCalcText">Học phí:</span>
+                        <span style="font-size:15px; font-weight:800; color:#4338CA;" id="invFeeCalcTotal">0 VNĐ</span>
+                    </div>
+                    
+                    <div style="text-align:center;">
+                        <p style="font-size:10px; color:#6B7280; font-weight:bold; margin-bottom:6px;" id="invQrText">Quét mã chuyển khoản</p>
+                        <img id="invQrImg" src="" alt="QR thanh toán" style="max-width:140px; margin:0 auto; border-radius:6px; display:block;">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Gửi tin nhắn và Tải ảnh -->
+            <div class="form-layout" style="margin-top:15px;">
+                <div class="form-field">
+                    <label style="color:#FFF;">Nội dung tin nhắn gửi phụ huynh</label>
+                    <textarea id="invTextarea" style="background:#04020A; border:1px solid rgba(142,77,255,0.25); border-radius:8px; color:#FFF; padding:8px; font-family:inherit; font-size:13px; height:80px; resize:none;"></textarea>
+                </div>
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px; margin-top:10px;">
+                    <button class="btn-submit" onclick="exportInvoice()" style="background:linear-gradient(90deg, #10B981, #059669);"><i class="fa-solid fa-download"></i> Tải ảnh phiếu</button>
+                    <button class="btn-submit" onclick="toggleInvoiceCollapse()" style="background:transparent; border-color:rgba(255,255,255,0.2);">Đóng lại</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal chọn nộp hàng loạt buổi học (Gia sư) -->
+    <div class="modal" id="markPaidBulkModal">
+        <div class="modal-content" style="max-width: 450px;">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-money-bill-wave"></i> Thu học phí hàng loạt</h3>
+                <button class="close-modal" onclick="closeMarkPaidBulkModal()">&times;</button>
+            </div>
+            <div class="form-layout">
+                <div style="display:flex; align-items:center; gap:8px; margin-bottom:12px; background:rgba(255,255,255,0.02); padding:10px; border-radius:8px; border:1px solid rgba(255,255,255,0.05);">
+                    <input type="checkbox" id="chkSelectAllUnpaid" onchange="selectAllUnpaidSessions(this)" style="cursor:pointer; width:16px; height:16px; accent-color:#8E4DFF;">
+                    <label for="chkSelectAllUnpaid" style="cursor:pointer; font-weight:bold; font-size:13px; color:#E2D1FF; margin:0; user-select:none;">Chọn tất cả buổi chưa đóng</label>
+                </div>
+                <div id="unpaidLessonsListContainer" style="display:flex; flex-direction:column; gap:8px; max-height:220px; overflow-y:auto; margin-bottom:15px;">
+                    <!-- Điền động ds buổi chưa đóng -->
+                </div>
+                <button class="btn-submit" id="btnMarkPaid" onclick="submitMarkSessionsPaid()"><i class="fa-solid fa-circle-check"></i> Xác nhận Đóng học phí</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toastContainer"></div>
+
+    <script>
+        // API Apps Script
+        const API_URL = "https://script.google.com/macros/s/AKfycbwq5p6YI09pD-jR5w8Xy18080u6_kK1f65rA-uG1R1o0b686386/exec";
+        
+        var savedApiUrl = localStorage.getItem('apiurl');
+        const CURRENT_API = savedApiUrl ? savedApiUrl : API_URL;
+
+        var tutorDataGlobal = null;
+        var adminDataGlobal = null;
+        var currentTutorStudent = null;
+        var currentTutorPhone = null;
+        var currentAdminPhone = null;
+        var currentAdminTab = "report";
+        var currentTutorTab = "student";
+        var tutorChartInstance = null;
+        var adminRevenueChartInstance = null;
+        var pinVerifyAction = null; // Dùng để xác nhận mã PIN trước khi xóa
+        
+        // File nộp của Gia sư giao bài tập
+        var giaoFileBase64 = null;
+        var giaoFileName = null;
+        var giaoFileType = null;
+
+        // Gọi fetch API
+        function callApi(action, data) {
+            return fetch(CURRENT_API, {
+                method: "POST",
+                mode: "cors",
+                headers: { "Content-Type": "text/plain" },
+                body: JSON.stringify({ action: action, data: data })
+            })
+            .then(response => {
+                if (!response.ok) throw new Error("Mất kết nối server!");
+                return response.json();
+            });
+        }
+
+        // Tự động kiểm tra cache đăng nhập
+        window.onload = function() {
+            var phone = localStorage.getItem('user_phone');
+            var pin = localStorage.getItem('user_pin');
+            var role = localStorage.getItem('user_role');
+            
+            if (phone && pin) {
+                document.getElementById('phoneInput').value = phone;
+                document.getElementById('pinInput').value = pin;
+                dangNhap(true);
+            }
+        };
+
+        // Đăng nhập hệ thống bảo mật
+        function dangNhap(isAuto = false) {
+            var phone = document.getElementById('phoneInput').value.trim();
+            var pin = document.getElementById('pinInput').value.trim();
+            var errorEl = document.getElementById('errorMsg');
+            var loadingEl = document.getElementById('loadingText');
+            
+            if (phone === "" || pin === "") {
+                errorEl.innerText = "Vui lòng nhập đầy đủ Số điện thoại & mã PIN!";
+                errorEl.style.display = "block";
+                return;
+            }
+            
+            errorEl.style.display = "none";
+            loadingEl.style.display = "block";
+            
+            callApi("loginSystem", { phone: phone, pin: pin })
+                .then(res => {
+                    loadingEl.style.display = "none";
+                    if (res.error) {
+                        errorEl.innerText = res.error;
+                        errorEl.style.display = "block";
+                        if (isAuto) dangXuat();
+                    } else {
+                        // Lưu cache đăng nhập
+                        localStorage.setItem('user_phone', phone);
+                        localStorage.setItem('user_pin', pin);
+                        localStorage.setItem('user_role', res.role);
+                        
+                        document.getElementById('loginCard').style.display = "none";
+                        
+                        if (res.role === 'admin') {
+                            currentAdminPhone = phone;
+                            document.getElementById('roleBadge').innerText = "Phân hệ quản trị";
+                            document.getElementById('pageTitle').innerHTML = "Cổng quản trị <span>Admin</span>";
+                            renderAdminView(res.data);
+                        } else if (res.role === 'tutor') {
+                            currentTutorPhone = phone;
+                            tutorDataGlobal = res.data;
+                            document.getElementById('roleBadge').innerText = "Phân hệ gia sư";
+                            document.getElementById('pageTitle').innerHTML = "Cổng nghiệp vụ <span>Gia sư</span>";
+                            renderTutorView(res.data);
+                        } else {
+                            errorEl.innerText = "Tài khoản không thuộc quyền quản lý nội bộ!";
+                            errorEl.style.display = "block";
+                            dangXuat();
+                        }
+                    }
+                })
+                .catch(err => {
+                    loadingEl.style.display = "none";
+                    errorEl.innerText = "Lỗi kết nối: " + err.message;
+                    errorEl.style.display = "block";
+                });
+        }
+
+        // Đăng xuất và xóa cache
+        function dangXuat() {
+            localStorage.removeItem('user_phone');
+            localStorage.removeItem('user_pin');
+            localStorage.removeItem('user_role');
+            
+            document.getElementById('loginCard').style.display = "block";
+            document.getElementById('tutorDashboardBox').style.display = "none";
+            document.getElementById('adminDashboardBox').style.display = "none";
+            
+            document.getElementById('phoneInput').value = "";
+            document.getElementById('pinInput').value = "";
+            
+            document.getElementById('roleBadge').innerText = "Học vụ nội bộ";
+            document.getElementById('pageTitle').innerHTML = "Hệ thống <span>Quản trị & Quản vụ</span>";
+            
+            if (tutorChartInstance) { tutorChartInstance.destroy(); tutorChartInstance = null; }
+            if (adminRevenueChartInstance) { adminRevenueChartInstance.destroy(); adminRevenueChartInstance = null; }
+        }
+
+        // ================= XỬ LÝ GIAO DIỆN GIA SƯ =================
+        function switchTutorTab(tabName) {
+            currentTutorTab = tabName;
+            document.getElementById('btnTutorTabStudent').className = tabName === 'student' ? 'tab-btn active' : 'tab-btn';
+            document.getElementById('btnTutorTabSchedule').className = tabName === 'schedule' ? 'tab-btn active' : 'tab-btn';
+            
+            document.getElementById('tutorTabStudent').style.display = tabName === 'student' ? 'block' : 'none';
+            document.getElementById('tutorTabSchedule').style.display = tabName === 'schedule' ? 'block' : 'none';
+        }
+
+        function renderTutorView(data) {
+            document.getElementById('tutorDashboardBox').style.display = "block";
+            document.getElementById('tutorGreeting').innerText = "Xin chào, Gia sư " + data.tutorName;
+            
+            // Render nút bấm danh sách học sinh
+            var btnContainer = document.getElementById('tutorStudentBtnContainer');
+            btnContainer.innerHTML = "";
+            
+            if (!data.students || data.students.length === 0) {
+                btnContainer.innerHTML = "<p style='color: #8E95BE; font-size: 14px;'>Bạn chưa có học sinh nào được gán lớp.</p>";
+                return;
+            }
+            
+            data.students.forEach((st, idx) => {
+                var btn = document.createElement('button');
+                btn.className = "student-btn";
+                btn.id = "btn-st-" + idx;
+                btn.innerHTML = '<i class="fa-solid fa-user-graduate"></i> ' + st.name;
+                btn.onclick = function() { selectTutorStudent(idx); };
+                btnContainer.appendChild(btn);
+            });
+            
+            // Nút mở thùng rác học sinh
+            btnContainer.innerHTML += '<button class="student-btn" onclick="openTrashModal()" style="border-color:#EF4444; color:#EF4444;"><i class="fa-solid fa-trash-can"></i> Thùng rác</button>';
+            
+            // Load thời khóa biểu dạy
+            taiLichDayTutor();
+        }
+
+        function selectTutorStudent(idx) {
+            var btns = document.querySelectorAll('.student-btn');
+            btns.forEach(b => b.classList.remove('active'));
+            
+            var targetBtn = document.getElementById('btn-st-' + idx);
+            if (targetBtn) targetBtn.classList.add('active');
+            
+            currentTutorStudent = tutorDataGlobal.students[idx];
+            document.getElementById('tutorStudentDetail').style.display = "block";
+            document.getElementById('hwDetailStudentName').innerText = currentTutorStudent.name;
+            
+            // Đồng bộ nạp thông tin hóa đơn
+            document.getElementById('invStudentName').innerText = currentTutorStudent.name;
+            document.getElementById('invTutorName').innerText = tutorDataGlobal.tutorName;
+            
+            // Reset hóa đơn modal
+            document.getElementById('invoiceCollapseContainer').style.display = "block";
+            
+            // Tải thông tin học sinh
+            taiLogHocSinh();
+        }
+
+        // Tải nhật ký đánh giá & bài nộp & vẽ biểu đồ điểm
+        function taiLogHocSinh() {
+            if (!currentTutorStudent) return;
+            
+            showToast("Đang đồng bộ dữ liệu học sinh...", "info");
+            
+            // Tải log buổi học
+            callApi("getStudentDetailsForTutor", { studentPhone: currentTutorStudent.phone })
+                .then(res => {
+                    currentTutorStudent.logs = res.logs || [];
+                    renderInvoice();
+                    renderTutorChart(res.logs || []);
+                    renderTutorStudentHistory(res.logs || []);
+                });
+                
+            // Tải danh sách bài làm học sinh đã nộp
+            callApi("layDanhSachHocSinhNop", { studentPhone: currentTutorStudent.phone })
+                .then(list => {
+                    var tbody = document.querySelector('#tutorHomeworkNopTable tbody');
+                    tbody.innerHTML = "";
+                    if (list.length === 0) {
+                        tbody.innerHTML = "<tr><td colspan='4' style='text-align:center; color:#8E95BE;'>Học sinh này chưa nộp bài tập nào.</td></tr>";
+                        return;
+                    }
+                    
+                    list.reverse().forEach(log => {
+                        var tr = document.createElement('tr');
+                        tr.innerHTML = "<td>" + log.thoiGianNop + "</td>" +
+                                       "<td><b>" + log.maBt.toUpperCase() + "</b></td>" +
+                                       "<td>" + log.tenBaiHoc + "</td>" +
+                                       '<td><a href="' + log.linkBaiLam + '" target="_blank" style="color:#FFD23F; font-weight:bold; text-decoration:none;"><i class="fa-solid fa-file-pdf"></i> Xem bài nộp</a></td>';
+                        tbody.appendChild(tr);
+                    });
+                })
+                .catch(err => {
+                    showToast("Không thể tải danh sách bài tập đã nộp của học sinh.", "error");
+                });
+        }
+
+        // Đọc đề bài do gia sư tải lên
+        function onGiaoFileSelected(input) {
+            var file = input.files[0];
+            var nameDisplay = document.getElementById('giaoFileNameDisplay');
+            if (!file) {
+                giaoFileBase64 = null;
+                nameDisplay.style.display = "none";
+                return;
+            }
+            giaoFileName = file.name;
+            giaoFileType = file.type;
+            nameDisplay.innerText = "Đã chọn: " + file.name;
+            nameDisplay.style.display = "block";
+            
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                giaoFileBase64 = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // Submit Giao bài tập
+        function saveGiaoBaiTap() {
+            var maBt = document.getElementById('giaoMaBt').value.trim();
+            var mon = document.getElementById('giaoMon').value;
+            var ten = document.getElementById('giaoTen').value.trim();
+            var han = document.getElementById('giaoHanNop').value.trim();
+            
+            if (maBt === "" || ten === "" || han === "") {
+                showToast("Vui lòng nhập đầy đủ Mã bài tập, Tên bài tập và Hạn nộp!", "error");
+                return;
+            }
+            
+            showToast("Đang tải đề bài lên Google Drive...", "info");
+            
+            var today = new Date();
+            var dateStr = UtilitiesFormatDate(today, "dd/MM/yyyy");
+            
+            callApi("giaoBaiTap", {
+                maBt: maBt,
+                monHoc: mon,
+                tenBaiTap: ten,
+                ngayPhatHanh: dateStr,
+                hanNop: han,
+                fileBase64: giaoFileBase64,
+                fileName: giaoFileName,
+                mimeType: giaoFileType
+            })
+            .then(res => {
+                if (res.error) {
+                    showToast("Lỗi: " + res.error, "error");
+                } else {
+                    showToast("Giao bài tập thành công! Mã bài tập: " + maBt.toUpperCase(), "success");
+                    // Reset form
+                    document.getElementById('giaoMaBt').value = "";
+                    document.getElementById('giaoTen').value = "";
+                    document.getElementById('giaoHanNop').value = "";
+                    document.getElementById('giaoFileSelector').value = "";
+                    document.getElementById('giaoFileNameDisplay').style.display = "none";
+                    giaoFileBase64 = null;
+                }
+            })
+            .catch(err => {
+                showToast("Lỗi kết nối: " + err.message, "error");
+            });
+        }
+
+        // Vẽ biểu đồ học sinh
+        function renderTutorChart(logs) {
+            if (tutorChartInstance) { tutorChartInstance.destroy(); tutorChartInstance = null; }
+            
+            var labels = [];
+            var dataDauGio = [];
+            var dataDinhKi = [];
+            
+            logs.forEach((item, idx) => {
+                labels.push("Buổi " + (idx + 1));
+                var valDG = parseFloat(item.diemDauGio);
+                var valDK = parseFloat(item.diemDinhKi);
+                dataDauGio.push(!isNaN(valDG) && valDG >= 0 && valDG <= 10 ? valDG : null);
+                dataDinhKi.push(!isNaN(valDK) && valDK >= 0 && valDK <= 10 ? valDK : null);
+            });
+            
+            if (labels.length === 0) return;
+            
+            var ctx = document.getElementById('tutorStudentDiemChart').getContext('2d');
+            tutorChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Điểm đầu giờ',
+                            data: dataDauGio,
+                            borderColor: '#8E4DFF',
+                            backgroundColor: 'rgba(142, 77, 255, 0.05)',
+                            borderWidth: 3,
+                            pointBackgroundColor: '#8E4DFF',
+                            tension: 0.35,
+                            spanGaps: true
+                        },
+                        {
+                            label: 'Điểm định kỳ',
+                            data: dataDinhKi,
+                            borderColor: '#FFD23F',
+                            backgroundColor: 'rgba(255, 210, 63, 0.05)',
+                            borderWidth: 3,
+                            pointBackgroundColor: '#FFD23F',
+                            tension: 0.35,
+                            spanGaps: true
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: { grid: { color: 'rgba(255, 255, 255, 0.03)' }, ticks: { color: '#A6ADCE' } },
+                        y: { min: 0, max: 10, grid: { color: 'rgba(255, 255, 255, 0.05)' }, ticks: { color: '#A6ADCE', stepSize: 2 } }
+                    }
+                }
+            });
+        }
+
+        // Tải lịch dạy của Gia sư
+        function taiLichDayTutor() {
+            callApi("getTutorSchedule", { tutorPhone: currentTutorPhone })
+                .then(schedule => {
+                    var table = document.getElementById('tutorScheduleTable');
+                    var tbody = table.querySelector('tbody');
+                    tbody.innerHTML = "";
+                    
+                    var schedMap = {};
+                    if (schedule && schedule.length > 0) {
+                        schedule.forEach(s => {
+                            schedMap[s.studentName.trim()] = s;
+                        });
+                    }
+                    
+                    tutorDataGlobal.students.forEach(st => {
+                        var s = schedMap[st.name.trim()] || { mon: "", tue: "", wed: "", thu: "", fri: "", sat: "", sun: "" };
+                        var tr = document.createElement('tr');
+                        tr.innerHTML = "<td><b>" + st.name + "</b></td>" +
+                                       "<td>" + (s.mon || "") + "</td>" +
+                                       "<td>" + (s.tue || "") + "</td>" +
+                                       "<td>" + (s.wed || "") + "</td>" +
+                                       "<td>" + (s.thu || "") + "</td>" +
+                                       "<td>" + (s.fri || "") + "</td>" +
+                                       "<td>" + (s.sat || "") + "</td>" +
+                                       "<td>" + (s.sun || "") + "</td>" +
+                                       "<td><button onclick='openEditScheduleModal(\"" + st.name.replace(/'/g, "\\'") + "\", \"" + (s.mon||"") + "\", \"" + (s.tue||"") + "\", \"" + (s.wed||"") + "\", \"" + (s.thu||"") + "\", \"" + (s.fri||"") + "\", \"" + (s.sat||"") + "\", \"" + (s.sun||"") + "\")' class='btn-icon' title='Sửa lịch dạy'><i class='fa-solid fa-pen-to-square'></i></button></td>";
+                        tbody.appendChild(tr);
+                    });
+                });
+        }
+
+        // Sửa thời khóa biểu modal
+        function openEditScheduleModal(studentName, mon, tue, wed, thu, fri, sat, sun) {
+            document.getElementById('schStudentName').value = studentName;
+            document.getElementById('schMon').value = mon;
+            document.getElementById('schTue').value = tue;
+            document.getElementById('schWed').value = wed;
+            document.getElementById('schThu').value = thu;
+            document.getElementById('schFri').value = fri;
+            document.getElementById('schSat').value = sat;
+            document.getElementById('schSun').value = sun;
+            document.getElementById('editScheduleModal').style.display = "flex";
+        }
+        function closeEditScheduleModal() { document.getElementById('editScheduleModal').style.display = "none"; }
+        function saveSchedule() {
+            var name = document.getElementById('schStudentName').value;
+            callApi("capNhatThoiKhoaBieu", {
+                tutorPhone: currentTutorPhone,
+                studentName: name,
+                mon: document.getElementById('schMon').value,
+                tue: document.getElementById('schTue').value,
+                wed: document.getElementById('schWed').value,
+                thu: document.getElementById('schThu').value,
+                fri: document.getElementById('schFri').value,
+                sat: document.getElementById('schSat').value,
+                sun: document.getElementById('schSun').value
+            })
+            .then(res => {
+                if (res.error) showToast("Lỗi: " + res.error, "error");
+                else {
+                    showToast("Đã cập nhật thời khóa biểu!", "success");
+                    closeEditScheduleModal();
+                    taiLichDayTutor();
+                }
+            });
+        }
+
+        // Đăng nhật ký buổi học mới
+        function openAddLessonModal() {
+            var today = new Date();
+            var dd = String(today.getDate()).padStart(2, '0');
+            var mm = String(today.getMonth() + 1).padStart(2, '0');
+            document.getElementById('lesNgay').value = dd + "/" + mm;
+            
+            var count = currentTutorStudent.logs ? currentTutorStudent.logs.length : 0;
+            document.getElementById('lesTuan').value = Math.ceil((count + 1) / 3) || 1;
+            document.getElementById('lesNoiDung').value = "";
+            document.getElementById('addLessonModal').style.display = "flex";
+        }
+        function closeAddLessonModal() { document.getElementById('addLessonModal').style.display = "none"; }
+        
+        var tempLessonData = null;
+        function previewLessonLog() {
+            var tuan = document.getElementById('lesTuan').value.trim();
+            var ngay = document.getElementById('lesNgay').value.trim();
+            var noiDung = document.getElementById('lesNoiDung').value.trim();
+            
+            if (tuan === "" || ngay === "" || noiDung === "") {
+                showToast("Vui lòng điền đầy đủ thông tin Tuần, Ngày học và Nội dung!", "error");
+                return;
+            }
+            
+            tempLessonData = {
+                studentPhone: currentTutorStudent.phone,
+                studentName: currentTutorStudent.name,
+                tuan: tuan,
+                ngayDay: ngay,
+                monHoc: document.getElementById('lesMon').value,
+                noiDung: noiDung,
+                danhGiaBTVN: document.getElementById('lesBtvn').value,
+                diemDauGio: document.getElementById('lesDiemDau').value,
+                diemDinhKi: document.getElementById('lesDiemDinhKi').value,
+                trangThai: document.getElementById('lesTrangThai').value
+            };
+            
+            document.getElementById('prevStudentName').innerText = tempLessonData.studentName;
+            document.getElementById('prevTuan').innerText = tempLessonData.tuan;
+            document.getElementById('prevNgay').innerText = tempLessonData.ngayDay;
+            document.getElementById('prevMon').innerText = tempLessonData.monHoc;
+            document.getElementById('prevTrangThai').innerText = tempLessonData.trangThai;
+            document.getElementById('prevBtvn').innerText = tempLessonData.danhGiaBTVN;
+            document.getElementById('prevDiemDau').innerText = tempLessonData.diemDauGio;
+            document.getElementById('prevDiemDinhKi').innerText = tempLessonData.diemDinhKi;
+            document.getElementById('prevNoiDung').innerText = tempLessonData.noiDung;
+            
+            document.getElementById('previewLessonModal').style.display = "flex";
+        }
+        function closePreviewLessonModal() { document.getElementById('previewLessonModal').style.display = "none"; }
+        function submitLessonLog() {
+            var btn = document.getElementById('btnSubmitLesson');
+            btn.disabled = true;
+            btn.innerText = "Đang đăng...";
+            
+            callApi("themBuoiHoc", tempLessonData)
+                .then(res => {
+                    btn.disabled = false;
+                    btn.innerText = "Xác nhận đăng";
+                    if (res.error) showToast("Lỗi: " + res.error, "error");
+                    else {
+                        showToast("Đã đăng nhật ký buổi học thành công!", "success");
+                        closePreviewLessonModal();
+                        closeAddLessonModal();
+                        taiLogHocSinh();
+                    }
+                });
+        }
+
+        // Sửa buổi học
+        function openEditLessonModal(rowIndex) {
+            var log = currentTutorStudent.logs.find(l => l.rowIndex === rowIndex);
+            if (!log) return;
+            
+            document.getElementById('editLesRowIndex').value = rowIndex;
+            document.getElementById('editLesTuan').value = log.tuan;
+            document.getElementById('editLesNgay').value = log.ngay;
+            document.getElementById('editLesMon').value = log.mon;
+            document.getElementById('editLesTrangThai').value = log.trangThai;
+            document.getElementById('editLesBtvn').value = log.btvn ? log.btvn : "Hoàn thành";
+            document.getElementById('editLesDiemDau').value = log.diemDauGio;
+            document.getElementById('editLesDiemDinhKi').value = log.diemDinhKi;
+            document.getElementById('editLesNoiDung').value = log.noiDung;
+            
+            document.getElementById('editLessonModal').style.display = "flex";
+        }
+        function closeEditLessonModal() { document.getElementById('editLessonModal').style.display = "none"; }
+        function saveEditedLesson() {
+            var idx = document.getElementById('editLesRowIndex').value;
+            callApi("suaBuoiHoc", {
+                rowIndex: idx,
+                tuan: document.getElementById('editLesTuan').value.trim(),
+                ngayDay: document.getElementById('editLesNgay').value.trim(),
+                monHoc: document.getElementById('editLesMon').value,
+                trangThai: document.getElementById('editLesTrangThai').value,
+                danhGiaBTVN: document.getElementById('editLesBtvn').value,
+                diemDauGio: document.getElementById('editLesDiemDau').value.trim(),
+                diemDinhKi: document.getElementById('editLesDiemDinhKi').value.trim(),
+                noiDung: document.getElementById('editLesNoiDung').value.trim()
+            })
+            .then(res => {
+                if (res.error) showToast("Lỗi: " + res.error, "error");
+                else {
+                    showToast("Đã cập nhật buổi học!", "success");
+                    closeEditLessonModal();
+                    taiLogHocSinh();
+                }
+            });
+        }
+
+        function confirmDeleteLesson() {
+            var idx = document.getElementById('editLesRowIndex').value;
+            if (confirm("Bạn có chắc chắn muốn xóa hoàn toàn nhật ký buổi học này?")) {
+                callApi("xoaBuoiHoc", { rowIndex: idx })
+                    .then(res => {
+                        if (res.error) showToast("Lỗi: " + res.error, "error");
+                        else {
+                            showToast("Đã xóa buổi học!", "success");
+                            closeEditLessonModal();
+                            taiLogHocSinh();
+                        }
+                    });
+            }
+        }
+
+        // Tách render table nhật ký giảng dạy
+        function renderTutorStudentHistory(logs) {
+            var container = document.getElementById('tutorStudentHistoryContainer');
+            container.innerHTML = "";
+            
+            if (logs.length === 0) {
+                container.innerHTML = "<p style='color: #8E95BE; text-align:center; padding: 20px;'>Học sinh chưa có nhật ký học tập nào.</p>";
+                return;
+            }
+            
+            var getBadge = function(tt) {
+                var t = (tt || "").trim().toLowerCase();
+                if (t === "đã học") return '<span class="status-badge badge-dahoc">Đã học</span>';
+                if (t === "học bù") return '<span class="status-badge badge-hocbu">Học bù</span>';
+                return '<span class="status-badge badge-nghi">' + tt + '</span>';
+            };
+            
+            var html = '<table><thead><tr><th style="width: 40px; text-align:center;"><input type="checkbox" id="chkMasterTutor" style="width:15px; height:15px; cursor:pointer;" onchange="toggleSelectAllLessons(this)"></th><th>Tuần</th><th>Ngày</th><th>Môn</th><th>Nội dung dạy</th><th>BTVN</th><th>Đầu giờ</th><th>Định kỳ</th><th>Trạng thái</th><th style="width: 50px;">Sửa</th></tr></thead><tbody>';
+            
+            logs.slice().reverse().forEach(log => {
+                var isPaid = (log.tienDong || "").trim().toLowerCase().indexOf("đã đóng") !== -1;
+                var chkHtml = '<input type="checkbox" class="tutor-lesson-chk" data-rowindex="' + log.rowIndex + '" style="width:15px; height:15px; cursor:pointer;" ' + (isPaid ? 'checked' : '') + ' onchange="checkTutorLessonCheckboxSelection(this)">';
+                
+                html += '<tr>' +
+                          '<td style="text-align:center;">' + chkHtml + '</td>' +
+                          '<td><b>Tuần ' + log.tuan + '</b></td>' +
+                          '<td>' + log.ngay + '</td>' +
+                          '<td>' + log.mon + '</td>' +
+                          '<td style="max-width:250px; white-space:normal;">' + log.noiDung + '</td>' +
+                          '<td><span class="status-badge ' + (log.btvn === 'Hoàn thành' ? 'badge-hoanthanh' : 'badge-thieu') + '">' + (log.btvn || "Không có") + '</span></td>' +
+                          '<td><b>' + log.diemDauGio + '</b></td>' +
+                          '<td><b>' + log.diemDinhKi + '</b></td>' +
+                          '<td>' + getBadge(log.trangThai) + '</td>' +
+                          '<td><button onclick="openEditLessonModal(' + log.rowIndex + ')" class="btn-icon"><i class="fa-solid fa-pen-to-square"></i></button></td>' +
+                        '</tr>';
+            });
+            
+            html += '</tbody></table>';
+            container.innerHTML = html;
+        }
+
+        // Tích chọn chọn đóng học phí hàng loạt
+        function toggleSelectAllLessons(master) {
+            var chks = document.querySelectorAll('.tutor-lesson-chk');
+            var paidRowIndices = [];
+            var unpaidRowIndices = [];
+            
+            chks.forEach(c => {
+                var rIndex = c.getAttribute('data-rowindex');
+                if (master.checked) {
+                    if (!c.checked) paidRowIndices.push(parseInt(rIndex));
+                } else {
+                    if (c.checked) unpaidRowIndices.push(parseInt(rIndex));
+                }
+            });
+            
+            if (paidRowIndices.length === 0 && unpaidRowIndices.length === 0) return;
+            
+            var msg = master.checked ? "Xác nhận đóng học phí hàng loạt cho các buổi học đã chọn?" : "Xác nhận HỦY đóng học phí hàng loạt?";
+            if (confirm(msg)) {
+                showToast("Đang đồng bộ học phí lên Google Sheets...", "info");
+                callApi("capNhatNhieuDongHocPhi", { paidRowIndices: paidRowIndices, unpaidRowIndices: unpaidRowIndices })
+                    .then(res => {
+                        if (res.error) showToast("Lỗi: " + res.error, "error");
+                        else {
+                            showToast("Đã cập nhật trạng thái học phí!", "success");
+                            taiLogHocSinh();
+                        }
+                    });
+            } else {
+                master.checked = !master.checked;
+            }
+        }
+
+        function checkTutorLessonCheckboxSelection(chk) {
+            var rIndex = chk.getAttribute('data-rowindex');
+            var paid = chk.checked;
+            chk.checked = !paid; // Tạm trả về trạng thái cũ để đợi xác nhận
+            
+            var msg = paid ? "Xác nhận đóng học phí cho buổi học này?" : "Hủy trạng thái đóng học phí cho buổi học này?";
+            if (confirm(msg)) {
+                chk.checked = paid;
+                callApi("capNhatNhieuDongHocPhi", {
+                    paidRowIndices: paid ? [parseInt(rIndex)] : [],
+                    unpaidRowIndices: paid ? [] : [parseInt(rIndex)]
+                })
+                .then(res => {
+                    if (res.error) showToast("Lỗi: " + res.error, "error");
+                    else {
+                        showToast("Đã cập nhật đóng tiền!", "success");
+                        taiLogHocSinh();
+                    }
+                });
+            }
+        }
+
+        // Hóa đơn
+        function toggleInvoiceCollapse() {
+            var modal = document.getElementById('invoiceCollapseModal');
+            if (modal.style.display === "flex") {
+                modal.style.display = "none";
+            } else {
+                modal.style.display = "flex";
+                renderInvoice();
+            }
+        }
+        
+        function renderInvoice() {
+            if (!currentTutorStudent) return;
+            var logs = currentTutorStudent.logs || [];
+            var month = document.getElementById('invoiceMonthSelect').value;
+            var fee = parseFloat(currentTutorStudent.tuition) || 0;
+            
+            var attP = 0, attA = 0, attB = 0;
+            var hwDone = 0, hwMiss = 0;
+            var unpaidCount = 0;
+            var absentDates = [];
+            var hwMissDates = [];
+            
+            var filterLogs = logs;
+            if (month !== 'all') {
+                var mInt = parseInt(month);
+                filterLogs = logs.filter(log => {
+                    var parts = log.ngay.split("/");
+                    return parts.length >= 2 && parseInt(parts[1]) === mInt;
+                });
+            }
+            
+            filterLogs.forEach(log => {
+                var tt = (log.trangThai || "").trim().toLowerCase();
+                var isPaid = (log.tienDong || "").trim().toLowerCase().indexOf("đã đóng") !== -1;
+                var isNghi = tt.indexOf("nghỉ") !== -1 || tt.indexOf("vắng") !== -1 || tt.indexOf("hủy") !== -1;
+                
+                if (tt === "học bù") attB++;
+                else if (isNghi) {
+                    attA++;
+                    absentDates.push(log.ngay);
+                } else attP++;
+                
+                if (log.btvn === "Hoàn thành") hwDone++;
+                else if (log.btvn === "Thiếu") {
+                    hwMiss++;
+                    hwMissDates.push(log.ngay + " (" + log.noiDung.substring(0, 15) + "...)");
+                }
+                
+                if (!isPaid && !isNghi) unpaidCount++;
+            });
+            
+            var feeTotal = unpaidCount * fee;
+            
+            document.getElementById('invAttP').innerText = attP;
+            document.getElementById('invAttA').innerText = attA;
+            document.getElementById('invAttB').innerText = attB;
+            document.getElementById('invHwDone').innerText = hwDone;
+            document.getElementById('invHwMiss').innerText = hwMiss;
+            
+            document.getElementById('invAbsentDates').innerText = absentDates.length > 0 ? "Vắng các ngày: " + absentDates.join(", ") : "Học chuyên cần (Không vắng)";
+            document.getElementById('invHwMissDates').innerHTML = hwMissDates.length > 0 ? "• Ngày: " + hwMissDates.join("<br>• Ngày: ") : "• Không thiếu bài";
+            
+            document.getElementById('invFeeCalcText').innerText = "Học phí (" + fee.toLocaleString('vi-VN') + "đ × " + unpaidCount + " buổi):";
+            document.getElementById('invFeeCalcTotal').innerText = feeTotal.toLocaleString('vi-VN') + " VNĐ";
+            
+            var monthDisplay = month === 'all' ? "TỔNG HỢP CÁC BUỔI CHƯA THANH TOÁN" : "THÁNG " + month + " • NĂM " + new Date().getFullYear();
+            document.getElementById('invMonthDisplay').innerText = monthDisplay;
+            
+            // Thiết lập ảnh QR chuyển khoản gia sư
+            var qrImg = document.getElementById('invQrImg');
+            if (tutorDataGlobal.qrCode && tutorDataGlobal.qrCode !== "") {
+                qrImg.src = tutorDataGlobal.qrCode;
+                qrImg.style.display = "block";
+                document.getElementById('invQrText').style.display = "block";
+            } else {
+                qrImg.style.display = "none";
+                document.getElementById('invQrText').style.display = "none";
+            }
+            
+            // Text area copy gửi zalo
+            var msg = "Dạ em chào anh/chị, em gửi phiếu tổng hợp học tập " + (month === 'all' ? 'các buổi chưa đóng' : 'tháng ' + month) + " của bé " + currentTutorStudent.name + " ạ.\n" +
+                      "Tổng số buổi học cần thanh toán học phí là: " + unpaidCount + " buổi.\n" +
+                      "Số tiền là: " + feeTotal.toLocaleString('vi-VN') + " VNĐ.\n" +
+                      "Anh/chị quét mã QR chuyển khoản đính kèm bên dưới giúp em nhé. Em cảm ơn quý phụ huynh!";
+            document.getElementById('invTextarea').value = msg;
+        }
+
+        // Export canvas sang ảnh hóa đơn
+        function exportInvoice() {
+            var element = document.getElementById('invoiceElement');
+            showToast("Đang kết xuất phiếu hình ảnh...", "info");
+            html2canvas(element, { scale: 2, backgroundColor: "#FFFFFF", useCORS: true })
+                .then(canvas => {
+                    var link = document.createElement('a');
+                    link.download = 'PhieuHocTap_' + currentTutorStudent.name + '.png';
+                    link.href = canvas.toDataURL('image/png');
+                    link.click();
+                    showToast("Đã tải ảnh hóa đơn về máy!", "success");
+                });
+        }
+
+        // Modal Tài khoản QR Gia sư
+        function openTutorAccountModal() {
+            document.getElementById('accTutorName').value = tutorDataGlobal.tutorName;
+            document.getElementById('accTutorPhone').value = tutorDataGlobal.tutorPhone;
+            document.getElementById('accTutorPin').value = tutorDataGlobal.tutorPin;
+            document.getElementById('accClassCount').value = tutorDataGlobal.classCount;
+            document.getElementById('accUnpaidIncome').value = tutorDataGlobal.totalUnpaidIncome.toLocaleString('vi-VN') + " VNĐ";
+            
+            var qrImg = document.getElementById('accQrImg');
+            var qrText = document.getElementById('accQrText');
+            if (tutorDataGlobal.qrCode && tutorDataGlobal.qrCode !== "") {
+                qrImg.src = tutorDataGlobal.qrCode;
+                qrImg.style.display = "block";
+                qrText.style.display = "none";
+            } else {
+                qrImg.style.display = "none";
+                qrText.style.display = "block";
+            }
+            
+            document.getElementById('tutorAccountModal').style.display = "flex";
+        }
+        function closeTutorAccountModal() { document.getElementById('tutorAccountModal').style.display = "none"; }
+        function saveTutorAccount() {
+            var name = document.getElementById('accTutorName').value.trim();
+            var phone = document.getElementById('accTutorPhone').value.trim();
+            var pin = document.getElementById('accTutorPin').value.trim();
+            
+            if (name === "" || phone === "" || pin === "") {
+                showToast("Vui lòng điền đủ thông tin!", "error");
+                return;
+            }
+            
+            callApi("capNhatThongTinGiaSu", {
+                tutorPhoneCu: tutorDataGlobal.tutorPhone,
+                tenMoi: name,
+                sdtMoi: phone,
+                pinMoi: pin
+            })
+            .then(res => {
+                if (res.error) showToast("Lỗi: " + res.error, "error");
+                else {
+                    showToast("Đã cập nhật thông tin tài khoản!", "success");
+                    localStorage.setItem('user_phone', phone);
+                    localStorage.setItem('user_pin', pin);
+                    tutorDataGlobal.tutorName = name;
+                    tutorDataGlobal.tutorPhone = phone;
+                    tutorDataGlobal.tutorPin = pin;
+                    currentTutorPhone = phone;
+                    
+                    document.getElementById('tutorGreeting').innerText = "Xin chào, Gia sư " + name;
+                    closeTutorAccountModal();
+                }
+            });
+        }
+
+        // Thùng rác Học sinh (Gia sư)
+        function openTrashModal() {
+            var container = document.getElementById('trashStudentList');
+            container.innerHTML = "";
+            document.getElementById('trashModal').style.display = "flex";
+            
+            var list = tutorDataGlobal.deletedStudents || [];
+            if (list.length === 0) {
+                container.innerHTML = "<p style='text-align:center; color:#8E95BE; font-style:italic;'>Thùng rác học sinh trống.</p>";
+                return;
+            }
+            
+            list.forEach(st => {
+                var div = document.createElement('div');
+                div.style = "background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.05); padding:12px; border-radius:8px; display:flex; justify-content:space-between; align-items:center;";
+                div.innerHTML = '<div>' +
+                                  '<p style="font-weight:bold; color:#FFF;">' + st.name + '</p>' +
+                                  '<p style="font-size:11px; color:#EF4444; margin-top:4px;">Đã xóa ngày: ' + st.deletedDate + '</p>' +
+                                '</div>' +
+                                '<button class="btn-action-small" onclick="restoreStudent(\'' + st.phone + '\')" style="background:#10B981;"><i class="fa-solid fa-trash-arrow-up"></i> Khôi phục</button>';
+                container.appendChild(div);
+            });
+        }
+        function closeTrashModal() { document.getElementById('trashModal').style.display = "none"; }
+        function restoreStudent(phone) {
+            callApi("khoiPhucHocSinh", { tutorPhone: currentTutorPhone, studentPhone: phone })
+                .then(res => {
+                    if (res.error) showToast("Lỗi: " + res.error, "error");
+                    else {
+                        showToast("Khôi phục học sinh thành công!", "success");
+                        closeTrashModal();
+                        refreshTutorDashboard();
+                    }
+                });
+        }
+        function refreshTutorDashboard() {
+            callApi("loginSystem", { phone: currentTutorPhone, pin: localStorage.getItem('user_pin') })
+                .then(res => {
+                    tutorDataGlobal = res.data;
+                    renderTutorView(res.data);
+                });
+        }
+
+
+        // ================= XỬ LÝ GIAO DIỆN ADMIN =================
+        function switchAdminTab(tabName) {
+            currentAdminTab = tabName;
+            document.getElementById('btnAdminTabReport').className = tabName === 'report' ? 'tab-btn active' : 'tab-btn';
+            document.getElementById('btnAdminTabTutors').className = tabName === 'tutors' ? 'tab-btn active' : 'tab-btn';
+            document.getElementById('btnAdminTabStudents').className = tabName === 'students' ? 'tab-btn active' : 'tab-btn';
+            
+            document.getElementById('adminTabReport').style.display = tabName === 'report' ? 'block' : 'none';
+            document.getElementById('adminTabTutors').style.display = tabName === 'tutors' ? 'block' : 'none';
+            document.getElementById('adminTabStudents').style.display = tabName === 'students' ? 'block' : 'none';
+        }
+
+        function renderAdminView(data) {
+            adminDataGlobal = data;
+            document.getElementById('adminDashboardBox').style.display = "block";
+            
+            var self = data.tutors.find(t => t.phone === currentAdminPhone);
+            document.getElementById('adminGreeting').innerText = "Xin chào, Admin " + (self ? self.name : "Hệ Thống");
+            
+            // 1. Nạp dropdown tháng báo cáo
+            var dropdown = document.getElementById('adminReportMonthSelect');
+            dropdown.innerHTML = "";
+            
+            var reports = data.incomeReports || {};
+            var months = Object.keys(reports);
+            if (months.length === 0) {
+                var now = new Date();
+                var cur = "Tháng " + (now.getMonth() + 1) + "/" + now.getFullYear();
+                months.push(cur);
+                reports[cur] = { expected: 0, paid: 0, unpaid: 0, tutors: {} };
+            }
+            
+            months.forEach(m => {
+                var opt = document.createElement('option');
+                opt.value = m;
+                opt.innerText = m;
+                dropdown.appendChild(opt);
+            });
+            
+            // Render dữ liệu tài chính
+            renderAdminReportData();
+            
+            // 2. Render danh sách gia sư
+            renderAdminTutors();
+            
+            // 3. Render danh sách học sinh
+            renderAdminStudents();
+        }
+
+        function renderAdminReportData() {
+            var dropdown = document.getElementById('adminReportMonthSelect');
+            var selectedMonth = dropdown.value;
+            var report = adminDataGlobal.incomeReports[selectedMonth] || { expected: 0, paid: 0, unpaid: 0, tutors: {} };
+            
+            document.getElementById('adminExpectedRevenue').innerText = report.expected.toLocaleString('vi-VN') + "đ";
+            document.getElementById('adminPaidRevenue').innerText = report.paid.toLocaleString('vi-VN') + "đ";
+            document.getElementById('adminUnpaidRevenue').innerText = report.unpaid.toLocaleString('vi-VN') + "đ";
+            
+            // Nạp bảng breakdown gia sư
+            var tbody = document.getElementById('adminReportTableBody');
+            tbody.innerHTML = "";
+            
+            var keys = Object.keys(report.tutors || {});
+            if (keys.length === 0) {
+                tbody.innerHTML = "<tr><td colspan='5' style='text-align:center; color:#8E95BE;'>Không có dữ liệu buổi dạy nào trong tháng này.</td></tr>";
+            } else {
+                keys.forEach(k => {
+                    var t = report.tutors[k];
+                    var rate = t.expected > 0 ? ((t.paid / t.expected) * 100).toFixed(1) + "%" : "0%";
+                    var tr = document.createElement('tr');
+                    tr.innerHTML = "<td><b>" + t.name + "</b></td>" +
+                                   "<td style='color:#8E4DFF; font-weight:bold;'>" + t.expected.toLocaleString('vi-VN') + "đ</td>" +
+                                   "<td style='color:#10B981; font-weight:bold;'>" + t.paid.toLocaleString('vi-VN') + "đ</td>" +
+                                   "<td style='color:#EF4444; font-weight:bold;'>" + t.unpaid.toLocaleString('vi-VN') + "đ</td>" +
+                                   "<td style='text-align:center;'><span class='status-badge badge-dahoc'>" + rate + "</span></td>";
+                    tbody.appendChild(tr);
+                });
+            }
+            
+            // Vẽ biểu đồ
+            renderAdminChart();
+        }
+
+        function renderAdminChart() {
+            if (adminRevenueChartInstance) { adminRevenueChartInstance.destroy(); adminRevenueChartInstance = null; }
+            
+            var reports = adminDataGlobal.incomeReports || {};
+            var sortedMonths = Object.keys(reports).sort((a,b) => {
+                var pa = a.replace("Tháng ", "").split("/");
+                var pb = b.replace("Tháng ", "").split("/");
+                return (parseInt(pa[1]) - parseInt(pb[1])) || (parseInt(pa[0]) - parseInt(pb[0]));
+            });
+            
+            var labels = sortedMonths.map(m => m.replace("Tháng ", "T"));
+            var expected = sortedMonths.map(m => reports[m].expected);
+            var paid = sortedMonths.map(m => reports[m].paid);
+            
+            var ctx = document.getElementById('adminRevenueChartCanvas').getContext('2d');
+            adminRevenueChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Học phí dự kiến',
+                            data: expected,
+                            borderColor: '#8E4DFF',
+                            backgroundColor: 'rgba(142, 77, 255, 0.05)',
+                            borderWidth: 3,
+                            fill: true,
+                            tension: 0.35
+                        },
+                        {
+                            label: 'Thực tế đã thu',
+                            data: paid,
+                            borderColor: '#10B981',
+                            backgroundColor: 'rgba(16, 185, 129, 0.05)',
+                            borderWidth: 3,
+                            fill: true,
+                            tension: 0.35
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: { ticks: { color: '#A6ADCE' } },
+                        y: { ticks: { color: '#A6ADCE' } }
+                    }
+                }
+            });
+        }
+
+        // Quản lý gia sư (Admin)
+        function renderAdminTutors() {
+            var tbody = document.querySelector('#adminTutorsTable tbody');
+            tbody.innerHTML = "";
+            
+            var list = adminDataGlobal.tutors || [];
+            list.forEach(t => {
+                var tr = document.createElement('tr');
+                tr.innerHTML = "<td><b>" + t.name + "</b></td>" +
+                               "<td>" + t.phone + "</td>" +
+                               "<td><code>" + t.pin + "</code></td>" +
+                               "<td style='text-align:center;'><button class='btn-icon' onclick='openAdminEditTutorModal(\"" + t.phone + "\")'><i class='fa-solid fa-pen-to-square'></i></button></td>";
+                tbody.appendChild(tr);
+            });
+        }
+
+        function openAdminAddTutorModal() {
+            document.getElementById('adminTutorModalTitle').innerHTML = '<i class="fa-solid fa-chalkboard-user"></i> Thêm gia sư mới';
+            document.getElementById('adminTutorOldPhone').value = "";
+            document.getElementById('adminTutorName').value = "";
+            document.getElementById('adminTutorPhone').value = "";
+            document.getElementById('adminTutorPin').value = "";
+            document.getElementById('adminTutorQrUrl').value = "";
+            document.getElementById('btnDeleteAdminTutor').style.display = "none";
+            document.getElementById('adminEditTutorModal').style.display = "flex";
+        }
+        function openAdminEditTutorModal(phone) {
+            var t = adminDataGlobal.tutors.find(x => x.phone === phone);
+            if (!t) return;
+            
+            document.getElementById('adminTutorModalTitle').innerHTML = '<i class="fa-solid fa-chalkboard-user"></i> Sửa thông tin gia sư';
+            document.getElementById('adminTutorOldPhone').value = t.phone;
+            document.getElementById('adminTutorName').value = t.name;
+            document.getElementById('adminTutorPhone').value = t.phone;
+            document.getElementById('adminTutorPin').value = t.pin;
+            document.getElementById('adminTutorQrUrl').value = t.qrUrl || "";
+            document.getElementById('btnDeleteAdminTutor').style.display = "block";
+            document.getElementById('adminEditTutorModal').style.display = "flex";
+        }
+        function closeAdminEditTutorModal() { document.getElementById('adminEditTutorModal').style.display = "none"; }
+        function saveAdminTutor() {
+            var old = document.getElementById('adminTutorOldPhone').value;
+            var name = document.getElementById('adminTutorName').value.trim();
+            var phone = document.getElementById('adminTutorPhone').value.trim();
+            var pin = document.getElementById('adminTutorPin').value.trim();
+            var qr = document.getElementById('adminTutorQrUrl').value.trim();
+            
+            if (name === "" || phone === "" || pin === "") {
+                showToast("Vui lòng điền đủ họ tên, SĐT và mã PIN!", "error");
+                return;
+            }
+            
+            callApi("adminLuuGiaSu", { oldPhone: old, name: name, phone: phone, pin: pin, qrUrl: qr })
+                .then(res => {
+                    if (res.error) showToast("Lỗi: " + res.error, "error");
+                    else {
+                        showToast("Đã lưu thông tin gia sư!", "success");
+                        closeAdminEditTutorModal();
+                        refreshAdminDashboard();
+                    }
+                });
+        }
+        function confirmDeleteAdminTutor() {
+            pinVerifyAction = "deleteTutor";
+            document.getElementById('confirmTutorPinInput').value = "";
+            document.getElementById('pinConfirmModal').style.display = "flex";
+        }
+        function closePinConfirmModal() { document.getElementById('pinConfirmModal').style.display = "none"; }
+        function submitPinVerifyForDelete() {
+            var pin = document.getElementById('confirmTutorPinInput').value.trim();
+            var myPin = localStorage.getItem('user_pin');
+            
+            if (pin !== myPin) {
+                showToast("Mã PIN xác thực không chính xác!", "error");
+                return;
+            }
+            
+            closePinConfirmModal();
+            if (pinVerifyAction === "deleteTutor") {
+                var phone = document.getElementById('adminTutorOldPhone').value;
+                callApi("xoaGiaSuTamThoi", { tutorPhone: phone })
+                    .then(res => {
+                        if (res.error) showToast("Lỗi: " + res.error, "error");
+                        else {
+                            showToast("Đã đưa gia sư vào thùng rác!", "success");
+                            closeAdminEditTutorModal();
+                            refreshAdminDashboard();
+                        }
+                    });
+            }
+        }
+
+        // Thùng rác Gia sư (Admin)
+        function openTutorTrashModal() {
+            var container = document.getElementById('trashTutorList');
+            container.innerHTML = "";
+            document.getElementById('tutorTrashModal').style.display = "flex";
+            
+            var list = adminDataGlobal.deletedTutors || [];
+            if (list.length === 0) {
+                container.innerHTML = "<p style='text-align:center; color:#8E95BE; font-style:italic;'>Thùng rác trống.</p>";
+                return;
+            }
+            
+            list.forEach(t => {
+                var div = document.createElement('div');
+                div.style = "background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.05); padding:12px; border-radius:8px; display:flex; justify-content:space-between; align-items:center;";
+                div.innerHTML = '<div>' +
+                                  '<p style="font-weight:bold; color:#FFF;">' + t.name + '</p>' +
+                                  '<p style="font-size:11px; color:#EF4444; margin-top:4px;">Đã xóa ngày: ' + t.deletedDate + '</p>' +
+                                '</div>' +
+                                '<button class="btn-action-small" onclick="restoreTutor(\'' + t.phone + '\')" style="background:#10B981;"><i class="fa-solid fa-trash-arrow-up"></i> Khôi phục</button>';
+                container.appendChild(div);
+            });
+        }
+        function closeTutorTrashModal() { document.getElementById('tutorTrashModal').style.display = "none"; }
+        function restoreTutor(phone) {
+            callApi("khoiPhucGiaSu", { tutorPhone: phone })
+                .then(res => {
+                    if (res.error) showToast("Lỗi: " + res.error, "error");
+                    else {
+                        showToast("Khôi phục gia sư thành công!", "success");
+                        closeTutorTrashModal();
+                        refreshAdminDashboard();
+                    }
+                });
+        }
+
+        // Quản lý học sinh (Admin)
+        function renderAdminStudents() {
+            var tbody = document.querySelector('#adminStudentsTable tbody');
+            tbody.innerHTML = "";
+            
+            var list = adminDataGlobal.students || [];
+            list.forEach(st => {
+                var tr = document.createElement('tr');
+                var status = st.deletedDate ? '<span class="status-badge badge-nghi">Đã xóa</span>' : '<span class="status-badge badge-dahoc">Hoạt động</span>';
+                var tutor = adminDataGlobal.tutors.find(t => t.phone === st.tutorPhone);
+                var tName = tutor ? tutor.name : "Chưa gán";
+                
+                tr.innerHTML = "<td><b>" + st.name + "</b></td>" +
+                               "<td>" + st.parentName + "</td>" +
+                               "<td>" + st.phone + "</td>" +
+                               "<td>" + st.tuition.toLocaleString('vi-VN') + "đ</td>" +
+                               "<td>" + tName + "</td>" +
+                               "<td>" + status + "</td>" +
+                               "<td style='text-align:center;'><button class='btn-icon' onclick='openAdminEditStudentModal(\"" + st.phone + "\")'><i class='fa-solid fa-pen-to-square'></i></button></td>";
+                tbody.appendChild(tr);
+            });
+        }
+
+        function openAdminAddStudentModal() {
+            document.getElementById('adminStudentModalTitle').innerHTML = '<i class="fa-solid fa-user-graduate"></i> Thêm học sinh mới';
+            document.getElementById('adminStudentOldPhone').value = "";
+            document.getElementById('adminStudentName').value = "";
+            document.getElementById('adminStudentParentName').value = "";
+            document.getElementById('adminStudentPhone').value = "";
+            document.getElementById('adminStudentTuition').value = "";
+            
+            // Dropdown gia sư phụ trách
+            populateStudentTutorDropdown("");
+            document.getElementById('adminEditStudentModal').style.display = "flex";
+        }
+        function openAdminEditStudentModal(phone) {
+            var st = adminDataGlobal.students.find(x => x.phone === phone);
+            if (!st) return;
+            
+            document.getElementById('adminStudentModalTitle').innerHTML = '<i class="fa-solid fa-user-graduate"></i> Sửa học sinh';
+            document.getElementById('adminStudentOldPhone').value = st.phone;
+            document.getElementById('adminStudentName').value = st.name;
+            document.getElementById('adminStudentParentName').value = st.parentName;
+            document.getElementById('adminStudentPhone').value = st.phone;
+            document.getElementById('adminStudentTuition').value = st.tuition;
+            
+            populateStudentTutorDropdown(st.tutorPhone);
+            document.getElementById('adminEditStudentModal').style.display = "flex";
+        }
+        function closeAdminEditStudentModal() { document.getElementById('adminEditStudentModal').style.display = "none"; }
+        
+        function populateStudentTutorDropdown(selectPhone) {
+            var select = document.getElementById('adminStudentTutorSelect');
+            select.innerHTML = '<option value="">-- Chọn gia sư --</option>';
+            adminDataGlobal.tutors.forEach(t => {
+                var opt = document.createElement('option');
+                opt.value = t.phone;
+                opt.innerText = t.name + " (" + t.phone + ")";
+                if (t.phone === selectPhone) opt.selected = true;
+                select.appendChild(opt);
+            });
+        }
+
+        function saveAdminStudent() {
+            var old = document.getElementById('adminStudentOldPhone').value;
+            var parent = document.getElementById('adminStudentParentName').value.trim();
+            var name = document.getElementById('adminStudentName').value.trim();
+            var phone = document.getElementById('adminStudentPhone').value.trim();
+            var tuition = document.getElementById('adminStudentTuition').value.trim();
+            var tutor = document.getElementById('adminStudentTutorSelect').value;
+            
+            if (parent === "" || name === "" || phone === "" || tuition === "" || tutor === "") {
+                showToast("Vui lòng điền đầy đủ các thông tin và chọn gia sư!", "error");
+                return;
+            }
+            
+            callApi("adminLuuHocSinh", {
+                oldPhone: old,
+                phuHuynhName: parent,
+                studentName: name,
+                studentPhone: phone,
+                tuition: parseFloat(tuition),
+                tutorPhone: tutor
+            })
+            .then(res => {
+                if (res.error) showToast("Lỗi: " + res.error, "error");
+                else {
+                    showToast("Đã lưu thông tin học sinh!", "success");
+                    closeAdminEditStudentModal();
+                    refreshAdminDashboard();
+                }
+            });
+        }
+        function confirmDeleteStudent() {
+            if (confirm("Đưa học sinh này vào thùng rác tạm thời của Gia sư phụ trách?")) {
+                var phone = document.getElementById('adminStudentOldPhone').value;
+                var st = adminDataGlobal.students.find(x => x.phone === phone);
+                if (!st) return;
+                
+                callApi("xoaHocSinhTamThoi", { tutorPhone: st.tutorPhone, studentPhone: phone })
+                    .then(res => {
+                        if (res.error) showToast("Lỗi: " + res.error, "error");
+                        else {
+                            showToast("Đã đưa học sinh vào thùng rác!", "success");
+                            closeAdminEditStudentModal();
+                            refreshAdminDashboard();
+                        }
+                    });
+            }
+        }
+
+        // Cập nhật tài khoản Admin
+        function openAdminAccountModal() {
+            var self = adminDataGlobal.tutors.find(t => t.phone === currentAdminPhone);
+            document.getElementById('adminAccName').value = self ? self.name : "Quản trị viên";
+            document.getElementById('adminAccPhone').value = currentAdminPhone;
+            document.getElementById('adminAccPin').value = self ? self.pin : "";
+            document.getElementById('adminAccountModal').style.display = "flex";
+        }
+        function closeAdminAccountModal() { document.getElementById('adminAccountModal').style.display = "none"; }
+        function saveAdminAccount() {
+            var name = document.getElementById('adminAccName').value.trim();
+            var phone = document.getElementById('adminAccPhone').value.trim();
+            var pin = document.getElementById('adminAccPin').value.trim();
+            
+            if (name === "" || phone === "" || pin === "") {
+                showToast("Vui lòng điền đủ thông tin!", "error");
+                return;
+            }
+            
+            callApi("adminCapNhatTaiKhoan", { oldPhone: currentAdminPhone, name: name, phone: phone, pin: pin })
+                .then(res => {
+                    if (res.error) showToast("Lỗi: " + res.error, "error");
+                    else {
+                        showToast("Cập nhật tài khoản Admin thành công!", "success");
+                        localStorage.setItem('user_phone', phone);
+                        localStorage.setItem('user_pin', pin);
+                        currentAdminPhone = phone;
+                        closeAdminAccountModal();
+                        refreshAdminDashboard();
+                    }
+                });
+        }
+
+        function refreshAdminDashboard() {
+            callApi("loginSystem", { phone: currentAdminPhone, pin: localStorage.getItem('user_pin') })
+                .then(res => {
+                    adminDataGlobal = res.data;
+                    renderAdminView(res.data);
+                });
+        }
+
+
+        // ================= HÀM TIỆN ÍCH CHUNG =================
+        function showToast(message, type = 'info') {
+            var container = document.getElementById('toastContainer');
+            var toast = document.createElement('div');
+            
+            toast.style.padding = '12px 20px';
+            toast.style.borderRadius = '8px';
+            toast.style.color = '#FFF';
+            toast.style.fontSize = '13px';
+            toast.style.fontWeight = 'bold';
+            toast.style.boxShadow = '0 10px 20px rgba(0,0,0,0.3)';
+            toast.style.display = 'flex';
+            toast.style.alignItems = 'center';
+            toast.style.gap = '8px';
+            toast.style.border = '1px solid';
+            toast.style.pointerEvents = 'auto';
+            
+            if (type === 'success') {
+                toast.style.background = '#10B981';
+                toast.style.borderColor = '#34D399';
+                toast.innerHTML = '<i class="fa-solid fa-circle-check"></i> ' + message;
+            } else if (type === 'error') {
+                toast.style.background = '#EF4444';
+                toast.style.borderColor = '#F87171';
+                toast.innerHTML = '<i class="fa-solid fa-circle-xmark"></i> ' + message;
+            } else {
+                toast.style.background = '#8E4DFF';
+                toast.style.borderColor = '#A78BFA';
+                toast.innerHTML = '<i class="fa-solid fa-circle-info"></i> ' + message;
+            }
+            
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.style.transition = 'all 0.3s ease';
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateY(10px)';
+                setTimeout(() => toast.remove(), 300);
+            }, 3500);
+        }
+
+        // Helper format ngày: dd/mm/yyyy
+        function UtilitiesFormatDate(date, format) {
+            var dd = String(date.getDate()).padStart(2, '0');
+            var mm = String(date.getMonth() + 1).padStart(2, '0');
+            var yyyy = date.getFullYear();
+            if (format === "dd/MM/yyyy") return dd + "/" + mm + "/" + yyyy;
+            return dd + "/" + mm;
+        }
+
+        // Các hàm chọn nộp bulk học phí
+        function selectAllUnpaidSessions(master) {
+            var chks = document.querySelectorAll('.unpaid-chk');
+            chks.forEach(chk => chk.checked = master.checked);
+        }
+        function closeMarkPaidBulkModal() { document.getElementById('markPaidBulkModal').style.display = "none"; }
+        function submitMarkSessionsPaid() {
+            var checked = document.querySelectorAll('.unpaid-chk:checked');
+            if (checked.length === 0) {
+                showToast("Vui lòng chọn ít nhất một buổi học!", "error");
+                return;
+            }
+            
+            var rowIndices = [];
+            checked.forEach(chk => rowIndices.push(parseInt(chk.value)));
+            
+            var btn = document.getElementById('btnMarkPaid');
+            btn.disabled = true;
+            btn.innerText = "Đang lưu...";
+            
+            callApi("capNhatDongHocPhiBuoiHoc", { rowIndices: rowIndices })
+                .then(res => {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fa-solid fa-circle-check"></i> Xác nhận Đóng học phí';
+                    if (res.error) showToast("Lỗi: " + res.error, "error");
+                    else {
+                        showToast("Đã đóng học phí thành công cho các buổi chọn!", "success");
+                        closeMarkPaidBulkModal();
+                        taiLogHocSinh();
+                    }
+                })
+                .catch(err => {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fa-solid fa-circle-check"></i> Xác nhận Đóng học phí';
+                    showToast("Lỗi hệ thống: " + err.message, "error");
+                });
+        }
+    </script>
+</body>
+</html>
