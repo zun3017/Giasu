@@ -1480,8 +1480,10 @@ function writeTrashLog(ss, type, action, rowData) {
   try {
     var sheetTrash = ss.getSheetByName('Thùng rác');
     if (!sheetTrash) {
-      // Tự động khởi tạo sheet với font Arial và tiêu đề in đậm
       sheetTrash = ss.insertSheet('Thùng rác');
+    }
+    if (sheetTrash.getLastRow() === 0 || sheetTrash.getRange(1, 1).getValue() === "") {
+      // Tự động khởi tạo sheet với font Arial và tiêu đề in đậm
       sheetTrash.appendRow([
         "Thời gian ghi nhận", 
         "Loại đối tượng", 
@@ -1530,6 +1532,8 @@ function initHomeworkSheet(ss) {
   var sheet = ss.getSheetByName('Bài tập');
   if (!sheet) {
     sheet = ss.insertSheet('Bài tập');
+  }
+  if (sheet.getLastRow() === 0 || sheet.getRange(1, 1).getValue() === "") {
     sheet.appendRow([
       "Thời gian nộp",
       "Tên học sinh",
