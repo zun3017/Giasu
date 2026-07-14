@@ -1421,3 +1421,33 @@ function capNhatNhieuDongHocPhi(paidRowIndices, unpaidRowIndices) {
     lock.releaseLock();
   }
 }
+
+/**
+ * Xử lý các yêu cầu POST từ GitHub Pages hoặc môi trường ngoài.
+ * Đóng vai trò là API Gateway để gọi các hàm tương ứng và trả về JSON.
+ */
+function doPost(e) {
+  try {
+    // Phân tích dữ liệu JSON gửi lên
+    var requestData = JSON.parse(e.postData.contents);
+    var functionName = requestData.functionName;
+    var args = requestData.arguments || [];
+    
+    // Tìm hàm trong phạm vi global của Apps Script
+    var global = this || globalThis;
+    if (typeof global[functionName] === 'function') {
+      var result = global[functionName].apply(null, args);
+      
+      // Trả về kết quả JSON với cấu hình CORS đầy đủ
+      return ContentService.createTextOutput(JSON.stringify({ result: result }))
+                           .setMimeType(ContentService.MimeType.JSON);
+    } else {
+      return ContentService.createTextOutput(JSON.stringify({ error: "Không tìm thấy hàm '" + functionName + "' trên Apps Script." }))
+                           .setMimeType(ContentService.MimeType.JSON);
+    }
+  } catch (error) {
+    return ContentService.createTextOutput(JSON.stringify({ error: "Lỗi hệ thống: " + error.toString() }))
+                         .setMimeType(ContentService.MimeType.JSON);
+  }
+}
+

@@ -11,6 +11,105 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script>
+        // URL Web App mặc định của Google Apps Script (Hãy thay bằng link thực tế của bạn)
+        const DEFAULT_SCRIPT_URL = 'https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec';
+        
+        // Tải URL đã cấu hình từ localStorage hoặc sử dụng URL mặc định
+        const SCRIPT_URL = localStorage.getItem('GAS_SCRIPT_URL') || DEFAULT_SCRIPT_URL;
+
+        // Chỉ tạo Shim giả lập nếu chạy ngoài môi trường Google Apps Script (ví dụ trên GitHub Pages)
+        if (typeof google === 'undefined' || typeof google.script === 'undefined' || typeof google.script.run === 'undefined') {
+            console.log('Chạy ngoài môi trường Google Apps Script. Kích hoạt API Gateway Shim...');
+            
+            class GoogleScriptRunInstance {
+                constructor() {
+                    this._successHandler = null;
+                    this._failureHandler = null;
+                    
+                    return new Proxy(this, {
+                        get: (target, prop) => {
+                            if (prop in target) {
+                                return target[prop];
+                            }
+                            return (...args) => {
+                                return target._execute(prop, args);
+                            };
+                        }
+                    });
+                }
+                
+                withSuccessHandler(callback) {
+                    this._successHandler = callback;
+                    return this;
+                }
+                
+                withFailureHandler(callback) {
+                    this._failureHandler = callback;
+                    return this;
+                }
+                
+                _execute(functionName, args) {
+                    if (SCRIPT_URL === DEFAULT_SCRIPT_URL || SCRIPT_URL.indexOf('YOUR_SCRIPT_ID') !== -1) {
+                        const errMsg = 'Hệ thống chưa được cấu hình URL kết nối Google Sheets. Vui lòng bấm vào nút "Cấu hình kết nối dữ liệu" ở phía dưới nút Đăng nhập để thiết lập.';
+                        if (this._failureHandler) {
+                            this._failureHandler(errMsg);
+                        } else {
+                            alert(errMsg);
+                        }
+                        var loading = document.getElementById('loadingText');
+                        if (loading) loading.style.display = 'none';
+                        return;
+                    }
+                    
+                    // Sử dụng Content-Type text/plain để tránh CORS preflight OPTIONS request
+                    fetch(SCRIPT_URL, {
+                        method: 'POST',
+                        mode: 'cors',
+                        headers: {
+                            'Content-Type': 'text/plain;charset=utf-8'
+                        },
+                        body: JSON.stringify({
+                            functionName: functionName,
+                            arguments: args
+                        })
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Mã phản hồi HTTP lỗi: ' + response.status);
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        if (data && data.error) {
+                            if (this._failureHandler) {
+                                this._failureHandler(data.error);
+                            } else {
+                                console.error('Lỗi từ Apps Script:', data.error);
+                            }
+                        } else {
+                            if (this._successHandler) {
+                                this._successHandler(data ? data.result : undefined);
+                            }
+                        }
+                    })
+                    .catch(error => {
+                        if (this._failureHandler) {
+                            this._failureHandler('Lỗi kết nối máy chủ Google: ' + error.message);
+                        } else {
+                            console.error('Lỗi kết nối API:', error);
+                        }
+                    });
+                }
+            }
+            
+            window.google = window.google || {};
+            window.google.script = window.google.script || {};
+            Object.defineProperty(window.google.script, 'run', {
+                get: () => new GoogleScriptRunInstance()
+            });
+        }
+    </script>
     <style>
         /* ================= RESET & CƠ BẢN ================= */
         * {
@@ -1524,6 +1623,11 @@
             </div>
             <p id="thongBaoLoi" class="error-msg"></p>
             <p id="loadingText" class="loading-text"><i class="fa-solid fa-circle-notch fa-spin"></i> Hệ thống đang trích xuất dữ liệu...</p>
+            <div style="text-align: center; margin-top: 15px;">
+                <a href="#" onclick="showConfigModal(event)" style="color: #6366f1; text-decoration: none; font-size: 13px; display: inline-flex; align-items: center; gap: 6px; transition: color 0.2s;" onmouseover="this.style.color='#818cf8'" onmouseout="this.style.color='#6366f1'">
+                    <i class="fa-solid fa-gear"></i> Cấu hình kết nối dữ liệu
+                </a>
+            </div>
         </div>
 
         <div class="features-container">
@@ -5242,8 +5346,107 @@
             }
         };
 
-        
         // --- End of Script ---
+    </script>
+
+    <!-- Modal cấu hình Google Sheets URL -->
+    <div id="gasConfigModal" class="modal-overlay">
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-gear"></i> Cấu hình kết nối dữ liệu</h3>
+                <button onclick="closeConfigModal()" class="modal-close">&times;</button>
+            </div>
+            <div class="modal-form-group">
+                <label>URL Web App Google Apps Script</label>
+                <input type="text" id="gasScriptUrlInput" placeholder="https://script.google.com/macros/s/.../exec" style="width: 100%;">
+                <p style="color: #A6ADCE; font-size: 11px; margin-top: 6px; line-height: 1.4;">
+                    Dán URL Web App được triển khai từ Google Apps Script của bạn. URL này được lưu trữ riêng trên trình duyệt của thiết bị hiện tại.
+                </p>
+            </div>
+            <div id="gasTestStatus" style="font-size: 13px; margin: 10px 0; display: none; padding: 10px; border-radius: 8px; background: rgba(255,255,255,0.03);"></div>
+            <div class="modal-footer">
+                <button onclick="closeConfigModal()" class="modal-btn modal-btn-secondary">Đóng</button>
+                <button onclick="testGasConnection()" class="modal-btn modal-btn-secondary" id="btnTestGas" style="border-color: #8E4DFF; color: #8E4DFF; background: rgba(142,77,255,0.05);"><i class="fa-solid fa-plug"></i> Thử kết nối</button>
+                <button onclick="saveGasConfig()" class="modal-btn modal-btn-primary">Lưu cấu hình</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Điều khiển Modal cấu hình và thử nghiệm kết nối
+        function showConfigModal(e) {
+            if (e) e.preventDefault();
+            document.getElementById('gasScriptUrlInput').value = localStorage.getItem('GAS_SCRIPT_URL') || DEFAULT_SCRIPT_URL;
+            document.getElementById('gasTestStatus').style.display = 'none';
+            document.getElementById('gasConfigModal').style.display = 'flex';
+        }
+        
+        function closeConfigModal() {
+            document.getElementById('gasConfigModal').style.display = 'none';
+        }
+        
+        function saveGasConfig() {
+            const urlInput = document.getElementById('gasScriptUrlInput').value.trim();
+            if (!urlInput) {
+                alert('Vui lòng nhập URL hợp lệ.');
+                return;
+            }
+            if (!urlInput.startsWith('https://script.google.com/')) {
+                alert('URL phải bắt đầu bằng https://script.google.com/');
+                return;
+            }
+            localStorage.setItem('GAS_SCRIPT_URL', urlInput);
+            alert('Đã lưu cấu hình kết nối thành công!');
+            closeConfigModal();
+            location.reload(); // Tải lại trang để áp dụng URL mới
+        }
+        
+        function testGasConnection() {
+            const urlInput = document.getElementById('gasScriptUrlInput').value.trim();
+            const statusDiv = document.getElementById('gasTestStatus');
+            const btnTest = document.getElementById('btnTestGas');
+            
+            if (!urlInput || urlInput.startsWith('https://script.google.com/macros/s/YOUR_SCRIPT_ID')) {
+                statusDiv.innerHTML = '<span style="color:#EF4444;"><i class="fa-solid fa-triangle-exclamation"></i> Vui lòng nhập URL Web App hợp lệ của bạn trước!</span>';
+                statusDiv.style.display = 'block';
+                return;
+            }
+            
+            statusDiv.innerHTML = '<span style="color:#60A5FA;"><i class="fa-solid fa-spinner fa-spin"></i> Đang kết nối thử nghiệm đến Google...</span>';
+            statusDiv.style.display = 'block';
+            btnTest.disabled = true;
+            
+            // Gọi thử một hàm chuẩn hóa đơn giản không truy vấn sheet
+            fetch(urlInput, {
+                method: 'POST',
+                mode: 'cors',
+                headers: {
+                    'Content-Type': 'text/plain;charset=utf-8'
+                },
+                body: JSON.stringify({
+                    functionName: 'normalizePhone',
+                    arguments: ['0912345678']
+                })
+            })
+            .then(response => {
+                if (!response.ok) throw new Error('HTTP Status ' + response.status);
+                return response.json();
+            })
+            .then(data => {
+                btnTest.disabled = false;
+                if (data && data.error) {
+                    statusDiv.innerHTML = '<span style="color:#EF4444;"><i class="fa-solid fa-triangle-exclamation"></i> Lỗi Apps Script phản hồi: ' + data.error + '</span>';
+                } else if (data && data.result !== undefined) {
+                    statusDiv.innerHTML = '<span style="color:#10B981;"><i class="fa-solid fa-circle-check"></i> Kết nối thành công! Apps Script phản hồi tốt (Kết quả nhận được: "' + data.result + '").</span>';
+                } else {
+                    statusDiv.innerHTML = '<span style="color:#F59E0B;"><i class="fa-solid fa-triangle-exclamation"></i> Nhận phản hồi nhưng không khớp định dạng mong muốn. Hãy chắc chắn bạn đã cập nhật file Mã.gs mới.</span>';
+                }
+            })
+            .catch(error => {
+                btnTest.disabled = false;
+                statusDiv.innerHTML = '<span style="color:#EF4444; line-height: 1.4;"><i class="fa-solid fa-circle-xmark"></i> Kết nối thất bại!<br>Vui lòng kiểm tra lại URL hoặc đảm bảo bạn đã: <br>1. Triển khai cấu hình "Who has access: Anyone"<br>2. Chạy thử và xác thực quyền đọc ghi sheet cho script.<br>Chi tiết lỗi: ' + error.message + '</span>';
+            });
+        }
     </script>
 </body>
 </html>
