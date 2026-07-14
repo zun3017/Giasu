@@ -9,7 +9,7 @@ function doGet() {
 function normalizePhone(p) {
   if (!p) return "";
   var clean = String(p).replace(/\D/g, "");
-  if (clean.charAt(0) === '0') {
+  if (clean.length > 1 && clean.charAt(0) === '0') {
     clean = clean.substring(1);
   }
   return clean;
@@ -22,13 +22,17 @@ function loginSystem(phone, pin) {
   initAdminSheet(ss);
   
   var normPhone = normalizePhone(phone);
+  if (normPhone === "") {
+    return { error: 'Số điện thoại không hợp lệ.' };
+  }
   
   // 1. Quét Học Sinh trước (Ưu tiên, không cần PIN)
   var sheetHS = ss.getSheetByName('Mã học sinh');
   if (sheetHS) {
     var dataHS = sheetHS.getDataRange().getDisplayValues();
     for (var i = 1; i < dataHS.length; i++) {
-      if (normalizePhone(dataHS[i][3]) === normPhone) { 
+      var hsPhone = normalizePhone(dataHS[i][3]);
+      if (hsPhone !== "" && hsPhone === normPhone) { 
         return { 
           role: 'student', 
           thongBao: "Đăng nhập thành công", 
@@ -45,7 +49,8 @@ function loginSystem(phone, pin) {
     if (sheetAdmin) {
       var dataAdmin = sheetAdmin.getDataRange().getDisplayValues();
       for (var i = 1; i < dataAdmin.length; i++) {
-        if (normalizePhone(dataAdmin[i][2]) === normPhone) {
+        var adminPhone = normalizePhone(dataAdmin[i][2]);
+        if (adminPhone !== "" && adminPhone === normPhone) {
           return { requiresPin: true, name: dataAdmin[i][1] };
         }
       }
@@ -56,7 +61,8 @@ function loginSystem(phone, pin) {
     if (sheetGS) {
       var dataGS = sheetGS.getDataRange().getDisplayValues();
       for (var i = 1; i < dataGS.length; i++) {
-        if (normalizePhone(dataGS[i][2]) === normPhone) {
+        var gsPhone = normalizePhone(dataGS[i][2]);
+        if (gsPhone !== "" && gsPhone === normPhone) {
           var tDelDate = (dataGS[i].length > 5) ? dataGS[i][5].trim() : "";
           if (tDelDate === "") {
             return { requiresPin: true, name: dataGS[i][1] };
@@ -74,7 +80,8 @@ function loginSystem(phone, pin) {
   if (sheetAdmin) {
     var dataAdmin = sheetAdmin.getDataRange().getDisplayValues();
     for (var i = 1; i < dataAdmin.length; i++) {
-      if (normalizePhone(dataAdmin[i][2]) === normPhone) {
+      var adminPhone = normalizePhone(dataAdmin[i][2]);
+      if (adminPhone !== "" && adminPhone === normPhone) {
         var trueAdminPin = String(dataAdmin[i][3]).trim();
         if (String(pin).trim() === trueAdminPin) {
           return {
@@ -92,7 +99,8 @@ function loginSystem(phone, pin) {
   if (sheetGS) {
     var dataGS = sheetGS.getDataRange().getDisplayValues();
     for (var i = 1; i < dataGS.length; i++) {
-      if (normalizePhone(dataGS[i][2]) === normPhone) {
+      var gsPhone = normalizePhone(dataGS[i][2]);
+      if (gsPhone !== "" && gsPhone === normPhone) {
         var tDelDate = (dataGS[i].length > 5) ? dataGS[i][5].trim() : "";
         if (tDelDate !== "") continue;
         
