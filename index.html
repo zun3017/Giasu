@@ -12,17 +12,8 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script>
-        // URL Web App mặc định của Google Apps Script (Hãy thay bằng link thực tế của bạn)
-        const DEFAULT_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyZXzxADAm-vzZtpjBlS5v3cN4Nt9GTnYYBWEPTrDpWRu7CoeH0L3jv1RwHDVsnYNLX/exec';
-        
-        // Tải URL đã cấu hình từ localStorage hoặc sử dụng URL mặc định
-        let savedUrl = localStorage.getItem('GAS_SCRIPT_URL');
-        // Nếu URL lưu trong bộ nhớ là link placeholder mặc định hoặc bị trống, hãy xóa đi để dùng DEFAULT_SCRIPT_URL
-        if (savedUrl && (savedUrl.indexOf('YOUR_SCRIPT_ID') !== -1 || savedUrl.trim() === '')) {
-            localStorage.removeItem('GAS_SCRIPT_URL');
-            savedUrl = null;
-        }
-        const SCRIPT_URL = savedUrl || DEFAULT_SCRIPT_URL;
+        // URL Web App của Google Apps Script
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyZXzxADAm-vzZtpjBlS5v3cN4Nt9GTnYYBWEPTrDpWRu7CoeH0L3jv1RwHDVsnYNLX/exec';
 
         // Chỉ tạo Shim giả lập nếu chạy ngoài môi trường Google Apps Script (ví dụ trên GitHub Pages)
         if (typeof google === 'undefined' || typeof google.script === 'undefined' || typeof google.script.run === 'undefined') {
@@ -57,7 +48,7 @@
                 
                 _execute(functionName, args) {
                     if (SCRIPT_URL.indexOf('YOUR_SCRIPT_ID') !== -1 || SCRIPT_URL.trim() === '') {
-                        const errMsg = 'Hệ thống chưa được cấu hình URL kết nối Google Sheets. Vui lòng bấm vào nút "Cấu hình kết nối dữ liệu" ở phía dưới nút Đăng nhập để thiết lập.';
+                        const errMsg = 'Hệ thống chưa được cấu hình URL kết nối Google Sheets.';
                         if (this._failureHandler) {
                             this._failureHandler(errMsg);
                         } else {
@@ -1583,7 +1574,7 @@
 
     <div class="header">
         <div style="display: flex; align-items: center; gap: 12px;">
-            <img src="https://cdn-icons-png.flaticon.com/512/3330/3330314.png" alt="Logo" ondblclick="showConfigModal(event)" style="cursor: pointer;">
+            <img src="https://cdn-icons-png.flaticon.com/512/3330/3330314.png" alt="Logo">
             <div class="header-text">
                 <h1>Tra cứu học tập</h1>
                 <p>Học tập thông minh</p>
@@ -5348,106 +5339,6 @@
         };
 
         // --- End of Script ---
-    </script>
-
-    <!-- Modal cấu hình Google Sheets URL -->
-    <div id="gasConfigModal" class="modal-overlay">
-        <div class="modal-content" style="max-width: 500px;">
-            <div class="modal-header">
-                <h3><i class="fa-solid fa-gear"></i> Cấu hình kết nối dữ liệu</h3>
-                <button onclick="closeConfigModal()" class="modal-close">&times;</button>
-            </div>
-            <div class="modal-form-group">
-                <label>URL Web App Google Apps Script</label>
-                <input type="text" id="gasScriptUrlInput" placeholder="https://script.google.com/macros/s/.../exec" style="width: 100%;">
-                <p style="color: #A6ADCE; font-size: 11px; margin-top: 6px; line-height: 1.4;">
-                    Dán URL Web App được triển khai từ Google Apps Script của bạn. URL này được lưu trữ riêng trên trình duyệt của thiết bị hiện tại.
-                </p>
-            </div>
-            <div id="gasTestStatus" style="font-size: 13px; margin: 10px 0; display: none; padding: 10px; border-radius: 8px; background: rgba(255,255,255,0.03);"></div>
-            <div class="modal-footer">
-                <button onclick="closeConfigModal()" class="modal-btn modal-btn-secondary">Đóng</button>
-                <button onclick="testGasConnection()" class="modal-btn modal-btn-secondary" id="btnTestGas" style="border-color: #8E4DFF; color: #8E4DFF; background: rgba(142,77,255,0.05);"><i class="fa-solid fa-plug"></i> Thử kết nối</button>
-                <button onclick="saveGasConfig()" class="modal-btn modal-btn-primary">Lưu cấu hình</button>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        // Điều khiển Modal cấu hình và thử nghiệm kết nối
-        function showConfigModal(e) {
-            if (e) e.preventDefault();
-            document.getElementById('gasScriptUrlInput').value = localStorage.getItem('GAS_SCRIPT_URL') || DEFAULT_SCRIPT_URL;
-            document.getElementById('gasTestStatus').style.display = 'none';
-            document.getElementById('gasConfigModal').style.display = 'flex';
-        }
-        
-        function closeConfigModal() {
-            document.getElementById('gasConfigModal').style.display = 'none';
-        }
-        
-        function saveGasConfig() {
-            const urlInput = document.getElementById('gasScriptUrlInput').value.trim();
-            if (!urlInput) {
-                alert('Vui lòng nhập URL hợp lệ.');
-                return;
-            }
-            if (!urlInput.startsWith('https://script.google.com/')) {
-                alert('URL phải bắt đầu bằng https://script.google.com/');
-                return;
-            }
-            localStorage.setItem('GAS_SCRIPT_URL', urlInput);
-            alert('Đã lưu cấu hình kết nối thành công!');
-            closeConfigModal();
-            location.reload(); // Tải lại trang để áp dụng URL mới
-        }
-        
-        function testGasConnection() {
-            const urlInput = document.getElementById('gasScriptUrlInput').value.trim();
-            const statusDiv = document.getElementById('gasTestStatus');
-            const btnTest = document.getElementById('btnTestGas');
-            
-            if (!urlInput || urlInput.startsWith('https://script.google.com/macros/s/YOUR_SCRIPT_ID')) {
-                statusDiv.innerHTML = '<span style="color:#EF4444;"><i class="fa-solid fa-triangle-exclamation"></i> Vui lòng nhập URL Web App hợp lệ của bạn trước!</span>';
-                statusDiv.style.display = 'block';
-                return;
-            }
-            
-            statusDiv.innerHTML = '<span style="color:#60A5FA;"><i class="fa-solid fa-spinner fa-spin"></i> Đang kết nối thử nghiệm đến Google...</span>';
-            statusDiv.style.display = 'block';
-            btnTest.disabled = true;
-            
-            // Gọi thử một hàm chuẩn hóa đơn giản không truy vấn sheet
-            fetch(urlInput, {
-                method: 'POST',
-                mode: 'cors',
-                headers: {
-                    'Content-Type': 'text/plain;charset=utf-8'
-                },
-                body: JSON.stringify({
-                    functionName: 'normalizePhone',
-                    arguments: ['0912345678']
-                })
-            })
-            .then(response => {
-                if (!response.ok) throw new Error('HTTP Status ' + response.status);
-                return response.json();
-            })
-            .then(data => {
-                btnTest.disabled = false;
-                if (data && data.error) {
-                    statusDiv.innerHTML = '<span style="color:#EF4444;"><i class="fa-solid fa-triangle-exclamation"></i> Lỗi Apps Script phản hồi: ' + data.error + '</span>';
-                } else if (data && data.result !== undefined) {
-                    statusDiv.innerHTML = '<span style="color:#10B981;"><i class="fa-solid fa-circle-check"></i> Kết nối thành công! Apps Script phản hồi tốt (Kết quả nhận được: "' + data.result + '").</span>';
-                } else {
-                    statusDiv.innerHTML = '<span style="color:#F59E0B;"><i class="fa-solid fa-triangle-exclamation"></i> Nhận phản hồi nhưng không khớp định dạng mong muốn. Hãy chắc chắn bạn đã cập nhật file Mã.gs mới.</span>';
-                }
-            })
-            .catch(error => {
-                btnTest.disabled = false;
-                statusDiv.innerHTML = '<span style="color:#EF4444; line-height: 1.4;"><i class="fa-solid fa-circle-xmark"></i> Kết nối thất bại!<br>Vui lòng kiểm tra lại URL hoặc đảm bảo bạn đã: <br>1. Triển khai cấu hình "Who has access: Anyone"<br>2. Chạy thử và xác thực quyền đọc ghi sheet cho script.<br>Chi tiết lỗi: ' + error.message + '</span>';
-            });
-        }
     </script>
 </body>
 </html>
