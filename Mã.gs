@@ -233,7 +233,7 @@ function getTutorDashboardData(tutorPhone, gsRow, ss) {
     for (var i = 1; i < dataHS.length; i++) {
       var sdtPhuTrach = (dataHS[i].length > 6) ? String(dataHS[i][6]).trim() : "";
       if (normalizePhone(sdtPhuTrach) === normTutorPhone) {
-        var xoaDate = (dataHS[i].length > 7) ? String(dataHS[i][7]).trim() : "";
+        var xoaDate = (dataHS[i].length > 8) ? String(dataHS[i][8]).trim() : "";
         if (!xoaDate) {
           tutorData.students.push({
             phone: dataHS[i][3],
@@ -776,7 +776,7 @@ function clearOldDeletedStudents(sheetHS) {
     var now = new Date();
     // Vòng lặp ngược để xóa dòng an toàn
     for (var i = data.length - 1; i >= 1; i--) {
-      var deletedDateStr = data[i][7]; // Cột H (index 7)
+      var deletedDateStr = (data[i].length > 8) ? data[i][8] : ""; // Cột I (index 8)
       if (deletedDateStr) {
         // Tách ngày dạng dd/MM/yyyy HH:mm:ss sang đối tượng Date hợp lệ
         var parts = String(deletedDateStr).split(" ");
@@ -844,7 +844,7 @@ function xoaHocSinhTamThoi(tutorPhone, studentPhone) {
     
     var now = new Date();
     var dateString = Utilities.formatDate(now, Session.getScriptTimeZone(), "dd/MM/yyyy HH:mm:ss");
-    sheetHS.getRange(rowIndex, 8).setValue(dateString).setFontFamily("Arial");
+    sheetHS.getRange(rowIndex, 9).setValue(dateString).setFontFamily("Arial");
     writeTrashLog(ss, "Học sinh", "Xóa tạm thời", targetRowData);
     
     return { success: true };
@@ -879,7 +879,7 @@ function khoiPhucHocSinh(tutorPhone, studentPhone) {
       return { error: "Không tìm thấy học sinh để khôi phục." };
     }
     
-    sheetHS.getRange(rowIndex, 8).setValue("").setFontFamily("Arial");
+    sheetHS.getRange(rowIndex, 9).setValue("").setFontFamily("Arial");
     writeTrashLog(ss, "Học sinh", "Khôi phục", targetRowData);
     
     return { success: true };
@@ -983,7 +983,7 @@ function getAdminDashboardData() {
           phone: dataHS[i][3],
           tuition: parseFloat(dataHS[i][5]) || 0,
           tutorPhone: dataHS[i][6],
-          deletedDate: (dataHS[i].length > 7) ? dataHS[i][7] : ""
+          deletedDate: (dataHS[i].length > 8) ? dataHS[i][8] : ""
         };
         data.students.push(s);
         studentMap[normalizePhone(s.phone)] = s;
@@ -1597,69 +1597,68 @@ function saveFileToDrive(studentName, lessonName, fileBase64, fileName, mimeType
   return file.getUrl();
 }
 
-// Xác thực Mã bài tập (đăng nhập cổng nộp bài)
+// Xác thực Mã bài tập (đăng nhập cổng nộp bài bằng mã ở Cột H của Mã học sinh)
 function xacThucMaBaiTap(ma) {
   try {
     var ss = SpreadsheetApp.getActiveSpreadsheet();
-    var sheetHW = initHomeworkSheet(ss);
-    var dataHW = sheetHW.getDataRange().getDisplayValues();
+    var sheetHS = ss.getSheetByName('Mã học sinh');
+    if (!sheetHS) return { timThay: false, thongBao: "Không tìm thấy sheet 'Mã học sinh'" };
     
-    var foundRow = -1;
+    var dataHS = sheetHS.getDataRange().getDisplayValues();
+    var foundStudentRow = -1;
     var cleanMa = String(ma).trim().toUpperCase();
-    for (var i = 1; i < dataHW.length; i++) {
-      if (String(dataHW[i][4]).trim().toUpperCase() === cleanMa) {
-        foundRow = i;
+    
+    // Tìm kiếm trong Cột H (index 7) của Mã học sinh
+    for (var i = 1; i < dataHS.length; i++) {
+      if (dataHS[i].length > 7 && String(dataHS[i][7]).trim().toUpperCase() === cleanMa) {
+        foundStudentRow = i;
         break;
       }
     }
     
-    if (foundRow === -1) {
-      return { timThay: false, thongBao: "Mã bài tập không hợp lệ hoặc không tồn tại!" };
+    if (foundStudentRow === -1) {
+      return { timThay: false, thongBao: "Mã bài tập không hợp lệ hoặc học sinh chưa được cấp mã!" };
     }
     
-    var studentName = dataHW[foundRow][1];
-    var lessonName = dataHW[foundRow][2];
-    var fileUrl = dataHW[foundRow][3];
-    var submissionDate = dataHW[foundRow][5];
-    var status = dataHW[foundRow][6] || "Active";
+    var studentName = dataHS[foundStudentRow][2]; // Họ tên học sinh
+    var studentPhone = dataHS[foundStudentRow][3]; // Số điện thoại phụ huynh
+    
+    // Truy vấn lịch sử bài nộp của mã này trong sheet 'Bài tập'
+    var sheetHW = initHomeworkSheet(ss);
+    var dataHW = sheetHW.getDataRange().getDisplayValues();
+    var submissions = [];
+    
+    for (var j = 1; j < dataHW.length; j++) {
+      if (dataHW[j].length > 4 && String(dataHW[j][4]).trim().toUpperCase() === cleanMa) {
+        submissions.push({
+          timestamp: dataHW[j][0],
+          studentName: dataHW[j][1],
+          lessonName: dataHW[j][2],
+          fileUrl: dataHW[j][3],
+          ma: dataHW[j][4],
+          submissionDate: dataHW[j][5],
+          status: dataHW[j][6] || "Active",
+          rowIndex: j + 1 // 1-indexed row number in 'Bài tập' sheet
+        });
+      }
+    }
     
     return {
       timThay: true,
       ma: cleanMa,
       studentName: studentName,
-      lessonName: lessonName,
-      fileUrl: fileUrl,
-      submissionDate: submissionDate,
-      status: status,
-      rowIndex: foundRow + 1
+      submissions: submissions
     };
   } catch (e) {
     return { timThay: false, thongBao: "Lỗi hệ thống: " + e.toString() };
   }
 }
 
-// Học sinh nộp bài tập (cập nhật dòng hoặc thêm file)
-function uploadHomeworkFile(ma, fileBase64, fileName, mimeType) {
+// Học sinh nộp bài tập mới (thêm dòng mới vào sheet 'Bài tập')
+function uploadHomeworkFile(ma, studentName, lessonName, fileBase64, fileName, mimeType) {
   try {
     var ss = SpreadsheetApp.getActiveSpreadsheet();
     var sheetHW = initHomeworkSheet(ss);
-    var dataHW = sheetHW.getDataRange().getDisplayValues();
-    
-    var rowIndex = -1;
-    var cleanMa = String(ma).trim().toUpperCase();
-    for (var i = 1; i < dataHW.length; i++) {
-      if (String(dataHW[i][4]).trim().toUpperCase() === cleanMa) {
-        rowIndex = i + 1;
-        break;
-      }
-    }
-    
-    if (rowIndex === -1) {
-      return { error: "Không tìm thấy thông tin mã bài tập." };
-    }
-    
-    var studentName = dataHW[rowIndex - 1][1];
-    var lessonName = dataHW[rowIndex - 1][2];
     
     // Tải file lên Drive
     var fileUrl = saveFileToDrive(studentName, lessonName, fileBase64, fileName, mimeType);
@@ -1668,28 +1667,35 @@ function uploadHomeworkFile(ma, fileBase64, fileName, mimeType) {
     var dateString = Utilities.formatDate(now, Session.getScriptTimeZone(), "dd/MM/yyyy HH:mm:ss");
     var shortDateString = Utilities.formatDate(now, Session.getScriptTimeZone(), "dd/MM/yyyy");
     
-    // Lưu thông tin
-    sheetHW.getRange(rowIndex, 1).setValue(dateString);
-    sheetHW.getRange(rowIndex, 4).setValue(fileUrl);
-    sheetHW.getRange(rowIndex, 6).setValue(shortDateString);
-    sheetHW.getRange(rowIndex, 7).setValue("Active");
+    // Thêm dòng mới: Cột A -> G
+    sheetHW.appendRow([
+      dateString,
+      studentName,
+      lessonName,
+      fileUrl,
+      ma.toUpperCase(),
+      shortDateString,
+      "Active"
+    ]);
     
-    sheetHW.getRange(rowIndex, 1, 1, 7).setFontFamily("Arial");
+    var lastRow = sheetHW.getLastRow();
+    sheetHW.getRange(lastRow, 1, 1, 7).setFontFamily("Arial");
     
     return {
       success: true,
       fileUrl: fileUrl,
       submissionDate: shortDateString,
       timestamp: dateString,
-      status: "Active"
+      status: "Active",
+      rowIndex: lastRow
     };
   } catch (e) {
     return { error: "Lỗi hệ thống: " + e.toString() };
   }
 }
 
-// Chỉnh sửa bài tập đã nộp (thay file mới trong ngày)
-function editHomeworkFile(rowIndex, fileBase64, fileName, mimeType) {
+// Chỉnh sửa bài tập đã nộp (thay tên bài hoặc file của dòng rowIndex)
+function editHomeworkFile(rowIndex, lessonName, fileBase64, fileName, mimeType) {
   try {
     var ss = SpreadsheetApp.getActiveSpreadsheet();
     var sheetHW = initHomeworkSheet(ss);
@@ -1710,15 +1716,20 @@ function editHomeworkFile(rowIndex, fileBase64, fileName, mimeType) {
     }
     
     var studentName = data[r - 1][1];
-    var lessonName = data[r - 1][2];
     
-    // Lưu file mới
-    var fileUrl = saveFileToDrive(studentName, lessonName, fileBase64, fileName, mimeType);
+    // Cập nhật tên bài học
+    sheetHW.getRange(r, 3).setValue(lessonName);
+    
+    // Nếu có file mới truyền lên
+    var fileUrl = data[r - 1][3];
+    if (fileBase64 && fileName) {
+      fileUrl = saveFileToDrive(studentName, lessonName, fileBase64, fileName, mimeType);
+      sheetHW.getRange(r, 4).setValue(fileUrl);
+    }
+    
     var dateString = Utilities.formatDate(now, Session.getScriptTimeZone(), "dd/MM/yyyy HH:mm:ss");
-    
     sheetHW.getRange(r, 1).setValue(dateString);
-    sheetHW.getRange(r, 4).setValue(fileUrl);
-    sheetHW.getRange(r, 7).setValue("Active"); // reset active nếu đang deleted
+    sheetHW.getRange(r, 7).setValue("Active"); // Reset trạng thái nếu đang tạm xóa
     sheetHW.getRange(r, 1, 1, 7).setFontFamily("Arial");
     
     return { success: true, fileUrl: fileUrl, timestamp: dateString };
@@ -1727,7 +1738,7 @@ function editHomeworkFile(rowIndex, fileBase64, fileName, mimeType) {
   }
 }
 
-// Xóa tạm thời bài tập
+// Xóa tạm thời bài tập (Cột G = Deleted)
 function deleteHomeworkFile(rowIndex) {
   try {
     var ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -1759,7 +1770,7 @@ function deleteHomeworkFile(rowIndex) {
   }
 }
 
-// Khôi phục bài tập
+// Khôi phục bài tập (Cột G = Active)
 function restoreHomeworkFile(rowIndex) {
   try {
     var ss = SpreadsheetApp.getActiveSpreadsheet();
