@@ -1550,16 +1550,21 @@ function initHomeworkSheet(ss) {
 
 // Lưu file vào Google Drive và trả về URL
 function saveFileToDrive(studentName, lessonName, fileBase64, fileName, mimeType) {
-  var parentFolderName = "Bài Tập Học Viên Giasu";
+  var parentFolderId = "1ZKHCDdZzkMqLTV4guvMNkKYbaQHCEGus";
+  var parentFolder;
   var driveApp = DriveApp;
   
-  // 1. Tìm hoặc tạo thư mục cha
-  var folders = driveApp.getFoldersByName(parentFolderName);
-  var parentFolder;
-  if (folders.hasNext()) {
-    parentFolder = folders.next();
-  } else {
-    parentFolder = driveApp.createFolder(parentFolderName);
+  // 1. Lấy thư mục cha theo ID chỉ định từ người dùng
+  try {
+    parentFolder = driveApp.getFolderById(parentFolderId);
+  } catch (err) {
+    // Dự phòng: Nếu không lấy được ID, tự động tạo ngoài root
+    var folders = driveApp.getFoldersByName("Bài Tập Học Viên Giasu");
+    if (folders.hasNext()) {
+      parentFolder = folders.next();
+    } else {
+      parentFolder = driveApp.createFolder("Bài Tập Học Viên Giasu");
+    }
   }
   
   // 2. Tìm hoặc tạo thư mục con theo tên học sinh
