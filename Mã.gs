@@ -802,6 +802,8 @@ function clearOldDeletedStudents(sheetHS) {
               var diffTime = now.getTime() - deletedDate.getTime();
               var diffDays = diffTime / (1000 * 3600 * 24);
               if (diffDays > 10) {
+                var ss = SpreadsheetApp.getActiveSpreadsheet();
+                writeTrashLog(ss, "Học sinh", "Xóa vĩnh viễn do hết hạn", data[i]);
                 sheetHS.deleteRow(i + 1);
               }
             }
@@ -826,10 +828,12 @@ function xoaHocSinhTamThoi(tutorPhone, studentPhone) {
     var normStudentPhone = normalizePhone(studentPhone);
     var normTutorPhone = normalizePhone(tutorPhone);
     
+    var targetRowData = null;
     for (var i = 1; i < dataHS.length; i++) {
       if (normalizePhone(dataHS[i][3]) === normStudentPhone && 
           normalizePhone(dataHS[i][6]) === normTutorPhone) {
         rowIndex = i + 1;
+        targetRowData = dataHS[i];
         break;
       }
     }
@@ -841,6 +845,7 @@ function xoaHocSinhTamThoi(tutorPhone, studentPhone) {
     var now = new Date();
     var dateString = Utilities.formatDate(now, Session.getScriptTimeZone(), "dd/MM/yyyy HH:mm:ss");
     sheetHS.getRange(rowIndex, 8).setValue(dateString).setFontFamily("Arial");
+    writeTrashLog(ss, "Học sinh", "Xóa tạm thời", targetRowData);
     
     return { success: true };
   } catch (e) {
@@ -860,10 +865,12 @@ function khoiPhucHocSinh(tutorPhone, studentPhone) {
     var normStudentPhone = normalizePhone(studentPhone);
     var normTutorPhone = normalizePhone(tutorPhone);
     
+    var targetRowData = null;
     for (var i = 1; i < dataHS.length; i++) {
       if (normalizePhone(dataHS[i][3]) === normStudentPhone && 
           normalizePhone(dataHS[i][6]) === normTutorPhone) {
         rowIndex = i + 1;
+        targetRowData = dataHS[i];
         break;
       }
     }
@@ -873,6 +880,7 @@ function khoiPhucHocSinh(tutorPhone, studentPhone) {
     }
     
     sheetHS.getRange(rowIndex, 8).setValue("").setFontFamily("Arial");
+    writeTrashLog(ss, "Học sinh", "Khôi phục", targetRowData);
     
     return { success: true };
   } catch (e) {
@@ -1286,9 +1294,11 @@ function xoaGiaSuTamThoi(tutorPhone) {
     var rowIndex = -1;
     var normTutorPhone = normalizePhone(tutorPhone);
     
+    var targetRowData = null;
     for (var i = 1; i < dataGS.length; i++) {
       if (normalizePhone(dataGS[i][2]) === normTutorPhone) {
         rowIndex = i + 1;
+        targetRowData = dataGS[i];
         break;
       }
     }
@@ -1300,6 +1310,7 @@ function xoaGiaSuTamThoi(tutorPhone) {
     var now = new Date();
     var dateString = Utilities.formatDate(now, Session.getScriptTimeZone(), "dd/MM/yyyy HH:mm:ss");
     sheetGS.getRange(rowIndex, 6).setValue(dateString).setFontFamily("Arial");
+    writeTrashLog(ss, "Gia sư", "Xóa tạm thời", targetRowData);
     
     return { success: true };
   } catch (e) {
@@ -1318,9 +1329,11 @@ function khoiPhucGiaSu(tutorPhone) {
     var rowIndex = -1;
     var normTutorPhone = normalizePhone(tutorPhone);
     
+    var targetRowData = null;
     for (var i = 1; i < dataGS.length; i++) {
       if (normalizePhone(dataGS[i][2]) === normTutorPhone) {
         rowIndex = i + 1;
+        targetRowData = dataGS[i];
         break;
       }
     }
@@ -1330,6 +1343,7 @@ function khoiPhucGiaSu(tutorPhone) {
     }
     
     sheetGS.getRange(rowIndex, 6).setValue("").setFontFamily("Arial");
+    writeTrashLog(ss, "Gia sư", "Khôi phục", targetRowData);
     
     return { success: true };
   } catch (e) {
@@ -1369,6 +1383,8 @@ function clearOldDeletedTutors(sheetGS) {
               var diffTime = now.getTime() - deletedDate.getTime();
               var diffDays = diffTime / (1000 * 3600 * 24);
               if (diffDays > 10) {
+                var ss = SpreadsheetApp.getActiveSpreadsheet();
+                writeTrashLog(ss, "Gia sư", "Xóa vĩnh viễn do hết hạn", data[i]);
                 sheetGS.deleteRow(i + 1);
               }
             }
@@ -1456,6 +1472,52 @@ function doPost(e) {
   } catch (error) {
     return ContentService.createTextOutput(JSON.stringify({ error: "Lỗi hệ thống: " + error.toString() }))
                          .setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+// Ghi nhật ký biến động thùng rác (Xóa tạm thời / Khôi phục / Xóa vĩnh viễn)
+function writeTrashLog(ss, type, action, rowData) {
+  try {
+    var sheetTrash = ss.getSheetByName('Thùng rác');
+    if (!sheetTrash) {
+      // Tự động khởi tạo sheet với font Arial và tiêu đề in đậm
+      sheetTrash = ss.insertSheet('Thùng rác');
+      sheetTrash.appendRow([
+        "Thời gian ghi nhận", 
+        "Loại đối tượng", 
+        "Hành động", 
+        "Số điện thoại", 
+        "Tên đối tượng", 
+        "Số điện thoại liên quan", 
+        "Dữ liệu dòng gốc (JSON)"
+      ]);
+      sheetTrash.getRange("A1:G1").setFontWeight("bold").setBackground("#F3F4F6").setFontFamily("Arial");
+    }
+    
+    var now = new Date();
+    var dateString = Utilities.formatDate(now, Session.getScriptTimeZone(), "dd/MM/yyyy HH:mm:ss");
+    
+    var phone = "";
+    var name = "";
+    var relatedPhone = "";
+    
+    if (type === "Học sinh") {
+      phone = (rowData.length > 3) ? String(rowData[3]).trim() : "";
+      name = (rowData.length > 2) ? String(rowData[2]).trim() : "";
+      relatedPhone = (rowData.length > 6) ? String(rowData[6]).trim() : "";
+    } else if (type === "Gia sư") {
+      phone = (rowData.length > 2) ? String(rowData[2]).trim() : "";
+      name = (rowData.length > 1) ? String(rowData[1]).trim() : "";
+      relatedPhone = "";
+    }
+    
+    var jsonData = JSON.stringify(rowData);
+    sheetTrash.appendRow([dateString, type, action, phone, name, relatedPhone, jsonData]);
+    
+    var lastRow = sheetTrash.getLastRow();
+    sheetTrash.getRange(lastRow, 1, 1, 7).setFontFamily("Arial");
+  } catch (e) {
+    Logger.log("Lỗi ghi nhật ký thùng rác: " + e.toString());
   }
 }
 
