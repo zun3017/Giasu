@@ -1583,7 +1583,7 @@
 
     <div class="header">
         <div style="display: flex; align-items: center; gap: 12px;">
-            <img src="https://cdn-icons-png.flaticon.com/512/3330/3330314.png" alt="Logo">
+            <img src="https://cdn-icons-png.flaticon.com/512/3330/3330314.png" alt="Logo" ondblclick="showConfigModal(event)" style="cursor: pointer;">
             <div class="header-text">
                 <h1>Tra cứu học tập</h1>
                 <p>Học tập thông minh</p>
@@ -1629,11 +1629,6 @@
             </div>
             <p id="thongBaoLoi" class="error-msg"></p>
             <p id="loadingText" class="loading-text"><i class="fa-solid fa-circle-notch fa-spin"></i> Hệ thống đang trích xuất dữ liệu...</p>
-            <div style="text-align: center; margin-top: 15px;">
-                <a href="#" onclick="showConfigModal(event)" style="color: #6366f1; text-decoration: none; font-size: 13px; display: inline-flex; align-items: center; gap: 6px; transition: color 0.2s;" onmouseover="this.style.color='#818cf8'" onmouseout="this.style.color='#6366f1'">
-                    <i class="fa-solid fa-gear"></i> Cấu hình kết nối dữ liệu
-                </a>
-            </div>
         </div>
 
         <div class="features-container">
