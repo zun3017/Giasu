@@ -5,11 +5,15 @@
                     currentChartInstance = null;
                 }
 
-                // Ẩn màn hình chính và các nhân vật 3D
-                document.getElementById('mainScreen').style.display = 'none';
-                document.getElementById('deskSurface').style.display = 'none';
-                document.getElementById('charBoy').style.display = 'none';
-                document.getElementById('charGirl').style.display = 'none';
+                // Ẩn màn hình chính và các nhân vật 3D nếu tồn tại
+                var mainScr = document.getElementById('mainScreen');
+                if (mainScr) mainScr.style.display = 'none';
+                var deskSurf = document.getElementById('deskSurface');
+                if (deskSurf) deskSurf.style.display = 'none';
+                var boy = document.getElementById('charBoy');
+                if (boy) boy.style.display = 'none';
+                var girl = document.getElementById('charGirl');
+                if (girl) girl.style.display = 'none';
                 
                 var headerEl = document.querySelector('.header');
                 if (headerEl) headerEl.style.display = 'none';

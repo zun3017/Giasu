@@ -2,11 +2,16 @@
             tutorDataGlobal = data;
             currentTutorPhone = document.getElementById('maHocSinh').value.trim();
             
-            document.getElementById('mainScreen').style.display = 'none';
-            document.getElementById('deskSurface').style.display = 'none';
-            document.getElementById('charBoy').style.display = 'none';
-            document.getElementById('charGirl').style.display = 'none';
-            document.getElementById('resultBox').style.display = 'none';
+            var mainScr = document.getElementById('mainScreen');
+            if (mainScr) mainScr.style.display = 'none';
+            var deskSurf = document.getElementById('deskSurface');
+            if (deskSurf) deskSurf.style.display = 'none';
+            var boy = document.getElementById('charBoy');
+            if (boy) boy.style.display = 'none';
+            var girl = document.getElementById('charGirl');
+            if (girl) girl.style.display = 'none';
+            var resBox = document.getElementById('resultBox');
+            if (resBox) resBox.style.display = 'none';
             
             var headerEl = document.querySelector('.header');
             if (headerEl) headerEl.style.display = 'none';
