@@ -2934,11 +2934,11 @@
             loadingText.style.display = 'block';
             
             google.script.run.withSuccessHandler(function(ketQua) {
-                hienThiKetQua(ketQua, role);
+                hienThiKetQua(ketQua, role, phone);
             }).loginSystem(phone, pin);
         }
 
-        function hienThiKetQua(ketQua, role) {
+        function hienThiKetQua(ketQua, role, phone) {
             var loadingStudent = document.getElementById('loadingText');
             var loadingTutor = document.getElementById('tutorLoadingText');
             if (loadingStudent) loadingStudent.style.display = 'none';
@@ -2966,8 +2966,11 @@
             if (ketQua.role === 'student' && ketQua.data && ketQua.data.timThay) {
                 renderStudentView(ketQua.data);
             } else if (ketQua.role === 'tutor') {
+                currentTutorPhone = phone;
+                tutorDataGlobal = ketQua.data;
                 renderTutorView(ketQua.data);
             } else if (ketQua.role === 'admin') {
+                currentAdminPhone = phone;
                 renderAdminView(ketQua.data);
             }
         }
