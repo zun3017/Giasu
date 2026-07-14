@@ -1509,6 +1509,10 @@ function writeTrashLog(ss, type, action, rowData) {
       phone = (rowData.length > 2) ? String(rowData[2]).trim() : "";
       name = (rowData.length > 1) ? String(rowData[1]).trim() : "";
       relatedPhone = "";
+    } else if (type === "Bài tập") {
+      phone = (rowData.length > 4) ? String(rowData[4]).trim() : ""; // Mã bài tập
+      name = (rowData.length > 1) ? String(rowData[1]).trim() : "";  // Tên học sinh
+      relatedPhone = (rowData.length > 2) ? String(rowData[2]).trim() : ""; // Tên bài học
     }
     
     var jsonData = JSON.stringify(rowData);
@@ -1518,6 +1522,272 @@ function writeTrashLog(ss, type, action, rowData) {
     sheetTrash.getRange(lastRow, 1, 1, 7).setFontFamily("Arial");
   } catch (e) {
     Logger.log("Lỗi ghi nhật ký thùng rác: " + e.toString());
+  }
+}
+
+// Khởi tạo sheet Bài tập
+function initHomeworkSheet(ss) {
+  var sheet = ss.getSheetByName('Bài tập');
+  if (!sheet) {
+    sheet = ss.insertSheet('Bài tập');
+    sheet.appendRow([
+      "Thời gian nộp",
+      "Tên học sinh",
+      "Tên bài học",
+      "Link Google Drive liên kết",
+      "Mã bài tập",
+      "Ngày nộp",
+      "Trạng thái nộp"
+    ]);
+    sheet.getRange("A1:G1").setFontWeight("bold").setBackground("#F3F4F6").setFontFamily("Arial");
+  }
+  return sheet;
+}
+
+// Lưu file vào Google Drive và trả về URL
+function saveFileToDrive(studentName, lessonName, fileBase64, fileName, mimeType) {
+  var parentFolderName = "Bài Tập Học Viên Giasu";
+  var driveApp = DriveApp;
+  
+  // 1. Tìm hoặc tạo thư mục cha
+  var folders = driveApp.getFoldersByName(parentFolderName);
+  var parentFolder;
+  if (folders.hasNext()) {
+    parentFolder = folders.next();
+  } else {
+    parentFolder = driveApp.createFolder(parentFolderName);
+  }
+  
+  // 2. Tìm hoặc tạo thư mục con theo tên học sinh
+  var studentFolders = parentFolder.getFoldersByName(studentName);
+  var studentFolder;
+  if (studentFolders.hasNext()) {
+    studentFolder = studentFolders.next();
+  } else {
+    studentFolder = parentFolder.createFolder(studentName);
+  }
+  
+  // 3. Giải mã file Base64
+  var fileData = Utilities.base64Decode(fileBase64);
+  
+  // 4. Chuẩn hóa tên file: [Tên Học Sinh] - [Tên Bài Học] - [Ngày Nộp].[Đuôi file]
+  var ext = "";
+  var lastDot = fileName.lastIndexOf(".");
+  if (lastDot !== -1) {
+    ext = fileName.substring(lastDot);
+  } else {
+    if (mimeType === "application/pdf") ext = ".pdf";
+    else if (mimeType === "image/png") ext = ".png";
+    else if (mimeType === "image/jpeg" || mimeType === "image/jpg") ext = ".jpg";
+    else if (mimeType === "application/vnd.openxmlformats-officedocument.wordprocessingml.document") ext = ".docx";
+    else if (mimeType === "application/msword") ext = ".doc";
+  }
+  
+  var now = new Date();
+  var dateStrForFile = Utilities.formatDate(now, Session.getScriptTimeZone(), "dd-MM-yyyy");
+  var newFileName = studentName + " - " + lessonName + " - " + dateStrForFile + ext;
+  
+  // 5. Tạo file trong thư mục học sinh
+  var blob = Utilities.newBlob(fileData, mimeType, newFileName);
+  var file = studentFolder.createFile(blob);
+  
+  // 6. Cấp quyền xem cho bất kỳ ai có link
+  file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+  
+  return file.getUrl();
+}
+
+// Xác thực Mã bài tập (đăng nhập cổng nộp bài)
+function xacThucMaBaiTap(ma) {
+  try {
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var sheetHW = initHomeworkSheet(ss);
+    var dataHW = sheetHW.getDataRange().getDisplayValues();
+    
+    var foundRow = -1;
+    var cleanMa = String(ma).trim().toUpperCase();
+    for (var i = 1; i < dataHW.length; i++) {
+      if (String(dataHW[i][4]).trim().toUpperCase() === cleanMa) {
+        foundRow = i;
+        break;
+      }
+    }
+    
+    if (foundRow === -1) {
+      return { timThay: false, thongBao: "Mã bài tập không hợp lệ hoặc không tồn tại!" };
+    }
+    
+    var studentName = dataHW[foundRow][1];
+    var lessonName = dataHW[foundRow][2];
+    var fileUrl = dataHW[foundRow][3];
+    var submissionDate = dataHW[foundRow][5];
+    var status = dataHW[foundRow][6] || "Active";
+    
+    return {
+      timThay: true,
+      ma: cleanMa,
+      studentName: studentName,
+      lessonName: lessonName,
+      fileUrl: fileUrl,
+      submissionDate: submissionDate,
+      status: status,
+      rowIndex: foundRow + 1
+    };
+  } catch (e) {
+    return { timThay: false, thongBao: "Lỗi hệ thống: " + e.toString() };
+  }
+}
+
+// Học sinh nộp bài tập (cập nhật dòng hoặc thêm file)
+function uploadHomeworkFile(ma, fileBase64, fileName, mimeType) {
+  try {
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var sheetHW = initHomeworkSheet(ss);
+    var dataHW = sheetHW.getDataRange().getDisplayValues();
+    
+    var rowIndex = -1;
+    var cleanMa = String(ma).trim().toUpperCase();
+    for (var i = 1; i < dataHW.length; i++) {
+      if (String(dataHW[i][4]).trim().toUpperCase() === cleanMa) {
+        rowIndex = i + 1;
+        break;
+      }
+    }
+    
+    if (rowIndex === -1) {
+      return { error: "Không tìm thấy thông tin mã bài tập." };
+    }
+    
+    var studentName = dataHW[rowIndex - 1][1];
+    var lessonName = dataHW[rowIndex - 1][2];
+    
+    // Tải file lên Drive
+    var fileUrl = saveFileToDrive(studentName, lessonName, fileBase64, fileName, mimeType);
+    
+    var now = new Date();
+    var dateString = Utilities.formatDate(now, Session.getScriptTimeZone(), "dd/MM/yyyy HH:mm:ss");
+    var shortDateString = Utilities.formatDate(now, Session.getScriptTimeZone(), "dd/MM/yyyy");
+    
+    // Lưu thông tin
+    sheetHW.getRange(rowIndex, 1).setValue(dateString);
+    sheetHW.getRange(rowIndex, 4).setValue(fileUrl);
+    sheetHW.getRange(rowIndex, 6).setValue(shortDateString);
+    sheetHW.getRange(rowIndex, 7).setValue("Active");
+    
+    sheetHW.getRange(rowIndex, 1, 1, 7).setFontFamily("Arial");
+    
+    return {
+      success: true,
+      fileUrl: fileUrl,
+      submissionDate: shortDateString,
+      timestamp: dateString,
+      status: "Active"
+    };
+  } catch (e) {
+    return { error: "Lỗi hệ thống: " + e.toString() };
+  }
+}
+
+// Chỉnh sửa bài tập đã nộp (thay file mới trong ngày)
+function editHomeworkFile(rowIndex, fileBase64, fileName, mimeType) {
+  try {
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var sheetHW = initHomeworkSheet(ss);
+    var r = parseInt(rowIndex);
+    
+    var data = sheetHW.getDataRange().getDisplayValues();
+    if (isNaN(r) || r < 2 || r > data.length) {
+      return { error: "Vị trí dòng không hợp lệ." };
+    }
+    
+    // Kiểm tra khóa ngày nộp
+    var now = new Date();
+    var todayStr = Utilities.formatDate(now, Session.getScriptTimeZone(), "dd/MM/yyyy");
+    var submissionDateStr = data[r - 1][5].trim();
+    
+    if (submissionDateStr !== todayStr) {
+      return { error: "Đã quá hạn sửa bài tập (chỉ được sửa trong ngày nộp)." };
+    }
+    
+    var studentName = data[r - 1][1];
+    var lessonName = data[r - 1][2];
+    
+    // Lưu file mới
+    var fileUrl = saveFileToDrive(studentName, lessonName, fileBase64, fileName, mimeType);
+    var dateString = Utilities.formatDate(now, Session.getScriptTimeZone(), "dd/MM/yyyy HH:mm:ss");
+    
+    sheetHW.getRange(r, 1).setValue(dateString);
+    sheetHW.getRange(r, 4).setValue(fileUrl);
+    sheetHW.getRange(r, 7).setValue("Active"); // reset active nếu đang deleted
+    sheetHW.getRange(r, 1, 1, 7).setFontFamily("Arial");
+    
+    return { success: true, fileUrl: fileUrl, timestamp: dateString };
+  } catch (e) {
+    return { error: "Lỗi hệ thống: " + e.toString() };
+  }
+}
+
+// Xóa tạm thời bài tập
+function deleteHomeworkFile(rowIndex) {
+  try {
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var sheetHW = initHomeworkSheet(ss);
+    var r = parseInt(rowIndex);
+    
+    var data = sheetHW.getDataRange().getValues();
+    if (isNaN(r) || r < 2 || r > data.length) {
+      return { error: "Vị trí dòng không hợp lệ." };
+    }
+    
+    var now = new Date();
+    var todayStr = Utilities.formatDate(now, Session.getScriptTimeZone(), "dd/MM/yyyy");
+    var submissionDateStr = sheetHW.getRange(r, 6).getDisplayValue().trim();
+    
+    if (submissionDateStr !== todayStr) {
+      return { error: "Đã quá hạn xóa bài tập (chỉ được xóa trong ngày nộp)." };
+    }
+    
+    // Đổi trạng thái sang Deleted
+    sheetHW.getRange(r, 7).setValue("Deleted").setFontFamily("Arial");
+    
+    // Ghi log Thùng rác
+    writeTrashLog(ss, "Bài tập", "Xóa bài tập tạm thời", data[r - 1]);
+    
+    return { success: true };
+  } catch (e) {
+    return { error: "Lỗi hệ thống: " + e.toString() };
+  }
+}
+
+// Khôi phục bài tập
+function restoreHomeworkFile(rowIndex) {
+  try {
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var sheetHW = initHomeworkSheet(ss);
+    var r = parseInt(rowIndex);
+    
+    var data = sheetHW.getDataRange().getValues();
+    if (isNaN(r) || r < 2 || r > data.length) {
+      return { error: "Vị trí dòng không hợp lệ." };
+    }
+    
+    var now = new Date();
+    var todayStr = Utilities.formatDate(now, Session.getScriptTimeZone(), "dd/MM/yyyy");
+    var submissionDateStr = sheetHW.getRange(r, 6).getDisplayValue().trim();
+    
+    if (submissionDateStr !== todayStr) {
+      return { error: "Đã quá hạn khôi phục (chỉ được khôi phục trong ngày nộp)." };
+    }
+    
+    // Đổi trạng thái sang Active
+    sheetHW.getRange(r, 7).setValue("Active").setFontFamily("Arial");
+    
+    // Ghi log Thùng rác
+    writeTrashLog(ss, "Bài tập", "Khôi phục bài tập", data[r - 1]);
+    
+    return { success: true };
+  } catch (e) {
+    return { error: "Lỗi hệ thống: " + e.toString() };
   }
 }
 

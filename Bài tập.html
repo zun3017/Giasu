@@ -1,0 +1,879 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <base target="_top">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Tra Cứu Bài Học</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        /* ================= RESET & CƠ BẢN ================= */
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+
+        body {
+            background-color: #03081D; 
+            background-image: 
+                radial-gradient(circle at 15% 30%, rgba(91, 46, 255, 0.15) 0%, transparent 40%),
+                radial-gradient(circle at 85% 20%, rgba(142, 77, 255, 0.15) 0%, transparent 40%),
+                radial-gradient(circle at 50% 80%, rgba(11, 18, 78, 0.6) 0%, transparent 60%);
+            color: #FFFFFF; min-height: 100vh; display: flex; flex-direction: column;
+            align-items: center; overflow-x: hidden; position: relative;
+        }
+
+        /* ================= HEADER ================= */
+        .header { width: 100%; padding: 20px 40px; display: flex; align-items: center; gap: 12px; position: absolute; top: 0; left: 0; z-index: 100; }
+        .header img { width: 40px; }
+        .header-text h1 { font-size: 18px; font-weight: 700; color: #fff; margin-bottom: -2px; letter-spacing: -0.5px;}
+        .header-text p { font-size: 12px; color: #8E95BE; font-weight: 500;}
+
+        /* ================= TRANG TRÍ 3D & ANIMATION ================= */
+        .decor { position: absolute; z-index: 1; pointer-events: none; }
+        .planet-left { top: 12%; left: 6%; width: 110px; animation: float 6s infinite ease-in-out; filter: drop-shadow(0 0 20px rgba(0, 200, 255, 0.2)); }
+        .planet-right { top: 15%; right: 8%; width: 90px; animation: float 5s infinite ease-in-out 1s; filter: drop-shadow(0 0 20px rgba(142, 77, 255, 0.3)); }
+        .rocket { top: 22%; right: 18%; width: 60px; animation: fly 8s infinite linear; filter: drop-shadow(0 0 15px rgba(255, 100, 100, 0.4)); transform: rotate(45deg);}
+        
+        .star { position: absolute; background: #fff; border-radius: 50%; box-shadow: 0 0 10px #fff, 0 0 20px #fff; animation: twinkle 2s infinite alternate; }
+        .star-1 { top: 25%; left: 22%; width: 4px; height: 4px; }
+        .star-2 { top: 35%; right: 28%; width: 5px; height: 5px; animation-delay: 0.5s;}
+        .star-3 { top: 15%; right: 40%; width: 3px; height: 3px; animation-delay: 1s;}
+        .star-4 { top: 50%; left: 10%; width: 3px; height: 3px; animation-delay: 0.3s;}
+
+        .star-icon { position: absolute; color: #FFD23F; filter: drop-shadow(0 0 10px rgba(255, 210, 63, 0.8)); animation: float 4s infinite ease-in-out;}
+        .star-icon-1 { top: 40%; left: 4%; font-size: 24px; }
+        .star-icon-2 { top: 12%; right: 30%; font-size: 18px; }
+        .star-icon-3 { bottom: 25%; right: 12%; font-size: 30px; animation-delay: 1.5s; transform: rotate(15deg); }
+        .star-icon-4 { bottom: 30%; left: 20%; font-size: 35px; color: #FF9999; filter: drop-shadow(0 0 15px rgba(255, 153, 153, 0.6)); transform: rotate(-15deg); }
+
+        @keyframes float { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-15px); } }
+        @keyframes twinkle { 0% { opacity: 0.3; transform: scale(0.8); } 100% { opacity: 1; transform: scale(1.3); } }
+        @keyframes fly { 0% { transform: translate(0, 0) rotate(45deg); opacity: 0;} 10% { opacity: 1; } 90% { opacity: 1; } 100% { transform: translate(-300px, -300px) rotate(45deg); opacity: 0;} }
+
+        /* ================= VÙNG NỘI DUNG CHÍNH ================= */
+        .main-container {
+            display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
+            width: 100%; max-width: 1200px; margin-top: 80px; padding: 0 20px; position: relative; z-index: 20;
+        }
+
+        .badge {
+            background: linear-gradient(90deg, rgba(30, 15, 60, 0.9), rgba(50, 20, 90, 0.9));
+            border: 1px solid rgba(142, 77, 255, 0.4); padding: 6px 18px; border-radius: 30px;
+            font-size: 11px; font-weight: 700; color: #E2D1FF; display: flex; align-items: center; gap: 8px;
+            margin-bottom: 15px; letter-spacing: 0.5px; box-shadow: 0 0 20px rgba(91, 46, 255, 0.4); text-transform: uppercase;
+        }
+        .badge span { color: #FFD23F; font-size: 14px; }
+
+        .main-title {
+            text-align: center; font-size: 56px; font-weight: 900; line-height: 1.1; margin-bottom: 10px;
+            letter-spacing: -2px; text-shadow: 0 0 30px rgba(255, 255, 255, 0.2);
+        }
+        .main-title .highlight { color: #FFD23F; text-shadow: 0 0 25px rgba(255, 210, 63, 0.5); }
+        
+        .sub-title { color: #B2B8D9; font-size: 16px; text-align: center; margin-bottom: 25px; font-weight: 400; line-height: 1.5; letter-spacing: -0.2px; }
+
+        /* ================= KHUNG TÌM KIẾM ================= */
+        .search-card {
+            background: rgba(11, 8, 38, 0.6); border: 1px solid rgba(142, 77, 255, 0.5); border-radius: 20px;
+            padding: 25px 40px; width: 100%; max-width: 750px; position: relative; z-index: 30; margin-bottom: 20px;
+            box-shadow: inset 0 0 20px rgba(142, 77, 255, 0.1), 0 15px 40px rgba(5, 5, 20, 0.8), 0 0 40px rgba(91, 46, 255, 0.3);
+            backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+        }
+        
+        .search-title { font-size: 16px; font-weight: 600; color: #FFFFFF; margin-bottom: 15px; display: flex; align-items: center; gap: 12px; letter-spacing: -0.3px; }
+        .search-title i { color: #8E4DFF; font-size: 18px;}
+
+        .input-wrapper { display: flex; gap: 12px; background: #04020A; border: 1px solid rgba(142, 77, 255, 0.3); border-radius: 12px; padding: 6px 6px 6px 15px; box-shadow: inset 0 2px 10px rgba(0,0,0,0.8); align-items: center; }
+        .input-icon { opacity: 0.5; font-size: 16px; color: #fff;}
+        .input-wrapper input { flex: 1; background: transparent; border: none; color: #FFF; font-size: 14px; outline: none; padding: 10px 0; font-family: 'Inter', sans-serif; font-weight: 500; }
+        .input-wrapper input::placeholder { color: #6A6E8D; font-weight: 400;}
+
+        .btn-submit { background: linear-gradient(90deg, #9933ff, #7a1aff); color: white; border: none; padding: 0 25px; height: 45px; border-radius: 10px; font-weight: 600; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.3s; box-shadow: 0 0 20px rgba(153, 51, 255, 0.5); white-space: nowrap; letter-spacing: -0.2px; }
+        .btn-submit:hover { box-shadow: 0 0 30px rgba(153, 51, 255, 0.8); transform: translateY(-2px); }
+
+        .error-msg { color: #FF4D4D; font-size: 13px; margin-top: 10px; display: none; text-align: center; font-weight: 500;}
+        .loading-text { display: none; color: #8E4DFF; margin-top: 10px; font-style: italic; font-size: 13px; text-align: center;}
+
+        /* ================= MẶT BÀN & NHÂN VẬT ================= */
+        .desk-surface {
+            position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); width: 150%; height: 350px;
+            background: radial-gradient(ellipse at top, #0B124E 0%, #03081D 70%); border-top: 1px solid rgba(142, 77, 255, 0.4);
+            border-radius: 50% 50% 0 0 / 100px 100px 0 0; z-index: 5; box-shadow: inset 0 30px 80px rgba(0,0,0,0.8);
+        }
+        .character { position: absolute; z-index: 25; filter: drop-shadow(0 30px 30px rgba(0,0,0,0.7)); transition: 0.3s; }
+        .char-boy { left: -1%; bottom: 10px; width: 450px; }
+        .char-girl { right: 0%; bottom: 30px; width: 380px; }
+
+        /* ================= 4 THẺ TÍNH NĂNG ================= */
+        .features-container { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; width: 100%; max-width: 1000px; position: relative; z-index: 40; margin-top: 15px; padding-bottom: 20px; }
+        .feature-card { background: rgba(14, 15, 45, 0.8); border: 1px solid rgba(255,255,255,0.05); border-radius: 16px; padding: 20px 15px; text-align: center; transition: all 0.3s ease; box-shadow: 0 10px 30px rgba(0,0,0,0.5); backdrop-filter: blur(10px); position: relative; overflow: hidden; }
+        .feature-card::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(180deg, rgba(255,255,255,0.03) 0%, transparent 50%); pointer-events: none; }
+        .feature-card:hover { transform: translateY(-5px); background: rgba(20, 22, 60, 0.9); }
+        .card-purple:hover { border-color: #8E4DFF; box-shadow: 0 15px 40px rgba(142, 77, 255, 0.2); }
+        .card-blue:hover { border-color: #3399FF; box-shadow: 0 15px 40px rgba(51, 153, 255, 0.2); }
+        .card-green:hover { border-color: #00CC66; box-shadow: 0 15px 40px rgba(0, 204, 102, 0.2); }
+        .card-orange:hover { border-color: #FF9933; box-shadow: 0 15px 40px rgba(255, 153, 51, 0.2); }
+
+        .icon-circle { width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px; font-size: 22px; color: #fff; }
+        .icon-purple { background: linear-gradient(135deg, #8E4DFF, #5B2EFF); box-shadow: 0 0 25px rgba(142,77,255,0.4); }
+        .icon-blue { background: linear-gradient(135deg, #33ccff, #0066ff); box-shadow: 0 0 25px rgba(0,102,255,0.4); }
+        .icon-green { background: linear-gradient(135deg, #33ff99, #009933); box-shadow: 0 0 25px rgba(0,153,51,0.4); }
+        .icon-orange { background: linear-gradient(135deg, #ffcc66, #ff6600); box-shadow: 0 0 25px rgba(255,102,0,0.4); }
+
+        .feature-card h3 { font-size: 15px; margin-bottom: 6px; color: #FFF; font-weight: 700; letter-spacing: -0.2px;}
+        .feature-card p { font-size: 12px; color: #A6ADCE; line-height: 1.4; font-weight: 400;}
+
+        /* ================= KHU VỰC KẾT QUẢ ================= */
+        #resultBox { width: 100%; max-width: 1000px; background: rgba(11, 8, 38, 0.95); border: 1px solid #8E4DFF; border-radius: 20px; padding: 30px; margin-top: 20px; position: relative; z-index: 50; box-shadow: 0 0 50px rgba(91, 46, 255, 0.2); backdrop-filter: blur(25px); display: none; }
+        #resultBox h3 { color: #FFD23F; font-size: 24px; margin-bottom: 20px; text-align: center; font-weight: 800; letter-spacing: -0.5px;}
+        
+        .result-section { background: rgba(0,0,0,0.4); padding: 20px; border-radius: 16px; margin-bottom: 20px; border: 1px solid rgba(142, 77, 255, 0.2); }
+        .result-section h4 { color: #8E4DFF; margin-bottom: 15px; font-size: 16px; display: flex; align-items: center; gap: 10px; font-weight: 600; letter-spacing: -0.3px; text-transform: uppercase;}
+        
+        /* Chỉnh lại Box Bài Giảng / Bài Tập */
+        .bg-card { background: rgba(20, 22, 60, 0.6); padding: 18px; border-radius: 12px; border: 1px dashed rgba(142, 77, 255, 0.4); margin-bottom: 15px; }
+        .bg-card-info { color: #A6ADCE; font-size: 13px; margin-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 8px;}
+        .bg-card-title { display: flex; justify-content: space-between; align-items: center; margin-top: 10px;}
+        
+        /* Table Bài Kiểm Tra */
+        .table-wrapper { width: 100%; overflow-x: auto; border-radius: 12px; }
+        table { width: 100%; border-collapse: collapse; min-width: 600px; }
+        th, td { border-bottom: 1px solid rgba(142, 77, 255, 0.2); padding: 12px 16px; text-align: left; font-size: 13px; color: #E2D1FF;}
+        th { background-color: rgba(91, 46, 255, 0.1); color: #FFF; white-space: nowrap; font-weight: 600;}
+        tr:hover td { background-color: rgba(142, 77, 255, 0.05); }
+        
+        a.btn-download { display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; background: rgba(91, 46, 255, 0.2); color: #FFF; text-decoration: none; border-radius: 10px; font-size: 13px; transition: 0.3s; font-weight: 600; border: 1px solid #8E4DFF;}
+        a.btn-download:hover { background: #8E4DFF; box-shadow: 0 0 20px rgba(142, 77, 255, 0.5); transform: translateY(-2px);}
+        a.btn-dl-table { color: #FFD23F; font-weight: bold; text-decoration: none; display: inline-flex; align-items: center; gap: 5px; transition: 0.2s;}
+        a.btn-dl-table:hover { color: #FFF; text-shadow: 0 0 10px #FFD23F;}
+
+        .btn-back { width: 100%; padding: 14px; background: transparent; border: 1px solid #8E4DFF; color: #FFF; border-radius: 12px; font-weight: 600; font-size: 15px; cursor: pointer; transition: 0.3s; display: flex; justify-content: center; align-items: center; gap: 10px; letter-spacing: -0.2px;}
+        .btn-back:hover { background: rgba(142, 77, 255, 0.1); box-shadow: inset 0 0 20px rgba(142, 77, 255, 0.2);}
+
+        /* ================= RESPONSIVE ĐIỆN THOẠI ================= */
+        @media (max-width: 1024px) {
+            .char-boy { width: 220px; left: 2%; bottom: 100px;}
+            .char-girl { width: 190px; right: 2%; bottom: 110px;}
+            .main-title { font-size: 46px; }
+            .features-container { grid-template-columns: repeat(2, 1fr); max-width: 600px;}
+        }
+
+        @media (max-width: 768px) {
+            .char-boy, .char-girl, .desk-surface { display: none; }
+            .main-title { font-size: 32px; letter-spacing: -1px;}
+            .search-card { padding: 25px 20px; border-radius: 16px;}
+            .input-wrapper { display: grid; grid-template-columns: auto 1fr; grid-template-rows: auto auto; gap: 15px; background: transparent; border: none; padding: 0; box-shadow: none; }
+            .input-icon { grid-column: 1; grid-row: 1; align-self: center; margin-left: 18px; z-index: 2; font-size: 18px; color: #8E95BE; }
+            .input-wrapper input { grid-column: 1 / 3; grid-row: 1; background: #04020A; border: 1px solid rgba(142, 77, 255, 0.4); border-radius: 12px; padding: 14px 15px 14px 45px; width: 100%; font-size: 15px; }
+            .input-wrapper input:focus { border-color: #8E4DFF; box-shadow: 0 0 15px rgba(142, 77, 255, 0.3); }
+            .btn-submit { grid-column: 1 / 3; grid-row: 2; width: 100%; height: 48px; font-size: 15px; }
+            .features-container { grid-template-columns: 1fr; padding: 0; gap: 12px;}
+            .feature-card { padding: 15px; display: flex; align-items: center; text-align: left; gap: 15px;}
+            .icon-circle { margin: 0; flex-shrink: 0; width: 45px; height: 45px; font-size: 18px;}
+            .feature-card h3 { margin-bottom: 4px; font-size: 15px;}
+            .bg-card-title { flex-direction: column; align-items: flex-start; gap: 10px;}
+            .bg-card-title a { width: 100%; justify-content: center;}
+        /* ================= GIAO DIỆN NỘP BÀI TẬP (DASHBOARD) ================= */
+        .hw-dashboard {
+            display: flex;
+            gap: 24px;
+            width: 100%;
+            max-width: 1100px;
+            margin-top: 20px;
+            position: relative;
+            z-index: 50;
+        }
+
+        .hw-sidebar {
+            width: 320px;
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .hw-main-content {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        /* Profile Card & Info Card */
+        .hw-info-card {
+            background: rgba(11, 8, 38, 0.9);
+            border: 1px solid rgba(142, 77, 255, 0.4);
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            backdrop-filter: blur(16px);
+        }
+
+        .hw-info-title {
+            color: #FFD23F;
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            padding-bottom: 8px;
+        }
+
+        .hw-info-item {
+            font-size: 13.5px;
+            color: #A6ADCE;
+            margin-bottom: 12px;
+            line-height: 1.5;
+            text-align: left;
+        }
+        .hw-info-item strong {
+            color: #FFF;
+        }
+
+        /* Form upload */
+        .upload-area {
+            border: 2px dashed rgba(142, 77, 255, 0.4);
+            border-radius: 12px;
+            padding: 30px 20px;
+            text-align: center;
+            background: rgba(4, 2, 10, 0.6);
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+        }
+        .upload-area:hover {
+            border-color: #8E4DFF;
+            background: rgba(142, 77, 255, 0.05);
+        }
+        .upload-icon {
+            font-size: 35px;
+            color: #8E4DFF;
+            margin-bottom: 12px;
+            opacity: 0.8;
+        }
+        .upload-text {
+            font-size: 13.5px;
+            color: #E2D1FF;
+            margin-bottom: 6px;
+        }
+        .upload-hint {
+            font-size: 11px;
+            color: #6A6E8D;
+        }
+        .file-input {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        /* Selected file display */
+        .selected-file-box {
+            background: rgba(142, 77, 255, 0.1);
+            border: 1px solid rgba(142, 77, 255, 0.3);
+            border-radius: 8px;
+            padding: 10px 15px;
+            margin-top: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 13px;
+        }
+        .file-name-text {
+            color: #FFD23F;
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 250px;
+        }
+
+        /* Progress bar */
+        .progress-container {
+            width: 100%;
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+            height: 8px;
+            margin-top: 15px;
+            overflow: hidden;
+            display: none;
+        }
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #8E4DFF, #3399FF);
+            width: 0%;
+            transition: width 0.1s linear;
+        }
+        .progress-text {
+            font-size: 11px;
+            color: #3399FF;
+            margin-top: 5px;
+            text-align: right;
+            display: none;
+            font-weight: 600;
+        }
+
+        /* Nút sửa/xóa bị khóa */
+        .action-btn-hw {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: #A6ADCE;
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            outline: none;
+        }
+        .action-btn-hw:hover:not(:disabled) {
+            background: rgba(142, 77, 255, 0.2);
+            color: #FFF;
+            border-color: #8E4DFF;
+        }
+        .action-btn-hw.btn-delete:hover:not(:disabled) {
+            background: rgba(239, 68, 68, 0.2);
+            color: #FFF;
+            border-color: #EF4444;
+        }
+        .action-btn-hw:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            color: #6A6E8D !important;
+            border-color: rgba(255,255,255,0.05) !important;
+            background: rgba(0,0,0,0.2) !important;
+        }
+
+        .lock-badge {
+            background: rgba(239, 68, 68, 0.15);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #EF4444;
+            font-size: 11px;
+            padding: 3px 8px;
+            border-radius: 20px;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .active-badge {
+            background: rgba(16, 185, 129, 0.15);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            color: #10B981;
+            font-size: 11px;
+            padding: 3px 8px;
+            border-radius: 20px;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        @media (max-width: 900px) {
+            .hw-dashboard {
+                flex-direction: column;
+            }
+            .hw-sidebar {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <div class="nav-container">
+            <a href="index.html" class="nav-left" style="text-decoration: none; cursor: pointer;">
+                <img src="https://cdn-icons-png.flaticon.com/512/3330/3330314.png" alt="Logo" class="nav-logo">
+                <div class="header-text">
+                    <h1>Tra cứu học tập</h1>
+                    <p>Học tập thông minh</p>
+                </div>
+            </a>
+            <div class="nav-right">
+                <a href="index.html" class="nav-btn" id="btnNavHome"><i class="fa-solid fa-house"></i> Trang chủ</a>
+                <a href="student-login.html" class="nav-btn" id="btnNavStudent"><i class="fa-solid fa-graduation-cap"></i> Dành cho PH / HS</a>
+                <a href="tutor-login.html" class="nav-btn" id="btnNavTutor"><i class="fa-solid fa-chalkboard-user"></i> Dành cho Gia sư</a>
+                <a href="Bài tập.html" class="nav-btn active" id="btnNavHomework"><i class="fa-solid fa-file-arrow-up"></i> Nộp bài tập</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="star star-1"></div>
+    <div class="star star-2"></div>
+    <div class="star star-3"></div>
+    <div class="star star-4"></div>
+    <img src="https://i.postimg.cc/dQnZ1cs7/anh-hanh-tinh-removebg-preview.png" class="decor planet-left" alt="Planet" onerror="this.style.display='none'">
+    <img src="https://i.postimg.cc/QCZmdGhn/anh-hanh-tinh-1-removebg-preview.png" class="decor planet-right" alt="Planet" onerror="this.style.display='none'">
+    
+    <i class="fa-solid fa-star star-icon star-icon-1"></i>
+    <i class="fa-solid fa-star star-icon star-icon-2"></i>
+    <i class="fa-solid fa-star star-icon star-icon-3"></i>
+    <i class="fa-solid fa-star star-icon star-icon-4"></i>
+
+    <div class="main-container" id="mainScreen">
+        
+        <div class="badge">
+            <span>⭐</span> CỔNG NỘP BÀI TẬP HỌC VIÊN
+        </div>
+
+        <h1 class="main-title">Đăng nhập & Nộp bài<br><span class="highlight">Bài tập học viên</span> 📝</h1>
+        <p class="sub-title">Nộp bài tập của bạn lên Google Drive và quản lý tệp tin nhanh chóng, an toàn 🚀</p>
+
+        <div class="search-card">
+            <div class="search-title">
+                <i class="fa-solid fa-key"></i> Nhập mã bài tập của bạn để đăng nhập
+            </div>
+            <div class="input-wrapper">
+                <i class="fa-regular fa-folder-open input-icon"></i>
+                <input type="text" id="maInput" placeholder="Nhập mã bài tập được giao (VD: BT101, BT102)...">
+                <button class="btn-submit" onclick="check()">
+                    Đăng nhập cổng <i class="fa-solid fa-arrow-right-long"></i>
+                </button>
+            </div>
+            <p id="error" class="error-msg"></p>
+            <p id="loadingText" class="loading-text"><i class="fa-solid fa-circle-notch fa-spin"></i> Hệ thống đang xác thực tài khoản...</p>
+        </div>
+
+        <div class="features-container">
+            <div class="feature-card card-purple">
+                <div class="icon-circle icon-purple"><i class="fa-solid fa-laptop-file"></i></div>
+                <h3>Tệp tin đa dạng</h3>
+                <p>Nộp các định dạng bài làm từ Hình ảnh đến file PDF/Word</p>
+            </div>
+            <div class="feature-card card-blue">
+                <div class="icon-circle icon-blue"><i class="fa-solid fa-folder-tree"></i></div>
+                <h3>Gom thư mục Drive</h3>
+                <p>Bài tập tự động sắp xếp gọn gàng theo tên từng học sinh</p>
+            </div>
+            <div class="feature-card card-green">
+                <div class="icon-circle icon-green"><i class="fa-solid fa-clock"></i></div>
+                <h3>Khóa hạn nộp bài</h3>
+                <p>Hệ thống tự động khóa tính năng Sửa/Xóa sau ngày nộp bài</p>
+            </div>
+            <div class="feature-card card-orange">
+                <div class="icon-circle icon-orange"><i class="fa-solid fa-trash-can"></i></div>
+                <h3>Thùng rác tiện lợi</h3>
+                <p>Cho phép xóa tạm thời và phục hồi bài đã nộp trong ngày</p>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="desk-surface" id="deskSurface"></div>
+    
+    <img src="https://i.postimg.cc/sDp8SmLJ/anh-be-trai-removebg-preview.png" class="character char-boy" id="charBoy" alt="Boy" onerror="this.style.display='none'">
+    <img src="https://i.postimg.cc/1tJc0nQw/anh-be-gai-removebg-preview.png" class="character char-girl" id="charGirl" alt="Girl" onerror="this.style.display='none'">
+
+    <div class="main-container" style="margin-top: 60px;">
+        <div id="homeworkDashboard" class="hw-dashboard" style="display: none; width: 100%;">
+            <!-- Cột trái: Thông tin bài tập -->
+            <div class="hw-sidebar">
+                <div class="hw-info-card">
+                    <div class="hw-info-title">
+                        <i class="fa-solid fa-address-card"></i> Thông tin bài nộp
+                    </div>
+                    <div class="hw-info-item">
+                        Học sinh: <strong id="hwStudentName">-</strong>
+                    </div>
+                    <div class="hw-info-item">
+                        Bài học: <strong id="hwLessonName">-</strong>
+                    </div>
+                    <div class="hw-info-item">
+                        Mã bài tập: <strong id="hwCode">-</strong>
+                    </div>
+                    <div class="hw-info-item">
+                        Trạng thái chốt: <span id="hwLockBadge"></span>
+                    </div>
+                </div>
+                
+                <button onclick="backToLogin()" class="btn-back" style="margin-top: 10px;"><i class="fa-solid fa-arrow-left"></i> Đăng xuất cổng</button>
+            </div>
+
+            <!-- Cột phải: Form tải lên & Bảng lịch sử nộp bài -->
+            <div class="hw-main-content">
+                <!-- Card Nộp bài -->
+                <div class="hw-info-card" id="hwFormCard">
+                    <div class="hw-info-title" style="color: #8E4DFF; border-color: rgba(142, 77, 255, 0.2);">
+                        <i class="fa-solid fa-cloud-arrow-up"></i> Tải bài tập của bạn lên
+                    </div>
+                    
+                    <div class="upload-area" id="uploadArea">
+                        <i class="fa-solid fa-file-arrow-up upload-icon" id="uploadAreaIcon"></i>
+                        <div class="upload-text" id="uploadAreaText">Kéo thả hoặc click chọn hình ảnh/tài liệu bài tập của bạn</div>
+                        <div class="upload-hint">Hỗ trợ PDF, Word, PNG, JPG, JPEG</div>
+                        <input type="file" id="hwFileInput" class="file-input" onchange="handleFileSelect(event)">
+                    </div>
+
+                    <!-- Box hiển thị file đã chọn -->
+                    <div id="selectedFileBox" class="selected-file-box" style="display: none;">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <i class="fa-solid fa-file-lines" style="color: #8E4DFF; font-size: 16px;"></i>
+                            <span id="selectedFileName" class="file-name-text"></span>
+                        </div>
+                        <button onclick="clearSelectedFile()" class="action-btn-hw btn-delete" style="padding: 4px 8px; font-size: 11px;"><i class="fa-solid fa-times"></i> Hủy</button>
+                    </div>
+
+                    <!-- Tiến trình tải lên -->
+                    <div class="progress-container" id="progressBarContainer">
+                        <div class="progress-bar" id="progressBar"></div>
+                    </div>
+                    <div class="progress-text" id="progressText">0%</div>
+
+                    <div style="display: flex; gap: 12px; margin-top: 15px;">
+                        <button id="btnSubmitHomework" onclick="submitHomework()" class="btn-submit" style="width: 100%; justify-content: center; height: 45px;">
+                            <i class="fa-solid fa-paper-plane"></i> Gửi bài làm
+                        </button>
+                    </div>
+                    
+                    <p id="uploadStatusText" style="text-align: center; margin-top: 10px; font-size: 13px; display: none; font-weight: 500;"></p>
+                </div>
+
+                <!-- Lịch sử nộp bài -->
+                <div class="hw-info-card">
+                    <div class="hw-info-title" style="color: #3399FF; border-color: rgba(51, 153, 255, 0.2);">
+                        <i class="fa-solid fa-clock-rotate-left"></i> File bài tập đã nộp
+                    </div>
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Thời gian nộp</th>
+                                    <th>Link file đã nộp</th>
+                                    <th>Trạng thái</th>
+                                    <th>Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody id="homeworkListBody">
+                                <!-- JS render lines -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        var currentHW = null; // Lưu trữ phiên đăng nhập bài tập
+        var selectedFileData = null; // Dữ liệu tệp được chọn để nộp
+
+        // 1. Hàm kiểm tra mã và đăng nhập
+        function check() {
+            var ma = document.getElementById('maInput').value.trim();
+            var errorMsg = document.getElementById('error');
+            
+            if (ma === "") {
+                errorMsg.innerText = "Vui lòng nhập mã bài tập để đăng nhập!";
+                errorMsg.style.display = "block";
+            } else {
+                errorMsg.style.display = "none";
+                document.getElementById('loadingText').style.display = 'block';
+                
+                // Gọi API Apps Script xác thực mã bài tập cột E
+                google.script.run
+                    .withSuccessHandler(showHomeworkDashboard)
+                    .withFailureHandler(function(err) {
+                        document.getElementById('loadingText').style.display = 'none';
+                        errorMsg.innerText = "Lỗi kết nối: " + err.toString();
+                        errorMsg.style.display = "block";
+                    })
+                    .xacThucMaBaiTap(ma);
+            }
+        }
+
+        // 2. Chuyển sang màn hình Dashboard sau khi đăng nhập thành công
+        function showHomeworkDashboard(res) {
+            document.getElementById('loadingText').style.display = 'none';
+            var errorMsg = document.getElementById('error');
+
+            if (res.timThay) {
+                currentHW = res; // lưu trữ dữ liệu phiên
+
+                // Ẩn UI chính
+                document.getElementById('mainScreen').style.display = 'none';
+                document.getElementById('deskSurface').style.display = 'none';
+                document.getElementById('charBoy').style.display = 'none';
+                document.getElementById('charGirl').style.display = 'none';
+
+                // Hiện Dashboard nộp bài tập
+                document.getElementById('homeworkDashboard').style.display = 'flex';
+
+                // Điền thông tin học sinh & bài tập
+                document.getElementById('hwStudentName').innerText = res.studentName;
+                document.getElementById('hwLessonName').innerText = res.lessonName;
+                document.getElementById('hwCode').innerText = res.ma;
+
+                // Render danh sách bài nộp và kiểm tra khóa ngày nộp
+                renderHomeworkList();
+            } else {
+                errorMsg.innerText = res.thongBao;
+                errorMsg.style.display = 'block';
+            }
+        }
+
+        // 3. Render danh sách các file bài tập đã nộp
+        function renderHomeworkList() {
+            var body = document.getElementById('homeworkListBody');
+            body.innerHTML = "";
+
+            if (!currentHW) return;
+
+            // Kiểm tra điều kiện khóa ngày nộp (Chỉ cho phép sửa/xóa/khôi phục trong ngày nộp)
+            var now = new Date();
+            var dd = String(now.getDate()).padStart(2, '0');
+            var mm = String(now.getMonth() + 1).padStart(2, '0');
+            var yyyy = now.getFullYear();
+            var todayStr = dd + "/" + mm + "/" + yyyy; // định dạng dd/MM/yyyy
+
+            var isToday = (currentHW.submissionDate === todayStr || !currentHW.submissionDate || currentHW.submissionDate === "");
+            var isLocked = !isToday;
+
+            // Cập nhật nhãn trạng thái khóa ở cột trái
+            var badgeContainer = document.getElementById('hwLockBadge');
+            if (isLocked) {
+                badgeContainer.innerHTML = '<span class="lock-badge"><i class="fa-solid fa-lock"></i> Đã khóa (Quá ngày)</span>';
+                document.getElementById('hwFormCard').style.opacity = "0.6";
+                document.getElementById('hwFileInput').disabled = true;
+                document.getElementById('btnSubmitHomework').disabled = true;
+                document.getElementById('uploadArea').style.pointerEvents = "none";
+                document.getElementById('uploadAreaText').innerText = "Cổng tải lên đã đóng. Đã khóa chỉnh sửa.";
+            } else {
+                badgeContainer.innerHTML = '<span class="active-badge"><i class="fa-solid fa-lock-open"></i> Đang mở (Trong ngày)</span>';
+                document.getElementById('hwFormCard').style.opacity = "1";
+                document.getElementById('hwFileInput').disabled = false;
+                document.getElementById('btnSubmitHomework').disabled = false;
+                document.getElementById('uploadArea').style.pointerEvents = "auto";
+                document.getElementById('uploadAreaText').innerText = "Kéo thả hoặc click chọn hình ảnh/tài liệu bài tập của bạn";
+            }
+
+            // Nếu học sinh đã có tệp nộp trước đó
+            if (currentHW.fileUrl) {
+                var rowHtml = "<tr>";
+                rowHtml += "<td>" + currentHW.submissionDate + "</td>";
+                
+                // Trình bày tên file nộp
+                rowHtml += "<td><a href='" + currentHW.fileUrl + "' target='_blank' style='color:#FFD23F; font-weight:600; text-decoration:none;'><i class='fa-solid fa-arrow-up-right-from-square'></i> Xem file bài nộp</a></td>";
+                
+                // Cột Trạng thái
+                var statusStr = currentHW.status || "Active";
+                if (statusStr === "Deleted") {
+                    rowHtml += "<td><span style='color: #EF4444; font-weight:600;'><i class='fa-solid fa-trash-can'></i> Thùng rác</span></td>";
+                } else {
+                    rowHtml += "<td><span style='color: #10B981; font-weight:600;'><i class='fa-solid fa-circle-check'></i> Đã nộp</span></td>";
+                }
+
+                // Cột Thao tác
+                rowHtml += "<td>";
+                if (isLocked) {
+                    rowHtml += '<span class="lock-badge"><i class="fa-solid fa-lock"></i> Khóa sửa/xóa</span>';
+                } else {
+                    if (statusStr === "Deleted") {
+                        rowHtml += "<button onclick='restoreHomework()' class='action-btn-hw' style='color:#10B981; border-color:#10B981; cursor:pointer;'><i class='fa-solid fa-trash-arrow-up'></i> Khôi phục</button>";
+                    } else {
+                        rowHtml += "<button onclick='editHomework()' class='action-btn-hw' style='margin-right:8px; cursor:pointer;'><i class='fa-solid fa-pen'></i> Sửa</button>";
+                        rowHtml += "<button onclick='deleteHomework()' class='action-btn-hw btn-delete' style='cursor:pointer;'><i class='fa-solid fa-trash-can'></i> Xóa</button>";
+                    }
+                }
+                rowHtml += "</td>";
+                rowHtml += "</tr>";
+
+                body.innerHTML = rowHtml;
+            } else {
+                body.innerHTML = "<tr><td colspan='4' style='text-align:center; color:#6A6E8D;'>Chưa có file bài tập nào được nộp cho mã này.</td></tr>";
+            }
+        }
+
+        // 4. Xử lý khi học sinh chọn file
+        function handleFileSelect(e) {
+            var file = e.target.files[0];
+            if (!file) return;
+
+            selectedFileData = {
+                fileObject: file,
+                name: file.name,
+                mimeType: file.type
+            };
+
+            // Hiển thị tên file và ẩn vùng kéo thả
+            document.getElementById('selectedFileName').innerText = file.name;
+            document.getElementById('selectedFileBox').style.display = 'flex';
+            document.getElementById('uploadArea').style.display = 'none';
+        }
+
+        // 5. Hủy file đã chọn
+        function clearSelectedFile() {
+            selectedFileData = null;
+            document.getElementById('hwFileInput').value = "";
+            document.getElementById('selectedFileBox').style.display = 'none';
+            document.getElementById('uploadArea').style.display = 'block';
+            
+            // Ẩn tiến trình
+            document.getElementById('progressBarContainer').style.display = 'none';
+            document.getElementById('progressText').style.display = 'none';
+            document.getElementById('uploadStatusText').style.display = 'none';
+        }
+
+        // 6. Gửi bài làm lên Google Drive
+        function submitHomework() {
+            if (!selectedFileData) {
+                alert("Vui lòng chọn hình ảnh hoặc file tài liệu bài tập của bạn trước khi nộp!");
+                return;
+            }
+
+            var file = selectedFileData.fileObject;
+            var reader = new FileReader();
+
+            // Hiển thị thanh tiến trình
+            document.getElementById('progressBarContainer').style.display = 'block';
+            document.getElementById('progressText').style.display = 'block';
+            document.getElementById('progressText').innerText = "0%";
+            document.getElementById('progressBar').style.width = "0%";
+            
+            var statusTxt = document.getElementById('uploadStatusText');
+            statusTxt.innerText = "Đang đọc file bài làm...";
+            statusTxt.style.color = "#FFD23F";
+            statusTxt.style.display = "block";
+
+            // Vô hiệu hóa nút gửi tránh nhấn đúp
+            document.getElementById('btnSubmitHomework').disabled = true;
+
+            reader.onload = function(event) {
+                var base64Str = event.target.result.split(',')[1];
+                
+                statusTxt.innerText = "Đang tải bài tập lên Google Drive của giáo viên...";
+                
+                // Giả lập thanh phần trăm tiến trình tải lên mượt mà (0% -> 95%)
+                var width = 0;
+                var interval = setInterval(function() {
+                    if (width >= 95) {
+                        clearInterval(interval);
+                    } else {
+                        width += 5;
+                        document.getElementById('progressBar').style.width = width + "%";
+                        document.getElementById('progressText').innerText = width + "%";
+                    }
+                }, 100);
+
+                // Gọi backend uploadHomeworkFile
+                google.script.run
+                    .withSuccessHandler(function(res) {
+                        clearInterval(interval);
+                        document.getElementById('progressBar').style.width = "100%";
+                        document.getElementById('progressText').innerText = "100%";
+                        
+                        document.getElementById('btnSubmitHomework').disabled = false;
+
+                        if (res.error) {
+                            statusTxt.innerText = "Lỗi nộp bài: " + res.error;
+                            statusTxt.style.color = "#EF4444";
+                        } else {
+                            statusTxt.innerText = "Nộp bài làm thành công!";
+                            statusTxt.style.color = "#10B981";
+
+                            // Cập nhật lại trạng thái phiên hoạt động
+                            currentHW.fileUrl = res.fileUrl;
+                            currentHW.submissionDate = res.submissionDate;
+                            currentHW.status = res.status;
+
+                            setTimeout(function() {
+                                clearSelectedFile();
+                                renderHomeworkList();
+                            }, 1500);
+                        }
+                    })
+                    .withFailureHandler(function(err) {
+                        clearInterval(interval);
+                        document.getElementById('btnSubmitHomework').disabled = false;
+                        statusTxt.innerText = "Lỗi kết nối: " + err.toString();
+                        statusTxt.style.color = "#EF4444";
+                    })
+                    .uploadHomeworkFile(currentHW.ma, base64Str, selectedFileData.name, selectedFileData.mimeType);
+            };
+
+            reader.readAsDataURL(file);
+        }
+
+        // 7. Sửa bài tập (cuộn lên trên và mở chọn file mới để overwrite)
+        function editHomework() {
+            clearSelectedFile();
+            document.getElementById('hwFileInput').click();
+            
+            // Thông báo
+            var statusTxt = document.getElementById('uploadStatusText');
+            statusTxt.innerText = "Vui lòng chọn file mới ở trên và nhấn 'Gửi bài làm' để thay thế bài cũ.";
+            statusTxt.style.color = "#FFD23F";
+            statusTxt.style.display = "block";
+        }
+
+        // 8. Xóa bài tập tạm thời
+        function deleteHomework() {
+            if (!currentHW) return;
+            if (!confirm("Bạn có chắc chắn muốn xóa bài tập đã nộp này không? (Bài tập sẽ được đưa vào thùng rác trên Sheets).")) return;
+
+            google.script.run
+                .withSuccessHandler(function(res) {
+                    if (res.error) {
+                        alert("Lỗi: " + res.error);
+                    } else {
+                        currentHW.status = "Deleted";
+                        renderHomeworkList();
+                    }
+                })
+                .withFailureHandler(function(err) {
+                    alert("Lỗi kết nối: " + err.toString());
+                })
+                .deleteHomeworkFile(currentHW.rowIndex);
+        }
+
+        // 9. Khôi phục bài tập từ thùng rác
+        function restoreHomework() {
+            if (!currentHW) return;
+            if (!confirm("Bạn có muốn khôi phục bài tập đã xóa này về trạng thái đã nộp?")) return;
+
+            google.script.run
+                .withSuccessHandler(function(res) {
+                    if (res.error) {
+                        alert("Lỗi: " + res.error);
+                    } else {
+                        currentHW.status = "Active";
+                        renderHomeworkList();
+                    }
+                })
+                .withFailureHandler(function(err) {
+                    alert("Lỗi kết nối: " + err.toString());
+                })
+                .restoreHomeworkFile(currentHW.rowIndex);
+        }
+
+        // 10. Đăng xuất khỏi cổng nộp bài tập
+        function backToLogin() {
+            currentHW = null;
+            clearSelectedFile();
+            
+            // Khôi phục giao diện màn hình chính
+            document.getElementById('mainScreen').style.display = 'flex';
+            document.getElementById('homeworkDashboard').style.display = 'none';
+            document.getElementById('maInput').value = "";
+            document.getElementById('error').style.display = "none"; 
+            
+            document.getElementById('deskSurface').style.display = 'block';
+            if (window.innerWidth > 768) {
+                document.getElementById('charBoy').style.display = 'block';
+                document.getElementById('charGirl').style.display = 'block';
+            }
+        }
+    </script>
+</body>
+</html>
