@@ -8,7 +8,11 @@ function doGet() {
 // Chuẩn hóa số điện thoại loại bỏ ký tự đặc biệt và số 0 ở đầu để so khớp chính xác
 function normalizePhone(p) {
   if (!p) return "";
-  return String(p).replace(/\D/g, "");
+  var clean = String(p).replace(/\D/g, "");
+  if (clean.length > 1 && clean.charAt(0) === '0') {
+    clean = clean.substring(1);
+  }
+  return clean;
 }
 
 function loginSystem(phone, pin) {
