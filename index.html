@@ -1787,19 +1787,52 @@
         <!-- SECTION 1: TRANG CHỦ -->
         <div id="sectionHome" class="page-section">
             <div class="badge">
+                <span>⭐</span> CỔNG THÔNG TIN ĐIỆN TỬ
+            </div>
+
+            <h1 class="main-title">Hệ Thống<br><span class="highlight">Tra Cứu Học Tập</span> 🏫</h1>
+            <p class="sub-title">Chào mừng phụ huynh, học sinh và gia sư đến với hệ thống</p>
+            
+            <div class="search-card" style="text-align: center;">
+                <div class="search-title" style="justify-content: center; margin-bottom: 15px;">
+                    <i class="fa-solid fa-circle-info"></i> Lựa chọn cổng truy cập
+                </div>
+                <p style="color: #A6ADCE; font-size: 14px; line-height: 1.6; margin-bottom: 25px;">
+                    Để bắt đầu tra cứu kết quả học tập hoặc quản lý thông tin giảng dạy, vui lòng chọn vai trò tương ứng dưới đây:
+                </p>
+                <div style="display: flex; flex-direction: column; gap: 12px; max-width: 320px; margin: 0 auto;">
+                    <button class="btn-submit" onclick="navigateToPage('student')" style="width: 100%; justify-content: center; height: 48px; border-radius: 12px; font-size: 14.5px; font-weight: bold; background: linear-gradient(135deg, #8E4DFF 0%, #5B21B6 100%); border: none;">
+                        <i class="fa-solid fa-graduation-cap" style="margin-right: 6px;"></i> Dành cho PH / HS
+                    </button>
+                    <button class="btn-submit" onclick="navigateToPage('tutor')" style="width: 100%; justify-content: center; height: 48px; border-radius: 12px; font-size: 14.5px; font-weight: bold; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #FFF;">
+                        <i class="fa-solid fa-chalkboard-user" style="margin-right: 6px;"></i> Dành cho Gia sư
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECTION 2: ĐĂNG NHẬP PH/HS (Y NHƯ CŨ 100%) -->
+        <div id="sectionStudentLogin" class="page-section" style="display: none;">
+            <div class="badge">
                 <span>⭐</span> HỆ THỐNG TRA CỨU HỌC TẬP
             </div>
 
             <h1 class="main-title">Khám phá kết quả<br>Học tập <span class="highlight">của bạn</span> ✨</h1>
             <p class="sub-title">Tra cứu điểm số và theo dõi tiến trình học tập<br>mọi lúc, mọi nơi 🚀</p>
-            
-            <div class="intro-card">
-                <h2>Cổng Học Tập Thông Minh</h2>
-                <p>Nơi phụ huynh, học sinh có thể dễ dàng theo dõi chi tiết điểm số, lịch sử học tập, nhận xét từ gia sư, và gia sư quản lý giảng dạy hiệu quả. Vui lòng chọn cổng đăng nhập phù hợp để tiếp tục.</p>
-                <div class="intro-buttons">
-                    <button class="btn-intro btn-purple" onclick="navigateToPage('student')"><i class="fa-solid fa-graduation-cap"></i> Phụ huynh / Học sinh</button>
-                    <button class="btn-intro btn-dark" onclick="navigateToPage('tutor')"><i class="fa-solid fa-chalkboard-user"></i> Cổng Gia sư</button>
+
+            <div class="search-card">
+                <div class="search-title">
+                    <i class="fa-solid fa-magnifying-glass"></i> Nhập mã học sinh để tra cứu
                 </div>
+                <div class="input-wrapper">
+                    <i class="fa-regular fa-id-badge input-icon"></i>
+                    <input type="text" id="maHocSinh" placeholder="Nhập số điện thoại...">
+                    <button class="btn-submit" onclick="xuLyTraCuu('student')">
+                        Tiếp tục <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                </div>
+                <p id="thongBaoLoi" class="error-msg"></p>
+                <p id="loadingText" class="loading-text"><i class="fa-solid fa-circle-notch fa-spin"></i> Hệ thống đang trích xuất dữ liệu...</p>
             </div>
 
             <div class="features-container">
@@ -1822,36 +1855,6 @@
                     <div class="icon-circle icon-orange"><i class="fa-regular fa-clipboard"></i></div>
                     <h3>Thông tin chi tiết</h3>
                     <p>Xem thông tin điểm kiểm tra và thông báo từ gia sư</p>
-                </div>
-            </div>
-        </div>
-
-        <!-- SECTION 2: ĐĂNG NHẬP PH/HS -->
-        <div id="sectionStudentLogin" class="page-section" style="display: none;">
-            <div class="badge">
-                <span>⭐</span> CỔNG TRA CỨU HỌC SINH
-            </div>
-            <h1 class="main-title">Tra cứu <span class="highlight">Kết quả học tập</span> 📝</h1>
-            <p class="sub-title" style="margin-bottom: 25px;">Nhập số điện thoại phụ huynh đăng ký để bắt đầu tra cứu kết quả.</p>
-            
-            <div class="search-card">
-                <div class="search-title">
-                    <i class="fa-solid fa-magnifying-glass"></i> Nhập số điện thoại tra cứu
-                </div>
-                <div class="input-wrapper">
-                    <i class="fa-regular fa-id-badge input-icon"></i>
-                    <input type="text" id="maHocSinh" placeholder="Nhập số điện thoại phụ huynh...">
-                    <button class="btn-submit" onclick="xuLyTraCuu('student')">
-                        Tiếp tục <i class="fa-solid fa-arrow-right"></i>
-                    </button>
-                </div>
-                <p id="thongBaoLoi" class="error-msg"></p>
-                <p id="loadingText" class="loading-text"><i class="fa-solid fa-circle-notch fa-spin"></i> Hệ thống đang trích xuất dữ liệu...</p>
-                
-                <div style="text-align: center; margin-top: 20px;">
-                    <a href="#" onclick="navigateToPage('home'); event.preventDefault();" style="color: #A6ADCE; text-decoration: none; font-size: 13px; display: inline-flex; align-items: center; gap: 6px; transition: color 0.2s;" onmouseover="this.style.color='#FFF'" onmouseout="this.style.color='#A6ADCE'">
-                        <i class="fa-solid fa-arrow-left-long"></i> Quay lại trang chủ
-                    </a>
                 </div>
             </div>
         </div>
@@ -1893,12 +1896,6 @@
                 
                 <p id="tutorThongBaoLoi" class="error-msg"></p>
                 <p id="tutorLoadingText" class="loading-text"><i class="fa-solid fa-circle-notch fa-spin"></i> Đang xác thực thông tin...</p>
-                
-                <div style="text-align: center; margin-top: 20px;">
-                    <a href="#" onclick="navigateToPage('home'); event.preventDefault();" style="color: #A6ADCE; text-decoration: none; font-size: 13px; display: inline-flex; align-items: center; gap: 6px; transition: color 0.2s;" onmouseover="this.style.color='#FFF'" onmouseout="this.style.color='#A6ADCE'">
-                        <i class="fa-solid fa-arrow-left-long"></i> Quay lại trang chủ
-                    </a>
-                </div>
             </div>
         </div>
 
