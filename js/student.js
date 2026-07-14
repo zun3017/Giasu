@@ -1,3 +1,6 @@
+var currentChartInstance = null;
+var currentStudentName = "";
+
         function renderStudentView(ketQua) {
                 // Hủy biểu đồ cũ nếu có
                 if (currentChartInstance) {

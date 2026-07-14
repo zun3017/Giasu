@@ -1,3 +1,72 @@
+var adminDataGlobal = null;
+var currentAdminPhone = "";
+var currentAdminTab = "report";
+var adminRevenueChartInstance = null;
+var pinVerifyAction = "deleteStudent";
+
+        // --- Custom in-app notification and confirmation dialogs ---
+        function showToast(message, type = 'info') {
+            var container = document.getElementById('toastContainer');
+            if (!container) return;
+            
+            var toast = document.createElement('div');
+            toast.style.padding = '15px 25px';
+            toast.style.borderRadius = '12px';
+            toast.style.color = '#FFF';
+            toast.style.fontSize = '14px';
+            toast.style.fontWeight = 'bold';
+            toast.style.boxShadow = '0 10px 25px rgba(0,0,0,0.3)';
+            toast.style.pointerEvents = 'auto';
+            toast.style.animation = 'slideIn 0.3s ease forwards';
+            toast.style.fontFamily = 'Inter, sans-serif';
+            toast.style.display = 'flex';
+            toast.style.alignItems = 'center';
+            toast.style.gap = '10px';
+            toast.style.borderWidth = '1px';
+            toast.style.borderStyle = 'solid';
+            
+            if (type === 'success') {
+                toast.style.background = '#00CC66';
+                toast.style.borderColor = '#00FF88';
+                toast.innerHTML = '<i class="fa-solid fa-circle-check"></i> ' + message;
+            } else if (type === 'error') {
+                toast.style.background = '#FF4D4D';
+                toast.style.borderColor = '#FF8080';
+                toast.innerHTML = '<i class="fa-solid fa-circle-xmark"></i> ' + message;
+            } else {
+                toast.style.background = '#8E4DFF';
+                toast.style.borderColor = '#A870FF';
+                toast.innerHTML = '<i class="fa-solid fa-circle-info"></i> ' + message;
+            }
+            
+            container.appendChild(toast);
+            
+            setTimeout(function() {
+                toast.style.animation = 'slideOut 0.3s ease forwards';
+                setTimeout(function() {
+                    toast.remove();
+                }, 300);
+            }, 3000);
+        }
+
+        function showCustomConfirm(message, onConfirm) {
+            document.getElementById('confirmModalMessage').innerText = message;
+            var modal = document.getElementById('customConfirmModal');
+            modal.style.display = 'flex';
+            
+            var btnCancel = document.getElementById('btnConfirmCancel');
+            var btnOk = document.getElementById('btnConfirmOk');
+            
+            btnCancel.onclick = function() {
+                modal.style.display = 'none';
+            };
+            
+            btnOk.onclick = function() {
+                modal.style.display = 'none';
+                onConfirm();
+            };
+        }
+
         function renderAdminView(data) {
             adminDataGlobal = data;
             
@@ -604,99 +673,7 @@
                 .loginSystem(currentAdminPhone, pin);
         }
 
-        // Logic phân luồng đăng nhập đã được tích hợp trực tiếp vào hàm xuLyTraCuu(role) chính ở trên.
-
-        // --- Unpaid lessons lists handlers ---
-        function selectAllUnpaidSessions(master) {
-            var chks = document.querySelectorAll('.unpaid-chk');
-            chks.forEach(function(chk) {
-                chk.checked = master.checked;
-            });
-        }
-
-        function submitMarkSessionsPaid() {
-            var checked = document.querySelectorAll('.unpaid-chk:checked');
-            if (checked.length === 0) {
-                showToast("Vui lòng chọn ít nhất một buổi học!", "error");
-                return;
-            }
-            
-            var rowIndices = [];
-            checked.forEach(function(chk) {
-                rowIndices.push(parseInt(chk.value));
-            });
-            
-            var btn = document.getElementById('btnMarkPaid');
-            btn.disabled = true;
-            var originalText = btn.innerText;
-            btn.innerText = "Đang lưu...";
-            
-            google.script.run
-                .withSuccessHandler(function(res) {
-                    btn.disabled = false;
-                    btn.innerHTML = '<i class="fa-solid fa-circle-check"></i> Xác nhận Đóng học phí';
-                    if (res.error) {
-                        showToast("Lỗi: " + res.error, "error");
-                    } else {
-                        showToast("Cập nhật trạng thái đóng học phí thành công!", "success");
-                        // Refresh học sinh
-                        refreshTutorStudentHistory();
-                    }
-                })
-                .withFailureHandler(function(err) {
-                    btn.disabled = false;
-                    btn.innerHTML = '<i class="fa-solid fa-circle-check"></i> Xác nhận Đóng học phí';
-                    showToast("Lỗi kết nối hoặc hệ thống: " + err.toString(), "error");
-                })
-                .capNhatDongHocPhiBuoiHoc(rowIndices);
-        }
-
-        // Hook renderInvoice để nạp danh sách buổi học chưa đóng vào Collapsible Invoice Container
-        var originalRenderInvoice = renderInvoice;
-        renderInvoice = function() {
-            originalRenderInvoice();
-            
-            // Nạp danh sách checkbox buổi học chưa đóng
-            var container = document.getElementById('unpaidLessonsListContainer');
-            if (!container) return;
-            container.innerHTML = "";
-            
-            var masterSelectAll = document.getElementById('chkSelectAllUnpaid');
-            if(masterSelectAll) masterSelectAll.checked = false;
-            
-            var unpaidCount = 0;
-            if (currentTutorStudent && currentTutorStudent.logs) {
-                currentTutorStudent.logs.forEach(function(log) {
-                    if (log.tuan !== "" && log.tienDong !== "Đã đóng") {
-                        unpaidCount++;
-                        var div = document.createElement('div');
-                        div.style.display = "flex";
-                        div.style.alignItems = "center";
-                        div.style.gap = "10px";
-                        div.style.padding = "8px 10px";
-                        div.style.background = "rgba(255,255,255,0.03)";
-                        div.style.borderRadius = "8px";
-                        div.style.border = "1px solid rgba(255,255,255,0.05)";
-                        
-                        div.innerHTML = '<input type="checkbox" class="unpaid-chk" value="' + log.rowIndex + '" style="cursor:pointer; width:16px; height:16px; accent-color:#8E4DFF;">' +
-                                        '<span style="color: #FFF; font-size: 13px;">' +
-                                          '<b>Tuần ' + log.tuan + '</b> (' + log.ngay + ') - ' + log.mon + ' - <span class="badge" style="background:rgba(245,158,11,0.1); color:#F59E0B; padding:2px 6px;">' + log.trangThai + '</span>' +
-                                        '</span>';
-                        container.appendChild(div);
-                    }
-                });
-            }
-            
-            var btn = document.getElementById('btnMarkPaid');
-            if (unpaidCount === 0) {
-                container.innerHTML = '<div style="color: #A6ADCE; font-size: 13px; text-align: center; padding: 15px;"><i class="fa-solid fa-circle-check" style="color:#10B981;"></i> Tất cả buổi học đã đóng học phí!</div>';
-                if(btn) btn.disabled = true;
-            } else {
-                if(btn) btn.disabled = false;
-            }
-        };
-
-        // --- End of Script ---
+        // Các hàm phụ trợ hóa đơn của Gia sư đã được di chuyển sang đúng file js/tutor.js.
         
         function quayLai() {
             if (adminRevenueChartInstance) {

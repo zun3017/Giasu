@@ -1,3 +1,9 @@
+var tutorChartInstance = null;
+var tutorDataGlobal = null;
+var currentTutorStudent = null;
+var currentTutorPhone = "";
+var pinVerifyAction = "deleteStudent";
+
         function renderTutorView(data) {
             tutorDataGlobal = data;
             currentTutorPhone = document.getElementById('maHocSinh').value.trim();
@@ -1540,3 +1546,93 @@
         }
 
         // --- Admin Dashboard JS Controllers ---
+
+        // --- Unpaid lessons lists handlers ---
+        function selectAllUnpaidSessions(master) {
+            var chks = document.querySelectorAll('.unpaid-chk');
+            chks.forEach(function(chk) {
+                chk.checked = master.checked;
+            });
+        }
+
+        function submitMarkSessionsPaid() {
+            var checked = document.querySelectorAll('.unpaid-chk:checked');
+            if (checked.length === 0) {
+                showToast("Vui lòng chọn ít nhất một buổi học!", "error");
+                return;
+            }
+            
+            var rowIndices = [];
+            checked.forEach(function(chk) {
+                rowIndices.push(parseInt(chk.value));
+            });
+            
+            var btn = document.getElementById('btnMarkPaid');
+            btn.disabled = true;
+            var originalText = btn.innerText;
+            btn.innerText = "Đang lưu...";
+            
+            google.script.run
+                .withSuccessHandler(function(res) {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fa-solid fa-circle-check"></i> Xác nhận Đóng học phí';
+                    if (res.error) {
+                        showToast("Lỗi: " + res.error, "error");
+                    } else {
+                        showToast("Cập nhật trạng thái đóng học phí thành công!", "success");
+                        // Refresh học sinh
+                        refreshTutorStudentHistory();
+                    }
+                })
+                .withFailureHandler(function(err) {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fa-solid fa-circle-check"></i> Xác nhận Đóng học phí';
+                    showToast("Lỗi kết nối hoặc hệ thống: " + err.toString(), "error");
+                })
+                .capNhatDongHocPhiBuoiHoc(rowIndices);
+        }
+
+        // Hook renderInvoice để nạp danh sách buổi học chưa đóng vào Collapsible Invoice Container
+        var originalRenderInvoice = renderInvoice;
+        renderInvoice = function() {
+            originalRenderInvoice();
+            
+            // Nạp danh sách checkbox buổi học chưa đóng
+            var container = document.getElementById('unpaidLessonsListContainer');
+            if (!container) return;
+            container.innerHTML = "";
+            
+            var masterSelectAll = document.getElementById('chkSelectAllUnpaid');
+            if(masterSelectAll) masterSelectAll.checked = false;
+            
+            var unpaidCount = 0;
+            if (currentTutorStudent && currentTutorStudent.logs) {
+                currentTutorStudent.logs.forEach(function(log) {
+                    if (log.tuan !== "" && log.tienDong !== "Đã đóng") {
+                        unpaidCount++;
+                        var div = document.createElement('div');
+                        div.style.display = "flex";
+                        div.style.alignItems = "center";
+                        div.style.gap = "10px";
+                        div.style.padding = "8px 10px";
+                        div.style.background = "rgba(255,255,255,0.03)";
+                        div.style.borderRadius = "8px";
+                        div.style.border = "1px solid rgba(255,255,255,0.05)";
+                        
+                        div.innerHTML = '<input type="checkbox" class="unpaid-chk" value="' + log.rowIndex + '" style="cursor:pointer; width:16px; height:16px; accent-color:#8E4DFF;">' +
+                                        '<span style="color: #FFF; font-size: 13px;">' +
+                                          '<b>Tuần ' + log.tuan + '</b> (' + log.ngay + ') - ' + log.mon + ' - <span class="badge" style="background:rgba(245,158,11,0.1); color:#F59E0B; padding:2px 6px;">' + log.trangThai + '</span>' +
+                                        '</span>';
+                        container.appendChild(div);
+                    }
+                });
+            }
+            
+            var btn = document.getElementById('btnMarkPaid');
+            if (unpaidCount === 0) {
+                container.innerHTML = '<div style="color: #A6ADCE; font-size: 13px; text-align: center; padding: 15px;"><i class="fa-solid fa-circle-check" style="color:#10B981;"></i> Tất cả buổi học đã đóng học phí!</div>';
+                if(btn) btn.disabled = true;
+            } else {
+                if(btn) btn.disabled = false;
+            }
+        };
