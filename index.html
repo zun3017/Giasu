@@ -56,7 +56,7 @@
                 }
                 
                 _execute(functionName, args) {
-                    if (SCRIPT_URL === DEFAULT_SCRIPT_URL || SCRIPT_URL.indexOf('YOUR_SCRIPT_ID') !== -1) {
+                    if (SCRIPT_URL.indexOf('YOUR_SCRIPT_ID') !== -1 || SCRIPT_URL.trim() === '') {
                         const errMsg = 'Hệ thống chưa được cấu hình URL kết nối Google Sheets. Vui lòng bấm vào nút "Cấu hình kết nối dữ liệu" ở phía dưới nút Đăng nhập để thiết lập.';
                         if (this._failureHandler) {
                             this._failureHandler(errMsg);
