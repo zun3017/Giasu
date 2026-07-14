@@ -275,6 +275,20 @@
         </div>
     </div>
 
+    <!-- PIN Verification Modal -->
+    <div id="pinConfirmModal" class="modal-overlay" style="z-index: 1003;">
+        <div class="modal-content" style="max-width: 400px; text-align: center;">
+            <div style="font-size: 40px; color: #EF4444; margin-bottom: 15px;"><i class="fa-solid fa-shield-halved"></i></div>
+            <h3 style="color: #FFF; margin: 0 0 10px; font-size: 18px;">Xác thực mã PIN</h3>
+            <p style="color: #A6ADCE; font-size: 14px; margin: 0 0 15px; text-align: center;">Vui lòng nhập mã PIN đăng nhập để xác nhận xóa học sinh.</p>
+            <input type="password" id="confirmTutorPinInput" placeholder="Nhập mã PIN của bạn" style="text-align: center; font-size: 18px; letter-spacing: 5px; text-indent: 5px; width: 100%; padding: 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.15); background: rgba(0,0,0,0.2); color: #FFF; margin-bottom: 20px; outline: none;">
+            <div style="display: flex; justify-content: center; gap: 10px;">
+                <button onclick="closePinConfirmModal()" class="modal-btn modal-btn-secondary" style="width: 100px;">Hủy</button>
+                <button onclick="submitPinVerifyForDelete()" class="modal-btn modal-btn-primary" style="width: 100px; background: #EF4444; border-color: #EF4444;">Xác nhận</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Student Trash Modal -->
     <div id="trashModal" class="modal-overlay">
         <div class="modal-content" style="max-width: 600px; width: 90%;">
