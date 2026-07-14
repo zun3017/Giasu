@@ -5530,51 +5530,7 @@
                 .loginSystem(currentAdminPhone, pin);
         }
 
-        // --- Custom PIN matching Login route ---
-        // Sửa hàm login gốc để phân luồng Admin vs Gia sư thông minh
-        var originalXuLyTraCuu = xuLyTraCuu;
-        xuLyTraCuu = function() {
-            var phone = document.getElementById('maHocSinh').value.trim();
-            var pin = document.getElementById('maPin').value.trim();
-            var loiHienThi = document.getElementById('thongBaoLoi');
-            
-            if (phone === "") {
-                loiHienThi.innerText = "Vui lòng nhập số điện thoại để tiếp tục!";
-                loiHienThi.style.display = "block";
-                return;
-            }
-            
-            loiHienThi.style.display = "none";
-            document.getElementById('loadingText').style.display = 'block';
-            
-            // Chạy API và chặn để gán biến Admin điện thoại
-            google.script.run.withSuccessHandler(function(ketQua) {
-                document.getElementById('loadingText').style.display = 'none';
-                
-                if (ketQua.error) {
-                    loiHienThi.innerText = ketQua.error;
-                    loiHienThi.style.display = "block";
-                    return;
-                }
-                
-                if (ketQua.requiresPin) {
-                    document.getElementById('pinContainer').style.display = 'block';
-                    document.getElementById('btnMainSubmit').style.display = 'none';
-                    return;
-                }
-                
-                if (ketQua.role === 'admin') {
-                    currentAdminPhone = phone;
-                    renderAdminView(ketQua.data);
-                } else if (ketQua.role === 'tutor') {
-                    currentTutorPhone = phone;
-                    tutorDataGlobal = ketQua.data;
-                    renderTutorView(ketQua.data);
-                } else if (ketQua.role === 'student' && ketQua.data && ketQua.data.timThay) {
-                    renderStudentView(ketQua.data);
-                }
-            }).loginSystem(phone, pin);
-        };
+        // Logic phân luồng đăng nhập đã được tích hợp trực tiếp vào hàm xuLyTraCuu(role) chính ở trên.
 
         // --- Unpaid lessons lists handlers ---
         function selectAllUnpaidSessions(master) {
