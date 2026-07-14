@@ -16,7 +16,13 @@
         const DEFAULT_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyZXzxADAm-vzZtpjBlS5v3cN4Nt9GTnYYBWEPTrDpWRu7CoeH0L3jv1RwHDVsnYNLX/exec';
         
         // Tải URL đã cấu hình từ localStorage hoặc sử dụng URL mặc định
-        const SCRIPT_URL = localStorage.getItem('GAS_SCRIPT_URL') || DEFAULT_SCRIPT_URL;
+        let savedUrl = localStorage.getItem('GAS_SCRIPT_URL');
+        // Nếu URL lưu trong bộ nhớ là link placeholder mặc định hoặc bị trống, hãy xóa đi để dùng DEFAULT_SCRIPT_URL
+        if (savedUrl && (savedUrl.indexOf('YOUR_SCRIPT_ID') !== -1 || savedUrl.trim() === '')) {
+            localStorage.removeItem('GAS_SCRIPT_URL');
+            savedUrl = null;
+        }
+        const SCRIPT_URL = savedUrl || DEFAULT_SCRIPT_URL;
 
         // Chỉ tạo Shim giả lập nếu chạy ngoài môi trường Google Apps Script (ví dụ trên GitHub Pages)
         if (typeof google === 'undefined' || typeof google.script === 'undefined' || typeof google.script.run === 'undefined') {
