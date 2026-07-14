@@ -132,24 +132,205 @@
         }
 
         /* ================= HEADER ================= */
+        /* ================= NAVBAR & HEADER ================= */
         .header {
+            position: sticky;
+            top: 0;
+            left: 0;
             width: 100%;
-            padding: 20px 40px;
+            z-index: 1000;
+            background: rgba(3, 8, 29, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 12px 24px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .nav-container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+        }
+        
+        .nav-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        
+        .nav-logo {
+            width: 38px;
+            height: 38px;
+        }
+        
+        .nav-right {
             display: flex;
             align-items: center;
             gap: 12px;
-            position: absolute;
-            top: 0;
-            left: 0;
-            z-index: 100;
-            pointer-events: none;
         }
-        .header > div {
-            pointer-events: auto;
+        
+        /* Navigation Buttons */
+        .nav-btn {
+            background: rgba(255, 255, 255, 0.03);
+            color: #E2E8F0;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            padding: 10px 20px;
+            border-radius: 30px;
+            font-size: 13.5px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
         }
-        .header img { width: 40px; }
+        
+        .nav-btn i {
+            font-size: 14px;
+        }
+        
+        .nav-btn:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.2);
+            color: #FFF;
+            transform: translateY(-1px);
+        }
+        
+        .nav-btn.active {
+            background: linear-gradient(135deg, #8E4DFF 0%, #5B21B6 100%);
+            border-color: #8E4DFF;
+            color: #FFFFFF;
+            font-weight: 700;
+            box-shadow: 0 4px 15px rgba(142, 77, 255, 0.35);
+        }
+        
         .header-text h1 { font-size: 18px; font-weight: 700; color: #fff; margin-bottom: -2px; letter-spacing: -0.5px;}
-        .header-text p { font-size: 12px; color: #8E95BE; font-weight: 500;}
+        .header-text p { font-size: 11px; color: #8E95BE; font-weight: 500;}
+
+        /* Intro Card on Home */
+        .intro-card {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 650px;
+            margin: 20px auto 40px auto;
+            text-align: center;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            z-index: 10;
+            position: relative;
+        }
+        
+        .intro-card h2 {
+            font-size: 20px;
+            font-weight: 700;
+            color: #FFFFFF;
+            margin-bottom: 12px;
+            letter-spacing: -0.3px;
+        }
+        
+        .intro-card p {
+            font-size: 14px;
+            color: #A6ADCE;
+            line-height: 1.6;
+            margin-bottom: 24px;
+        }
+        
+        .intro-buttons {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+        }
+        
+        .btn-intro {
+            padding: 12px 24px;
+            border-radius: 30px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            border: 1px solid transparent;
+        }
+        
+        .btn-intro.btn-purple {
+            background: linear-gradient(135deg, #8E4DFF 0%, #5B21B6 100%);
+            color: #FFFFFF;
+            box-shadow: 0 4px 15px rgba(142, 77, 255, 0.3);
+        }
+        
+        .btn-intro.btn-purple:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(142, 77, 255, 0.4);
+        }
+        
+        .btn-intro.btn-dark {
+            background: rgba(255, 255, 255, 0.05);
+            color: #FFFFFF;
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        .btn-intro.btn-dark:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .page-section {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            animation: fadeIn 0.4s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @media (max-width: 768px) {
+            .header {
+                padding: 10px 16px;
+            }
+            .nav-container {
+                flex-direction: column;
+                gap: 10px;
+                align-items: center;
+            }
+            .nav-left {
+                width: 100%;
+                justify-content: center;
+                margin-bottom: 4px;
+            }
+            .nav-right {
+                width: 100%;
+                justify-content: center;
+                gap: 8px;
+            }
+            .nav-btn {
+                padding: 8px 14px;
+                font-size: 12.5px;
+            }
+            .intro-buttons {
+                flex-direction: column;
+                gap: 12px;
+            }
+            .btn-intro {
+                width: 100%;
+                justify-content: center;
+            }
+        }
 
         /* ================= TRANG TRÍ 3D & ANIMATION ================= */
         .decor { position: absolute; z-index: 1; pointer-events: none; }
@@ -1573,11 +1754,18 @@
 <body>
 
     <div class="header">
-        <div style="display: flex; align-items: center; gap: 12px;">
-            <img src="https://cdn-icons-png.flaticon.com/512/3330/3330314.png" alt="Logo">
-            <div class="header-text">
-                <h1>Tra cứu học tập</h1>
-                <p>Học tập thông minh</p>
+        <div class="nav-container">
+            <div class="nav-left" onclick="navigateToPage('home')" style="cursor: pointer;">
+                <img src="https://cdn-icons-png.flaticon.com/512/3330/3330314.png" alt="Logo" class="nav-logo">
+                <div class="header-text">
+                    <h1>Tra cứu học tập</h1>
+                    <p>Học tập thông minh</p>
+                </div>
+            </div>
+            <div class="nav-right">
+                <button class="nav-btn active" id="btnNavHome" onclick="navigateToPage('home')"><i class="fa-solid fa-house"></i> Trang chủ</button>
+                <button class="nav-btn" id="btnNavStudent" onclick="navigateToPage('student')"><i class="fa-solid fa-graduation-cap"></i> Dành cho PH / HS</button>
+                <button class="nav-btn" id="btnNavTutor" onclick="navigateToPage('tutor')"><i class="fa-solid fa-chalkboard-user"></i> Dành cho Gia sư</button>
             </div>
         </div>
     </div>
@@ -1596,53 +1784,129 @@
 
     <div class="main-container" id="mainScreen">
         
-        <div class="badge">
-            <span>⭐</span> HỆ THỐNG TRA CỨU HỌC TẬP
+        <!-- SECTION 1: TRANG CHỦ -->
+        <div id="sectionHome" class="page-section">
+            <div class="badge">
+                <span>⭐</span> HỆ THỐNG TRA CỨU HỌC TẬP
+            </div>
+
+            <h1 class="main-title">Khám phá kết quả<br>Học tập <span class="highlight">của bạn</span> ✨</h1>
+            <p class="sub-title">Tra cứu điểm số và theo dõi tiến trình học tập<br>mọi lúc, mọi nơi 🚀</p>
+            
+            <div class="intro-card">
+                <h2>Cổng Học Tập Thông Minh</h2>
+                <p>Nơi phụ huynh, học sinh có thể dễ dàng theo dõi chi tiết điểm số, lịch sử học tập, nhận xét từ gia sư, và gia sư quản lý giảng dạy hiệu quả. Vui lòng chọn cổng đăng nhập phù hợp để tiếp tục.</p>
+                <div class="intro-buttons">
+                    <button class="btn-intro btn-purple" onclick="navigateToPage('student')"><i class="fa-solid fa-graduation-cap"></i> Phụ huynh / Học sinh</button>
+                    <button class="btn-intro btn-dark" onclick="navigateToPage('tutor')"><i class="fa-solid fa-chalkboard-user"></i> Cổng Gia sư</button>
+                </div>
+            </div>
+
+            <div class="features-container">
+                <div class="feature-card card-purple">
+                    <div class="icon-circle icon-purple"><i class="fa-solid fa-chart-line"></i></div>
+                    <h3>Kết quả học tập</h3>
+                    <p>Xem điểm số và kết quả các môn học</p>
+                </div>
+                <div class="feature-card card-blue">
+                    <div class="icon-circle icon-blue"><i class="fa-solid fa-trophy"></i></div>
+                    <h3>Thành tích</h3>
+                    <p>Khám phá thành tích đã đạt được</p>
+                </div>
+                <div class="feature-card card-green">
+                    <div class="icon-circle icon-green"><i class="fa-solid fa-book-open"></i></div>
+                    <h3>Tiến trình học tập</h3>
+                    <p>Theo dõi quá trình học tập và sự tiến bộ</p>
+                </div>
+                <div class="feature-card card-orange">
+                    <div class="icon-circle icon-orange"><i class="fa-regular fa-clipboard"></i></div>
+                    <h3>Thông tin chi tiết</h3>
+                    <p>Xem thông tin điểm kiểm tra và thông báo từ gia sư</p>
+                </div>
+            </div>
         </div>
 
-        <h1 class="main-title">Khám phá kết quả<br>Học tập <span class="highlight">của bạn</span> ✨</h1>
-        <p class="sub-title">Tra cứu điểm số và theo dõi tiến trình học tập<br>mọi lúc, mọi nơi 🚀</p>
-
-        <div class="search-card">
-            <div class="search-title">
-                <i class="fa-solid fa-magnifying-glass"></i> Nhập mã học sinh để tra cứu
+        <!-- SECTION 2: ĐĂNG NHẬP PH/HS -->
+        <div id="sectionStudentLogin" class="page-section" style="display: none;">
+            <div class="badge">
+                <span>⭐</span> CỔNG TRA CỨU HỌC SINH
             </div>
-            <div class="input-wrapper">
-                <i class="fa-regular fa-id-badge input-icon"></i>
-                <input type="text" id="maHocSinh" placeholder="Nhập số điện thoại...">
-                <button class="btn-submit" id="btnMainSubmit" onclick="xuLyTraCuu()">
-                    Tiếp tục <i class="fa-solid fa-arrow-right"></i>
+            <h1 class="main-title">Tra cứu <span class="highlight">Kết quả học tập</span> 📝</h1>
+            <p class="sub-title" style="margin-bottom: 25px;">Nhập số điện thoại phụ huynh đăng ký để bắt đầu tra cứu kết quả.</p>
+            
+            <div class="search-card">
+                <div class="search-title">
+                    <i class="fa-solid fa-magnifying-glass"></i> Nhập số điện thoại tra cứu
+                </div>
+                <div class="input-wrapper">
+                    <i class="fa-regular fa-id-badge input-icon"></i>
+                    <input type="text" id="maHocSinh" placeholder="Nhập số điện thoại phụ huynh...">
+                    <button class="btn-submit" onclick="xuLyTraCuu('student')">
+                        Tiếp tục <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                </div>
+                <p id="thongBaoLoi" class="error-msg"></p>
+                <p id="loadingText" class="loading-text"><i class="fa-solid fa-circle-notch fa-spin"></i> Hệ thống đang trích xuất dữ liệu...</p>
+                
+                <div style="text-align: center; margin-top: 20px;">
+                    <a href="#" onclick="navigateToPage('home'); event.preventDefault();" style="color: #A6ADCE; text-decoration: none; font-size: 13px; display: inline-flex; align-items: center; gap: 6px; transition: color 0.2s;" onmouseover="this.style.color='#FFF'" onmouseout="this.style.color='#A6ADCE'">
+                        <i class="fa-solid fa-arrow-left-long"></i> Quay lại trang chủ
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECTION 3: ĐĂNG NHẬP GIA SƯ -->
+        <div id="sectionTutorLogin" class="page-section" style="display: none;">
+            <div class="badge">
+                <span>⭐</span> CỔNG THÔNG TIN GIA SƯ
+            </div>
+            <h1 class="main-title">Gia sư <span class="highlight">Đăng nhập</span> 🔐</h1>
+            <p class="sub-title" style="margin-bottom: 25px;">Nhập số điện thoại đăng ký và mã PIN để vào trang quản lý lớp học.</p>
+            
+            <div class="search-card">
+                <div class="search-title">
+                    <i class="fa-solid fa-lock"></i> Đăng nhập hệ thống
+                </div>
+                
+                <!-- SDT Input -->
+                <div class="modal-form-group" style="margin-bottom: 15px; text-align: left;">
+                    <label style="display: block; margin-bottom: 8px; color: #A6ADCE; font-size: 13px; font-weight: 500;">Số điện thoại đăng nhập</label>
+                    <div style="position: relative;">
+                        <i class="fa-solid fa-phone" style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: #8E4DFF;"></i>
+                        <input type="text" id="tutorPhone" placeholder="Nhập số điện thoại gia sư..." style="width: 100%; padding: 14px 16px 14px 45px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; color: #FFF; font-size: 15px; transition: all 0.3s; box-shadow: none; outline: none;" onfocus="this.style.borderColor='#8E4DFF'" onblur="this.style.borderColor='rgba(255,255,255,0.08)'">
+                    </div>
+                </div>
+                
+                <!-- PIN Input -->
+                <div class="modal-form-group" style="margin-bottom: 20px; text-align: left;">
+                    <label style="display: block; margin-bottom: 8px; color: #A6ADCE; font-size: 13px; font-weight: 500;">Mã PIN bảo mật</label>
+                    <div style="position: relative;">
+                        <i class="fa-solid fa-key" style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: #8E4DFF;"></i>
+                        <input type="password" id="tutorPin" placeholder="Nhập mã PIN gồm 6 số..." maxlength="6" style="width: 100%; padding: 14px 16px 14px 45px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; color: #FFF; font-size: 15px; transition: all 0.3s; box-shadow: none; outline: none;" onfocus="this.style.borderColor='#8E4DFF'" onblur="this.style.borderColor='rgba(255,255,255,0.08)'">
+                    </div>
+                </div>
+                
+                <button class="btn-submit" onclick="xuLyTraCuu('tutor')" style="width: 100%; justify-content: center; height: 50px; border-radius: 12px; font-size: 15px; font-weight: bold; background: linear-gradient(135deg, #8E4DFF 0%, #5B21B6 100%); border: none;">
+                    Đăng nhập hệ thống <i class="fa-solid fa-right-to-bracket" style="margin-left: 6px;"></i>
                 </button>
+                
+                <p id="tutorThongBaoLoi" class="error-msg"></p>
+                <p id="tutorLoadingText" class="loading-text"><i class="fa-solid fa-circle-notch fa-spin"></i> Đang xác thực thông tin...</p>
+                
+                <div style="text-align: center; margin-top: 20px;">
+                    <a href="#" onclick="navigateToPage('home'); event.preventDefault();" style="color: #A6ADCE; text-decoration: none; font-size: 13px; display: inline-flex; align-items: center; gap: 6px; transition: color 0.2s;" onmouseover="this.style.color='#FFF'" onmouseout="this.style.color='#A6ADCE'">
+                        <i class="fa-solid fa-arrow-left-long"></i> Quay lại trang chủ
+                    </a>
+                </div>
             </div>
-            <div class="pin-input-container" id="pinContainer">
-                <input type="password" id="maPin" placeholder="Nhập mã PIN gia sư" maxlength="6">
-                <button class="btn-submit" style="width: 100%; margin-top: 10px; justify-content: center;" onclick="xuLyTraCuu()">Đăng nhập Gia Sư</button>
-            </div>
-            <p id="thongBaoLoi" class="error-msg"></p>
-            <p id="loadingText" class="loading-text"><i class="fa-solid fa-circle-notch fa-spin"></i> Hệ thống đang trích xuất dữ liệu...</p>
         </div>
 
-        <div class="features-container">
-            <div class="feature-card card-purple">
-                <div class="icon-circle icon-purple"><i class="fa-solid fa-chart-line"></i></div>
-                <h3>Kết quả học tập</h3>
-                <p>Xem điểm số và kết quả các môn học</p>
-            </div>
-            <div class="feature-card card-blue">
-                <div class="icon-circle icon-blue"><i class="fa-solid fa-trophy"></i></div>
-                <h3>Thành tích</h3>
-                <p>Khám phá thành tích đã đạt được</p>
-            </div>
-            <div class="feature-card card-green">
-                <div class="icon-circle icon-green"><i class="fa-solid fa-book-open"></i></div>
-                <h3>Tiến trình học tập</h3>
-                <p>Theo dõi quá trình học tập và sự tiến bộ</p>
-            </div>
-            <div class="feature-card card-orange">
-                <div class="icon-circle icon-orange"><i class="fa-regular fa-clipboard"></i></div>
-                <h3>Thông tin chi tiết</h3>
-                <p>Xem thông tin điểm kiểm tra và thông báo từ gia sư</p>
-            </div>
+        <!-- Hidden legacy items for full backward compatibility of dashboard codes -->
+        <div style="display: none;">
+            <input type="password" id="maPin" placeholder="Hidden PIN field">
+            <div id="pinContainer"></div>
+            <button id="btnMainSubmit">Hidden Submit button</button>
         </div>
 
     </div>
@@ -2611,10 +2875,47 @@
         var adminRevenueChartInstance = null;
         var pinVerifyAction = "deleteStudent";
 
-        function xuLyTraCuu() {
-            var phone = document.getElementById('maHocSinh').value.trim();
-            var pin = document.getElementById('maPin').value.trim();
-            var loiHienThi = document.getElementById('thongBaoLoi');
+        function navigateToPage(pageName) {
+            // Hide all sections
+            document.getElementById('sectionHome').style.display = 'none';
+            document.getElementById('sectionStudentLogin').style.display = 'none';
+            document.getElementById('sectionTutorLogin').style.display = 'none';
+            
+            // Deactivate all nav buttons
+            document.getElementById('btnNavHome').classList.remove('active');
+            document.getElementById('btnNavStudent').classList.remove('active');
+            document.getElementById('btnNavTutor').classList.remove('active');
+            
+            // Show target section and activate target button
+            if (pageName === 'student') {
+                document.getElementById('sectionStudentLogin').style.display = 'flex';
+                document.getElementById('btnNavStudent').classList.add('active');
+            } else if (pageName === 'tutor') {
+                document.getElementById('sectionTutorLogin').style.display = 'flex';
+                document.getElementById('btnNavTutor').classList.add('active');
+            } else {
+                document.getElementById('sectionHome').style.display = 'flex';
+                document.getElementById('btnNavHome').classList.add('active');
+            }
+        }
+
+        function xuLyTraCuu(role) {
+            var phone = "";
+            var pin = "";
+            var loiHienThi = null;
+            var loadingText = null;
+            
+            if (role === 'tutor') {
+                phone = document.getElementById('tutorPhone').value.trim();
+                pin = document.getElementById('tutorPin').value.trim();
+                loiHienThi = document.getElementById('tutorThongBaoLoi');
+                loadingText = document.getElementById('tutorLoadingText');
+            } else {
+                phone = document.getElementById('maHocSinh').value.trim();
+                pin = "";
+                loiHienThi = document.getElementById('thongBaoLoi');
+                loadingText = document.getElementById('loadingText');
+            }
             
             if (phone === "") {
                 loiHienThi.innerText = "Vui lòng nhập số điện thoại để tiếp tục!";
@@ -2622,25 +2923,46 @@
                 return;
             }
             
-            loiHienThi.style.display = "none";
-            document.getElementById('loadingText').style.display = 'block';
+            if (role === 'tutor' && pin === "") {
+                loiHienThi.innerText = "Vui lòng nhập mã PIN gia sư!";
+                loiHienThi.style.display = "block";
+                return;
+            }
             
-            google.script.run.withSuccessHandler(hienThiKetQua).loginSystem(phone, pin);
+            // Copy to hidden legacy storage inputs for backward compatibility
+            document.getElementById('maHocSinh').value = phone;
+            document.getElementById('maPin').value = pin;
+            
+            loiHienThi.style.display = "none";
+            loadingText.style.display = 'block';
+            
+            google.script.run.withSuccessHandler(function(ketQua) {
+                hienThiKetQua(ketQua, role);
+            }).loginSystem(phone, pin);
         }
 
-        function hienThiKetQua(ketQua) {
-            document.getElementById('loadingText').style.display = 'none';
+        function hienThiKetQua(ketQua, role) {
+            var loadingStudent = document.getElementById('loadingText');
+            var loadingTutor = document.getElementById('tutorLoadingText');
+            if (loadingStudent) loadingStudent.style.display = 'none';
+            if (loadingTutor) loadingTutor.style.display = 'none';
+            
+            var loiHienThi = (role === 'tutor') ? document.getElementById('tutorThongBaoLoi') : document.getElementById('thongBaoLoi');
             
             if (ketQua.error) {
-                var loiHienThi = document.getElementById('thongBaoLoi');
                 loiHienThi.innerText = ketQua.error;
                 loiHienThi.style.display = "block";
                 return;
             }
             
             if (ketQua.requiresPin) {
-                document.getElementById('pinContainer').style.display = 'block';
-                document.getElementById('btnMainSubmit').style.display = 'none';
+                if (role !== 'tutor') {
+                    loiHienThi.innerHTML = "Số điện thoại này thuộc tài khoản Gia sư / Admin.<br>Vui lòng chọn mục <b>'Dành cho Gia sư'</b> ở thanh menu để đăng nhập.";
+                    loiHienThi.style.display = "block";
+                } else {
+                    loiHienThi.innerText = "Yêu cầu nhập mã PIN chính xác.";
+                    loiHienThi.style.display = "block";
+                }
                 return;
             }
             
@@ -3484,11 +3806,17 @@
             
             var headerEl = document.querySelector('.header');
             if (headerEl) headerEl.style.display = 'flex';
+            
+            // Điều hướng về Trang chủ mặc định
+            navigateToPage('home');
+            
+            // Clear các ô nhập và thông báo lỗi
             document.getElementById('maHocSinh').value = "";
             document.getElementById('maPin').value = "";
-            document.getElementById('pinContainer').style.display = "none";
-            document.getElementById('btnMainSubmit').style.display = 'flex';
-            document.getElementById('thongBaoLoi').style.display = "none"; 
+            document.getElementById('tutorPhone').value = "";
+            document.getElementById('tutorPin').value = "";
+            document.getElementById('thongBaoLoi').style.display = "none";
+            document.getElementById('tutorThongBaoLoi').style.display = "none"; 
             
             // Hiện lại mặt bàn và nhân vật nếu ở màn hình Desktop
             document.getElementById('deskSurface').style.display = 'block';
