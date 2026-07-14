@@ -402,3 +402,110 @@ var currentStudentName = "";
             sessionStorage.clear();
             window.location.href = 'student-login.html';
         }
+
+        // --- Student Dashboard UI Helpers ---
+        function hienThemBuoi() {
+            var hiddenRows = document.querySelectorAll('.history-row.hidden-row');
+            var showCount = 0;
+            for (var i = 0; i < hiddenRows.length; i++) {
+                if (showCount < 5) {
+                    hiddenRows[i].style.display = '';
+                    hiddenRows[i].classList.remove('hidden-row');
+                    showCount++;
+                } else {
+                    break;
+                }
+            }
+            
+            // Ẩn nút nếu không còn dòng nào bị ẩn
+            var remainingHidden = document.querySelectorAll('.history-row.hidden-row');
+            if (remainingHidden.length === 0) {
+                var loadMoreContainer = document.getElementById('loadMoreContainer');
+                if (loadMoreContainer) loadMoreContainer.style.display = 'none';
+            }
+        }
+
+        function toggleDataset(index) {
+            if (!currentChartInstance) return;
+            
+            var meta = currentChartInstance.getDatasetMeta(index);
+            var btn = (index === 0) ? document.getElementById('btnLegDauGio') : document.getElementById('btnLegDinhKi');
+            if (!btn) return;
+            
+            // Đảo ngược trạng thái ẩn/hiện của dataset
+            meta.hidden = meta.hidden === null ? !currentChartInstance.data.datasets[index].hidden : null;
+            
+            // Cập nhật lớp CSS (active/inactive) của nút
+            if (meta.hidden) {
+                btn.classList.remove('active');
+                btn.classList.add('inactive');
+            } else {
+                btn.classList.remove('inactive');
+                btn.classList.add('active');
+            }
+            
+            currentChartInstance.update();
+        }
+
+        function toggleAccordion(idx) {
+            var body = document.getElementById('accordion-body-' + idx);
+            if (!body) return;
+            var item = body.closest('.accordion-item');
+            
+            if (body.style.display === 'flex') {
+                body.style.display = 'none';
+                if (item) item.classList.remove('active');
+            } else {
+                body.style.display = 'flex';
+                if (item) item.classList.add('active');
+            }
+        }
+
+        function guiPhanHoiPhuHuynh() {
+            var textarea = document.getElementById('feedbackInput');
+            var btn = document.getElementById('btnSubmitFeedback');
+            var msg = document.getElementById('feedbackMessage');
+            if (!textarea || !btn || !msg) return;
+            
+            var content = textarea.value.trim();
+            if (content === "") {
+                msg.innerText = "Vui lòng nhập nội dung nhận xét/phản hồi trước khi gửi!";
+                msg.className = "feedback-message-status error";
+                msg.style.display = "block";
+                return;
+            }
+            
+            var maHS = sessionStorage.getItem('userPhone') || "";
+            var tenHocSinh = currentStudentName;
+            
+            btn.disabled = true;
+            btn.innerHTML = 'Đang gửi... <i class="fa-solid fa-circle-notch fa-spin"></i>';
+            msg.style.display = 'none';
+            
+            google.script.run
+                .withSuccessHandler(function(response) {
+                    btn.disabled = false;
+                    btn.innerHTML = 'Gửi phản hồi <i class="fa-regular fa-paper-plane"></i>';
+                    if (response && response.thanhCong) {
+                        textarea.value = "";
+                        msg.innerText = "Gửi phản hồi thành công! Cảm ơn ý kiến đóng góp của phụ huynh.";
+                        msg.className = "feedback-message-status success";
+                        msg.style.display = "block";
+                        setTimeout(function() {
+                            msg.style.display = "none";
+                        }, 5000);
+                    } else {
+                        msg.innerText = "Lỗi khi gửi: " + (response.thongBao || "Không rõ nguyên nhân.");
+                        msg.className = "feedback-message-status error";
+                        msg.style.display = "block";
+                    }
+                })
+                .withFailureHandler(function(err) {
+                    btn.disabled = false;
+                    btn.innerHTML = 'Gửi phản hồi <i class="fa-regular fa-paper-plane"></i>';
+                    msg.innerText = "Lỗi hệ thống: " + err.toString();
+                    msg.className = "feedback-message-status error";
+                    msg.style.display = "block";
+                })
+                .guiPhanHoi(maHS, tenHocSinh, content);
+        }

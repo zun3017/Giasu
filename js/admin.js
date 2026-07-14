@@ -488,6 +488,22 @@ var pinVerifyAction = "deleteStudent";
             document.getElementById('pinConfirmModal').style.display = "flex";
         }
 
+        function closePinConfirmModal() {
+            document.getElementById('pinConfirmModal').style.display = "none";
+        }
+
+        function submitPinVerifyForDelete() {
+            var inputPin = document.getElementById('confirmTutorPinInput').value.trim();
+            var adminPin = document.getElementById('maPin').value.trim();
+            if (inputPin === adminPin) {
+                closePinConfirmModal();
+                closeAdminEditTutorModal();
+                deleteTutorBackend();
+            } else {
+                showToast("Mã PIN xác thực của Admin không chính xác!", "error");
+            }
+        }
+
         function deleteTutorBackend() {
             var phone = document.getElementById('adminTutorOldPhone').value;
             var name = document.getElementById('adminTutorName').value;
