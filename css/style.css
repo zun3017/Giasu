@@ -1645,8 +1645,7 @@
         .homework-shortcut-left {
             position: fixed;
             left: 20px;
-            top: 50%;
-            transform: translateY(-50%);
+            top: 100px;
             z-index: 999;
         }
         
