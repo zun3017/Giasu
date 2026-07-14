@@ -270,6 +270,83 @@
             cursor: pointer;
         }
 
+        /* Profile Card & Info Card Styles */
+        .profile-card {
+            background: linear-gradient(135deg, rgba(14, 11, 48, 0.95) 0%, rgba(6, 4, 25, 0.95) 100%) !important;
+            border: 1px solid rgba(142, 77, 255, 0.4) !important;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.6) !important;
+        }
+        
+        .avatar-circle {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: rgba(142, 77, 255, 0.15);
+            border: 1px solid rgba(142, 77, 255, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 10px;
+            color: #8E4DFF;
+            font-size: 26px;
+            box-shadow: 0 0 20px rgba(142, 77, 255, 0.2);
+        }
+        
+        .info-divider {
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent);
+            margin: 15px 0;
+        }
+        
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 13.5px;
+            margin-bottom: 12px;
+            text-align: left;
+        }
+        
+        .info-label {
+            color: #8E95BE;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .info-value {
+            color: #FFF;
+            font-weight: 600;
+        }
+        
+        /* Premium logout button */
+        .btn-back-hw {
+            background: rgba(239, 68, 68, 0.1);
+            color: #EF4444;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            width: 100%;
+            padding: 12px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 13.5px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-family: 'Inter', sans-serif;
+            margin-top: 10px;
+        }
+        
+        .btn-back-hw:hover {
+            background: rgba(239, 68, 68, 0.25);
+            border-color: #EF4444;
+            color: #FFF;
+            box-shadow: 0 0 15px rgba(239, 68, 68, 0.3);
+            transform: translateY(-2px);
+        }
+
         /* Selected file display */
         .selected-file-box {
             background: rgba(142, 77, 255, 0.1);
@@ -475,22 +552,26 @@
         <div id="homeworkDashboard" class="hw-dashboard" style="display: none; width: 100%;">
             <!-- Cột trái: Thông tin bài tập -->
             <div class="hw-sidebar">
-                <div class="hw-info-card">
-                    <div class="hw-info-title">
-                        <i class="fa-solid fa-address-card"></i> Thông tin bài nộp
+                <div class="hw-info-card profile-card" style="text-align: center;">
+                    <div style="margin-bottom: 15px;">
+                        <div class="avatar-circle">
+                            <i class="fa-solid fa-user-graduate"></i>
+                        </div>
+                        <h3 style="color: #FFF; font-size: 18px; margin-top: 10px; font-weight: 700;" id="hwStudentName">-</h3>
+                        <p style="font-size: 12px; color: #8E95BE; margin-top: 4px;">Học sinh Đăng nhập</p>
                     </div>
-                    <div class="hw-info-item">
-                        Học sinh: <strong id="hwStudentName">-</strong>
+                    <div class="info-divider"></div>
+                    <div class="info-row">
+                        <span class="info-label"><i class="fa-solid fa-hashtag"></i> Mã bài tập:</span>
+                        <span class="info-value" id="hwCode">-</span>
                     </div>
-                    <div class="hw-info-item">
-                        Mã bài tập: <strong id="hwCode">-</strong>
-                    </div>
-                    <div class="hw-info-item">
-                        Trạng thái chốt: <span id="hwLockBadge"></span>
+                    <div class="info-row">
+                        <span class="info-label"><i class="fa-solid fa-circle-info"></i> Trạng thái chốt:</span>
+                        <span class="info-value" id="hwLockBadge"></span>
                     </div>
                 </div>
                 
-                <button onclick="backToLogin()" class="btn-back" style="margin-top: 10px;"><i class="fa-solid fa-arrow-left"></i> Đăng xuất cổng</button>
+                <button onclick="backToLogin()" class="btn-back-hw"><i class="fa-solid fa-right-from-bracket"></i> Đăng xuất cổng</button>
             </div>
 
             <!-- Cột phải: Form tải lên & Bảng lịch sử nộp bài -->
@@ -510,11 +591,11 @@
                         <input type="text" id="hwLessonInput" placeholder="Nhập tên bài học (VD: Bài tập Tuần 1, Đề số 2)..." style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.15); background: rgba(0,0,0,0.2); color: #FFF; outline: none; font-size: 14px; font-family: 'Inter', sans-serif;">
                     </div>
                     
-                    <div class="upload-area" id="uploadArea">
+                    <div class="upload-area" id="uploadArea" onclick="document.getElementById('hwFileInput').click()">
                         <i class="fa-solid fa-file-arrow-up upload-icon" id="uploadAreaIcon"></i>
                         <div class="upload-text" id="uploadAreaText">Kéo thả hoặc click chọn hình ảnh/tài liệu bài tập của bạn</div>
                         <div class="upload-hint">Hỗ trợ PDF, Word, PNG, JPG, JPEG</div>
-                        <input type="file" id="hwFileInput" class="file-input" onchange="handleFileSelect(event)">
+                        <input type="file" id="hwFileInput" style="display: none;" onchange="handleFileSelect(event)">
                     </div>
 
                     <!-- Box hiển thị file đã chọn -->
@@ -936,6 +1017,40 @@
                 document.getElementById('charGirl').style.display = 'block';
             }
         }
+
+        // 11. Khởi tạo Kéo & Thả cho uploadArea
+        (function() {
+            var uploadArea = document.getElementById('uploadArea');
+            if (uploadArea) {
+                ['dragenter', 'dragover'].forEach(function(eventName) {
+                    uploadArea.addEventListener(eventName, function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        uploadArea.style.borderColor = "#8E4DFF";
+                        uploadArea.style.background = "rgba(142, 77, 255, 0.1)";
+                    }, false);
+                });
+
+                ['dragleave', 'drop'].forEach(function(eventName) {
+                    uploadArea.addEventListener(eventName, function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        uploadArea.style.borderColor = "rgba(142, 77, 255, 0.4)";
+                        uploadArea.style.background = "rgba(4, 2, 10, 0.6)";
+                    }, false);
+                });
+
+                uploadArea.addEventListener('drop', function(e) {
+                    var dt = e.dataTransfer;
+                    var files = dt.files;
+                    if (files && files.length > 0) {
+                        var fileInput = document.getElementById('hwFileInput');
+                        fileInput.files = files;
+                        handleFileSelect({ target: { files: files } });
+                    }
+                }, false);
+            }
+        })();
     </script>
 </body>
 </html>
