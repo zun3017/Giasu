@@ -9,7 +9,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="css/style.css?v=1.2.5">
+    <link rel="stylesheet" href="css/style.css?v=1.2.6">
     
     <style>
         /* ================= RESET & CƠ BẢN ================= */
@@ -578,6 +578,16 @@
 
             <!-- Cột phải: Form tải lên & Bảng lịch sử nộp bài -->
             <div class="hw-main-content">
+                <!-- Card Thông tin bài tập -->
+                <div class="hw-info-card" id="hwAssignedCard" style="display: none; background: rgba(8, 16, 28, 0.65); border: 1px solid rgba(142, 77, 255, 0.3); border-radius: 20px; padding: 20px; box-shadow: inset 0 0 20px rgba(142, 77, 255, 0.05), 0 15px 40px rgba(5, 5, 20, 0.8); margin-bottom: 20px;">
+                    <div class="hw-info-title" style="color: #FFD23F; border-bottom: 1px solid rgba(255, 210, 63, 0.2); padding-bottom: 12px; margin-bottom: 15px; font-weight: 700; font-size: 16px; display: flex; align-items: center; gap: 8px;">
+                        <i class="fa-solid fa-circle-info"></i> Thông tin bài tập
+                    </div>
+                    <div id="hwAssignedListContainer">
+                        <!-- Render danh sách bài tập đã giao ở đây -->
+                    </div>
+                </div>
+
                 <!-- Card Nộp bài -->
                 <div class="hw-info-card" id="hwFormCard">
                     <div class="hw-info-title" style="color: #8E4DFF; border-color: rgba(142, 77, 255, 0.2);">
@@ -656,7 +666,7 @@
         </div>
     </div>
 
-    <script src="js/api.js?v=1.2.5"></script>
+    <script src="js/api.js?v=1.2.6"></script>
     <script>
         // --- Web App Notification and Confirmation Dialogs ---
         function showToast(message, type = 'info') {
@@ -842,9 +852,41 @@
 
                 // Render danh sách bài nộp và kiểm tra khóa ngày nộp
                 renderHomeworkList();
+                renderAssignedHomeworkList();
             } else {
                 errorMsg.innerText = res.thongBao;
                 errorMsg.style.display = 'block';
+            }
+        }
+
+        // Render danh sách bài tập được giao cho học sinh
+        function renderAssignedHomeworkList() {
+            var assignedCard = document.getElementById('hwAssignedCard');
+            var assignedContainer = document.getElementById('hwAssignedListContainer');
+            if (!assignedContainer || !assignedCard) return;
+            
+            assignedContainer.innerHTML = "";
+            if (currentHW && currentHW.assignedList && currentHW.assignedList.length > 0) {
+                assignedCard.style.display = 'block';
+                currentHW.assignedList.forEach(function(hw) {
+                    var html = "";
+                    html += '<div class="assigned-hw-item" style="border: 1px dashed rgba(142, 77, 255, 0.4); border-radius: 12px; margin-bottom: 12px; background: rgba(20, 22, 60, 0.3); padding: 15px 18px; text-align: left;">';
+                    html += '  <div style="font-size: 13px; color: #B2B8D9; margin-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 8px;">';
+                    html += '    Học sinh: <span style="font-weight: 700; color: #FFF;">' + currentHW.studentName + '</span> <span style="color: rgba(255,255,255,0.2);">|</span> Ngày phát hành: <span style="font-weight: 700; color: #FFF;">' + hw.releaseDate + '</span>';
+                    html += '  </div>';
+                    html += '  <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">';
+                    html += '    <span style="font-weight: 700; color: #FFD23F; font-size: 15px; display: flex; align-items: center; gap: 8px;">';
+                    html += '      <i class="fa-solid fa-file-invoice" style="color: #FFD23F;"></i> ' + hw.title;
+                    html += '    </span>';
+                    html += '    <a href="' + hw.fileUrl + '" target="_blank" class="btn-download" style="background: rgba(142, 77, 255, 0.15); border: 1px solid #8E4DFF; color: #FFF; padding: 6px 16px; border-radius: 20px; font-size: 13px; font-weight: bold; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; transition: all 0.3s ease;">';
+                    html += '      <i class="fa-solid fa-cloud-arrow-down"></i> Tải Bài';
+                    html += '    </a>';
+                    html += '  </div>';
+                    html += '</div>';
+                    assignedContainer.innerHTML += html;
+                });
+            } else {
+                assignedCard.style.display = 'none';
             }
         }
 
@@ -1125,6 +1167,7 @@
                     if (res.timThay) {
                         currentHW = res;
                         renderHomeworkList();
+                        renderAssignedHomeworkList();
                     }
                 })
                 .xacThucMaBaiTap(currentHW.ma);

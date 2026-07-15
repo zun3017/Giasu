@@ -1688,12 +1688,31 @@ function xacThucMaBaiTap(ma) {
         });
       }
     }
+    // Truy vấn danh sách bài tập được giao cho mã này trong sheet 'Bài tập giao'
+    var sheetAssigned = ss.getSheetByName('Bài tập giao');
+    var assignedList = [];
+    if (sheetAssigned) {
+      var dataAssigned = sheetAssigned.getDataRange().getDisplayValues();
+      for (var k = 1; k < dataAssigned.length; k++) {
+        if (dataAssigned[k].length > 6 && String(dataAssigned[k][5]).trim().toUpperCase() === cleanMa && dataAssigned[k][6] === "Active") {
+          assignedList.push({
+            rowIndex: k + 1,
+            timestamp: dataAssigned[k][0],
+            studentName: dataAssigned[k][1],
+            title: dataAssigned[k][2],
+            releaseDate: dataAssigned[k][3],
+            fileUrl: dataAssigned[k][4]
+          });
+        }
+      }
+    }
     
     return {
       timThay: true,
       ma: cleanMa,
       studentName: studentName,
-      submissions: submissions
+      submissions: submissions,
+      assignedList: assignedList
     };
   } catch (e) {
     return { timThay: false, thongBao: "Lỗi hệ thống: " + e.toString() };
