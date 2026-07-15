@@ -237,11 +237,11 @@
                     <div>
                         <div class="bt-item" style="display:flex; justify-content:space-between; align-items:center; padding: 12px 0; border-bottom:1px dashed rgba(142, 77, 255, 0.3);">
                             <div><strong style="color: #FFD23F;">[${student.class.split(" ")[1] || "Toán"}]</strong> <span style="color: #FFF; font-weight: 500; font-size: 14px; margin-left: 8px;">Đề cương ôn tập Giữa kỳ I</span></div>
-                            <a class="btn-download" href="javascript:void(0)" onclick="alert('Đây là giao diện Demo trải nghiệm. Tải tài liệu thực tế ở cổng Đăng nhập thật!')" style="display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; background: rgba(91, 46, 255, 0.2); color: #FFF; text-decoration: none; border-radius: 20px; font-size: 13px; font-weight: 600; border: 1px solid #8E4DFF;"><i class="fa-solid fa-cloud-arrow-down"></i> Tải về</a>
+                            <a class="btn-download" href="javascript:void(0)" style="display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; background: rgba(91, 46, 255, 0.2); color: #FFF; text-decoration: none; border-radius: 20px; font-size: 13px; font-weight: 600; border: 1px solid #8E4DFF;"><i class="fa-solid fa-cloud-arrow-down"></i> Tải về</a>
                         </div>
                         <div class="bt-item" style="display:flex; justify-content:space-between; align-items:center; padding: 12px 0; border-bottom:none;">
                             <div><strong style="color: #FFD23F;">[${student.class.split(" ")[1] || "Toán"}]</strong> <span style="color: #FFF; font-weight: 500; font-size: 14px; margin-left: 8px;">Phiếu tự luyện Hệ thức lượng</span></div>
-                            <a class="btn-download" href="javascript:void(0)" onclick="alert('Đây là giao diện Demo trải nghiệm. Tải tài liệu thực tế ở cổng Đăng nhập thật!')" style="display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; background: rgba(91, 46, 255, 0.2); color: #FFF; text-decoration: none; border-radius: 20px; font-size: 13px; font-weight: 600; border: 1px solid #8E4DFF;"><i class="fa-solid fa-cloud-arrow-down"></i> Tải về</a>
+                            <a class="btn-download" href="javascript:void(0)" style="display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; background: rgba(91, 46, 255, 0.2); color: #FFF; text-decoration: none; border-radius: 20px; font-size: 13px; font-weight: 600; border: 1px solid #8E4DFF;"><i class="fa-solid fa-cloud-arrow-down"></i> Tải về</a>
                         </div>
                     </div>
                 </div>
@@ -251,11 +251,11 @@
                     <h4 style="color: #8E4DFF; margin: 0 0 15px 0; font-size: 15px; display: flex; align-items: center; gap: 10px; font-weight: 600;"><i class="fa-regular fa-comment-dots"></i> Phản hồi từ Phụ huynh</h4>
                     <div style="display:flex; gap:12px; margin-top:10px; flex-wrap:wrap;">
                         <textarea placeholder="Nhập ý kiến đóng góp hoặc phản hồi của phụ huynh gửi cho gia sư tại đây..." rows="2" style="flex:1; min-width:240px; background:#04020A; border:1px solid rgba(142, 77, 255, 0.3); border-radius:12px; padding:12px; color:#FFF; font-size:13px; outline:none; resize:none; font-family:sans-serif;"></textarea>
-                        <button onclick="alert('Đã gửi phản hồi mô phỏng thành công!')" class="btn-submit" style="padding:0 20px; height:45px; border-radius:12px; font-size:13px; font-weight:bold; background:linear-gradient(135deg, #8E4DFF 0%, #5B21B6 100%); color:#FFF; border:none; cursor:pointer; display:inline-flex; align-items:center; gap:8px;">Gửi phản hồi <i class="fa-regular fa-paper-plane"></i></button>
+                        <button class="btn-submit" style="padding:0 20px; height:45px; border-radius:12px; font-size:13px; font-weight:bold; background:linear-gradient(135deg, #8E4DFF 0%, #5B21B6 100%); color:#FFF; border:none; cursor:pointer; display:inline-flex; align-items:center; gap:8px;">Gửi phản hồi <i class="fa-regular fa-paper-plane"></i></button>
                     </div>
                 </div>
 
-                <button onclick="alert('Quay về màn hình chính của cổng học sinh!')" class="btn-back" style="width: 100%; padding: 14px; background: transparent; border: 1px solid #8E4DFF; color: #FFF; border-radius: 25px; font-weight: 600; font-size: 15px; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 10px; margin-top:15px;"><i class="fa-solid fa-arrow-left"></i> Trở Về Màn Hình Chính</button>
+                <button class="btn-back" style="width: 100%; padding: 14px; background: transparent; border: 1px solid #8E4DFF; color: #FFF; border-radius: 25px; font-weight: 600; font-size: 15px; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 10px; margin-top:15px;"><i class="fa-solid fa-arrow-left"></i> Trở Về Màn Hình Chính</button>
             </div>
         `;
  
@@ -276,8 +276,8 @@
                         <p style="color: #A6ADCE; font-size: 14px; margin-top: 5px; margin-bottom:0;">Tổng quan hệ thống giảng dạy</p>
                     </div>
                     <div style="display: flex; gap: 10px;">
-                        <button onclick="alert('Xem thông tin cá nhân giả lập!')" class="btn-back" style="width: auto; padding: 10px 20px; background: rgba(142,77,255,0.1); border-color: #8E4DFF; color:#FFF; font-size:13px; font-weight:600; border-radius:25px; cursor:pointer;"><i class="fa-solid fa-user"></i> Tài khoản</button>
-                        <button onclick="alert('Đã đăng xuất Demo!')" class="btn-back" style="width: auto; padding: 10px 20px; color:#FFF; font-size:13px; font-weight:600; border-radius:25px; cursor:pointer;"><i class="fa-solid fa-arrow-right-from-bracket"></i> Đăng xuất</button>
+                        <button class="btn-back" style="width: auto; padding: 10px 20px; background: rgba(142,77,255,0.1); border-color: #8E4DFF; color:#FFF; font-size:13px; font-weight:600; border-radius:25px; cursor:pointer;"><i class="fa-solid fa-user"></i> Tài khoản</button>
+                        <button class="btn-back" style="width: auto; padding: 10px 20px; color:#FFF; font-size:13px; font-weight:600; border-radius:25px; cursor:pointer;"><i class="fa-solid fa-arrow-right-from-bracket"></i> Đăng xuất</button>
                     </div>
                 </div>
 
@@ -348,7 +348,7 @@
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 15px; flex-wrap: wrap; gap: 10px;">
                         <h3 style="color: #FFF; margin: 0; display: flex; align-items: center; gap: 10px; font-size: 18px; font-family: Inter;">
                             Học sinh: <span style="color: #FFD23F; font-weight: 800;">${student.name}</span>
-                            <button class="btn-icon-edit" onclick="alert('Tính năng sửa học sinh sẽ khả dụng ở cổng Đăng nhập thật!')" title="Sửa thông tin học sinh" style="background:none; border:none; color:#8E4DFF; cursor:pointer; font-size:16px;"><i class="fa-solid fa-pen-to-square"></i></button>
+                            <button class="btn-icon-edit" title="Sửa thông tin học sinh" style="background:none; border:none; color:#8E4DFF; cursor:pointer; font-size:16px;"><i class="fa-solid fa-pen-to-square"></i></button>
                         </h3>
                         <span style="background: linear-gradient(135deg, #10B981 0%, #059669 100%); border: none; color: #FFF; font-weight: bold; border-radius: 20px; padding: 8px 20px; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 10px rgba(16,185,129,0.2); font-family: 'Inter', sans-serif; cursor: default; font-size:13px;"><i class="fa-solid fa-book"></i> Bài tập</span>
                     </div>
@@ -356,7 +356,7 @@
                     <!-- Bảng bài tập của học sinh -->
                     <div style="background: rgba(11, 8, 38, 0.6); border: 1px solid rgba(142, 77, 255, 0.3); border-radius: 16px; padding: 20px; margin-bottom: 25px;">
                         <div style="display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 10px;">
-                            <button class="tutor-hw-tab active" onclick="alert('Đang xem danh sách bài tập của ${student.name}')" style="background:none; border:none; color:#8E4DFF; font-weight:bold; font-size:14px; border-bottom:2px solid #8E4DFF; padding-bottom:10px; cursor:default;"><i class="fa-solid fa-pen-ruler"></i> Lịch sử bài tập đã giao</button>
+                            <button class="tutor-hw-tab active" style="background:none; border:none; color:#8E4DFF; font-weight:bold; font-size:14px; border-bottom:2px solid #8E4DFF; padding-bottom:10px; cursor:default;"><i class="fa-solid fa-pen-ruler"></i> Lịch sử bài tập đã giao</button>
                         </div>
                         <div class="table-wrapper desktop-table-view" style="width: 100%; overflow-x: auto; border-radius: 12px;">
                             <table style="width:100%; border-collapse:collapse;">
@@ -372,8 +372,8 @@
                                     <tr style="border-bottom:1px solid rgba(142, 77, 255, 0.2); color:#E2D1FF;">
                                         <td style="padding:12px 16px; font-size:13px;">02/07/2026</td>
                                         <td style="padding:12px 16px; font-size:13px; font-weight:500; color:#FFF;">Đề ôn tập số 1 chương Hệ thức lượng</td>
-                                        <td style="padding:12px 16px; font-size:13px;"><a href="javascript:void(0)" onclick="alert('Đang mở file giả lập...')" style="color:#FFD23F; text-decoration:none;"><i class="fa-solid fa-file-pdf" style="color:#FF4D4D;"></i> de_on_tap_1.pdf</a></td>
-                                        <td style="padding:12px 16px; text-align:center;"><button class="btn-icon-edit" onclick="alert('Sửa bài tập!')" style="background:none; border:none; color:#8E4DFF; cursor:pointer;"><i class="fa-solid fa-pen-to-square"></i></button></td>
+                                        <td style="padding:12px 16px; font-size:13px;"><a href="javascript:void(0)" style="color:#FFD23F; text-decoration:none;"><i class="fa-solid fa-file-pdf" style="color:#FF4D4D;"></i> de_on_tap_1.pdf</a></td>
+                                        <td style="padding:12px 16px; text-align:center;"><button class="btn-icon-edit" style="background:none; border:none; color:#8E4DFF; cursor:pointer;"><i class="fa-solid fa-pen-to-square"></i></button></td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -428,7 +428,7 @@
                             <span style="display: flex; align-items: center; gap: 10px;"><i class="fa-solid fa-clock-rotate-left"></i> Lịch sử học tập & Nhận xét chi tiết</span>
                             <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
                                 <button class="btn-refresh-history" onclick="openDemoAddLessonModal()" style="background: linear-gradient(135deg, #8E4DFF 0%, #5B21B6 100%); border: none; color: #FFF; font-weight: bold; border-radius: 20px; padding: 6px 16px; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 4px 10px rgba(142,77,255,0.2); font-size:12px; cursor:pointer; font-family:Inter;"><i class="fa-solid fa-calendar-plus"></i> Thêm buổi học</button>
-                                <button onclick="alert('Đã cập nhật làm mới lịch sử học tập!')" class="btn-refresh-history" style="font-size:12px; cursor:pointer; font-family:Inter; border: 1px solid rgba(255,255,255,0.1); background:none; color:#FFF; padding:6px 16px; border-radius:20px;"><i class="fa-solid fa-arrows-rotate"></i> Làm mới</button>
+                                <button class="btn-refresh-history" style="font-size:12px; cursor:pointer; font-family:Inter; border: 1px solid rgba(255,255,255,0.1); background:none; color:#FFF; padding:6px 16px; border-radius:20px;"><i class="fa-solid fa-arrows-rotate"></i> Làm mới</button>
                             </div>
                         </h3>
                         <div class="table-wrapper" style="width: 100%; overflow-x: auto; border-radius: 12px;">
@@ -463,7 +463,7 @@
                                             <td style="padding:12px 16px; font-size: 13px;">
                                                 <span class="status-badge badge-dahoc">Đã học</span>
                                             </td>
-                                            <td style="padding:12px 16px; text-align:center;"><button class="btn-icon-edit" onclick="alert('Tính năng sửa nhật ký buổi học sẽ khả dụng ở cổng Đăng nhập thật!')" style="background:none; border:none; color:#8E4DFF; cursor:pointer;"><i class="fa-solid fa-pen-to-square"></i></button></td>
+                                            <td style="padding:12px 16px; text-align:center;"><button class="btn-icon-edit" style="background:none; border:none; color:#8E4DFF; cursor:pointer;"><i class="fa-solid fa-pen-to-square"></i></button></td>
                                         </tr>
                                     `).join('')}
                                 </tbody>
@@ -616,8 +616,6 @@
 
         closeDemoAddLessonModal();
 
-        alert('Đã cập nhật nhật ký buổi học giả lập thành công cho học sinh ' + student.name + '!');
-        
         // Render lại và tự động chuyển về Giao diện Học sinh để xem sự tiến bộ
         renderTutorDemo();
         setTimeout(() => {
