@@ -2387,7 +2387,7 @@ function loadTutorFeedbacks() {
             feedbacks.forEach(function(fb) {
                 html += '<div class="agenda-event-card" style="border-left-color: #FFD23F; background: rgba(255, 210, 63, 0.04); border: 1px solid rgba(255, 210, 63, 0.1); border-left-width: 4px; padding: 12px 15px; border-radius: 10px; flex-direction: column; align-items: stretch; cursor: default; gap: 6px;">' +
                     '  <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 5px;">' +
-                    '    <span style="font-weight: 800; color: #FFD23F; font-size: 13.5px;"><i class="fa-solid fa-graduation-cap"></i> ' + fb.studentName + ' <span style="font-size: 11.5px; color: rgba(255,255,255,0.4); font-weight: normal;">(' + fb.studentPhone + ')</span></span>' +
+                    '    <span style="font-weight: 800; color: #FFD23F; font-size: 13.5px;"><i class="fa-solid fa-graduation-cap"></i> Phụ huynh em ' + fb.studentName + ' <span style="font-size: 11.5px; color: rgba(255,255,255,0.4); font-weight: normal;">(' + fb.studentPhone + ')</span></span>' +
                     '    <span style="font-size: 11px; color: rgba(255,255,255,0.4); font-weight: 600;"><i class="fa-regular fa-clock"></i> ' + fb.timestamp + '</span>' +
                     '  </div>' +
                     '  <div style="font-size: 13px; color: #E2D1FF; line-height: 1.5; font-style: italic; background: rgba(0,0,0,0.2); padding: 8px 12px; border-radius: 8px; margin-top: 4px;">' +
