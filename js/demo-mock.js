@@ -19,6 +19,12 @@
                 { date: "05/07", topic: "Tỉ số lượng giác góc nhọn", valDG: 9.0, valDK: 8.5, comment: "Hiểu bài nhanh, giải quyết tốt các bài nâng cao", btvn: "Đạt" },
                 { date: "09/07", topic: "Hệ thức về cạnh và góc", valDG: 7.0, valDK: 8.0, comment: "Có tiến bộ, cần cẩn thận khi tính toán số thập phân", btvn: "Chưa đạt" },
                 { date: "12/07", topic: "Luyện tập tổng hợp chương I", valDG: 9.0, valDK: 9.0, comment: "Xuất sắc, nắm vững lý thuyết và bài tập tự luyện", btvn: "Đạt" }
+            ],
+            assignedHw: [
+                { date: "02/07/2026", title: "Đề ôn tập số 1 chương Hệ thức lượng", file: "de_on_tap_1.pdf" }
+            ],
+            submittedHw: [
+                { time: "02/07/2026 21:45", title: "Đề ôn tập số 1 chương Hệ thức lượng", file: "nguyenhoangnam_on_tap_1_done.jpg" }
             ]
         },
         {
@@ -34,6 +40,12 @@
                 { date: "04/07", topic: "Cực trị của hàm số", valDG: 7.0, valDK: 7.5, comment: "Làm bài đầy đủ, còn nhầm lẫn bảng xét dấu", btvn: "Đạt" },
                 { date: "08/07", topic: "Giá trị lớn nhất, nhỏ nhất", valDG: 8.0, valDK: 7.0, comment: "Khá hơn, đã biết cách tìm GTLN trên đoạn", btvn: "Đạt" },
                 { date: "11/07", topic: "Đường tiệm cận", valDG: 6.5, valDK: 8.0, comment: "Nắm được cách tìm tiệm cận đứng, ngang", btvn: "Chưa nộp" }
+            ],
+            assignedHw: [
+                { date: "02/07/2026", title: "Đề ôn tập số 1 chương Hệ thức lượng", file: "de_on_tap_1.pdf" }
+            ],
+            submittedHw: [
+                { time: "02/07/2026 21:45", title: "Đề ôn tập số 1 chương Hệ thức lượng", file: "leminhthu_on_tap_1_done.jpg" }
             ]
         },
         {
@@ -48,12 +60,21 @@
                 { date: "03/07", topic: "Điện tích - Định luật Cu-lông", valDG: 9.5, valDK: 9.0, comment: "Rất xuất sắc, giải đề nhanh và đúng phương pháp", btvn: "Đạt" },
                 { date: "06/07", topic: "Thuyết electron - ĐL bảo toàn ĐT", valDG: 9.0, valDK: 9.5, comment: "Ý thức học tập tốt, chủ động hỏi bài tập khó", btvn: "Đạt" },
                 { date: "10/07", topic: "Điện trường - Cường độ điện trường", valDG: 9.0, valDK: 9.0, comment: "Hiểu bản chất hiện tượng vật lý rất tốt", btvn: "Đạt" }
+            ],
+            assignedHw: [
+                { date: "03/07/2026", title: "Điện tích - Định luật Cu-lông", file: "dien_tich_cu_long.pdf" }
+            ],
+            submittedHw: [
+                { time: "03/07/2026 21:45", title: "Điện tích - Định luật Cu-lông", file: "phamhaidang_cu_long_done.jpg" }
             ]
         }
     ];
 
     let currentDemoStudentIndex = 0;
     let demoChartInstance = null;
+    let demoTutorHwTab = "assign"; // "assign" or "submit"
+    let demoTutorHwSubTab = "list"; // "list" or "upload"
+    let demoSelectedFileName = ""; // Lưu tên file đính kèm giả lập khi giao bài tập
 
     // 2. Khởi tạo khi trang tải xong
     document.addEventListener("DOMContentLoaded", function() {
@@ -357,42 +378,110 @@
                     <div style="background: rgba(11, 8, 38, 0.6); border: 1px solid rgba(142, 77, 255, 0.3); border-radius: 16px; padding: 20px; margin-bottom: 25px;">
                         <!-- Menu Tabs thực tế -->
                         <div style="display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 10px;">
-                            <button class="tutor-hw-tab active" style="background:none; border:none; color:#8E4DFF; font-weight:bold; font-size:14px; border-bottom:2px solid #8E4DFF; padding-bottom:10px; cursor:default; display:flex; align-items:center; gap:6px;"><i class="fa-solid fa-pen-ruler"></i> Giao bài tập</button>
-                            <button class="tutor-hw-tab" style="background:none; border:none; color:#A6ADCE; font-weight:bold; font-size:14px; padding-bottom:10px; cursor:default; display:flex; align-items:center; gap:6px; opacity:0.7;"><i class="fa-solid fa-graduation-cap"></i> Học sinh nộp bài</button>
+                            <button class="tutor-hw-tab ${demoTutorHwTab === 'assign' ? 'active' : ''}" onclick="switchDemoTutorHwTab('assign')" style="background:none; border:none; color:${demoTutorHwTab === 'assign' ? '#8E4DFF' : '#A6ADCE'}; font-weight:bold; font-size:14px; border-bottom:${demoTutorHwTab === 'assign' ? '2px solid #8E4DFF' : 'none'}; padding-bottom:10px; cursor:pointer; display:flex; align-items:center; gap:6px;"><i class="fa-solid fa-pen-ruler"></i> Giao bài tập</button>
+                            <button class="tutor-hw-tab ${demoTutorHwTab === 'submit' ? 'active' : ''}" onclick="switchDemoTutorHwTab('submit')" style="background:none; border:none; color:${demoTutorHwTab === 'submit' ? '#8E4DFF' : '#A6ADCE'}; font-weight:bold; font-size:14px; border-bottom:${demoTutorHwTab === 'submit' ? '2px solid #8E4DFF' : 'none'}; padding-bottom:10px; cursor:pointer; display:flex; align-items:center; gap:6px;"><i class="fa-solid fa-graduation-cap"></i> Học sinh nộp bài</button>
                         </div>
                         
-                        <!-- Thanh nút chức năng thực tế -->
-                        <div style="display: flex; gap: 15px; margin-bottom: 20px; flex-wrap: wrap;">
-                            <button class="modal-btn modal-btn-secondary" style="width: auto; font-size: 13px; padding: 8px 16px; cursor:default; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); color:#FFF; border-radius:8px; display:inline-flex; align-items:center; gap:6px;"><i class="fa-solid fa-cloud-arrow-up"></i> Tải bài tập lên</button>
-                            <button class="modal-btn modal-btn-primary" style="width: auto; font-size: 13px; padding: 8px 16px; cursor:default; background: linear-gradient(135deg, #8E4DFF 0%, #5B21B6 100%); color:#FFF; border:none; border-radius:8px; display:inline-flex; align-items:center; gap:6px;"><i class="fa-solid fa-list-check"></i> Xem bài tập đã tải</button>
-                        </div>
+                        ${demoTutorHwTab === 'assign' ? `
+                            <!-- Thanh nút chức năng thực tế -->
+                            <div style="display: flex; gap: 15px; margin-bottom: 20px; flex-wrap: wrap;">
+                                <button onclick="switchDemoTutorHwSubTab('upload')" class="modal-btn ${demoTutorHwSubTab === 'upload' ? 'modal-btn-primary' : 'modal-btn-secondary'}" style="width: auto; font-size: 13px; padding: 8px 16px; cursor:pointer; background:${demoTutorHwSubTab === 'upload' ? 'linear-gradient(135deg, #8E4DFF 0%, #5B21B6 100%)' : 'rgba(255, 255, 255, 0.05)'}; border:${demoTutorHwSubTab === 'upload' ? 'none' : '1px solid rgba(255, 255, 255, 0.1)'}; color:#FFF; border-radius:8px; display:inline-flex; align-items:center; gap:6px;"><i class="fa-solid fa-cloud-arrow-up"></i> Tải bài tập lên</button>
+                                <button onclick="switchDemoTutorHwSubTab('list')" class="modal-btn ${demoTutorHwSubTab === 'list' ? 'modal-btn-primary' : 'modal-btn-secondary'}" style="width: auto; font-size: 13px; padding: 8px 16px; cursor:pointer; background:${demoTutorHwSubTab === 'list' ? 'linear-gradient(135deg, #8E4DFF 0%, #5B21B6 100%)' : 'rgba(255, 255, 255, 0.05)'}; border:${demoTutorHwSubTab === 'list' ? 'none' : '1px solid rgba(255, 255, 255, 0.1)'}; color:#FFF; border-radius:8px; display:inline-flex; align-items:center; gap:6px;"><i class="fa-solid fa-list-check"></i> Xem bài tập đã tải</button>
+                            </div>
 
-                        <!-- Tiêu đề lịch sử bài tập & Thùng rác -->
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 10px;">
-                            <h4 style="color:#FFF; font-size:14px; margin:0; display:flex; align-items:center; gap:8px;"><i class="fa-solid fa-list-ol"></i> Lịch sử bài tập đã giao</h4>
-                            <button class="action-btn-hw btn-delete" style="font-size: 12px; cursor:default; display:flex; align-items:center; gap:6px; background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.3); color: #F87171; padding: 6px 12px; border-radius: 6px; font-weight:600;"><i class="fa-solid fa-trash-can"></i> Thùng rác bài tập</button>
-                        </div>
+                            ${demoTutorHwSubTab === 'upload' ? `
+                                <!-- Form Đăng tải bài tập mới -->
+                                <div style="border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.2); border-radius: 12px; padding: 15px; margin-bottom: 20px;">
+                                    <h4 style="color: #FFD23F; margin-top:0; margin-bottom: 15px; font-size: 14px;"><i class="fa-solid fa-folder-plus"></i> Đăng tải bài tập mới (Mô phỏng)</h4>
+                                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px;">
+                                        <div style="display:flex; flex-direction:column; gap:4px;">
+                                            <label style="color:#A6ADCE; font-size:11px;">Tên bài tập *</label>
+                                            <input type="text" id="demoAssignHwTitle" placeholder="Ví dụ: Đề ôn tập số 2" style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:8px; padding:8px 12px; color:#FFF; font-size:12px; outline:none;">
+                                        </div>
+                                        <div style="display:flex; flex-direction:column; gap:4px;">
+                                            <label style="color:#A6ADCE; font-size:11px;">Ngày phát hành *</label>
+                                            <input type="text" id="demoAssignHwDate" placeholder="dd/mm/yyyy" value="${getTodayFormatted()}/2026" style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:8px; padding:8px 12px; color:#FFF; font-size:12px; outline:none;">
+                                        </div>
+                                    </div>
+                                    <div style="margin-bottom:15px;">
+                                        <label style="color:#A6ADCE; font-size:11px; display:block; margin-bottom:4px;">Chọn file bài tập (Hình ảnh, Word, PDF...) *</label>
+                                        <div id="demoHwUploadBox" onclick="selectDemoHwFile()" style="padding: 20px; border: 2px dashed rgba(142, 77, 255, 0.4); border-radius: 12px; text-align: center; cursor: pointer; background: rgba(4,2,10,0.6); transition: 0.3s;">
+                                            <i class="fa-solid fa-file-arrow-up" style="font-size: 20px; color: #8E4DFF; margin-bottom: 4px;"></i>
+                                            <div id="demoHwUploadText" style="font-size: 11.5px; color: #E2D1FF;">${demoSelectedFileName ? `Đã chọn: ${demoSelectedFileName}` : 'Kéo thả hoặc click chọn file bài tập...'}</div>
+                                        </div>
+                                    </div>
+                                    <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                                        <button onclick="switchDemoTutorHwSubTab('list')" class="modal-btn modal-btn-secondary" style="width: auto; padding: 6px 15px; font-size: 12.5px; cursor:pointer;">Hủy</button>
+                                        <button onclick="submitDemoAssignHw()" class="modal-btn modal-btn-primary" style="width: auto; padding: 6px 15px; font-size: 12.5px; background: linear-gradient(135deg, #8E4DFF 0%, #5B21B6 100%); border:none; color:#FFF; border-radius:6px; cursor:pointer; font-weight:bold;">Giao bài</button>
+                                    </div>
+                                </div>
+                            ` : `
+                                <!-- Tiêu đề lịch sử bài tập & Thùng rác -->
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 10px;">
+                                    <h4 style="color:#FFF; font-size:14px; margin:0; display:flex; align-items:center; gap:8px;"><i class="fa-solid fa-list-ol"></i> Lịch sử bài tập đã giao</h4>
+                                    <button class="action-btn-hw btn-delete" style="font-size: 12px; cursor:pointer; display:flex; align-items:center; gap:6px; background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.3); color: #F87171; padding: 6px 12px; border-radius: 6px; font-weight:600;"><i class="fa-solid fa-trash-can"></i> Thùng rác bài tập</button>
+                                </div>
 
-                        <div class="table-wrapper desktop-table-view" style="width: 100%; overflow-x: auto; border-radius: 12px;">
-                            <table style="width:100%; border-collapse:collapse;">
-                                <thead>
-                                    <tr style="background-color: rgba(91, 46, 255, 0.1); color:#FFF;">
-                                        <th style="padding:12px 16px; font-size:13px; font-weight:600;">Ngày giao</th>
-                                        <th style="padding:12px 16px; font-size:13px; font-weight:600;">Tên bài tập</th>
-                                        <th style="padding:12px 16px; font-size:13px; font-weight:600;">File đính kèm</th>
-                                        <th style="padding:12px 16px; font-size:13px; font-weight:600; text-align:center;">Thao tác</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr style="border-bottom:1px solid rgba(142, 77, 255, 0.2); color:#E2D1FF;">
-                                        <td style="padding:12px 16px; font-size:13px;">02/07/2026</td>
-                                        <td style="padding:12px 16px; font-size:13px; font-weight:500; color:#FFF;">Đề ôn tập số 1 chương Hệ thức lượng</td>
-                                        <td style="padding:12px 16px; font-size:13px;"><a href="javascript:void(0)" style="color:#FFD23F; text-decoration:none;"><i class="fa-solid fa-file-pdf" style="color:#FF4D4D;"></i> de_on_tap_1.pdf</a></td>
-                                        <td style="padding:12px 16px; text-align:center;"><button class="btn-icon-edit" style="background:none; border:none; color:#8E4DFF; cursor:pointer;"><i class="fa-solid fa-pen-to-square"></i></button></td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
+                                <div class="table-wrapper desktop-table-view" style="width: 100%; overflow-x: auto; border-radius: 12px;">
+                                    <table style="width:100%; border-collapse:collapse;">
+                                        <thead>
+                                            <tr style="background-color: rgba(91, 46, 255, 0.1); color:#FFF;">
+                                                <th style="padding:12px 16px; font-size:13px; font-weight:600; text-align:left;">Ngày giao</th>
+                                                <th style="padding:12px 16px; font-size:13px; font-weight:600; text-align:left;">Tên bài tập</th>
+                                                <th style="padding:12px 16px; font-size:13px; font-weight:600; text-align:left;">File đính kèm</th>
+                                                <th style="padding:12px 16px; font-size:13px; font-weight:600; text-align:center; width:80px;">Thao tác</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            ${student.assignedHw && student.assignedHw.length > 0 ? student.assignedHw.map((hw, index) => `
+                                                <tr style="border-bottom:1px solid rgba(142, 77, 255, 0.2); color:#E2D1FF;">
+                                                    <td style="padding:12px 16px; font-size:13px; text-align:left;">${hw.date}</td>
+                                                    <td style="padding:12px 16px; font-size:13px; font-weight:500; color:#FFF; text-align:left;">${hw.title}</td>
+                                                    <td style="padding:12px 16px; font-size:13px; text-align:left;"><a href="javascript:void(0)" style="color:#FFD23F; text-decoration:none;"><i class="fa-solid fa-file-pdf" style="color:#FF4D4D;"></i> ${hw.file}</a></td>
+                                                    <td style="padding:12px 16px; text-align:center;"><button class="btn-icon-edit" onclick="deleteDemoAssignedHw(${index})" style="background:none; border:none; color:#FF4D4D; cursor:pointer;" title="Xóa bài tập"><i class="fa-solid fa-trash-can"></i></button></td>
+                                                </tr>
+                                            `).join('') : `
+                                                <tr>
+                                                    <td colspan="4" style="padding: 20px; text-align: center; color: #A6ADCE;"><i class="fa-solid fa-circle-info"></i> Chưa giao bài tập nào cho học sinh này!</td>
+                                                </tr>
+                                            `}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            `}
+                        ` : `
+                            <!-- Tiêu đề Học sinh nộp bài -->
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                                <h4 style="color:#FFF; font-size:14px; margin:0; display:flex; align-items:center; gap:8px;"><i class="fa-solid fa-list"></i> Các bài tập học sinh đã nộp</h4>
+                            </div>
+
+                            <div class="table-wrapper desktop-table-view" style="width: 100%; overflow-x: auto; border-radius: 12px;">
+                                <table style="width:100%; border-collapse:collapse;">
+                                    <thead>
+                                        <tr style="background-color: rgba(91, 46, 255, 0.1); color:#FFF;">
+                                            <th style="padding:12px 16px; font-size:13px; font-weight:600; text-align:left;">Thời gian nộp</th>
+                                            <th style="padding:12px 16px; font-size:13px; font-weight:600; text-align:left;">Tên bài học</th>
+                                            <th style="padding:12px 16px; font-size:13px; font-weight:600; text-align:left;">File nộp bài</th>
+                                            <th style="padding:12px 16px; font-size:13px; font-weight:600; text-align:center; width:80px;">Tải về</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${student.submittedHw && student.submittedHw.length > 0 ? student.submittedHw.map(hw => `
+                                            <tr style="border-bottom:1px solid rgba(142, 77, 255, 0.2); color:#E2D1FF;">
+                                                <td style="padding:12px 16px; font-size:13px; text-align:left;">${hw.time}</td>
+                                                <td style="padding:12px 16px; font-size:13px; font-weight:500; color:#FFF; text-align:left;">${hw.title}</td>
+                                                <td style="padding:12px 16px; font-size:13px; color:#FFD23F; text-align:left;"><i class="fa-solid fa-file-image"></i> ${hw.file}</td>
+                                                <td style="padding:12px 16px; text-align:center;"><button class="btn-icon-edit" style="background:none; border:none; color:#8E4DFF; cursor:pointer;"><i class="fa-solid fa-cloud-arrow-down"></i></button></td>
+                                            </tr>
+                                        `).join('') : `
+                                            <tr>
+                                                <td colspan="4" style="padding: 20px; text-align: center; color: #A6ADCE;"><i class="fa-solid fa-circle-info"></i> Chưa có bài nộp nào từ học sinh này.</td>
+                                            </tr>
+                                        `}
+                                    </tbody>
+                                </table>
+                            </div>
+                        `}
                     </div>
 
                     <!-- Doanh thu & Tóm tắt thống kê lớp của HS -->
@@ -644,7 +733,61 @@
         }, 1200);
     };
 
-    // 7. Vẽ biểu đồ giả lập bằng Chart.js
+    // 7. Các hàm điều khiển tab Bài tập trong giao diện Gia sư Demo
+
+    window.switchDemoTutorHwTab = function(tabName) {
+        demoTutorHwTab = tabName;
+        demoTutorHwSubTab = "list";
+        renderTutorDemo();
+    };
+
+    window.switchDemoTutorHwSubTab = function(subTabName) {
+        demoTutorHwSubTab = subTabName;
+        renderTutorDemo();
+    };
+
+    window.selectDemoHwFile = function() {
+        // Mô phỏng việc chọn file đính kèm
+        demoSelectedFileName = "de_kiem_tra_luyentap_" + Math.floor(Math.random() * 10 + 1) + ".pdf";
+        const boxText = document.getElementById("demoHwUploadText");
+        if (boxText) {
+            boxText.innerHTML = `<span style="color:#10B981; font-weight:bold;"><i class="fa-solid fa-file-pdf"></i> Đã chọn: ${demoSelectedFileName}</span>`;
+        }
+    };
+
+    window.submitDemoAssignHw = function() {
+        const titleInput = document.getElementById("demoAssignHwTitle");
+        const dateInput = document.getElementById("demoAssignHwDate");
+        const title = titleInput ? titleInput.value.trim() : "";
+        const date = dateInput ? dateInput.value.trim() : getTodayFormatted() + "/2026";
+
+        if (!title) {
+            alert("Vui lòng nhập tên bài tập!");
+            return;
+        }
+
+        const student = demoStudents[currentDemoStudentIndex];
+        student.assignedHw.push({
+            date: date,
+            title: title,
+            file: demoSelectedFileName || "de_luyentap_macDinh.pdf"
+        });
+
+        // Reset
+        demoSelectedFileName = "";
+        demoTutorHwSubTab = "list";
+        renderTutorDemo();
+    };
+
+    window.deleteDemoAssignedHw = function(index) {
+        const student = demoStudents[currentDemoStudentIndex];
+        if (student.assignedHw && student.assignedHw[index]) {
+            student.assignedHw.splice(index, 1);
+        }
+        renderTutorDemo();
+    };
+
+    // 8. Vẽ biểu đồ giả lập bằng Chart.js
     function renderDemoChart(logs) {
         // Kiểm tra thư viện Chart.js đã được tải
         if (typeof Chart === 'undefined') {
