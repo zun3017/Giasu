@@ -151,6 +151,35 @@
         const student = demoStudents[currentDemoStudentIndex];
         const contentArea = document.getElementById("demoContentArea");
         
+        // Tính toán các huy chương/huy hiệu vinh danh giống hệt trang thật
+        let gpaVal = parseFloat(student.gpa);
+        let gpaBadgeHtml = "";
+        if (!isNaN(gpaVal)) {
+            if (gpaVal >= 9.0) {
+                gpaBadgeHtml = '<div class="medal-badge medal-academic" style="margin-top: 6px;"><i class="fa-solid fa-award"></i> Học giỏi 🎖️</div>';
+            } else if (gpaVal >= 8.0) {
+                gpaBadgeHtml = '<div class="medal-badge medal-silver" style="margin-top: 6px;"><i class="fa-solid fa-award"></i> Học khá 🎖️</div>';
+            } else if (gpaVal >= 7.0) {
+                gpaBadgeHtml = '<div class="medal-badge medal-bronze" style="margin-top: 6px;"><i class="fa-solid fa-award"></i> Học TB 🎖️</div>';
+            } else {
+                gpaBadgeHtml = '<div class="medal-badge" style="margin-top: 6px; background: rgba(255, 51, 51, 0.15); border: 1px solid #FF3333; color: #FF3333; text-shadow: 0 0 5px rgba(255, 51, 51, 0.3);"><i class="fa-solid fa-triangle-exclamation"></i> Học yếu</div>';
+            }
+        }
+
+        let btvnVal = parseInt(student.btvnRate);
+        let btvnBadgeHtml = "";
+        if (!isNaN(btvnVal)) {
+            if (btvnVal >= 90) {
+                btvnBadgeHtml = '<div class="medal-badge medal-gold" style="margin-top: 6px;"><i class="fa-solid fa-medal"></i> Tích cực 🏅</div>';
+            } else if (btvnVal >= 80) {
+                btvnBadgeHtml = '<div class="medal-badge medal-silver" style="margin-top: 6px;"><i class="fa-solid fa-medal"></i> Chăm chỉ 🏅</div>';
+            } else if (btvnVal >= 50) {
+                btvnBadgeHtml = '<div class="medal-badge medal-bronze" style="margin-top: 6px;"><i class="fa-solid fa-medal"></i> Cần cố gắng 🏅</div>';
+            } else {
+                btvnBadgeHtml = '<div class="medal-badge" style="margin-top: 6px; background: rgba(255, 51, 51, 0.15); border: 1px solid #FF3333; color: #FF3333; text-shadow: 0 0 5px rgba(255, 51, 51, 0.3);"><i class="fa-solid fa-circle-exclamation"></i> Lười làm bài</div>';
+            }
+        }
+
         contentArea.innerHTML = `
             <div class="simulated-screen" style="background:#06091F; border:1px solid #8E4DFF; border-radius:20px; padding:30px; box-shadow:0 0 50px rgba(91,46,255,0.2);">
                 <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(255,255,255,0.05); padding-bottom:15px; margin-bottom:20px;">
@@ -162,7 +191,7 @@
                 </div>
 
                 <h3 style="color: #FFD23F; font-size: 20px; font-weight: 800; margin: 0 0 8px 0; text-align: center; font-family: Inter;">Xin chào, <span style="color: #FFFFFF;">${student.name}</span> 👋</h3>
-                <p style="color: #A6ADCE; font-size: 13px; text-align: center; margin: 0 0 25px 0; font-family: Inter;">(Lớp: ${student.class} • Số điện thoại: ${student.id})</p>
+                <p style="color: #A6ADCE; font-size: 13px; text-align: center; margin: 0 0 25px 0; font-family: Inter;">(${student.class} • Số điện thoại: ${student.id})</p>
 
                 <!-- Bảng Tóm Tắt Kết Quả -->
                 <div class="summary-grid">
@@ -171,6 +200,7 @@
                         <div class="summary-info">
                             <span class="summary-label">Điểm trung bình (theo tháng)</span>
                             <span class="summary-val">${student.gpa}</span>
+                            ${gpaBadgeHtml}
                         </div>
                     </div>
                     <div class="summary-card">
@@ -178,20 +208,21 @@
                         <div class="summary-info">
                             <span class="summary-label">Hoàn thành BTVN (theo tháng)</span>
                             <span class="summary-val">${student.btvnRate}</span>
+                            ${btvnBadgeHtml}
                         </div>
                     </div>
                     <div class="summary-card">
                         <div class="summary-icon icon-green" style="background: linear-gradient(135deg, #33ff99, #009933); box-shadow: 0 0 20px rgba(0,153,51,0.4);"><i class="fa-solid fa-calendar-check"></i></div>
                         <div class="summary-info">
-                            <span class="summary-label">Số buổi đã học (tháng này)</span>
-                            <span class="summary-val">${student.buoiHoc}</span>
+                            <span class="summary-label">Số buổi đã học (Tháng ${new Date().getMonth() + 1})</span>
+                            <span class="summary-val">${student.buoiHoc} buổi</span>
                         </div>
                     </div>
                     <div class="summary-card">
                         <div class="summary-icon icon-orange" style="background: linear-gradient(135deg, #ffcc66, #ff6600); box-shadow: 0 0 20px rgba(255,102,0,0.4);"><i class="fa-solid fa-calendar-times"></i></div>
                         <div class="summary-info">
-                            <span class="summary-label">Số buổi nghỉ (tháng này)</span>
-                            <span class="summary-val">${student.buoiNghi}</span>
+                            <span class="summary-label">Số buổi nghỉ (Tháng ${new Date().getMonth() + 1})</span>
+                            <span class="summary-val">${student.buoiNghi} buổi</span>
                         </div>
                     </div>
                 </div>
