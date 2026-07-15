@@ -38,7 +38,7 @@ var currentStudentName = "";
                 }
                 document.getElementById('loiChao').innerHTML = 
                     "<h3 style='color: #FFD23F; font-size: 20px; font-weight: 800; margin: 0 0 8px 0; text-align: center; font-family: Inter;'>Xin chào, <span style='color: #FFFFFF;'>" + ketQua.tenHocSinh + "</span> 👋</h3>" +
-                    "<p style='color: #A6ADCE; font-size: 13px; text-align: center; margin: 0 0 25px 0; font-family: Inter;'>(Lớp: " + lopHoc + " • Số điện thoại: " + studentPhone + ")</p>";
+                    "<p style='color: #A6ADCE; font-size: 13px; text-align: center; margin: 0 0 25px 0; font-family: Inter;'>(" + lopHoc + " • Số điện thoại: " + studentPhone + ")</p>";
                 currentStudentName = ketQua.tenHocSinh;
                 
                 // Khôi phục trạng thái active cho các nút legend tùy chọn
