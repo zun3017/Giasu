@@ -1704,11 +1704,11 @@
         @media (max-width: 768px) {
             .homework-shortcut-left {
                 position: fixed;
-                right: 15px;
-                top: 105px;
+                left: 15px;
+                top: 150px; /* Di chuyển xuống dưới menu để không che nút */
                 bottom: auto;
-                left: auto;
-                z-index: 1001; /* Đảm bảo nổi bật hơn cả menu sticky */
+                right: auto;
+                z-index: 1001;
                 transform: none;
             }
             .hw-btn-left {
