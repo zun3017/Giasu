@@ -4,6 +4,13 @@ var currentTutorStudent = null;
 var currentTutorPhone = "";
 var pinVerifyAction = "deleteStudent";
 
+function formatScheduleCell(val) {
+    if (!val || val.trim() === "") {
+        return "-";
+    }
+    return "<span style='color:#10B981; font-weight:500;'>" + val + "</span>";
+}
+
         function renderTutorView(data) {
             tutorDataGlobal = data;
             currentTutorPhone = document.getElementById('maHocSinh').value.trim();
@@ -54,14 +61,14 @@ var pinVerifyAction = "deleteStudent";
                         
                         // Desktop Row
                         tableHtml += "<tr>" +
-                            "<td>" + st.name + "</td>" +
-                            "<td>" + (s.mon||"") + "</td>" +
-                            "<td>" + (s.tue||"") + "</td>" +
-                            "<td>" + (s.wed||"") + "</td>" +
-                            "<td>" + (s.thu||"") + "</td>" +
-                            "<td>" + (s.fri||"") + "</td>" +
-                            "<td>" + (s.sat||"") + "</td>" +
-                            "<td>" + (s.sun||"") + "</td>" +
+                            "<td style='font-weight:bold; color:#FFD23F;'>" + st.name + "</td>" +
+                            "<td>" + formatScheduleCell(s.mon) + "</td>" +
+                            "<td>" + formatScheduleCell(s.tue) + "</td>" +
+                            "<td>" + formatScheduleCell(s.wed) + "</td>" +
+                            "<td>" + formatScheduleCell(s.thu) + "</td>" +
+                            "<td>" + formatScheduleCell(s.fri) + "</td>" +
+                            "<td>" + formatScheduleCell(s.sat) + "</td>" +
+                            "<td>" + formatScheduleCell(s.sun) + "</td>" +
                             "<td><button onclick='openEditScheduleModal(\"" + st.name.replace(/'/g, "\\'").replace(/"/g, '&quot;') + "\", \"" + (s.mon||"") + "\", \"" + (s.tue||"") + "\", \"" + (s.wed||"") + "\", \"" + (s.thu||"") + "\", \"" + (s.fri||"") + "\", \"" + (s.sat||"") + "\", \"" + (s.sun||"") + "\")' class='btn-icon-edit' style='margin: 0; padding: 4px;' title='Sửa thời khóa biểu'><i class='fa-solid fa-pen-to-square'></i></button></td>" +
                             "</tr>";
                             
@@ -1343,14 +1350,14 @@ var pinVerifyAction = "deleteStudent";
                                 tutorDataGlobal.students.forEach(function(st) {
                                     var s = schedMap[st.name.trim()] || { mon: "", tue: "", wed: "", thu: "", fri: "", sat: "", sun: "" };
                                     table.innerHTML += "<tr>" +
-                                        "<td>" + st.name + "</td>" +
-                                        "<td>" + (s.mon||"") + "</td>" +
-                                        "<td>" + (s.tue||"") + "</td>" +
-                                        "<td>" + (s.wed||"") + "</td>" +
-                                        "<td>" + (s.thu||"") + "</td>" +
-                                        "<td>" + (s.fri||"") + "</td>" +
-                                        "<td>" + (s.sat||"") + "</td>" +
-                                        "<td>" + (s.sun||"") + "</td>" +
+                                        "<td style='font-weight:bold; color:#FFD23F;'>" + st.name + "</td>" +
+                                        "<td>" + formatScheduleCell(s.mon) + "</td>" +
+                                        "<td>" + formatScheduleCell(s.tue) + "</td>" +
+                                        "<td>" + formatScheduleCell(s.wed) + "</td>" +
+                                        "<td>" + formatScheduleCell(s.thu) + "</td>" +
+                                        "<td>" + formatScheduleCell(s.fri) + "</td>" +
+                                        "<td>" + formatScheduleCell(s.sat) + "</td>" +
+                                        "<td>" + formatScheduleCell(s.sun) + "</td>" +
                                         "<td><button onclick='openEditScheduleModal(\"" + st.name.replace(/'/g, "\\'").replace(/"/g, '&quot;') + "\", \"" + (s.mon||"") + "\", \"" + (s.tue||"") + "\", \"" + (s.wed||"") + "\", \"" + (s.thu||"") + "\", \"" + (s.fri||"") + "\", \"" + (s.sat||"") + "\", \"" + (s.sun||"") + "\")' class='btn-icon-edit' style='margin: 0; padding: 4px;' title='Sửa thời khóa biểu'><i class='fa-solid fa-pen-to-square'></i></button></td>" +
                                         "</tr>";
                                 });
