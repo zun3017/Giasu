@@ -161,8 +161,10 @@ var pinVerifyAction = "deleteStudent";
             document.getElementById('admPaidRev').innerText = report.paid.toLocaleString('vi-VN') + "đ";
             document.getElementById('admUnpaidRev').innerText = report.unpaid.toLocaleString('vi-VN') + "đ";
             
-            // 1. Cập nhật Bảng phân rã theo Gia sư cho tháng chọn
+            // 1. Cập nhật Bảng phân rã theo Gia sư cho tháng chọn (Desktop & Mobile)
             var breakdownBody = document.querySelector('#adminTutorBreakdownTable tbody');
+            var breakdownMobile = document.getElementById('adminTutorBreakdownMobile');
+            
             if (breakdownBody) {
                 breakdownBody.innerHTML = "";
                 var tutorsData = report.tutors || {};
@@ -170,10 +172,16 @@ var pinVerifyAction = "deleteStudent";
                 
                 if (tutorKeys.length === 0) {
                     breakdownBody.innerHTML = "<tr><td colspan='5' style='text-align:center; color:#A6ADCE;'>Không có dữ liệu buổi học nào trong tháng này.</td></tr>";
+                    if (breakdownMobile) {
+                        breakdownMobile.innerHTML = "<div style='text-align:center; color:#A6ADCE; padding: 20px; font-size: 13px;'><i class='fa-solid fa-circle-info'></i> Không có dữ liệu buổi học nào trong tháng này.</div>";
+                    }
                 } else {
-                    tutorKeys.forEach(tKey => {
+                    var mobileHtml = "";
+                    tutorKeys.forEach((tKey, idx) => {
                         var tReport = tutorsData[tKey];
                         var rate = tReport.expected > 0 ? ((tReport.paid / tReport.expected) * 100).toFixed(1) + "%" : "0%";
+                        
+                        // Desktop
                         var tr = document.createElement('tr');
                         tr.innerHTML = "<td><b>" + tReport.name + "</b></td>" +
                                        "<td style='color:#8E4DFF; font-weight:bold;'>" + tReport.expected.toLocaleString('vi-VN') + "đ</td>" +
@@ -181,12 +189,33 @@ var pinVerifyAction = "deleteStudent";
                                        "<td style='color:#F59E0B; font-weight:bold;'>" + tReport.unpaid.toLocaleString('vi-VN') + "đ</td>" +
                                        "<td style='text-align:center;'><span class='badge' style='background:rgba(142,77,255,0.15); color:#a78bfa;'>" + rate + "</span></td>";
                         breakdownBody.appendChild(tr);
+                        
+                        // Mobile
+                        mobileHtml += "<div class='accordion-item'>";
+                        mobileHtml += "  <div class='accordion-header' onclick='toggleAdminTutorBreakdownAccordion(" + idx + ")'>";
+                        mobileHtml += "    <div class='accordion-header-title'>";
+                        mobileHtml += "      <span>" + tReport.name + "</span>";
+                        mobileHtml += "      <span class='badge' style='background:rgba(142,77,255,0.15); color:#a78bfa; margin-bottom: 0; padding: 3px 8px; font-size: 10px;'>" + rate + "</span>";
+                        mobileHtml += "    </div>";
+                        mobileHtml += "    <div class='accordion-header-status'><i class='fa-solid fa-chevron-down' id='adm-tutor-bd-chevron-" + idx + "'></i></div>";
+                        mobileHtml += "  </div>";
+                        mobileHtml += "  <div class='accordion-body' id='adm-tutor-bd-body-" + idx + "' style='display: none;'>";
+                        mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Lương dự kiến</span><span class='accordion-body-val' style='color:#8E4DFF; font-weight:bold;'>" + tReport.expected.toLocaleString('vi-VN') + "đ</span></div>";
+                        mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Lương thực tế</span><span class='accordion-body-val' style='color:#10B981; font-weight:bold;'>" + tReport.paid.toLocaleString('vi-VN') + "đ</span></div>";
+                        mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Còn nợ</span><span class='accordion-body-val' style='color:#F59E0B; font-weight:bold;'>" + tReport.unpaid.toLocaleString('vi-VN') + "đ</span></div>";
+                        mobileHtml += "  </div>";
+                        mobileHtml += "</div>";
                     });
+                    if (breakdownMobile) {
+                        breakdownMobile.innerHTML = mobileHtml;
+                    }
                 }
             }
             
-            // 2. Cập nhật bảng tổng hợp doanh thu toàn cơ sở qua các tháng
+            // 2. Cập nhật bảng tổng hợp doanh thu toàn cơ sở qua các tháng (Desktop & Mobile)
             var tableBody = document.querySelector('#adminReportTable tbody');
+            var reportMobile = document.getElementById('adminReportMobile');
+            
             if (tableBody) {
                 tableBody.innerHTML = "";
                 
@@ -197,15 +226,37 @@ var pinVerifyAction = "deleteStudent";
                     return pa.month - pb.month;
                 });
 
-                sortedMonths.forEach(m => {
+                var reportMobileHtml = "";
+                sortedMonths.forEach((m, idx) => {
                     var r = reports[m];
+                    
+                    // Desktop
                     var tr = document.createElement('tr');
                     tr.innerHTML = "<td><b>" + m + "</b></td>" +
                                    "<td style='color:#8E4DFF; font-weight:bold;'>" + r.expected.toLocaleString('vi-VN') + "đ</td>" +
                                    "<td style='color:#10B981; font-weight:bold;'>" + r.paid.toLocaleString('vi-VN') + "đ</td>" +
                                    "<td style='color:#F59E0B; font-weight:bold;'>" + r.unpaid.toLocaleString('vi-VN') + "đ</td>";
                     tableBody.appendChild(tr);
+                    
+                    // Mobile
+                    reportMobileHtml += "<div class='accordion-item'>";
+                    reportMobileHtml += "  <div class='accordion-header' onclick='toggleAdminReportAccordion(" + idx + ")'>";
+                    reportMobileHtml += "    <div class='accordion-header-title'>";
+                    reportMobileHtml += "      <span>Tháng " + m + "</span>";
+                    reportMobileHtml += "    </div>";
+                    reportMobileHtml += "    <div class='accordion-header-status'><i class='fa-solid fa-chevron-down' id='adm-report-chevron-" + idx + "'></i></div>";
+                    reportMobileHtml += "  </div>";
+                    reportMobileHtml += "  <div class='accordion-body' id='adm-report-body-" + idx + "' style='display: none;'>";
+                    reportMobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Dự kiến thu</span><span class='accordion-body-val' style='color:#8E4DFF; font-weight:bold;'>" + r.expected.toLocaleString('vi-VN') + "đ</span></div>";
+                    reportMobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Thực tế đã thu</span><span class='accordion-body-val' style='color:#10B981; font-weight:bold;'>" + r.paid.toLocaleString('vi-VN') + "đ</span></div>";
+                    reportMobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Còn nợ</span><span class='accordion-body-val' style='color:#F59E0B; font-weight:bold;'>" + r.unpaid.toLocaleString('vi-VN') + "đ</span></div>";
+                    reportMobileHtml += "  </div>";
+                    reportMobileHtml += "</div>";
                 });
+                
+                if (reportMobile) {
+                    reportMobile.innerHTML = reportMobileHtml;
+                }
             }
 
             // 3. Vẽ biểu đồ xu hướng tiền lương/doanh thu theo tháng
@@ -317,15 +368,22 @@ var pinVerifyAction = "deleteStudent";
         // 2. Tutors Management Tab
         function renderAdminTutorsList() {
             var tbody = document.querySelector('#adminTutorsTable tbody');
+            var mobileContainer = document.getElementById('adminTutorsMobile');
+            
             if (!tbody) return;
             tbody.innerHTML = "";
             
             if (!adminDataGlobal.tutors || adminDataGlobal.tutors.length === 0) {
                 tbody.innerHTML = "<tr><td colspan='4' style='text-align:center; color:#A6ADCE;'>Không có gia sư nào trên hệ thống.</td></tr>";
+                if (mobileContainer) {
+                    mobileContainer.innerHTML = "<div style='text-align:center; color:#A6ADCE; padding: 20px; font-size: 13px;'><i class='fa-solid fa-circle-info'></i> Không có gia sư nào trên hệ thống.</div>";
+                }
                 return;
             }
             
-            adminDataGlobal.tutors.forEach(t => {
+            var mobileHtml = "";
+            adminDataGlobal.tutors.forEach((t, idx) => {
+                // Desktop
                 var tr = document.createElement('tr');
                 tr.innerHTML = "<td><b>" + t.name + "</b></td>" +
                                "<td>" + t.phone + "</td>" +
@@ -334,27 +392,53 @@ var pinVerifyAction = "deleteStudent";
                                  "<button class='btn-icon-edit' onclick='openAdminEditTutorModal(\"" + t.phone + "\")' title='Sửa gia sư'><i class='fa-solid fa-pen-to-square'></i></button>" +
                                "</td>";
                 tbody.appendChild(tr);
+                
+                // Mobile
+                var editBtn = "<button class='action-btn-hw' onclick='openAdminEditTutorModal(\"" + t.phone + "\")' style='color:#FFD23F; border-color:rgba(255,210,63,0.3); background:rgba(255,210,63,0.1); padding: 4px 14px; text-decoration: none; font-size:12px; border-radius: 20px;'><i class='fa-solid fa-pen-to-square'></i> Chỉnh sửa</button>";
+                
+                mobileHtml += "<div class='accordion-item'>";
+                mobileHtml += "  <div class='accordion-header' onclick='toggleAdminTutorAccordion(" + idx + ")'>";
+                mobileHtml += "    <div class='accordion-header-title'>";
+                mobileHtml += "      <span>" + t.name + "</span>";
+                mobileHtml += "    </div>";
+                mobileHtml += "    <div class='accordion-header-status'><i class='fa-solid fa-chevron-down' id='adm-tutor-chevron-" + idx + "'></i></div>";
+                mobileHtml += "  </div>";
+                mobileHtml += "  <div class='accordion-body' id='adm-tutor-body-" + idx + "' style='display: none;'>";
+                mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Số điện thoại</span><span class='accordion-body-val'>" + t.phone + "</span></div>";
+                mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Mã PIN</span><span class='accordion-body-val'><code style='letter-spacing:2px; font-weight:bold; color:#FFD23F;'>" + t.pin + "</code></span></div>";
+                mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Thao tác</span><span class='accordion-body-val'>" + editBtn + "</span></div>";
+                mobileHtml += "  </div>";
+                mobileHtml += "</div>";
             });
+            
+            if (mobileContainer) {
+                mobileContainer.innerHTML = mobileHtml;
+            }
         }
 
         // 3. Students Management Tab
         function renderAdminStudentsList() {
             var tbody = document.querySelector('#adminStudentsTable tbody');
+            var mobileContainer = document.getElementById('adminStudentsMobile');
+            
             if (!tbody) return;
             tbody.innerHTML = "";
             
             if (!adminDataGlobal.students || adminDataGlobal.students.length === 0) {
                 tbody.innerHTML = "<tr><td colspan='7' style='text-align:center; color:#A6ADCE;'>Không có học sinh nào trên hệ thống.</td></tr>";
+                if (mobileContainer) {
+                    mobileContainer.innerHTML = "<div style='text-align:center; color:#A6ADCE; padding: 20px; font-size: 13px;'><i class='fa-solid fa-circle-info'></i> Không có học sinh nào trên hệ thống.</div>";
+                }
                 return;
             }
             
-            adminDataGlobal.students.forEach(st => {
-                var tr = document.createElement('tr');
-                var statusText = st.deletedDate ? "<span class='badge' style='background:rgba(239,68,68,0.1); color:#EF4444;'>Đã xóa (" + st.deletedDate.split(" ")[0] + ")</span>" : "<span class='badge' style='background:rgba(16,185,129,0.1); color:#10B981;'>Hoạt động</span>";
-                
-                // Tìm tên gia sư tương ứng
+            var mobileHtml = "";
+            adminDataGlobal.students.forEach((st, idx) => {
+                var statusText = st.deletedDate ? "<span class='badge' style='background:rgba(239,68,68,0.1); color:#EF4444; margin-bottom:0;'>Đã xóa (" + st.deletedDate.split(" ")[0] + ")</span>" : "<span class='badge' style='background:rgba(16,185,129,0.1); color:#10B981; margin-bottom:0;'>Hoạt động</span>";
                 var tName = adminDataGlobal.tutors.find(t => t.phone === st.tutorPhone)?.name || "Chưa gán";
                 
+                // Desktop
+                var tr = document.createElement('tr');
                 tr.innerHTML = "<td><b>" + st.name + "</b></td>" +
                                "<td>" + st.parentName + "</td>" +
                                "<td>" + st.phone + "</td>" +
@@ -365,7 +449,31 @@ var pinVerifyAction = "deleteStudent";
                                  "<button class='btn-icon-edit' onclick='openAdminEditStudentModal(\"" + st.phone + "\", \"" + st.parentName.replace(/'/g, "\\'") + "\", \"" + st.name.replace(/'/g, "\\'") + "\", " + st.tuition + ", \"" + st.tutorPhone + "\")' title='Sửa học sinh'><i class='fa-solid fa-pen-to-square'></i></button>" +
                                "</td>";
                 tbody.appendChild(tr);
+                
+                // Mobile
+                var editBtn = "<button class='action-btn-hw' onclick='openAdminEditStudentModal(\"" + st.phone + "\", \"" + st.parentName.replace(/'/g, "\\'") + "\", \"" + st.name.replace(/'/g, "\\'") + "\", " + st.tuition + ", \"" + st.tutorPhone + "\")' style='color:#FFD23F; border-color:rgba(255,210,63,0.3); background:rgba(255,210,63,0.1); padding: 4px 14px; text-decoration: none; font-size:12px; border-radius:20px;'><i class='fa-solid fa-pen-to-square'></i> Chỉnh sửa</button>";
+                
+                mobileHtml += "<div class='accordion-item'>";
+                mobileHtml += "  <div class='accordion-header' onclick='toggleAdminStudentAccordion(" + idx + ")'>";
+                mobileHtml += "    <div class='accordion-header-title'>";
+                mobileHtml += "      <span>" + st.name + "</span>";
+                mobileHtml += "      " + statusText;
+                mobileHtml += "    </div>";
+                mobileHtml += "    <div class='accordion-header-status'><i class='fa-solid fa-chevron-down' id='adm-student-chevron-" + idx + "'></i></div>";
+                mobileHtml += "  </div>";
+                mobileHtml += "  <div class='accordion-body' id='adm-student-body-" + idx + "' style='display: none;'>";
+                mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Tên phụ huynh</span><span class='accordion-body-val'>" + st.parentName + "</span></div>";
+                mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>SĐT Phụ Huynh</span><span class='accordion-body-val'>" + st.phone + "</span></div>";
+                mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Học phí/buổi</span><span class='accordion-body-val' style='font-weight:bold; color:#FFD23F;'>" + st.tuition.toLocaleString('vi-VN') + "đ</span></div>";
+                mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Gia sư</span><span class='accordion-body-val'>" + tName + "</span></div>";
+                mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Thao tác</span><span class='accordion-body-val'>" + editBtn + "</span></div>";
+                mobileHtml += "  </div>";
+                mobileHtml += "</div>";
             });
+            
+            if (mobileContainer) {
+                mobileContainer.innerHTML = mobileHtml;
+            }
         }
 
         // --- Admin Modals ---
@@ -709,5 +817,97 @@ var pinVerifyAction = "deleteStudent";
                 navigateToPage('tutor');
             } else {
                 window.location.href = 'tutor-login.html';
+            }
+        }
+
+        function toggleAdminTutorBreakdownAccordion(idx) {
+            var body = document.getElementById('adm-tutor-bd-body-' + idx);
+            if (!body) return;
+            var item = body.closest('.accordion-item');
+            var chevron = document.getElementById('adm-tutor-bd-chevron-' + idx);
+            
+            if (body.style.display === 'block') {
+                body.style.display = 'none';
+                if (item) item.classList.remove('active');
+                if (chevron) {
+                    chevron.classList.remove('fa-chevron-up');
+                    chevron.classList.add('fa-chevron-down');
+                }
+            } else {
+                body.style.display = 'block';
+                if (item) item.classList.add('active');
+                if (chevron) {
+                    chevron.classList.remove('fa-chevron-down');
+                    chevron.classList.add('fa-chevron-up');
+                }
+            }
+        }
+
+        function toggleAdminReportAccordion(idx) {
+            var body = document.getElementById('adm-report-body-' + idx);
+            if (!body) return;
+            var item = body.closest('.accordion-item');
+            var chevron = document.getElementById('adm-report-chevron-' + idx);
+            
+            if (body.style.display === 'block') {
+                body.style.display = 'none';
+                if (item) item.classList.remove('active');
+                if (chevron) {
+                    chevron.classList.remove('fa-chevron-up');
+                    chevron.classList.add('fa-chevron-down');
+                }
+            } else {
+                body.style.display = 'block';
+                if (item) item.classList.add('active');
+                if (chevron) {
+                    chevron.classList.remove('fa-chevron-down');
+                    chevron.classList.add('fa-chevron-up');
+                }
+            }
+        }
+
+        function toggleAdminTutorAccordion(idx) {
+            var body = document.getElementById('adm-tutor-body-' + idx);
+            if (!body) return;
+            var item = body.closest('.accordion-item');
+            var chevron = document.getElementById('adm-tutor-chevron-' + idx);
+            
+            if (body.style.display === 'block') {
+                body.style.display = 'none';
+                if (item) item.classList.remove('active');
+                if (chevron) {
+                    chevron.classList.remove('fa-chevron-up');
+                    chevron.classList.add('fa-chevron-down');
+                }
+            } else {
+                body.style.display = 'block';
+                if (item) item.classList.add('active');
+                if (chevron) {
+                    chevron.classList.remove('fa-chevron-down');
+                    chevron.classList.add('fa-chevron-up');
+                }
+            }
+        }
+
+        function toggleAdminStudentAccordion(idx) {
+            var body = document.getElementById('adm-student-body-' + idx);
+            if (!body) return;
+            var item = body.closest('.accordion-item');
+            var chevron = document.getElementById('adm-student-chevron-' + idx);
+            
+            if (body.style.display === 'block') {
+                body.style.display = 'none';
+                if (item) item.classList.remove('active');
+                if (chevron) {
+                    chevron.classList.remove('fa-chevron-up');
+                    chevron.classList.add('fa-chevron-down');
+                }
+            } else {
+                body.style.display = 'block';
+                if (item) item.classList.add('active');
+                if (chevron) {
+                    chevron.classList.remove('fa-chevron-down');
+                    chevron.classList.add('fa-chevron-up');
+                }
             }
         }
