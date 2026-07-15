@@ -355,9 +355,24 @@
 
                     <!-- Bảng bài tập của học sinh -->
                     <div style="background: rgba(11, 8, 38, 0.6); border: 1px solid rgba(142, 77, 255, 0.3); border-radius: 16px; padding: 20px; margin-bottom: 25px;">
+                        <!-- Menu Tabs thực tế -->
                         <div style="display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 10px;">
-                            <button class="tutor-hw-tab active" style="background:none; border:none; color:#8E4DFF; font-weight:bold; font-size:14px; border-bottom:2px solid #8E4DFF; padding-bottom:10px; cursor:default;"><i class="fa-solid fa-pen-ruler"></i> Lịch sử bài tập đã giao</button>
+                            <button class="tutor-hw-tab active" style="background:none; border:none; color:#8E4DFF; font-weight:bold; font-size:14px; border-bottom:2px solid #8E4DFF; padding-bottom:10px; cursor:default; display:flex; align-items:center; gap:6px;"><i class="fa-solid fa-pen-ruler"></i> Giao bài tập</button>
+                            <button class="tutor-hw-tab" style="background:none; border:none; color:#A6ADCE; font-weight:bold; font-size:14px; padding-bottom:10px; cursor:default; display:flex; align-items:center; gap:6px; opacity:0.7;"><i class="fa-solid fa-graduation-cap"></i> Học sinh nộp bài</button>
                         </div>
+                        
+                        <!-- Thanh nút chức năng thực tế -->
+                        <div style="display: flex; gap: 15px; margin-bottom: 20px; flex-wrap: wrap;">
+                            <button class="modal-btn modal-btn-secondary" style="width: auto; font-size: 13px; padding: 8px 16px; cursor:default; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); color:#FFF; border-radius:8px; display:inline-flex; align-items:center; gap:6px;"><i class="fa-solid fa-cloud-arrow-up"></i> Tải bài tập lên</button>
+                            <button class="modal-btn modal-btn-primary" style="width: auto; font-size: 13px; padding: 8px 16px; cursor:default; background: linear-gradient(135deg, #8E4DFF 0%, #5B21B6 100%); color:#FFF; border:none; border-radius:8px; display:inline-flex; align-items:center; gap:6px;"><i class="fa-solid fa-list-check"></i> Xem bài tập đã tải</button>
+                        </div>
+
+                        <!-- Tiêu đề lịch sử bài tập & Thùng rác -->
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 10px;">
+                            <h4 style="color:#FFF; font-size:14px; margin:0; display:flex; align-items:center; gap:8px;"><i class="fa-solid fa-list-ol"></i> Lịch sử bài tập đã giao</h4>
+                            <button class="action-btn-hw btn-delete" style="font-size: 12px; cursor:default; display:flex; align-items:center; gap:6px; background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.3); color: #F87171; padding: 6px 12px; border-radius: 6px; font-weight:600;"><i class="fa-solid fa-trash-can"></i> Thùng rác bài tập</button>
+                        </div>
+
                         <div class="table-wrapper desktop-table-view" style="width: 100%; overflow-x: auto; border-radius: 12px;">
                             <table style="width:100%; border-collapse:collapse;">
                                 <thead>
