@@ -1529,6 +1529,7 @@ function writeTrashLog(ss, type, action, rowData) {
 
 // Khởi tạo sheet Bài tập
 function initHomeworkSheet(ss) {
+  if (!ss) ss = SpreadsheetApp.getActiveSpreadsheet();
   var sheet = ss.getSheetByName('Bài tập');
   if (!sheet) {
     sheet = ss.insertSheet('Bài tập');
