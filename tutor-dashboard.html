@@ -49,6 +49,110 @@
                     Học sinh: <span id="selectedStudentNameHeader" style="color: #FFD23F; font-weight: 800;">...</span>
                     <button onclick="openEditStudentModal()" class="btn-icon-edit" title="Sửa thông tin học sinh"><i class="fa-solid fa-pen-to-square"></i></button>
                 </h3>
+                <span class="btn-refresh-history" style="background: linear-gradient(135deg, #10B981 0%, #059669 100%); border: none; color: #FFF; font-weight: bold; border-radius: 20px; padding: 8px 20px; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 10px rgba(16,185,129,0.2); font-family: 'Inter', sans-serif; cursor: default;" id="btnTutorHomeworkToggle"><i class="fa-solid fa-book"></i> Bài tập</span>
+            </div>
+
+            <!-- Section Bài tập (Mở sẵn mặc định) -->
+            <div id="tutorHomeworkSection" style="display: block; overflow: hidden; transition: max-height 0.4s ease-out; margin-bottom: 25px;">
+                <div class="hw-tutor-container" style="background: rgba(11, 8, 38, 0.6); border: 1px solid rgba(142, 77, 255, 0.3); border-radius: 16px; padding: 20px; margin-top: 10px;">
+                    <!-- Menu Tabs -->
+                    <div style="display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 10px;">
+                        <button class="tutor-hw-tab active" id="tabAssignBtn" onclick="switchTutorHwTab('assign')"><i class="fa-solid fa-pen-ruler"></i> Giao bài tập</button>
+                        <button class="tutor-hw-tab" id="tabSubmitBtn" onclick="switchTutorHwTab('submit')"><i class="fa-solid fa-graduation-cap"></i> Học sinh nộp bài</button>
+                    </div>
+
+                    <!-- Nội dung Tab 1: Giao bài tập -->
+                    <div id="tabContentAssign" class="tutor-hw-tab-content">
+                        <div style="display: flex; gap: 15px; margin-bottom: 20px; flex-wrap: wrap;">
+                            <button id="btnShowUploadForm" onclick="switchTutorHwSubTab('upload')" class="modal-btn modal-btn-secondary" style="width: auto;"><i class="fa-solid fa-cloud-arrow-up"></i> Tải bài tập lên</button>
+                            <button id="btnToggleViewAssignedHw" onclick="switchTutorHwSubTab('list')" class="modal-btn modal-btn-primary" style="width: auto; background: linear-gradient(135deg, #8E4DFF 0%, #5B21B6 100%);"><i class="fa-solid fa-list-check"></i> Xem bài tập đã tải</button>
+                        </div>
+
+                        <!-- Form Giao bài tập (mặc định ẩn) -->
+                        <div id="assignHwFormContainer" style="display: none; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.2); border-radius: 12px; padding: 15px; margin-bottom: 20px;">
+                            <h4 style="color: #FFD23F; margin-bottom: 15px; font-size: 15px;"><i class="fa-solid fa-folder-plus"></i> Đăng tải bài tập mới</h4>
+                            <div class="modal-grid-2">
+                                <div class="modal-form-group">
+                                    <label>Tên bài tập *</label>
+                                    <input type="text" id="assignHwTitle" placeholder="Ví dụ: Đề cương Toán tuần 1">
+                                </div>
+                                <div class="modal-form-group">
+                                    <label>Ngày phát hành *</label>
+                                    <input type="text" id="assignHwReleaseDate" placeholder="dd/mm/yyyy (hoặc để trống tự lấy hôm nay)">
+                                </div>
+                            </div>
+                            <div class="modal-form-group" style="margin-top: 10px;">
+                                <label>Chọn file bài tập (Hình ảnh, Word, PDF...) *</label>
+                                <div class="upload-area" id="tutorHwUploadArea" onclick="document.getElementById('tutorHwFileInput').click()" style="padding: 20px; border-style: dashed; background: rgba(4, 2, 10, 0.6); border: 2px dashed rgba(142, 77, 255, 0.4); border-radius: 12px; text-align: center; cursor: pointer; transition: all 0.3s;">
+                                    <i class="fa-solid fa-file-arrow-up" style="font-size: 24px; color: #8E4DFF; margin-bottom: 6px;"></i>
+                                    <div id="tutorHwUploadText" style="font-size: 12px; color: #E2D1FF;">Kéo thả hoặc click chọn file bài tập từ máy...</div>
+                                    <input type="file" id="tutorHwFileInput" style="display: none;" onchange="handleTutorHwFileSelect(event)">
+                                </div>
+                                <!-- Selected File Badge -->
+                                <div id="tutorSelectedFileBox" style="display: none; justify-content: space-between; align-items: center; background: rgba(142, 77, 255, 0.15); padding: 8px 12px; border-radius: 8px; margin-top: 10px; font-size: 12px;">
+                                    <span id="tutorSelectedFileName" style="color: #FFF; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 80%;"></span>
+                                    <button onclick="clearTutorSelectedFile()" style="background:none; border:none; color:#FF4D4D; cursor:pointer;"><i class="fa-solid fa-times"></i> Hủy</button>
+                                </div>
+                            </div>
+                            <!-- Progress Bar -->
+                            <div class="progress-container" id="tutorHwProgressContainer" style="width: 100%; background: rgba(255,255,255,0.05); border-radius: 10px; height: 8px; margin-top: 15px; overflow: hidden; display: none;">
+                                <div class="progress-bar" id="tutorHwProgressBar" style="height: 100%; background: linear-gradient(90deg, #8E4DFF, #3399FF); width: 0%; transition: width 0.1s linear;"></div>
+                            </div>
+                            <div id="tutorHwProgressText" style="font-size: 11px; color:#3399FF; text-align:right; display:none; font-weight:bold; margin-top:4px;">0%</div>
+
+                            <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 15px;">
+                                <button onclick="closeAssignHwForm()" class="modal-btn modal-btn-secondary" style="width: auto; padding: 6px 15px; font-size: 13px;">Hủy</button>
+                                <button onclick="submitAssignedHomework()" class="modal-btn modal-btn-primary" style="width: auto; padding: 6px 15px; font-size: 13px;" id="btnSubmitAssignedHw">Giao bài</button>
+                            </div>
+                        </div>
+
+                        <!-- Danh sách bài tập đã giao (mở sẵn mặc định) -->
+                        <div id="assignedHwListContainer" style="display: block; overflow: hidden;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 10px;">
+                                <h4 style="color:#FFF; font-size:14px;"><i class="fa-solid fa-list-ol"></i> Lịch sử bài tập đã giao</h4>
+                                <button onclick="openTutorHwTrashModal()" class="action-btn-hw btn-delete"><i class="fa-solid fa-trash-can"></i> Thùng rác bài tập</button>
+                            </div>
+                            <div class="table-wrapper">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>Ngày giao</th>
+                                            <th>Tên bài tập</th>
+                                            <th>File đính kèm</th>
+                                            <th style="text-align: center;">Thao tác</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="assignedHwTableBody">
+                                        <!-- Rendered in JS -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Nội dung Tab 2: Học sinh nộp bài -->
+                    <div id="tabContentSubmit" class="tutor-hw-tab-content" style="display: none;">
+                        <h4 style="color:#FFF; font-size:14px; margin-bottom:12px;"><i class="fa-solid fa-list"></i> Các bài tập học sinh đã nộp</h4>
+                        <div class="table-wrapper">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Thời gian nộp</th>
+                                        <th>Tên bài học</th>
+                                        <th>File nộp bài</th>
+                                        <th>Tải về</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="studentSubmissionsTableBody">
+                                    <!-- Rendered in JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                        <div id="submissionViewMoreBtnContainer" style="text-align: center; margin-top: 15px; display: none;">
+                            <button onclick="loadMoreStudentSubmissions()" class="modal-btn modal-btn-secondary" style="width: auto; padding: 8px 25px; border-radius: 20px; font-size: 13px; cursor: pointer; border: 1px solid rgba(142, 77, 255, 0.4);"><i class="fa-solid fa-circle-chevron-down"></i> Xem thêm</button>
+                        </div>
+                    </div>
+                </div>
             </div>
             <div class="summary-grid">
                 <div class="summary-card">
@@ -234,6 +338,10 @@
                 <label>Học phí / buổi (VNĐ)</label>
                 <input type="number" id="addStudentTuition" placeholder="Ví dụ: 200000">
             </div>
+            <div class="modal-form-group">
+                <label>Mã bài tập *</label>
+                <input type="text" id="addStudentMaBaiTap" placeholder="Mã để đăng nhập nộp bài (Ví dụ: BT101)">
+            </div>
             <div class="modal-footer">
                 <button onclick="closeAddStudentModal()" class="modal-btn modal-btn-secondary">Hủy</button>
                 <button onclick="saveNewStudent()" class="modal-btn modal-btn-primary">Thêm mới</button>
@@ -264,6 +372,10 @@
             <div class="modal-form-group">
                 <label>Học phí / buổi (VNĐ)</label>
                 <input type="number" id="editStudentTuition">
+            </div>
+            <div class="modal-form-group">
+                <label>Mã bài tập *</label>
+                <input type="text" id="editStudentMaBaiTap" placeholder="Mã để đăng nhập nộp bài (Ví dụ: BT101)">
             </div>
             <div class="modal-footer" style="justify-content: space-between;">
                 <button onclick="confirmDeleteStudent()" class="modal-btn" style="background: rgba(239, 68, 68, 0.1); border: 1px solid #EF4444; color: #EF4444; border-radius: 20px; padding: 8px 16px; cursor: pointer; display: flex; align-items: center; gap: 6px;"><i class="fa-solid fa-trash-can"></i> Xóa học sinh</button>
@@ -304,6 +416,77 @@
             </div>
             <div class="modal-footer">
                 <button onclick="closeTrashModal()" class="modal-btn modal-btn-secondary" style="width: 100%;">Đóng</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 8. Modal Thùng Rác Bài Tập Giao (Tutor Homework Trash Modal) -->
+    <div id="tutorHwTrashModal" class="modal-overlay">
+        <div class="modal-content" style="max-width: 600px; width: 90%;">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-trash-can"></i> Thùng rác bài tập đã giao</h3>
+                <span class="modal-close" onclick="closeTutorHwTrashModal()">&times;</span>
+            </div>
+            <div class="modal-body" style="max-height: 50vh; overflow-y: auto; padding: 15px;">
+                <p style="color: #A6ADCE; font-size: 13px; margin-bottom: 15px; line-height: 1.4;"><i class="fa-solid fa-triangle-exclamation" style="color: #FFD23F;"></i> Các bài tập trong thùng rác sẽ bị <b>dọn dẹp hoàn toàn</b> giải phóng bộ nhớ sau **1 ngày (24 giờ)** kể từ lúc xóa.</p>
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Bài tập</th>
+                                <th>Thời gian xóa</th>
+                                <th>Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tutorHwTrashTableBody">
+                            <!-- Rendered in JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button onclick="closeTutorHwTrashModal()" class="modal-btn modal-btn-secondary" style="width: 100%;">Đóng</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 9. Modal Chỉnh Sửa Bài Tập Đã Giao (Edit Assigned Homework Modal) -->
+    <div id="editAssignedHwModal" class="modal-overlay" style="z-index: 1002;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-pen-to-square"></i> Chỉnh sửa bài tập đã giao</h3>
+                <button onclick="closeEditAssignedHwModal()" class="modal-close">&times;</button>
+            </div>
+            <div class="modal-form-group">
+                <label>Tên bài tập *</label>
+                <input type="text" id="editAssignHwTitle" placeholder="Ví dụ: Đề cương Toán tuần 1">
+            </div>
+            <div class="modal-form-group">
+                <label>Ngày phát hành *</label>
+                <input type="text" id="editAssignHwReleaseDate" placeholder="dd/mm/yyyy">
+            </div>
+            <div class="modal-form-group" style="margin-top: 10px;">
+                <label>Chọn file bài tập mới (Nếu muốn thay thế file cũ)</label>
+                <div class="upload-area" id="tutorEditHwUploadArea" onclick="document.getElementById('tutorEditHwFileInput').click()" style="padding: 20px; border-style: dashed; background: rgba(4, 2, 10, 0.6); border: 2px dashed rgba(142, 77, 255, 0.4); border-radius: 12px; text-align: center; cursor: pointer; transition: all 0.3s;">
+                    <i class="fa-solid fa-file-arrow-up" style="font-size: 24px; color: #8E4DFF; margin-bottom: 6px;"></i>
+                    <div id="tutorEditHwUploadText" style="font-size: 12px; color: #E2D1FF;">Kéo thả hoặc click chọn file bài tập từ máy...</div>
+                    <input type="file" id="tutorEditHwFileInput" style="display: none;" onchange="handleTutorEditHwFileSelect(event)">
+                </div>
+                <!-- Selected File Badge -->
+                <div id="tutorEditSelectedFileBox" style="display: none; justify-content: space-between; align-items: center; background: rgba(142, 77, 255, 0.15); padding: 8px 12px; border-radius: 8px; margin-top: 10px; font-size: 12px;">
+                    <span id="tutorEditSelectedFileName" style="color: #FFF; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 80%;"></span>
+                    <button onclick="clearTutorEditSelectedFile()" style="background:none; border:none; color:#FF4D4D; cursor:pointer;"><i class="fa-solid fa-times"></i> Hủy</button>
+                </div>
+            </div>
+            <!-- Progress Bar -->
+            <div class="progress-container" id="tutorEditHwProgressContainer" style="width: 100%; background: rgba(255,255,255,0.05); border-radius: 10px; height: 8px; margin-top: 15px; overflow: hidden; display: none;">
+                <div class="progress-bar" id="tutorEditHwProgressBar" style="height: 100%; background: linear-gradient(90deg, #8E4DFF, #3399FF); width: 0%; transition: width 0.1s linear;"></div>
+            </div>
+            <div id="tutorEditHwProgressText" style="font-size: 11px; color:#3399FF; text-align:right; display:none; font-weight:bold; margin-top:4px;">0%</div>
+
+            <div class="modal-footer">
+                <button onclick="closeEditAssignedHwModal()" class="modal-btn modal-btn-secondary">Hủy</button>
+                <button onclick="submitEditAssignedHomework()" class="modal-btn modal-btn-primary" id="btnSubmitEditAssignedHw">Cập nhật</button>
             </div>
         </div>
     </div>

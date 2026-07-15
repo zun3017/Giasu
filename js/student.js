@@ -394,13 +394,25 @@ var currentStudentName = "";
 
         // ================= TUTOR LOGIC =================
         
+        function isSinglePageApp() {
+            return (document.getElementById('tutorDashboardBox') !== null);
+        }
+
         function quayLai() {
             if (currentChartInstance) {
                 currentChartInstance.destroy();
                 currentChartInstance = null;
             }
             sessionStorage.clear();
-            window.location.href = 'student-login.html';
+            if (isSinglePageApp()) {
+                var resBox = document.getElementById('resultBox');
+                if (resBox) resBox.style.display = 'none';
+                var mainScr = document.getElementById('mainScreen');
+                if (mainScr) mainScr.style.display = 'flex';
+                navigateToPage('student');
+            } else {
+                window.location.href = 'student-login.html';
+            }
         }
 
         // --- Student Dashboard UI Helpers ---

@@ -234,18 +234,21 @@ function getTutorDashboardData(tutorPhone, gsRow, ss) {
       var sdtPhuTrach = (dataHS[i].length > 6) ? String(dataHS[i][6]).trim() : "";
       if (normalizePhone(sdtPhuTrach) === normTutorPhone) {
         var xoaDate = (dataHS[i].length > 8) ? String(dataHS[i][8]).trim() : "";
+        var maHw = (dataHS[i].length > 7) ? String(dataHS[i][7]).trim().toUpperCase() : "";
         if (!xoaDate) {
           tutorData.students.push({
             phone: dataHS[i][3],
             name: dataHS[i][2],
-            tuition: dataHS[i][5]
+            tuition: dataHS[i][5],
+            maBaiTap: maHw
           });
         } else {
           tutorData.deletedStudents.push({
             phone: dataHS[i][3],
             name: dataHS[i][2],
             tuition: dataHS[i][5],
-            deletedDate: xoaDate
+            deletedDate: xoaDate,
+            maBaiTap: maHw
           });
         }
       }
@@ -388,7 +391,7 @@ function guiPhanHoi(maHS, tenHocSinh, noiDung) {
 }
 
 // Thêm học sinh mới kèm tự động cấp phát 15 dòng
-function themHocSinhMoi(tutorPhone, phuHuynhName, studentName, studentPhone, tuition) {
+function themHocSinhMoi(tutorPhone, phuHuynhName, studentName, studentPhone, tuition, maBaiTap) {
   try {
     var ss = SpreadsheetApp.getActiveSpreadsheet();
     var sheetHS = ss.getSheetByName('Mã học sinh');
@@ -402,6 +405,16 @@ function themHocSinhMoi(tutorPhone, phuHuynhName, studentName, studentPhone, tui
       }
     }
     
+    // Kiểm tra trùng Mã bài tập (nếu có nhập)
+    var cleanMa = String(maBaiTap || "").trim().toUpperCase();
+    if (cleanMa !== "") {
+      for (var i = 1; i < dataHS.length; i++) {
+        if (dataHS[i].length > 7 && String(dataHS[i][7]).trim().toUpperCase() === cleanMa) {
+          return { error: "Mã bài tập '" + cleanMa + "' này đã được cấp cho học sinh khác." };
+        }
+      }
+    }
+    
     // Tính STT tiếp theo
     var nextStt = 1;
     if (dataHS.length > 1) {
@@ -410,9 +423,9 @@ function themHocSinhMoi(tutorPhone, phuHuynhName, studentName, studentPhone, tui
     }
     
     // Ghi vào sheet Mã học sinh
-    sheetHS.appendRow([nextStt, phuHuynhName, studentName, "'" + studentPhone, "", tuition, "'" + tutorPhone]);
+    sheetHS.appendRow([nextStt, phuHuynhName, studentName, "'" + studentPhone, "", tuition, "'" + tutorPhone, "'" + cleanMa]);
     var lastRowHS = sheetHS.getLastRow();
-    sheetHS.getRange(lastRowHS, 1, 1, 7).setFontFamily("Arial");
+    sheetHS.getRange(lastRowHS, 1, 1, 8).setFontFamily("Arial");
     
     // Phân bổ 15 dòng trống bên sheet Bảng đánh giá học tập
     var sheetDG = ss.getSheetByName('Bảng đánh giá học tập ');
@@ -436,7 +449,7 @@ function themHocSinhMoi(tutorPhone, phuHuynhName, studentName, studentPhone, tui
 }
 
 // Sửa thông tin học sinh
-function suaThongTinHocSinh(oldPhone, phuHuynhName, studentName, studentPhone, tuition) {
+function suaThongTinHocSinh(oldPhone, phuHuynhName, studentName, studentPhone, tuition, maBaiTap) {
   try {
     var ss = SpreadsheetApp.getActiveSpreadsheet();
     var sheetHS = ss.getSheetByName('Mã học sinh');
@@ -465,16 +478,29 @@ function suaThongTinHocSinh(oldPhone, phuHuynhName, studentName, studentPhone, t
       }
     }
     
+    // Kiểm tra trùng Mã bài tập (nếu có nhập)
+    var cleanMa = String(maBaiTap || "").trim().toUpperCase();
+    if (cleanMa !== "") {
+      for (var i = 1; i < dataHS.length; i++) {
+        if (normalizePhone(dataHS[i][3]) !== normOldPhone && dataHS[i].length > 7 && String(dataHS[i][7]).trim().toUpperCase() === cleanMa) {
+          return { error: "Mã bài tập '" + cleanMa + "' này đã được cấp cho học sinh khác." };
+        }
+      }
+    }
+    
     // Cập nhật sheet Mã học sinh
     sheetHS.getRange(rowIndex, 2).setValue(phuHuynhName).setFontFamily("Arial");
     sheetHS.getRange(rowIndex, 3).setValue(studentName).setFontFamily("Arial");
     sheetHS.getRange(rowIndex, 4).setValue("'" + studentPhone).setFontFamily("Arial");
     sheetHS.getRange(rowIndex, 6).setValue(tuition).setFontFamily("Arial");
+    sheetHS.getRange(rowIndex, 8).setValue("'" + cleanMa).setFontFamily("Arial"); // Lưu Mã bài tập
     
-    // Nếu SĐT hoặc Tên học sinh thay đổi, đồng bộ hóa sang các bảng khác
+    // Nếu SĐT hoặc Tên học sinh hoặc Mã bài tập thay đổi, đồng bộ hóa sang các bảng khác
     var oldName = dataHS[rowIndex-1][2];
+    var oldMaHw = (dataHS[rowIndex-1].length > 7) ? String(dataHS[rowIndex-1][7]).trim().toUpperCase() : "";
     var isNameChanged = (oldName !== studentName);
     var isPhoneChanged = (normOldPhone !== normStudentPhone);
+    var isMaHwChanged = (oldMaHw !== cleanMa);
     
     if (isPhoneChanged || isNameChanged) {
       // 1. Đồng bộ sang Bảng đánh giá học tập
@@ -517,6 +543,19 @@ function suaThongTinHocSinh(oldPhone, phuHuynhName, studentName, studentPhone, t
             if (String(dataLH[m][1]).trim() === String(oldName).trim()) {
               sheetLH.getRange(m + 1, 2).setValue(studentName).setFontFamily("Arial");
             }
+          }
+        }
+      }
+    }
+    
+    // Đồng bộ Mã bài tập mới sang sheet 'Bài tập' (nếu có đổi mã)
+    if (isMaHwChanged && oldMaHw !== "") {
+      var sheetHW = ss.getSheetByName('Bài tập');
+      if (sheetHW) {
+        var dataHW = sheetHW.getDataRange().getValues();
+        for (var n = 1; n < dataHW.length; n++) {
+          if (dataHW[n].length > 4 && String(dataHW[n][4]).trim().toUpperCase() === oldMaHw) {
+            sheetHW.getRange(n + 1, 5).setValue("'" + cleanMa).setFontFamily("Arial");
           }
         }
       }
@@ -1804,6 +1843,313 @@ function restoreHomeworkFile(rowIndex) {
     writeTrashLog(ss, "Bài tập", "Khôi phục bài tập", data[r - 1]);
     
     return { success: true };
+  } catch (e) {
+    return { error: "Lỗi hệ thống: " + e.toString() };
+  }
+}
+
+// ================= GIA SƯ GIAO BÀI TẬP =================
+
+// Khởi tạo sheet Bài tập giao
+function initAssignedHwSheet(ss) {
+  if (!ss) ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName('Bài tập giao');
+  if (!sheet) {
+    sheet = ss.insertSheet('Bài tập giao');
+  }
+  if (sheet.getLastRow() === 0 || sheet.getRange(1, 1).getValue() === "") {
+    sheet.appendRow([
+      "Thời gian giao",
+      "Tên học sinh",
+      "Tên bài tập",
+      "Ngày phát hành",
+      "Link file bài tập",
+      "Mã bài tập",
+      "Trạng thái",
+      "Thời gian xóa",
+      "Gia sư giao"
+    ]);
+    sheet.getRange("A1:I1").setFontWeight("bold").setBackground("#E2D1FF").setFontFamily("Arial");
+  }
+  return sheet;
+}
+
+// Trích xuất ID file từ URL
+function extractFileIdFromUrl(url) {
+  if (!url) return null;
+  var matches = url.match(/[-\w]{25,}/);
+  return matches ? matches[0] : null;
+}
+
+// Dọn dẹp thùng rác bài tập giao (Xóa quá 1 ngày = 24 giờ)
+function cleanTrashHw(sheet) {
+  var data = sheet.getDataRange().getValues();
+  var now = new Date().getTime();
+  var oneDayMs = 24 * 60 * 60 * 1000;
+  
+  // Duyệt ngược để xóa dòng an toàn
+  for (var i = data.length - 1; i >= 1; i--) {
+    var status = data[i][6]; // Cột G (Trạng thái)
+    var deletedTimeStr = data[i][7]; // Cột H (Thời gian xóa)
+    
+    if (status === "Deleted" && deletedTimeStr) {
+      var deletedTime = new Date(deletedTimeStr).getTime();
+      if (!isNaN(deletedTime) && (now - deletedTime) > oneDayMs) {
+        // 1. Xóa file trên Google Drive
+        var fileUrl = data[i][4]; // Cột E (Link file)
+        if (fileUrl) {
+          var fileId = extractFileIdFromUrl(fileUrl);
+          if (fileId) {
+            try {
+              DriveApp.getFileById(fileId).setTrashed(true);
+            } catch (e) {
+              Logger.log("Lỗi dọn dẹp Drive file bài tập giao: " + e.toString());
+            }
+          }
+        }
+        // 2. Xóa dòng trên Sheet
+        sheet.deleteRow(i + 1);
+      }
+    }
+  }
+}
+
+// Lưu file bài tập của Gia sư lên Drive
+function saveTutorFileToDrive(studentName, title, fileBase64, fileName, mimeType) {
+  var parentFolderId = "1-B1us7HYEGodr4Rb4ePRrQ25lm-0Sqq1";
+  var parentFolder;
+  var driveApp = DriveApp;
+  
+  try {
+    parentFolder = driveApp.getFolderById(parentFolderId);
+  } catch (err) {
+    throw new Error("Không thể truy cập thư mục Drive của Gia sư (ID: " + parentFolderId + "). Lỗi: " + err.toString() + ". Vui lòng cấp quyền chỉnh sửa.");
+  }
+  
+  // Tạo thư mục theo tên học sinh bên trong thư mục bài tập gia sư giao
+  var studentFolders = parentFolder.getFoldersByName(studentName);
+  var studentFolder;
+  if (studentFolders.hasNext()) {
+    studentFolder = studentFolders.next();
+  } else {
+    studentFolder = parentFolder.createFolder(studentName);
+  }
+  
+  var fileData = Utilities.base64Decode(fileBase64);
+  var ext = "";
+  var lastDot = fileName.lastIndexOf(".");
+  if (lastDot !== -1) {
+    ext = fileName.substring(lastDot);
+  }
+  
+  var now = new Date();
+  var dateStr = Utilities.formatDate(now, Session.getScriptTimeZone(), "dd-MM-yyyy");
+  var newFileName = "[Gia sư giao] " + studentName + " - " + title + " - " + dateStr + ext;
+  
+  var blob = Utilities.newBlob(fileData, mimeType, newFileName);
+  var file = studentFolder.createFile(blob);
+  
+  try {
+    file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+  } catch (e) {
+    Logger.log("Không thể chia sẻ file gia sư giao: " + e.toString());
+  }
+  
+  return file.getUrl();
+}
+
+// Gia sư lấy danh sách bài tập đã giao
+function getAssignedHomework(studentName, tutorPhone) {
+  try {
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var sheet = initAssignedHwSheet(ss);
+    
+    // Tự động dọn dẹp bài đã xóa quá 24h
+    cleanTrashHw(sheet);
+    
+    var data = sheet.getDataRange().getDisplayValues();
+    var activeList = [];
+    var trashList = [];
+    
+    var normTutorPhone = normalizePhone(tutorPhone);
+    
+    for (var i = 1; i < data.length; i++) {
+      var matchStudent = (String(data[i][1]).trim().toLowerCase() === String(studentName).trim().toLowerCase());
+      var matchTutor = (normalizePhone(data[i][8]) === normTutorPhone);
+      
+      if (matchStudent && matchTutor) {
+        var item = {
+          rowIndex: i + 1,
+          timestamp: data[i][0],
+          studentName: data[i][1],
+          title: data[i][2],
+          releaseDate: data[i][3],
+          fileUrl: data[i][4],
+          maBaiTap: data[i][5],
+          status: data[i][6],
+          deletedTime: data[i][7]
+        };
+        
+        if (item.status === "Active") {
+          activeList.push(item);
+        } else if (item.status === "Deleted") {
+          trashList.push(item);
+        }
+      }
+    }
+    
+    return { activeList: activeList, trashList: trashList };
+  } catch (e) {
+    return { error: "Lỗi hệ thống: " + e.toString() };
+  }
+}
+
+// Gia sư tải bài tập giao lên
+function uploadAssignedHomework(tutorPhone, studentName, title, releaseDate, fileBase64, fileName, mimeType, maBaiTap) {
+  try {
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var sheet = initAssignedHwSheet(ss);
+    
+    var fileUrl = "";
+    if (fileBase64 && fileName) {
+      fileUrl = saveTutorFileToDrive(studentName, title, fileBase64, fileName, mimeType);
+    }
+    
+    var now = new Date();
+    var dateString = Utilities.formatDate(now, Session.getScriptTimeZone(), "dd/MM/yyyy HH:mm:ss");
+    
+    if (!releaseDate) {
+      releaseDate = Utilities.formatDate(now, Session.getScriptTimeZone(), "dd/MM/yyyy");
+    }
+    
+    sheet.appendRow([
+      dateString,
+      studentName,
+      title,
+      releaseDate,
+      fileUrl,
+      maBaiTap.toUpperCase(),
+      "Active",
+      "",
+      "'" + tutorPhone
+    ]);
+    
+    var lastRow = sheet.getLastRow();
+    sheet.getRange(lastRow, 1, 1, 9).setFontFamily("Arial");
+    
+    return { success: true, rowIndex: lastRow, fileUrl: fileUrl };
+  } catch (e) {
+    return { error: "Lỗi hệ thống: " + e.toString() };
+  }
+}
+
+// Gia sư chỉnh sửa bài tập đã giao
+function editAssignedHomework(rowIndex, title, releaseDate, fileBase64, fileName, mimeType) {
+  try {
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var sheet = initAssignedHwSheet(ss);
+    var r = parseInt(rowIndex);
+    
+    var data = sheet.getDataRange().getDisplayValues();
+    if (isNaN(r) || r < 2 || r > data.length) {
+      return { error: "Vị trí dòng không hợp lệ." };
+    }
+    
+    var studentName = data[r - 1][1];
+    sheet.getRange(r, 3).setValue(title);
+    sheet.getRange(r, 4).setValue(releaseDate);
+    
+    var fileUrl = data[r - 1][4];
+    if (fileBase64 && fileName) {
+      fileUrl = saveTutorFileToDrive(studentName, title, fileBase64, fileName, mimeType);
+      sheet.getRange(r, 5).setValue(fileUrl);
+    }
+    
+    sheet.getRange(r, 7).setValue("Active");
+    sheet.getRange(r, 8).setValue("");
+    
+    return { success: true, fileUrl: fileUrl };
+  } catch (e) {
+    return { error: "Lỗi hệ thống: " + e.toString() };
+  }
+}
+
+// Gia sư xóa bài tập đã giao (Chuyển vào thùng rác)
+function deleteAssignedHomework(rowIndex) {
+  try {
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var sheet = initAssignedHwSheet(ss);
+    var r = parseInt(rowIndex);
+    
+    var data = sheet.getDataRange().getDisplayValues();
+    if (isNaN(r) || r < 2 || r > data.length) {
+      return { error: "Vị trí dòng không hợp lệ." };
+    }
+    
+    var now = new Date();
+    // Ghi nhận mốc thời gian xóa chuẩn ISO để tính toán quá hạn 24h
+    var dateString = Utilities.formatDate(now, Session.getScriptTimeZone(), "yyyy-MM-dd HH:mm:ss");
+    
+    sheet.getRange(r, 7).setValue("Deleted");
+    sheet.getRange(r, 8).setValue(dateString);
+    
+    return { success: true };
+  } catch (e) {
+    return { error: "Lỗi hệ thống: " + e.toString() };
+  }
+}
+
+// Gia sư khôi phục bài tập giao từ thùng rác
+function restoreAssignedHomework(rowIndex) {
+  try {
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var sheet = initAssignedHwSheet(ss);
+    var r = parseInt(rowIndex);
+    
+    var data = sheet.getDataRange().getDisplayValues();
+    if (isNaN(r) || r < 2 || r > data.length) {
+      return { error: "Vị trí dòng không hợp lệ." };
+    }
+    
+    sheet.getRange(r, 7).setValue("Active");
+    sheet.getRange(r, 8).setValue("");
+    
+    return { success: true };
+  } catch (e) {
+    return { error: "Lỗi hệ thống: " + e.toString() };
+  }
+}
+
+// Gia sư lấy danh sách bài nộp của học sinh
+function getStudentSubmissionsForTutor(maBaiTap) {
+  try {
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var sheetHW = initHomeworkSheet(ss);
+    var dataHW = sheetHW.getDataRange().getDisplayValues();
+    var submissions = [];
+    
+    var cleanMa = String(maBaiTap).trim().toUpperCase();
+    if (cleanMa === "") {
+      return { submissions: [] };
+    }
+    
+    for (var i = 1; i < dataHW.length; i++) {
+      if (dataHW[i].length > 4 && String(dataHW[i][4]).trim().toUpperCase() === cleanMa) {
+        var statusStr = (dataHW[i].length > 6) ? dataHW[i][6] : "Active";
+        if (statusStr === "Active") {
+          submissions.push({
+            timestamp: dataHW[i][0],
+            lessonName: dataHW[i][2],
+            fileUrl: dataHW[i][3]
+          });
+        }
+      }
+    }
+    
+    // Bài nộp mới nhất lên đầu
+    submissions.reverse();
+    
+    return { submissions: submissions };
   } catch (e) {
     return { error: "Lỗi hệ thống: " + e.toString() };
   }

@@ -691,11 +691,23 @@ var pinVerifyAction = "deleteStudent";
 
         // Các hàm phụ trợ hóa đơn của Gia sư đã được di chuyển sang đúng file js/tutor.js.
         
+        function isSinglePageApp() {
+            return (document.getElementById('tutorDashboardBox') !== null);
+        }
+
         function quayLai() {
             if (adminRevenueChartInstance) {
                 adminRevenueChartInstance.destroy();
                 adminRevenueChartInstance = null;
             }
             sessionStorage.clear();
-            window.location.href = 'tutor-login.html';
+            if (isSinglePageApp()) {
+                var adminDb = document.getElementById('adminDashboardBox');
+                if (adminDb) adminDb.style.display = 'none';
+                var mainScr = document.getElementById('mainScreen');
+                if (mainScr) mainScr.style.display = 'flex';
+                navigateToPage('tutor');
+            } else {
+                window.location.href = 'tutor-login.html';
+            }
         }

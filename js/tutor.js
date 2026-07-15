@@ -83,6 +83,20 @@ var pinVerifyAction = "deleteStudent";
             document.getElementById('selectedStudentNameHeader').innerText = currentTutorStudent.name;
             document.getElementById('invStudentName').innerText = currentTutorStudent.name;
             
+            // Mở sẵn trạng thái bài tập theo mặc định
+            var hwSec = document.getElementById('tutorHomeworkSection');
+            if (hwSec) {
+                hwSec.style.display = 'block';
+                hwSec.style.maxHeight = 'none';
+            }
+            
+            // Tải dữ liệu tab Giao bài tập
+            switchTutorHwTab('assign');
+            switchTutorHwSubTab('list');
+            
+            // Clear file upload selection
+            clearTutorSelectedFile();
+            
             // Reset trạng thái thu gọn hóa đơn
             document.getElementById('invoiceCollapseContainer').style.display = 'none';
             document.getElementById('btnToggleInvoice').innerHTML = '<i class="fa-solid fa-file-invoice-dollar"></i> Xuất Hóa Đơn (Phiếu Học Tập)';
@@ -331,13 +345,24 @@ var pinVerifyAction = "deleteStudent";
 
         // Các hàm giao diện của Học sinh đã được chuyển sang đúng file student.js.
 
+        function isSinglePageApp() {
+            return (document.getElementById('tutorDashboardBox') !== null);
+        }
+
         function quayLai() {
             if (tutorChartInstance) {
                 tutorChartInstance.destroy();
                 tutorChartInstance = null;
             }
             sessionStorage.clear();
-            window.location.href = 'tutor-login.html';
+            if (isSinglePageApp()) {
+                document.getElementById('tutorDashboardBox').style.display = 'none';
+                var mainScr = document.getElementById('mainScreen');
+                if (mainScr) mainScr.style.display = 'flex';
+                navigateToPage('tutor');
+            } else {
+                window.location.href = 'tutor-login.html';
+            }
         }
 
         // ================= TUTOR MODAL CONTROLLER FUNCTIONS =================
@@ -434,6 +459,7 @@ var pinVerifyAction = "deleteStudent";
             document.getElementById('addStudentName').value = "";
             document.getElementById('addStudentPhone').value = "";
             document.getElementById('addStudentTuition').value = "";
+            document.getElementById('addStudentMaBaiTap').value = "";
             document.getElementById('addStudentModal').style.display = "flex";
         }
         function closeAddStudentModal() {
@@ -444,8 +470,9 @@ var pinVerifyAction = "deleteStudent";
             var sName = document.getElementById('addStudentName').value.trim();
             var phone = document.getElementById('addStudentPhone').value.trim();
             var tuition = document.getElementById('addStudentTuition').value.trim();
+            var maBaiTap = document.getElementById('addStudentMaBaiTap').value.trim();
             
-            if(!pName || !sName || !phone || !tuition) {
+            if(!pName || !sName || !phone || !tuition || !maBaiTap) {
                 showToast("Vui lòng điền đầy đủ các thông tin!", "error");
                 return;
             }
@@ -460,7 +487,7 @@ var pinVerifyAction = "deleteStudent";
                         if(loginRes.role === 'tutor') renderTutorView(loginRes.data);
                     }).loginSystem(tutorDataGlobal.tutorPhone, document.getElementById('maPin').value.trim());
                 }
-            }).themHocSinhMoi(tutorDataGlobal.tutorPhone, pName, sName, phone, parseFloat(tuition));
+            }).themHocSinhMoi(tutorDataGlobal.tutorPhone, pName, sName, phone, parseFloat(tuition), maBaiTap);
         }
 
         // 3. Cửa sổ Sửa học sinh (Edit Student)
@@ -469,6 +496,7 @@ var pinVerifyAction = "deleteStudent";
             document.getElementById('editOldStudentPhone').value = currentTutorStudent.phone;
             document.getElementById('editStudentName').value = currentTutorStudent.name;
             document.getElementById('editStudentTuition').value = currentTutorStudent.tuition || "";
+            document.getElementById('editStudentMaBaiTap').value = currentTutorStudent.maBaiTap || "";
             
             document.getElementById('editParentName').value = ""; 
             document.getElementById('editParentName').placeholder = "Đang tải tên phụ huynh...";
@@ -489,8 +517,9 @@ var pinVerifyAction = "deleteStudent";
             var sName = document.getElementById('editStudentName').value.trim();
             var phone = document.getElementById('editStudentPhone').value.trim();
             var tuition = document.getElementById('editStudentTuition').value.trim();
+            var maBaiTap = document.getElementById('editStudentMaBaiTap').value.trim();
             
-            if(!pName || !sName || !phone || !tuition) {
+            if(!pName || !sName || !phone || !tuition || !maBaiTap) {
                 showToast("Vui lòng điền đầy đủ các thông tin!", "error");
                 return;
             }
@@ -513,7 +542,7 @@ var pinVerifyAction = "deleteStudent";
                         }
                     }).loginSystem(tutorDataGlobal.tutorPhone, document.getElementById('maPin').value.trim());
                 }
-            }).suaThongTinHocSinh(oldPhone, pName, sName, phone, parseFloat(tuition));
+            }).suaThongTinHocSinh(oldPhone, pName, sName, phone, parseFloat(tuition), maBaiTap);
         }
 
         // 4. Cửa sổ Thêm buổi học (Add Lesson) & Preview
@@ -1534,3 +1563,619 @@ var pinVerifyAction = "deleteStudent";
                 if(btn) btn.disabled = false;
             }
         };
+
+// ================= TUTOR HOMEWORK FRONTEND CONTROLLER =================
+
+var currentTutorHwFile = null;
+var assignedHwListGlobal = [];
+var assignedHwTrashGlobal = [];
+var studentSubmissionsGlobal = [];
+var isEditingAssignedHw = false;
+var editingAssignedHwRowIndex = null;
+var submissionsLimit = 3;
+
+// 1. Accordion Toggle Section Bài tập (Đã lược bỏ chế độ thu gọn theo yêu cầu)
+function toggleTutorHomeworkSection() {
+    // Không làm gì cả
+}
+
+// 2. Chuyển đổi Tab điều khiển
+function switchTutorHwTab(tabName) {
+    var tabAssignBtn = document.getElementById('tabAssignBtn');
+    var tabSubmitBtn = document.getElementById('tabSubmitBtn');
+    var tabContentAssign = document.getElementById('tabContentAssign');
+    var tabContentSubmit = document.getElementById('tabContentSubmit');
+    
+    if (tabName === 'assign') {
+        tabAssignBtn.classList.add('active');
+        tabSubmitBtn.classList.remove('active');
+        tabContentAssign.style.display = 'block';
+        tabContentSubmit.style.display = 'none';
+        
+        loadTutorAssignedHomework();
+    } else {
+        tabAssignBtn.classList.remove('active');
+        tabSubmitBtn.classList.add('active');
+        tabContentAssign.style.display = 'none';
+        tabContentSubmit.style.display = 'block';
+        
+        loadStudentSubmissions();
+    }
+}
+
+// 3. Form Giao bài tập
+function openAssignHwForm() {
+    isEditingAssignedHw = false;
+    editingAssignedHwRowIndex = null;
+    
+    document.getElementById('assignHwTitle').value = "";
+    var now = new Date();
+    document.getElementById('assignHwReleaseDate').value = formatDateDDMMYYYY(now);
+    clearTutorSelectedFile();
+    
+    document.getElementById('btnSubmitAssignedHw').innerHTML = "Giao bài";
+    document.getElementById('assignHwFormContainer').style.display = 'block';
+}
+
+function closeAssignHwForm() {
+    document.getElementById('assignHwFormContainer').style.display = 'none';
+}
+
+// 4. Chuyển đổi tab con (sub-tab) của Giao bài tập
+function switchTutorHwSubTab(subTab) {
+    var form = document.getElementById('assignHwFormContainer');
+    var list = document.getElementById('assignedHwListContainer');
+    var btnUpload = document.getElementById('btnShowUploadForm');
+    var btnViewList = document.getElementById('btnToggleViewAssignedHw');
+    
+    if (!form || !list || !btnUpload || !btnViewList) return;
+    
+    if (subTab === 'upload') {
+        form.style.display = 'block';
+        list.style.display = 'none';
+        
+        btnUpload.style.background = 'linear-gradient(135deg, #8E4DFF 0%, #5B21B6 100%)';
+        btnUpload.style.color = '#FFF';
+        
+        btnViewList.style.background = 'rgba(255, 255, 255, 0.05)';
+        btnViewList.style.color = '#A6ADCE';
+        btnViewList.style.border = '1px solid rgba(255, 255, 255, 0.1)';
+        
+        openAssignHwForm();
+    } else {
+        form.style.display = 'none';
+        list.style.display = 'block';
+        
+        btnUpload.style.background = 'rgba(255, 255, 255, 0.05)';
+        btnUpload.style.color = '#A6ADCE';
+        btnUpload.style.border = '1px solid rgba(255, 255, 255, 0.1)';
+        
+        btnViewList.style.background = 'linear-gradient(135deg, #8E4DFF 0%, #5B21B6 100%)';
+        btnViewList.style.color = '#FFF';
+        btnViewList.style.border = 'none';
+        
+        loadTutorAssignedHomework();
+    }
+}
+
+// 5. Chọn và Hủy file bài tập giao
+function handleTutorHwFileSelect(event) {
+    var files = event.target.files;
+    if (files.length === 0) return;
+    
+    var file = files[0];
+    // Giới hạn dung lượng 15MB
+    if (file.size > 15 * 1024 * 1024) {
+        showToast("Dung lượng file tối đa là 15MB!", "error");
+        return;
+    }
+    
+    currentTutorHwFile = file;
+    document.getElementById('tutorSelectedFileName').innerText = file.name + " (" + formatBytes(file.size) + ")";
+    document.getElementById('tutorSelectedFileBox').style.display = 'flex';
+    document.getElementById('tutorHwUploadText').innerText = "Đã chọn 1 file";
+}
+
+function clearTutorSelectedFile() {
+    currentTutorHwFile = null;
+    var fileInput = document.getElementById('tutorHwFileInput');
+    if (fileInput) fileInput.value = "";
+    
+    var fileBox = document.getElementById('tutorSelectedFileBox');
+    if (fileBox) fileBox.style.display = 'none';
+    
+    var uploadText = document.getElementById('tutorHwUploadText');
+    if (uploadText) uploadText.innerText = "Kéo thả hoặc click chọn file bài tập từ máy...";
+}
+
+// 6. Gửi bài tập giao (Tải lên hoặc Cập nhật)
+function submitAssignedHomework() {
+    if (!currentTutorStudent) {
+        showToast("Vui lòng chọn học sinh trước!", "error");
+        return;
+    }
+    
+    var title = document.getElementById('assignHwTitle').value.trim();
+    var releaseDate = document.getElementById('assignHwReleaseDate').value.trim();
+    var maBaiTap = currentTutorStudent.maBaiTap || "";
+    
+    if (!title) {
+        showToast("Vui lòng nhập Tên bài tập!", "error");
+        return;
+    }
+    
+    if (!maBaiTap) {
+        showToast("Học sinh này chưa có Mã bài tập! Vui lòng cập nhật thông tin học sinh trước.", "error");
+        return;
+    }
+    
+    // Nếu là giao bài mới (không sửa) thì bắt buộc chọn file
+    if (!isEditingAssignedHw && !currentTutorHwFile) {
+        showToast("Vui lòng chọn file bài tập giao!", "error");
+        return;
+    }
+    
+    var submitBtn = document.getElementById('btnSubmitAssignedHw');
+    submitBtn.disabled = true;
+    
+    // Hiển thị thanh tiến trình giả lập để nâng cao trải nghiệm người dùng
+    var progressContainer = document.getElementById('tutorHwProgressContainer');
+    var progressBar = document.getElementById('tutorHwProgressBar');
+    var progressText = document.getElementById('tutorHwProgressText');
+    
+    progressContainer.style.display = 'block';
+    progressText.style.display = 'block';
+    progressBar.style.width = '0%';
+    progressText.innerText = '0%';
+    
+    var progressInterval = setInterval(function() {
+        var currentW = parseFloat(progressBar.style.width) || 0;
+        if (currentW < 90) {
+            var nextW = currentW + Math.random() * 15;
+            if (nextW > 90) nextW = 90;
+            progressBar.style.width = nextW + '%';
+            progressText.innerText = Math.round(nextW) + '%';
+        }
+    }, 150);
+    
+    var proceedWithUpload = function(fileBase64, fileName, mimeType) {
+        if (isEditingAssignedHw) {
+            // Cập nhật bài cũ
+            google.script.run
+                .withSuccessHandler(function(res) {
+                    clearInterval(progressInterval);
+                    progressBar.style.width = '100%';
+                    progressText.innerText = '100%';
+                    
+                    setTimeout(function() {
+                        progressContainer.style.display = 'none';
+                        progressText.style.display = 'none';
+                        submitBtn.disabled = false;
+                        
+                        if (res.error) {
+                            showToast("Lỗi: " + res.error, "error");
+                        } else {
+                            showToast("Cập nhật bài tập thành công!", "success");
+                            closeAssignHwForm();
+                            loadTutorAssignedHomework();
+                        }
+                    }, 300);
+                })
+                .withFailureHandler(function(err) {
+                    clearInterval(progressInterval);
+                    progressContainer.style.display = 'none';
+                    progressText.style.display = 'none';
+                    submitBtn.disabled = false;
+                    showToast("Lỗi: " + err.toString(), "error");
+                })
+                .editAssignedHomework(editingAssignedHwRowIndex, title, releaseDate, fileBase64, fileName, mimeType);
+        } else {
+            // Tải bài mới lên
+            google.script.run
+                .withSuccessHandler(function(res) {
+                    clearInterval(progressInterval);
+                    progressBar.style.width = '100%';
+                    progressText.innerText = '100%';
+                    
+                    setTimeout(function() {
+                        progressContainer.style.display = 'none';
+                        progressText.style.display = 'none';
+                        submitBtn.disabled = false;
+                        
+                        if (res.error) {
+                            showToast("Lỗi: " + res.error, "error");
+                        } else {
+                            showToast("Giao bài tập thành công!", "success");
+                            switchTutorHwSubTab('list');
+                            loadTutorAssignedHomework();
+                        }
+                    }, 300);
+                })
+                .withFailureHandler(function(err) {
+                    clearInterval(progressInterval);
+                    progressContainer.style.display = 'none';
+                    progressText.style.display = 'none';
+                    submitBtn.disabled = false;
+                    showToast("Lỗi: " + err.toString(), "error");
+                })
+                .uploadAssignedHomework(tutorDataGlobal.tutorPhone, currentTutorStudent.name, title, releaseDate, fileBase64, fileName, mimeType, maBaiTap);
+        }
+    };
+    
+    if (currentTutorHwFile) {
+        var reader = new FileReader();
+        reader.onload = function(e) {
+            var content = e.target.result;
+            var commaIdx = content.indexOf(',');
+            var base64 = content.substring(commaIdx + 1);
+            proceedWithUpload(base64, currentTutorHwFile.name, currentTutorHwFile.type);
+        };
+        reader.onerror = function() {
+            clearInterval(progressInterval);
+            progressContainer.style.display = 'none';
+            progressText.style.display = 'none';
+            submitBtn.disabled = false;
+            showToast("Lỗi đọc file từ thiết bị!", "error");
+        };
+        reader.readAsDataURL(currentTutorHwFile);
+    } else {
+        proceedWithUpload("", "", "");
+    }
+}
+
+// 7. Lấy danh sách bài tập đã giao từ Sheet
+function loadTutorAssignedHomework() {
+    if (!currentTutorStudent) return;
+    
+    var tableBody = document.getElementById('assignedHwTableBody');
+    tableBody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:#A6ADCE; padding: 15px;"><i class="fa-solid fa-spinner fa-spin"></i> Đang tải dữ liệu...</td></tr>';
+    
+    google.script.run
+        .withSuccessHandler(function(res) {
+            if (res.error) {
+                showToast("Lỗi: " + res.error, "error");
+                tableBody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:#EF4444; padding: 15px;">Không thể tải dữ liệu!</td></tr>';
+                return;
+            }
+            
+            assignedHwListGlobal = res.activeList || [];
+            assignedHwTrashGlobal = res.trashList || [];
+            
+            renderAssignedHwList(assignedHwListGlobal);
+            renderTutorHwTrashList(assignedHwTrashGlobal);
+        })
+        .withFailureHandler(function(err) {
+            showToast("Lỗi kết nối: " + err.toString(), "error");
+            tableBody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:#EF4444; padding: 15px;">Không thể tải dữ liệu!</td></tr>';
+        })
+        .getAssignedHomework(currentTutorStudent.name, tutorDataGlobal.tutorPhone);
+}
+
+// 8. Render bảng danh sách bài tập hoạt động
+function renderAssignedHwList(list) {
+    var tableBody = document.getElementById('assignedHwTableBody');
+    if (!tableBody) return;
+    
+    if (list.length === 0) {
+        tableBody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:#A6ADCE; padding: 20px;"><i class="fa-solid fa-circle-info"></i> Chưa giao bài tập nào cho học sinh này!</td></tr>';
+        return;
+    }
+    
+    tableBody.innerHTML = "";
+    list.forEach(function(item) {
+        var fileLink = item.fileUrl ? '<a href="' + item.fileUrl + '" target="_blank" style="color:#8E4DFF; font-weight:600; text-decoration:none; display:inline-flex; align-items:center; gap:6px;"><i class="fa-solid fa-file-pdf"></i> Xem bài tập</a>' : '<span style="color:#A6ADCE;">Không có file</span>';
+        
+        var actionsHtml = 
+            '<div style="display:flex; gap:8px; justify-content:center; align-items:center;">' +
+                '<button onclick="startEditAssignedHw(' + item.rowIndex + ', \'' + item.title.replace(/'/g, "\\'") + '\', \'' + item.releaseDate + '\')" class="action-btn-hw-icon action-btn-hw-edit" title="Chỉnh sửa"><i class="fa-solid fa-pen-to-square"></i></button>' +
+                '<button onclick="deleteAssignedHomework(' + item.rowIndex + ')" class="action-btn-hw-icon action-btn-hw-delete" title="Xóa tạm thời"><i class="fa-solid fa-trash-can"></i></button>' +
+            '</div>';
+            
+        tableBody.innerHTML += 
+            '<tr>' +
+                '<td style="color:#A6ADCE;">' + item.releaseDate + '</td>' +
+                '<td style="color:#FFF; font-weight:500;">' + item.title + '</td>' +
+                '<td>' + fileLink + '</td>' +
+                '<td style="text-align: center; vertical-align: middle;">' + actionsHtml + '</td>' +
+            '</tr>';
+    });
+}
+
+// 9. Bắt đầu chỉnh sửa bài tập giao (Sử dụng Modal độc lập)
+var currentTutorEditHwFile = null;
+
+function startEditAssignedHw(rowIndex, title, releaseDate) {
+    editingAssignedHwRowIndex = rowIndex;
+    document.getElementById('editAssignHwTitle').value = title;
+    document.getElementById('editAssignHwReleaseDate').value = releaseDate;
+    clearTutorEditSelectedFile();
+    
+    document.getElementById('editAssignedHwModal').style.display = 'flex';
+}
+
+function closeEditAssignedHwModal() {
+    document.getElementById('editAssignedHwModal').style.display = 'none';
+}
+
+function handleTutorEditHwFileSelect(event) {
+    var files = event.target.files;
+    if (files.length === 0) return;
+    
+    var file = files[0];
+    if (file.size > 15 * 1024 * 1024) {
+        showToast("Dung lượng file tối đa là 15MB!", "error");
+        return;
+    }
+    
+    currentTutorEditHwFile = file;
+    document.getElementById('tutorEditSelectedFileName').innerText = file.name + " (" + formatBytes(file.size) + ")";
+    document.getElementById('tutorEditSelectedFileBox').style.display = 'flex';
+    document.getElementById('tutorEditHwUploadText').innerText = "Đã chọn 1 file mới";
+}
+
+function clearTutorEditSelectedFile() {
+    currentTutorEditHwFile = null;
+    var fileInput = document.getElementById('tutorEditHwFileInput');
+    if (fileInput) fileInput.value = "";
+    
+    var fileBox = document.getElementById('tutorEditSelectedFileBox');
+    if (fileBox) fileBox.style.display = 'none';
+    
+    var uploadText = document.getElementById('tutorEditHwUploadText');
+    if (uploadText) uploadText.innerText = "Kéo thả hoặc click chọn file bài tập từ máy...";
+}
+
+function submitEditAssignedHomework() {
+    var title = document.getElementById('editAssignHwTitle').value.trim();
+    var releaseDate = document.getElementById('editAssignHwReleaseDate').value.trim();
+    
+    if (!title) {
+        showToast("Vui lòng nhập Tên bài tập!", "error");
+        return;
+    }
+    
+    var submitBtn = document.getElementById('btnSubmitEditAssignedHw');
+    submitBtn.disabled = true;
+    
+    var progressContainer = document.getElementById('tutorEditHwProgressContainer');
+    var progressBar = document.getElementById('tutorEditHwProgressBar');
+    var progressText = document.getElementById('tutorEditHwProgressText');
+    
+    progressContainer.style.display = 'block';
+    progressText.style.display = 'block';
+    progressBar.style.width = '0%';
+    progressText.innerText = '0%';
+    
+    var progressInterval = setInterval(function() {
+        var currentW = parseFloat(progressBar.style.width) || 0;
+        if (currentW < 90) {
+            var nextW = currentW + Math.random() * 15;
+            if (nextW > 90) nextW = 90;
+            progressBar.style.width = nextW + '%';
+            progressText.innerText = Math.round(nextW) + '%';
+        }
+    }, 150);
+    
+    var proceedWithUpload = function(fileBase64, fileName, mimeType) {
+        google.script.run
+            .withSuccessHandler(function(res) {
+                clearInterval(progressInterval);
+                progressBar.style.width = '100%';
+                progressText.innerText = '100%';
+                
+                setTimeout(function() {
+                    progressContainer.style.display = 'none';
+                    progressText.style.display = 'none';
+                    submitBtn.disabled = false;
+                    
+                    if (res.error) {
+                        showToast("Lỗi: " + res.error, "error");
+                    } else {
+                        showToast("Cập nhật bài tập thành công!", "success");
+                        closeEditAssignedHwModal();
+                        loadTutorAssignedHomework();
+                    }
+                }, 300);
+            })
+            .withFailureHandler(function(err) {
+                clearInterval(progressInterval);
+                progressContainer.style.display = 'none';
+                progressText.style.display = 'none';
+                submitBtn.disabled = false;
+                showToast("Lỗi: " + err.toString(), "error");
+            })
+            .editAssignedHomework(editingAssignedHwRowIndex, title, releaseDate, fileBase64, fileName, mimeType);
+    };
+    
+    if (currentTutorEditHwFile) {
+        var reader = new FileReader();
+        reader.onload = function(e) {
+            var content = e.target.result;
+            var commaIdx = content.indexOf(',');
+            var base64 = content.substring(commaIdx + 1);
+            proceedWithUpload(base64, currentTutorEditHwFile.name, currentTutorEditHwFile.type);
+        };
+        reader.onerror = function() {
+            clearInterval(progressInterval);
+            progressContainer.style.display = 'none';
+            progressText.style.display = 'none';
+            submitBtn.disabled = false;
+            showToast("Lỗi đọc file từ thiết bị!", "error");
+        };
+        reader.readAsDataURL(currentTutorEditHwFile);
+    } else {
+        proceedWithUpload("", "", "");
+    }
+}
+
+// 10. Xóa bài tập giao (Đưa vào thùng rác)
+function deleteAssignedHomework(rowIndex) {
+    if (!confirm("Bạn có chắc chắn muốn xóa bài tập này? (Bài tập sẽ được lưu trong thùng rác 1 ngày để khôi phục)")) return;
+    
+    showToast("Đang xử lý...", "info");
+    google.script.run
+        .withSuccessHandler(function(res) {
+            if (res.error) {
+                showToast("Lỗi: " + res.error, "error");
+            } else {
+                showToast("Đã chuyển bài tập vào thùng rác!", "success");
+                loadTutorAssignedHomework();
+            }
+        })
+        .withFailureHandler(function(err) {
+            showToast("Lỗi kết nối: " + err.toString(), "error");
+        })
+        .deleteAssignedHomework(rowIndex);
+}
+
+// 11. Thùng rác bài tập giao Modals
+function openTutorHwTrashModal() {
+    document.getElementById('tutorHwTrashModal').style.display = 'flex';
+}
+
+function closeTutorHwTrashModal() {
+    document.getElementById('tutorHwTrashModal').style.display = 'none';
+}
+
+function renderTutorHwTrashList(list) {
+    var tableBody = document.getElementById('tutorHwTrashTableBody');
+    if (!tableBody) return;
+    
+    if (list.length === 0) {
+        tableBody.innerHTML = '<tr><td colspan="3" style="text-align:center; color:#A6ADCE; padding: 15px;">Thùng rác trống!</td></tr>';
+        return;
+    }
+    
+    tableBody.innerHTML = "";
+    list.forEach(function(item) {
+        var actionsHtml = 
+            '<button onclick="restoreAssignedHomework(' + item.rowIndex + ')" class="action-btn-hw" style="color:#10B981; border-color:rgba(16,185,129,0.3); background:rgba(16,185,129,0.1); padding: 4px 14px;"><i class="fa-solid fa-trash-arrow-up"></i> Khôi phục</button>';
+            
+        tableBody.innerHTML += 
+            '<tr>' +
+                '<td style="color:#FFF; font-weight:500;">' + item.title + '</td>' +
+                '<td style="color:#A6ADCE; font-size:12px;">' + item.deletedTime + '</td>' +
+                '<td>' + actionsHtml + '</td>' +
+            '</tr>';
+    });
+}
+
+function restoreAssignedHomework(rowIndex) {
+    showToast("Đang khôi phục...", "info");
+    google.script.run
+        .withSuccessHandler(function(res) {
+            if (res.error) {
+                showToast("Lỗi: " + res.error, "error");
+            } else {
+                showToast("Khôi phục bài tập thành công!", "success");
+                loadTutorAssignedHomework();
+            }
+        })
+        .withFailureHandler(function(err) {
+            showToast("Lỗi: " + err.toString(), "error");
+        })
+        .restoreAssignedHomework(rowIndex);
+}
+
+// 12. Tải bài nộp của học sinh (Tab Submit)
+function loadStudentSubmissions() {
+    if (!currentTutorStudent) return;
+    
+    var tableBody = document.getElementById('studentSubmissionsTableBody');
+    tableBody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:#A6ADCE; padding: 15px;"><i class="fa-solid fa-spinner fa-spin"></i> Đang tải danh sách bài nộp...</td></tr>';
+    document.getElementById('submissionViewMoreBtnContainer').style.display = 'none';
+    
+    var ma = currentTutorStudent.maBaiTap || "";
+    if (ma === "") {
+        tableBody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:#A6ADCE; padding: 15px;">Học sinh chưa có Mã bài tập nên không thể kiểm tra bài nộp!</td></tr>';
+        return;
+    }
+    
+    google.script.run
+        .withSuccessHandler(function(res) {
+            if (res.error) {
+                showToast("Lỗi: " + res.error, "error");
+                tableBody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:#EF4444; padding: 15px;">Lỗi tải dữ liệu!</td></tr>';
+                return;
+            }
+            
+            studentSubmissionsGlobal = res.submissions || [];
+            submissionsLimit = 3; // Reset limit về 3
+            renderStudentSubmissionsList();
+        })
+        .withFailureHandler(function(err) {
+            showToast("Lỗi: " + err.toString(), "error");
+            tableBody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:#EF4444; padding: 15px;">Lỗi kết nối server!</td></tr>';
+        })
+        .getStudentSubmissionsForTutor(ma);
+}
+
+// 13. Render bảng bài nộp học sinh với phân trang hiển thị
+function renderStudentSubmissionsList() {
+    var tableBody = document.getElementById('studentSubmissionsTableBody');
+    if (!tableBody) return;
+    
+    if (studentSubmissionsGlobal.length === 0) {
+        tableBody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:#A6ADCE; padding: 20px;"><i class="fa-solid fa-circle-info"></i> Học sinh này chưa nộp bài tập nào!</td></tr>';
+        return;
+    }
+    
+    tableBody.innerHTML = "";
+    // Cắt mảng hiển thị theo giới hạn
+    var showList = studentSubmissionsGlobal.slice(0, submissionsLimit);
+    
+    showList.forEach(function(item) {
+        var fileLink = item.fileUrl ? '<a href="' + item.fileUrl + '" target="_blank" style="color:#FFD23F; font-weight:600; text-decoration:none;"><i class="fa-solid fa-image"></i> Xem file nộp</a>' : '<span style="color:#A6ADCE;">Không có file</span>';
+        var downloadBtn = item.fileUrl ? '<a href="' + getGoogleDriveDownloadUrl(item.fileUrl) + '" target="_blank" download class="action-btn-hw" style="color:#10B981; border-color:rgba(16,185,129,0.3); background:rgba(16,185,129,0.1); padding: 4px 14px; text-decoration: none;"><i class="fa-solid fa-cloud-arrow-down"></i> Tải về</a>' : '<span style="color:#A6ADCE;">N/A</span>';
+        
+        tableBody.innerHTML += 
+            '<tr>' +
+                '<td style="color:#A6ADCE;">' + item.timestamp + '</td>' +
+                '<td style="color:#FFF; font-weight:500;">' + item.lessonName + '</td>' +
+                '<td>' + fileLink + '</td>' +
+                '<td>' + downloadBtn + '</td>' +
+            '</tr>';
+    });
+    
+    // Hiển thị nút "Xem thêm" nếu còn bài nộp chưa hiển thị
+    var viewMoreContainer = document.getElementById('submissionViewMoreBtnContainer');
+    if (studentSubmissionsGlobal.length > submissionsLimit) {
+        viewMoreContainer.style.display = 'block';
+    } else {
+        viewMoreContainer.style.display = 'none';
+    }
+}
+
+// 14. Bấm nút Xem thêm để mở rộng toàn bộ lịch sử bài nộp
+function loadMoreStudentSubmissions() {
+    submissionsLimit = studentSubmissionsGlobal.length;
+    renderStudentSubmissionsList();
+}
+
+// Helper: Định dạng byte
+function formatBytes(bytes, decimals = 2) {
+    if (bytes === 0) return '0 Bytes';
+    var k = 1024;
+    var dm = decimals < 0 ? 0 : decimals;
+    var sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    var i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+}
+
+// Helper: Định dạng ngày dd/mm/yyyy
+function formatDateDDMMYYYY(date) {
+    var d = date.getDate();
+    var m = date.getMonth() + 1;
+    var y = date.getFullYear();
+    return (d < 10 ? '0' + d : d) + '/' + (m < 10 ? '0' + m : m) + '/' + y;
+}
+
+// Helper: Chuyển đổi link xem Drive thành link tải trực tiếp
+function getGoogleDriveDownloadUrl(url) {
+    if (!url) return "";
+    var matches = url.match(/[-\w]{25,}/);
+    if (matches && matches[0]) {
+        return "https://drive.google.com/uc?export=download&id=" + matches[0];
+    }
+    return url;
+}

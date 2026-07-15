@@ -92,6 +92,10 @@
             }).loginSystem(phone, pin);
         }
 
+        function isSinglePageApp() {
+            return (document.getElementById('tutorDashboardBox') !== null);
+        }
+
         function hienThiKetQua(ketQua, role, phone, pin) {
             var loadingStudent = document.getElementById('loadingText');
             var loadingTutor = document.getElementById('tutorLoadingText');
@@ -122,19 +126,64 @@
                 sessionStorage.setItem('userPhone', phone);
                 sessionStorage.setItem('userPin', '');
                 sessionStorage.setItem('dashboardData', JSON.stringify(ketQua.data));
-                window.location.href = 'student-dashboard.html';
+                if (isSinglePageApp()) {
+                    var mainScr = document.getElementById('mainScreen');
+                    if (mainScr) mainScr.style.display = 'none';
+                    var resultBx = document.getElementById('resultBox');
+                    if (resultBx) resultBx.style.display = 'block';
+                    
+                    // Hide other potential dashboard containers
+                    var tutorDb = document.getElementById('tutorDashboardBox');
+                    if (tutorDb) tutorDb.style.display = 'none';
+                    var adminDb = document.getElementById('adminDashboardBox');
+                    if (adminDb) adminDb.style.display = 'none';
+                    
+                    renderStudentView(ketQua.data);
+                } else {
+                    window.location.href = 'student-dashboard.html';
+                }
             } else if (ketQua.role === 'tutor') {
                 sessionStorage.setItem('userRole', 'tutor');
                 sessionStorage.setItem('userPhone', phone);
                 sessionStorage.setItem('userPin', pin);
                 sessionStorage.setItem('dashboardData', JSON.stringify(ketQua.data));
-                window.location.href = 'tutor-dashboard.html';
+                if (isSinglePageApp()) {
+                    var mainScr = document.getElementById('mainScreen');
+                    if (mainScr) mainScr.style.display = 'none';
+                    var tutorDb = document.getElementById('tutorDashboardBox');
+                    if (tutorDb) tutorDb.style.display = 'block';
+                    
+                    // Hide other potential dashboard containers
+                    var resultBx = document.getElementById('resultBox');
+                    if (resultBx) resultBx.style.display = 'none';
+                    var adminDb = document.getElementById('adminDashboardBox');
+                    if (adminDb) adminDb.style.display = 'none';
+                    
+                    renderTutorView(ketQua.data);
+                } else {
+                    window.location.href = 'tutor-dashboard.html';
+                }
             } else if (ketQua.role === 'admin') {
                 sessionStorage.setItem('userRole', 'admin');
                 sessionStorage.setItem('userPhone', phone);
                 sessionStorage.setItem('userPin', pin);
                 sessionStorage.setItem('dashboardData', JSON.stringify(ketQua.data));
-                window.location.href = 'admin-dashboard.html';
+                if (isSinglePageApp()) {
+                    var mainScr = document.getElementById('mainScreen');
+                    if (mainScr) mainScr.style.display = 'none';
+                    var adminDb = document.getElementById('adminDashboardBox');
+                    if (adminDb) adminDb.style.display = 'block';
+                    
+                    // Hide other potential dashboard containers
+                    var resultBx = document.getElementById('resultBox');
+                    if (resultBx) resultBx.style.display = 'none';
+                    var tutorDb = document.getElementById('tutorDashboardBox');
+                    if (tutorDb) tutorDb.style.display = 'none';
+                    
+                    renderAdminView(ketQua.data);
+                } else {
+                    window.location.href = 'admin-dashboard.html';
+                }
             }
         }
         

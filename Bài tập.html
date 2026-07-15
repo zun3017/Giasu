@@ -638,7 +638,7 @@
                                     <th>Tên bài học</th>
                                     <th>Link file đã nộp</th>
                                     <th>Trạng thái</th>
-                                    <th>Thao tác</th>
+                                    <th style="text-align: center;">Thao tác</th>
                                 </tr>
                             </thead>
                             <tbody id="homeworkListBody">
@@ -653,6 +653,138 @@
 
     <script src="js/api.js"></script>
     <script>
+        // --- Web App Notification and Confirmation Dialogs ---
+        function showToast(message, type = 'info') {
+            var container = document.getElementById('toastContainer');
+            if (!container) {
+                container = document.createElement('div');
+                container.id = 'toastContainer';
+                container.style.position = 'fixed';
+                container.style.top = '20px';
+                container.style.right = '20px';
+                container.style.zIndex = '9999';
+                container.style.display = 'flex';
+                container.style.flexDirection = 'column';
+                container.style.gap = '10px';
+                container.style.pointerEvents = 'none';
+                document.body.appendChild(container);
+            }
+            
+            var toast = document.createElement('div');
+            toast.style.padding = '14px 24px';
+            toast.style.borderRadius = '12px';
+            toast.style.color = '#FFF';
+            toast.style.fontSize = '14px';
+            toast.style.fontWeight = '600';
+            toast.style.boxShadow = '0 10px 30px rgba(0,0,0,0.3)';
+            toast.style.pointerEvents = 'auto';
+            toast.style.fontFamily = "'Inter', sans-serif";
+            toast.style.display = 'flex';
+            toast.style.alignItems = 'center';
+            toast.style.gap = '10px';
+            toast.style.borderWidth = '1px';
+            toast.style.borderStyle = 'solid';
+            toast.style.transition = 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
+            toast.style.transform = 'translateX(120%)';
+            toast.style.opacity = '0';
+            
+            if (type === 'success') {
+                toast.style.background = 'linear-gradient(135deg, #00CC66, #00994D)';
+                toast.style.borderColor = 'rgba(0,255,136,0.3)';
+                toast.innerHTML = '<i class="fa-solid fa-circle-check" style="font-size: 16px;"></i> ' + message;
+            } else if (type === 'error') {
+                toast.style.background = 'linear-gradient(135deg, #FF4D4D, #CC0000)';
+                toast.style.borderColor = 'rgba(255,128,128,0.3)';
+                toast.innerHTML = '<i class="fa-solid fa-circle-xmark" style="font-size: 16px;"></i> ' + message;
+            } else {
+                toast.style.background = 'linear-gradient(135deg, #8E4DFF, #5B21B6)';
+                toast.style.borderColor = 'rgba(168,112,255,0.3)';
+                toast.innerHTML = '<i class="fa-solid fa-circle-info" style="font-size: 16px;"></i> ' + message;
+            }
+            
+            container.appendChild(toast);
+            toast.offsetHeight; // force reflow
+            
+            toast.style.transform = 'translateX(0)';
+            toast.style.opacity = '1';
+            
+            setTimeout(function() {
+                toast.style.transform = 'translateX(120%)';
+                toast.style.opacity = '0';
+                setTimeout(function() {
+                    toast.remove();
+                }, 300);
+            }, 3000);
+        }
+
+        function showCustomConfirm(message, callback) {
+            var modal = document.createElement('div');
+            modal.style.position = 'fixed';
+            modal.style.top = '0';
+            modal.style.left = '0';
+            modal.style.width = '100vw';
+            modal.style.height = '100vh';
+            modal.style.background = 'rgba(3, 8, 29, 0.8)';
+            modal.style.backdropFilter = 'blur(8px)';
+            modal.style.webkitBackdropFilter = 'blur(8px)';
+            modal.style.zIndex = '99999';
+            modal.style.display = 'flex';
+            modal.style.alignItems = 'center';
+            modal.style.justifyContent = 'center';
+            modal.style.fontFamily = "'Inter', sans-serif";
+            
+            var box = document.createElement('div');
+            box.style.background = 'rgba(11, 8, 38, 0.95)';
+            box.style.border = '1px solid rgba(142, 77, 255, 0.3)';
+            box.style.borderRadius = '16px';
+            box.style.padding = '30px';
+            box.style.maxWidth = '400px';
+            box.style.width = '90%';
+            box.style.textAlign = 'center';
+            box.style.boxShadow = '0 20px 50px rgba(0,0,0,0.5)';
+            box.style.transform = 'scale(0.8)';
+            box.style.opacity = '0';
+            box.style.transition = 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
+            
+            box.innerHTML = 
+                '<div style="font-size: 44px; color: #FFD23F; margin-bottom: 15px;"><i class="fa-solid fa-circle-question"></i></div>' +
+                '<h4 style="color: #FFF; margin: 0 0 10px; font-size: 18px; font-weight: 700;">Xác nhận</h4>' +
+                '<p style="color: #A6ADCE; font-size: 14px; margin: 0 0 24px; line-height: 1.5; text-align: center;">' + message + '</p>' +
+                '<div style="display: flex; gap: 12px; justify-content: center;">' +
+                    '<button id="confirmCancelBtn" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #A6ADCE; padding: 10px 24px; border-radius: 20px; font-size: 13px; font-weight:600; cursor: pointer; transition: all 0.3s; outline: none; border-style: solid;">Hủy</button>' +
+                    '<button id="confirmOkBtn" style="background: linear-gradient(135deg, #8E4DFF 0%, #5B21B6 100%); border: none; color: #FFF; padding: 10px 24px; border-radius: 20px; font-size: 13px; font-weight:600; cursor: pointer; transition: all 0.3s; box-shadow: 0 4px 10px rgba(142, 77, 255, 0.2); outline: none;">Đồng ý</button>' +
+                '</div>';
+                
+            modal.appendChild(box);
+            document.body.appendChild(modal);
+            box.offsetHeight; // force reflow
+            
+            box.style.transform = 'scale(1)';
+            box.style.opacity = '1';
+            
+            var cancelBtn = box.querySelector('#confirmCancelBtn');
+            var okBtn = box.querySelector('#confirmOkBtn');
+            
+            cancelBtn.onmouseenter = () => cancelBtn.style.background = 'rgba(255,255,255,0.1)';
+            cancelBtn.onmouseleave = () => cancelBtn.style.background = 'rgba(255,255,255,0.05)';
+            okBtn.onmouseenter = () => okBtn.style.transform = 'translateY(-2px)';
+            okBtn.onmouseleave = () => okBtn.style.transform = 'translateY(0)';
+            
+            var closeConfirm = function(result) {
+                box.style.transform = 'scale(0.8)';
+                box.style.opacity = '0';
+                modal.style.opacity = '0';
+                modal.style.transition = 'opacity 0.3s ease';
+                setTimeout(function() {
+                    modal.remove();
+                    if (result && callback) callback();
+                }, 300);
+            };
+            
+            cancelBtn.onclick = () => closeConfirm(false);
+            okBtn.onclick = () => closeConfirm(true);
+        }
+
         var currentHW = null; // Lưu trữ phiên đăng nhập bài tập
         var selectedFileData = null; // Dữ liệu tệp được chọn để nộp
         var editingRowIndex = null; // Số dòng đang chỉnh sửa
@@ -754,16 +886,18 @@
                     var isRowLocked = !isToday;
 
                     // Cột Thao tác
-                    rowHtml += "<td>";
+                    rowHtml += "<td style='text-align: center; vertical-align: middle;'>";
                     if (isRowLocked) {
                         rowHtml += '<span class="lock-badge"><i class="fa-solid fa-lock"></i> Khóa sửa/xóa</span>';
                     } else {
                         if (statusStr === "Deleted") {
-                            rowHtml += "<button onclick='restoreHomework(" + item.rowIndex + ")' class='action-btn-hw' style='color:#10B981; border-color:#10B981; cursor:pointer;'><i class='fa-solid fa-trash-arrow-up'></i> Khôi phục</button>";
+                            rowHtml += "<div style='display:inline-flex; justify-content:center; align-items:center;'><button onclick='restoreHomework(" + item.rowIndex + ")' class='action-btn-hw' style='color:#10B981; border-color:#10B981; cursor:pointer;'><i class='fa-solid fa-trash-arrow-up'></i> Khôi phục</button></div>";
                         } else {
                             var escapeLessonName = item.lessonName.replace(/'/g, "\\'");
-                            rowHtml += "<button onclick=\"editHomework(" + item.rowIndex + ", '" + escapeLessonName + "')\" class='action-btn-hw' style='margin-right:8px; cursor:pointer;'><i class='fa-solid fa-pen'></i> Sửa</button>";
+                            rowHtml += "<div style='display:inline-flex; justify-content:center; align-items:center; gap:8px;'>";
+                            rowHtml += "<button onclick=\"editHomework(" + item.rowIndex + ", '" + escapeLessonName + "')\" class='action-btn-hw' style='cursor:pointer;'><i class='fa-solid fa-pen'></i> Sửa</button>";
                             rowHtml += "<button onclick='deleteHomework(" + item.rowIndex + ")' class='action-btn-hw btn-delete' style='cursor:pointer;'><i class='fa-solid fa-trash-can'></i> Xóa</button>";
+                            rowHtml += "</div>";
                         }
                     }
                     rowHtml += "</td>";
@@ -812,13 +946,13 @@
             var lessonName = document.getElementById('hwLessonInput').value.trim();
             
             if (lessonName === "") {
-                alert("Vui lòng nhập tên bài học trước khi nộp!");
+                showToast("Vui lòng nhập tên bài học trước khi nộp!", "error");
                 return;
             }
 
             // Nếu thêm mới, bắt buộc chọn file
             if (!editingRowIndex && !selectedFileData) {
-                alert("Vui lòng chọn hình ảnh hoặc file tài liệu bài tập của bạn trước khi gửi!");
+                showToast("Vui lòng chọn hình ảnh hoặc file tài liệu bài tập của bạn trước khi gửi!", "error");
                 return;
             }
 
@@ -966,38 +1100,40 @@
 
         // 8. Xóa bài tập tạm thời
         function deleteHomework(rowIndex) {
-            if (!confirm("Bạn có chắc chắn muốn xóa bài tập đã nộp này không? (Bài tập sẽ được đưa vào thùng rác trên Sheets).")) return;
-
-            google.script.run
-                .withSuccessHandler(function(res) {
-                    if (res.error) {
-                        alert("Lỗi: " + res.error);
-                    } else {
-                        refreshDashboardData();
-                    }
-                })
-                .withFailureHandler(function(err) {
-                    alert("Lỗi kết nối: " + err.toString());
-                })
-                .deleteHomeworkFile(rowIndex);
+            showCustomConfirm("Bạn có chắc chắn muốn xóa bài tập đã nộp này không? (Bài tập sẽ được đưa vào thùng rác trên Sheets).", function() {
+                google.script.run
+                    .withSuccessHandler(function(res) {
+                        if (res.error) {
+                            showToast("Lỗi: " + res.error, "error");
+                        } else {
+                            showToast("Đã xóa bài tập thành công!", "success");
+                            refreshDashboardData();
+                        }
+                    })
+                    .withFailureHandler(function(err) {
+                        showToast("Lỗi kết nối: " + err.toString(), "error");
+                    })
+                    .deleteHomeworkFile(rowIndex);
+            });
         }
 
         // 9. Khôi phục bài tập từ thùng rác
         function restoreHomework(rowIndex) {
-            if (!confirm("Bạn có muốn khôi phục bài tập đã xóa này về trạng thái hoạt động?")) return;
-
-            google.script.run
-                .withSuccessHandler(function(res) {
-                    if (res.error) {
-                        alert("Lỗi: " + res.error);
-                    } else {
-                        refreshDashboardData();
-                    }
-                })
-                .withFailureHandler(function(err) {
-                    alert("Lỗi kết nối: " + err.toString());
-                })
-                .restoreHomeworkFile(rowIndex);
+            showCustomConfirm("Bạn có muốn khôi phục bài tập đã xóa này về trạng thái hoạt động?", function() {
+                google.script.run
+                    .withSuccessHandler(function(res) {
+                        if (res.error) {
+                            showToast("Lỗi: " + res.error, "error");
+                        } else {
+                            showToast("Đã khôi phục bài tập thành công!", "success");
+                            refreshDashboardData();
+                        }
+                    })
+                    .withFailureHandler(function(err) {
+                        showToast("Lỗi kết nối: " + err.toString(), "error");
+                    })
+                    .restoreHomeworkFile(rowIndex);
+            });
         }
 
         // 10. Đăng xuất khỏi cổng nộp bài tập
