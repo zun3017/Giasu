@@ -23,7 +23,22 @@ var currentStudentName = "";
 
                 // Hiện khung kết quả
                 document.getElementById('resultBox').style.display = 'block';
-                document.getElementById('loiChao').innerHTML = "Học sinh: <span class='student-name'>" + ketQua.tenHocSinh + "</span>";
+                var studentPhone = sessionStorage.getItem('userPhone') || "";
+                if (studentPhone && studentPhone.charAt(0) !== '0' && studentPhone.length === 9) {
+                    studentPhone = '0' + studentPhone;
+                }
+                var lopHoc = "Đang cập nhật";
+                if (ketQua.lichSuHocTap && ketQua.lichSuHocTap.length > 0) {
+                    for (var k = 0; k < ketQua.lichSuHocTap.length; k++) {
+                        if (ketQua.lichSuHocTap[k].mon) {
+                            lopHoc = ketQua.lichSuHocTap[k].mon;
+                            break;
+                        }
+                    }
+                }
+                document.getElementById('loiChao').innerHTML = 
+                    "<h3 style='color: #FFD23F; font-size: 20px; font-weight: 800; margin: 0 0 8px 0; text-align: center; font-family: Inter;'>Xin chào, <span style='color: #FFFFFF;'>" + ketQua.tenHocSinh + "</span> 👋</h3>" +
+                    "<p style='color: #A6ADCE; font-size: 13px; text-align: center; margin: 0 0 25px 0; font-family: Inter;'>(Lớp: " + lopHoc + " • Số điện thoại: " + studentPhone + ")</p>";
                 currentStudentName = ketQua.tenHocSinh;
                 
                 // Khôi phục trạng thái active cho các nút legend tùy chọn
