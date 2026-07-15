@@ -29,7 +29,14 @@ var pinVerifyAction = "deleteStudent";
             // Load Schedule
             google.script.run.withSuccessHandler(function(schedule) {
                 var table = document.getElementById('tutorScheduleTable');
-                table.innerHTML = "<tr><th>Học sinh</th><th>Thứ 2</th><th>Thứ 3</th><th>Thứ 4</th><th>Thứ 5</th><th>Thứ 6</th><th>Thứ 7</th><th>CN</th><th style='width: 50px;'>Sửa</th></tr>";
+                if (table) {
+                    table.innerHTML = "<tr><th>Học sinh</th><th>Thứ 2</th><th>Thứ 3</th><th>Thứ 4</th><th>Thứ 5</th><th>Thứ 6</th><th>Thứ 7</th><th>CN</th><th style='width: 50px;'>Sửa</th></tr>";
+                }
+                
+                var mobileContainer = document.getElementById('tutorScheduleMobile');
+                if (mobileContainer) {
+                    mobileContainer.innerHTML = "";
+                }
                 
                 var schedMap = {};
                 if(schedule && schedule.length > 0) {
@@ -39,9 +46,14 @@ var pinVerifyAction = "deleteStudent";
                 }
                 
                 if(tutorDataGlobal && tutorDataGlobal.students) {
-                    tutorDataGlobal.students.forEach(function(st) {
+                    var tableHtml = "<tr><th>Học sinh</th><th>Thứ 2</th><th>Thứ 3</th><th>Thứ 4</th><th>Thứ 5</th><th>Thứ 6</th><th>Thứ 7</th><th>CN</th><th style='width: 50px;'>Sửa</th></tr>";
+                    var mobileHtml = "";
+                    
+                    tutorDataGlobal.students.forEach(function(st, idx) {
                         var s = schedMap[st.name.trim()] || { mon: "", tue: "", wed: "", thu: "", fri: "", sat: "", sun: "" };
-                        table.innerHTML += "<tr>" +
+                        
+                        // Desktop Row
+                        tableHtml += "<tr>" +
                             "<td>" + st.name + "</td>" +
                             "<td>" + (s.mon||"") + "</td>" +
                             "<td>" + (s.tue||"") + "</td>" +
@@ -52,7 +64,56 @@ var pinVerifyAction = "deleteStudent";
                             "<td>" + (s.sun||"") + "</td>" +
                             "<td><button onclick='openEditScheduleModal(\"" + st.name.replace(/'/g, "\\'").replace(/"/g, '&quot;') + "\", \"" + (s.mon||"") + "\", \"" + (s.tue||"") + "\", \"" + (s.wed||"") + "\", \"" + (s.thu||"") + "\", \"" + (s.fri||"") + "\", \"" + (s.sat||"") + "\", \"" + (s.sun||"") + "\")' class='btn-icon-edit' style='margin: 0; padding: 4px;' title='Sửa thời khóa biểu'><i class='fa-solid fa-pen-to-square'></i></button></td>" +
                             "</tr>";
+                            
+                        // Mobile Card (Accordion)
+                        var activeDays = [];
+                        if (s.mon) activeDays.push("T2");
+                        if (s.tue) activeDays.push("T3");
+                        if (s.wed) activeDays.push("T4");
+                        if (s.thu) activeDays.push("T5");
+                        if (s.fri) activeDays.push("T6");
+                        if (s.sat) activeDays.push("T7");
+                        if (s.sun) activeDays.push("CN");
+                        var activeDaysStr = activeDays.length > 0 ? activeDays.join(", ") : "Chưa xếp lịch";
+                        
+                        mobileHtml += "<div class='accordion-item' id='sched-item-" + idx + "'>";
+                        mobileHtml += "  <div class='accordion-header' onclick='toggleTutorScheduleAccordion(" + idx + ")'>";
+                        mobileHtml += "    <div class='accordion-header-title'>";
+                        mobileHtml += "      <span>" + st.name + "</span>";
+                        mobileHtml += "      <span class='accordion-header-date'>" + activeDaysStr + "</span>";
+                        mobileHtml += "    </div>";
+                        mobileHtml += "    <div class='accordion-header-status'>";
+                        mobileHtml += "      <i class='fa-solid fa-chevron-down' id='sched-chevron-" + idx + "'></i>";
+                        mobileHtml += "    </div>";
+                        mobileHtml += "  </div>";
+                        mobileHtml += "  <div class='accordion-body' id='sched-accordion-body-" + idx + "' style='display: none;'>";
+                        
+                        var daysList = [
+                            { label: "Thứ 2", val: s.mon },
+                            { label: "Thứ 3", val: s.tue },
+                            { label: "Thứ 4", val: s.wed },
+                            { label: "Thứ 5", val: s.thu },
+                            { label: "Thứ 6", val: s.fri },
+                            { label: "Thứ 7", val: s.sat },
+                            { label: "Chủ nhật", val: s.sun }
+                        ];
+                        
+                        daysList.forEach(function(day) {
+                            var dayVal = day.val ? day.val : "<span style='color: rgba(255,255,255,0.15); font-weight: 400;'>Trống</span>";
+                            mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>" + day.label + "</span><span class='accordion-body-val' style='color:#FFD23F; font-weight:600;'>" + dayVal + "</span></div>";
+                        });
+                        
+                        // Edit button at the bottom of accordion body
+                        mobileHtml += "    <div style='margin-top: 10px; text-align: right;'>";
+                        mobileHtml += "      <button onclick='openEditScheduleModal(\"" + st.name.replace(/'/g, "\\'").replace(/"/g, '&quot;') + "\", \"" + (s.mon||"") + "\", \"" + (s.tue||"") + "\", \"" + (s.wed||"") + "\", \"" + (s.thu||"") + "\", \"" + (s.fri||"") + "\", \"" + (s.sat||"") + "\", \"" + (s.sun||"") + "\")' class='action-btn-hw' style='border-color:#8E4DFF; color:#8E4DFF; cursor:pointer;'><i class='fa-solid fa-pen-to-square'></i> Sửa lịch học</button>";
+                        mobileHtml += "    </div>";
+                        
+                        mobileHtml += "  </div>";
+                        mobileHtml += "</div>";
                     });
+                    
+                    if (table) table.innerHTML = tableHtml;
+                    if (mobileContainer) mobileContainer.innerHTML = mobileHtml;
                 }
             }).getTutorSchedule(currentTutorPhone);
             
@@ -68,7 +129,22 @@ var pinVerifyAction = "deleteStudent";
             btnContainer.innerHTML += "<button class='student-btn' onclick='openTrashModal()' style='background: rgba(239, 68, 68, 0.1); border: 1px dashed #EF4444; color: #EF4444; width: 45px; display: inline-flex; align-items: center; justify-content: center; margin-left: 5px;' title='Thùng rác học sinh'><i class='fa-solid fa-trash-can'></i></button>";
             
             var currentMonth = new Date().getMonth() + 1;
-            document.getElementById('invoiceMonthSelect').value = currentMonth;
+            var monthSelect = document.getElementById('invoiceMonthSelect');
+            if (monthSelect) monthSelect.value = currentMonth;
+        }
+
+        function toggleTutorScheduleAccordion(idx) {
+            var body = document.getElementById('sched-accordion-body-' + idx);
+            if (!body) return;
+            var item = body.closest('.accordion-item');
+            
+            if (body.style.display === 'flex' || body.style.display === 'block') {
+                body.style.display = 'none';
+                if (item) item.classList.remove('active');
+            } else {
+                body.style.display = 'block'; // Block or flex are both fine, block is safer for default stack layout
+                if (item) item.classList.add('active');
+            }
         }
 
         function selectTutorStudent(idx) {
@@ -1854,15 +1930,21 @@ function loadTutorAssignedHomework() {
 // 8. Render bảng danh sách bài tập hoạt động
 function renderAssignedHwList(list) {
     var tableBody = document.getElementById('assignedHwTableBody');
+    var mobileContainer = document.getElementById('assignedHwMobile');
     if (!tableBody) return;
     
     if (list.length === 0) {
         tableBody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:#A6ADCE; padding: 20px;"><i class="fa-solid fa-circle-info"></i> Chưa giao bài tập nào cho học sinh này!</td></tr>';
+        if (mobileContainer) {
+            mobileContainer.innerHTML = '<div style="text-align:center; color:#A6ADCE; padding: 20px; font-size: 13px;"><i class="fa-solid fa-circle-info"></i> Chưa giao bài tập nào cho học sinh này!</div>';
+        }
         return;
     }
     
     tableBody.innerHTML = "";
-    list.forEach(function(item) {
+    var mobileHtml = "";
+    
+    list.forEach(function(item, idx) {
         var fileLink = item.fileUrl ? '<a href="' + item.fileUrl + '" target="_blank" style="color:#8E4DFF; font-weight:600; text-decoration:none; display:inline-flex; align-items:center; gap:6px;"><i class="fa-solid fa-file-pdf"></i> Xem bài tập</a>' : '<span style="color:#A6ADCE;">Không có file</span>';
         
         var actionsHtml = 
@@ -1871,6 +1953,7 @@ function renderAssignedHwList(list) {
                 '<button onclick="deleteAssignedHomework(' + item.rowIndex + ')" class="action-btn-hw-icon action-btn-hw-delete" title="Xóa tạm thời"><i class="fa-solid fa-trash-can"></i></button>' +
             '</div>';
             
+        // Desktop Row
         tableBody.innerHTML += 
             '<tr>' +
                 '<td style="color:#A6ADCE;">' + item.releaseDate + '</td>' +
@@ -1878,7 +1961,50 @@ function renderAssignedHwList(list) {
                 '<td>' + fileLink + '</td>' +
                 '<td style="text-align: center; vertical-align: middle;">' + actionsHtml + '</td>' +
             '</tr>';
+            
+        // Mobile Accordion Card
+        mobileHtml += "<div class='accordion-item' id='assign-hw-item-" + idx + "'>";
+        mobileHtml += "  <div class='accordion-header' onclick='toggleTutorAssignedHwAccordion(" + idx + ")'>";
+        mobileHtml += "    <div class='accordion-header-title'>";
+        mobileHtml += "      <span>" + item.title + "</span>";
+        mobileHtml += "      <span class='accordion-header-date'>" + item.releaseDate + "</span>";
+        mobileHtml += "    </div>";
+        mobileHtml += "    <div class='accordion-header-status'>";
+        mobileHtml += "      <i class='fa-solid fa-chevron-down' id='assign-hw-chevron-" + idx + "'></i>";
+        mobileHtml += "    </div>";
+        mobileHtml += "  </div>";
+        mobileHtml += "  <div class='accordion-body' id='assign-hw-body-" + idx + "' style='display: none;'>";
+        mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Ngày giao</span><span class='accordion-body-val'>" + item.releaseDate + "</span></div>";
+        mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Tài liệu</span><span class='accordion-body-val'>" + fileLink + "</span></div>";
+        
+        // Thao tác
+        mobileHtml += "    <div class='accordion-body-row' style='margin-top: 5px;'><span class='accordion-body-label'>Thao tác</span>";
+        mobileHtml += "      <span class='accordion-body-val' style='display:inline-flex; gap:10px;'>";
+        mobileHtml += "        <button onclick=\"startEditAssignedHw(" + item.rowIndex + ", '" + item.title.replace(/'/g, "\\'") + "', '" + item.releaseDate + "')\" class='action-btn-hw' style='border-color:#F59E0B; color:#F59E0B; cursor:pointer;'><i class='fa-solid fa-pen-to-square'></i> Sửa</button>";
+        mobileHtml += "        <button onclick='deleteAssignedHomework(" + item.rowIndex + ")' class='action-btn-hw' style='border-color:#EF4444; color:#EF4444; cursor:pointer;'><i class='fa-solid fa-trash-can'></i> Xóa</button>";
+        mobileHtml += "      </span>";
+        mobileHtml += "    </div>";
+        
+        mobileHtml += "  </div>";
+        mobileHtml += "</div>";
     });
+    
+    if (mobileContainer) {
+        mobileContainer.innerHTML = mobileHtml;
+    }
+}
+
+function toggleTutorAssignedHwAccordion(idx) {
+    var body = document.getElementById('assign-hw-body-' + idx);
+    if (!body) return;
+    var item = body.closest('.accordion-item');
+    if (body.style.display === 'flex' || body.style.display === 'block') {
+        body.style.display = 'none';
+        if (item) item.classList.remove('active');
+    } else {
+        body.style.display = 'block';
+        if (item) item.classList.add('active');
+    }
 }
 
 // 9. Bắt đầu chỉnh sửa bài tập giao (Sử dụng Modal độc lập)
@@ -2113,21 +2239,28 @@ function loadStudentSubmissions() {
 // 13. Render bảng bài nộp học sinh với phân trang hiển thị
 function renderStudentSubmissionsList() {
     var tableBody = document.getElementById('studentSubmissionsTableBody');
+    var mobileContainer = document.getElementById('submittedHwMobile');
     if (!tableBody) return;
     
     if (studentSubmissionsGlobal.length === 0) {
         tableBody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:#A6ADCE; padding: 20px;"><i class="fa-solid fa-circle-info"></i> Học sinh này chưa nộp bài tập nào!</td></tr>';
+        if (mobileContainer) {
+            mobileContainer.innerHTML = '<div style="text-align:center; color:#A6ADCE; padding: 20px; font-size: 13px;"><i class="fa-solid fa-circle-info"></i> Học sinh này chưa nộp bài tập nào!</div>';
+        }
         return;
     }
     
     tableBody.innerHTML = "";
+    var mobileHtml = "";
+    
     // Cắt mảng hiển thị theo giới hạn
     var showList = studentSubmissionsGlobal.slice(0, submissionsLimit);
     
-    showList.forEach(function(item) {
+    showList.forEach(function(item, idx) {
         var fileLink = item.fileUrl ? '<a href="' + item.fileUrl + '" target="_blank" style="color:#FFD23F; font-weight:600; text-decoration:none;"><i class="fa-solid fa-image"></i> Xem file nộp</a>' : '<span style="color:#A6ADCE;">Không có file</span>';
         var downloadBtn = item.fileUrl ? '<a href="' + getGoogleDriveDownloadUrl(item.fileUrl) + '" target="_blank" download class="action-btn-hw" style="color:#10B981; border-color:rgba(16,185,129,0.3); background:rgba(16,185,129,0.1); padding: 4px 14px; text-decoration: none;"><i class="fa-solid fa-cloud-arrow-down"></i> Tải về</a>' : '<span style="color:#A6ADCE;">N/A</span>';
         
+        // Desktop Row
         tableBody.innerHTML += 
             '<tr>' +
                 '<td style="color:#A6ADCE;">' + item.timestamp + '</td>' +
@@ -2135,7 +2268,29 @@ function renderStudentSubmissionsList() {
                 '<td>' + fileLink + '</td>' +
                 '<td>' + downloadBtn + '</td>' +
             '</tr>';
+            
+        // Mobile Accordion Card
+        mobileHtml += "<div class='accordion-item' id='submit-hw-item-" + idx + "'>";
+        mobileHtml += "  <div class='accordion-header' onclick='toggleTutorSubmittedHwAccordion(" + idx + ")'>";
+        mobileHtml += "    <div class='accordion-header-title'>";
+        mobileHtml += "      <span>" + item.lessonName + "</span>";
+        mobileHtml += "      <span class='accordion-header-date'>" + item.timestamp + "</span>";
+        mobileHtml += "    </div>";
+        mobileHtml += "    <div class='accordion-header-status'>";
+        mobileHtml += "      <i class='fa-solid fa-chevron-down' id='submit-hw-chevron-" + idx + "'></i>";
+        mobileHtml += "    </div>";
+        mobileHtml += "  </div>";
+        mobileHtml += "  <div class='accordion-body' id='submit-hw-body-" + idx + "' style='display: none;'>";
+        mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Thời gian nộp</span><span class='accordion-body-val'>" + item.timestamp + "</span></div>";
+        mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>File nộp bài</span><span class='accordion-body-val'>" + fileLink + "</span></div>";
+        mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Tải về</span><span class='accordion-body-val'>" + downloadBtn + "</span></div>";
+        mobileHtml += "  </div>";
+        mobileHtml += "</div>";
     });
+    
+    if (mobileContainer) {
+        mobileContainer.innerHTML = mobileHtml;
+    }
     
     // Hiển thị nút "Xem thêm" nếu còn bài nộp chưa hiển thị
     var viewMoreContainer = document.getElementById('submissionViewMoreBtnContainer');
@@ -2143,6 +2298,19 @@ function renderStudentSubmissionsList() {
         viewMoreContainer.style.display = 'block';
     } else {
         viewMoreContainer.style.display = 'none';
+    }
+}
+
+function toggleTutorSubmittedHwAccordion(idx) {
+    var body = document.getElementById('submit-hw-body-' + idx);
+    if (!body) return;
+    var item = body.closest('.accordion-item');
+    if (body.style.display === 'flex' || body.style.display === 'block') {
+        body.style.display = 'none';
+        if (item) item.classList.remove('active');
+    } else {
+        body.style.display = 'block';
+        if (item) item.classList.add('active');
     }
 }
 

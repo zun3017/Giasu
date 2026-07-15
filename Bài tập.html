@@ -9,7 +9,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/style.css?v=1.0.4">
     
     <style>
         /* ================= RESET & CƠ BẢN ================= */
@@ -630,7 +630,7 @@
                     <div class="hw-info-title" style="color: #3399FF; border-color: rgba(51, 153, 255, 0.2);">
                         <i class="fa-solid fa-clock-rotate-left"></i> File bài tập đã nộp
                     </div>
-                    <div class="table-wrapper">
+                    <div class="table-wrapper desktop-table-view">
                         <table>
                             <thead>
                                 <tr>
@@ -646,12 +646,15 @@
                             </tbody>
                         </table>
                     </div>
+                    <div id="homeworkMobileList" class="mobile-cards-view">
+                        <!-- Rendered dynamically in JS -->
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <script src="js/api.js"></script>
+    <script src="js/api.js?v=1.0.4"></script>
     <script>
         // --- Web App Notification and Confirmation Dialogs ---
         function showToast(message, type = 'info') {
@@ -846,7 +849,9 @@
         // 3. Render danh sách các file bài tập đã nộp
         function renderHomeworkList() {
             var body = document.getElementById('homeworkListBody');
+            var mobileContainer = document.getElementById('homeworkMobileList');
             body.innerHTML = "";
+            if (mobileContainer) mobileContainer.innerHTML = "";
 
             if (!currentHW) return;
 
@@ -867,7 +872,8 @@
 
             // Nếu học sinh đã có tệp nộp trước đó
             if (currentHW.submissions && currentHW.submissions.length > 0) {
-                currentHW.submissions.forEach(function(item) {
+                var mobileHtml = "";
+                currentHW.submissions.forEach(function(item, idx) {
                     var rowHtml = "<tr>";
                     rowHtml += "<td>" + item.timestamp + "</td>";
                     rowHtml += "<td><strong style='color:#FFF;'>" + item.lessonName + "</strong></td>";
@@ -875,11 +881,13 @@
                     
                     // Cột Trạng thái
                     var statusStr = item.status || "Active";
+                    var statusBadge = "";
                     if (statusStr === "Deleted") {
-                        rowHtml += "<td><span style='color: #EF4444; font-weight:600;'><i class='fa-solid fa-trash-can'></i> Thùng rác</span></td>";
+                        statusBadge = "<span style='color: #EF4444; font-weight:600;'><i class='fa-solid fa-trash-can'></i> Thùng rác</span>";
                     } else {
-                        rowHtml += "<td><span style='color: #10B981; font-weight:600;'><i class='fa-solid fa-circle-check'></i> Đã nộp</span></td>";
+                        statusBadge = "<span style='color: #10B981; font-weight:600;'><i class='fa-solid fa-circle-check'></i> Đã nộp</span>";
                     }
+                    rowHtml += "<td>" + statusBadge + "</td>";
 
                     // Kiểm tra điều kiện khóa ngày nộp (Chỉ cho phép sửa/xóa/khôi phục trong ngày nộp)
                     var isToday = (item.submissionDate === todayStr);
@@ -887,26 +895,73 @@
 
                     // Cột Thao tác
                     rowHtml += "<td style='text-align: center; vertical-align: middle;'>";
+                    var actionsHtml = "";
+                    var mobileActionsHtml = "";
+                    
                     if (isRowLocked) {
-                        rowHtml += '<span class="lock-badge"><i class="fa-solid fa-lock"></i> Khóa sửa/xóa</span>';
+                        actionsHtml = '<span class="lock-badge"><i class="fa-solid fa-lock"></i> Khóa sửa/xóa</span>';
+                        mobileActionsHtml = '<span class="lock-badge"><i class="fa-solid fa-lock"></i> Khóa sửa/xóa</span>';
                     } else {
                         if (statusStr === "Deleted") {
-                            rowHtml += "<div style='display:inline-flex; justify-content:center; align-items:center;'><button onclick='restoreHomework(" + item.rowIndex + ")' class='action-btn-hw' style='color:#10B981; border-color:#10B981; cursor:pointer;'><i class='fa-solid fa-trash-arrow-up'></i> Khôi phục</button></div>";
+                            var restoreBtn = "<button onclick='restoreHomework(" + item.rowIndex + ")' class='action-btn-hw' style='color:#10B981; border-color:#10B981; cursor:pointer;'><i class='fa-solid fa-trash-arrow-up'></i> Khôi phục</button>";
+                            actionsHtml = "<div style='display:inline-flex; justify-content:center; align-items:center;'>" + restoreBtn + "</div>";
+                            mobileActionsHtml = restoreBtn;
                         } else {
                             var escapeLessonName = item.lessonName.replace(/'/g, "\\'");
-                            rowHtml += "<div style='display:inline-flex; justify-content:center; align-items:center; gap:8px;'>";
-                            rowHtml += "<button onclick=\"editHomework(" + item.rowIndex + ", '" + escapeLessonName + "')\" class='action-btn-hw' style='cursor:pointer;'><i class='fa-solid fa-pen'></i> Sửa</button>";
-                            rowHtml += "<button onclick='deleteHomework(" + item.rowIndex + ")' class='action-btn-hw btn-delete' style='cursor:pointer;'><i class='fa-solid fa-trash-can'></i> Xóa</button>";
-                            rowHtml += "</div>";
+                            actionsHtml = "<div style='display:inline-flex; justify-content:center; align-items:center; gap:8px;'>" +
+                                "<button onclick=\"editHomework(" + item.rowIndex + ", '" + escapeLessonName + "')\" class='action-btn-hw' style='cursor:pointer;'><i class='fa-solid fa-pen'></i> Sửa</button>" +
+                                "<button onclick='deleteHomework(" + item.rowIndex + ")' class='action-btn-hw btn-delete' style='cursor:pointer;'><i class='fa-solid fa-trash-can'></i> Xóa</button>" +
+                                "</div>";
+                            mobileActionsHtml = "<div style='display:inline-flex; gap:10px;'>" +
+                                "<button onclick=\"editHomework(" + item.rowIndex + ", '" + escapeLessonName + "')\" class='action-btn-hw' style='cursor:pointer;'><i class='fa-solid fa-pen'></i> Sửa</button>" +
+                                "<button onclick='deleteHomework(" + item.rowIndex + ")' class='action-btn-hw btn-delete' style='cursor:pointer;'><i class='fa-solid fa-trash-can'></i> Xóa</button>" +
+                                "</div>";
                         }
                     }
+                    rowHtml += actionsHtml;
                     rowHtml += "</td>";
                     rowHtml += "</tr>";
 
                     body.innerHTML += rowHtml;
+                    
+                    // Mobile Accordion Card
+                    mobileHtml += "<div class='accordion-item' id='hw-item-" + idx + "'>";
+                    mobileHtml += "  <div class='accordion-header' onclick='toggleHwAccordion(" + idx + ")'>";
+                    mobileHtml += "    <div class='accordion-header-title'>";
+                    mobileHtml += "      <span>" + item.lessonName + "</span>";
+                    mobileHtml += "      <span class='accordion-header-date'>" + item.timestamp + "</span>";
+                    mobileHtml += "    </div>";
+                    mobileHtml += "    <div class='accordion-header-status'>";
+                    mobileHtml += "      " + statusBadge;
+                    mobileHtml += "      <i class='fa-solid fa-chevron-down' id='hw-chevron-" + idx + "'></i>";
+                    mobileHtml += "    </div>";
+                    mobileHtml += "  </div>";
+                    mobileHtml += "  <div class='accordion-body' id='hw-accordion-body-" + idx + "' style='display: none;'>";
+                    mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Thời gian nộp</span><span class='accordion-body-val'>" + item.timestamp + "</span></div>";
+                    mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Bài nộp</span><span class='accordion-body-val'><a href='" + item.fileUrl + "' target='_blank' style='color:#FFD23F; font-weight:600; text-decoration:none;'><i class='fa-solid fa-arrow-up-right-from-square'></i> Xem file bài nộp</a></span></div>";
+                    mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Thao tác</span><span class='accordion-body-val'>" + mobileActionsHtml + "</span></div>";
+                    mobileHtml += "  </div>";
+                    mobileHtml += "</div>";
                 });
+                if (mobileContainer) mobileContainer.innerHTML = mobileHtml;
             } else {
                 body.innerHTML = "<tr><td colspan='5' style='text-align:center; color:#6A6E8D;'>Chưa có file bài tập nào được nộp cho mã này.</td></tr>";
+                if (mobileContainer) {
+                    mobileContainer.innerHTML = "<div style='text-align:center; color:#6A6E8D; padding: 20px; font-size:13px;'>Chưa có file bài tập nào được nộp cho mã này.</div>";
+                }
+            }
+        }
+
+        function toggleHwAccordion(idx) {
+            var body = document.getElementById('hw-accordion-body-' + idx);
+            if (!body) return;
+            var item = body.closest('.accordion-item');
+            if (body.style.display === 'flex' || body.style.display === 'block') {
+                body.style.display = 'none';
+                if (item) item.classList.remove('active');
+            } else {
+                body.style.display = 'block';
+                if (item) item.classList.add('active');
             }
         }
 

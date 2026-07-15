@@ -15,7 +15,7 @@
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Global CSS -->
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/style.css?v=1.0.4">
 </head>
 <body>
     <div id="tutorDashboardBox">
@@ -32,10 +32,13 @@
 
         <div class="schedule-section">
             <h3><i class="fa-regular fa-calendar-alt"></i> Thời khóa biểu tổng hợp</h3>
-            <div class="table-wrapper">
+            <div class="table-wrapper desktop-table-view">
                 <table id="tutorScheduleTable">
                     <tr><th>Học sinh</th><th>Thứ 2</th><th>Thứ 3</th><th>Thứ 4</th><th>Thứ 5</th><th>Thứ 6</th><th>Thứ 7</th><th>CN</th></tr>
                 </table>
+            </div>
+            <div id="tutorScheduleMobile" class="mobile-cards-view">
+                <!-- Rendered dynamically in tutor.js -->
             </div>
         </div>
 
@@ -112,7 +115,7 @@
                                 <h4 style="color:#FFF; font-size:14px;"><i class="fa-solid fa-list-ol"></i> Lịch sử bài tập đã giao</h4>
                                 <button onclick="openTutorHwTrashModal()" class="action-btn-hw btn-delete"><i class="fa-solid fa-trash-can"></i> Thùng rác bài tập</button>
                             </div>
-                            <div class="table-wrapper">
+                            <div class="table-wrapper desktop-table-view">
                                 <table>
                                     <thead>
                                         <tr>
@@ -127,13 +130,16 @@
                                     </tbody>
                                 </table>
                             </div>
+                            <div id="assignedHwMobile" class="mobile-cards-view">
+                                <!-- Rendered dynamically in tutor.js -->
+                            </div>
                         </div>
                     </div>
 
                     <!-- Nội dung Tab 2: Học sinh nộp bài -->
                     <div id="tabContentSubmit" class="tutor-hw-tab-content" style="display: none;">
                         <h4 style="color:#FFF; font-size:14px; margin-bottom:12px;"><i class="fa-solid fa-list"></i> Các bài tập học sinh đã nộp</h4>
-                        <div class="table-wrapper">
+                        <div class="table-wrapper desktop-table-view">
                             <table>
                                 <thead>
                                     <tr>
@@ -147,6 +153,9 @@
                                     <!-- Rendered in JS -->
                                 </tbody>
                             </table>
+                        </div>
+                        <div id="submittedHwMobile" class="mobile-cards-view">
+                            <!-- Rendered dynamically in tutor.js -->
                         </div>
                         <div id="submissionViewMoreBtnContainer" style="text-align: center; margin-top: 15px; display: none;">
                             <button onclick="loadMoreStudentSubmissions()" class="modal-btn modal-btn-secondary" style="width: auto; padding: 8px 25px; border-radius: 20px; font-size: 13px; cursor: pointer; border: 1px solid rgba(142, 77, 255, 0.4);"><i class="fa-solid fa-circle-chevron-down"></i> Xem thêm</button>
@@ -783,8 +792,8 @@
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <script src="js/api.js"></script>
-    <script src="js/tutor.js"></script>
+    <script src="js/api.js?v=1.0.4"></script>
+    <script src="js/tutor.js?v=1.0.4"></script>
     <script>
         window.addEventListener('DOMContentLoaded', () => {
             var data = JSON.parse(sessionStorage.getItem('dashboardData'));
