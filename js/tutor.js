@@ -2155,22 +2155,22 @@ function submitEditAssignedHomework() {
 
 // 10. Xóa bài tập giao (Đưa vào thùng rác)
 function deleteAssignedHomework(rowIndex) {
-    if (!confirm("Bạn có chắc chắn muốn xóa bài tập này? (Bài tập sẽ được lưu trong thùng rác 1 ngày để khôi phục)")) return;
-    
-    showToast("Đang xử lý...", "info");
-    google.script.run
-        .withSuccessHandler(function(res) {
-            if (res.error) {
-                showToast("Lỗi: " + res.error, "error");
-            } else {
-                showToast("Đã chuyển bài tập vào thùng rác!", "success");
-                loadTutorAssignedHomework();
-            }
-        })
-        .withFailureHandler(function(err) {
-            showToast("Lỗi kết nối: " + err.toString(), "error");
-        })
-        .deleteAssignedHomework(rowIndex);
+    showCustomConfirm("Bạn có chắc chắn muốn xóa bài tập này? (Bài tập sẽ được lưu trong thùng rác 1 ngày để khôi phục)", function() {
+        showToast("Đang xử lý...", "info");
+        google.script.run
+            .withSuccessHandler(function(res) {
+                if (res.error) {
+                    showToast("Lỗi: " + res.error, "error");
+                } else {
+                    showToast("Đã chuyển bài tập vào thùng rác!", "success");
+                    loadTutorAssignedHomework();
+                }
+            })
+            .withFailureHandler(function(err) {
+                showToast("Lỗi kết nối: " + err.toString(), "error");
+            })
+            .deleteAssignedHomework(rowIndex);
+    });
 }
 
 // 11. Thùng rác bài tập giao Modals
