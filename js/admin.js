@@ -692,7 +692,7 @@ var pinVerifyAction = "deleteStudent";
         // Các hàm phụ trợ hóa đơn của Gia sư đã được di chuyển sang đúng file js/tutor.js.
         
         function isSinglePageApp() {
-            return (document.getElementById('tutorDashboardBox') !== null);
+            return (document.getElementById('mainScreen') !== null);
         }
 
         function quayLai() {

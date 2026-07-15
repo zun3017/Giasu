@@ -422,7 +422,7 @@ var pinVerifyAction = "deleteStudent";
         // Các hàm giao diện của Học sinh đã được chuyển sang đúng file student.js.
 
         function isSinglePageApp() {
-            return (document.getElementById('tutorDashboardBox') !== null);
+            return (document.getElementById('mainScreen') !== null);
         }
 
         function quayLai() {

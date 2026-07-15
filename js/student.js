@@ -395,7 +395,7 @@ var currentStudentName = "";
         // ================= TUTOR LOGIC =================
         
         function isSinglePageApp() {
-            return (document.getElementById('tutorDashboardBox') !== null);
+            return (document.getElementById('mainScreen') !== null);
         }
 
         function quayLai() {
