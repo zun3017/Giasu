@@ -247,39 +247,65 @@
                 <!-- Lịch sử Đánh giá Học tập -->
                 <div class="result-section" style="background: rgba(0,0,0,0.4); padding: 20px; border-radius: 16px; margin-bottom: 20px; border: 1px solid rgba(142, 77, 255, 0.2);">
                     <h4 style="color: #8E4DFF; margin: 0 0 15px 0; font-size: 15px; display: flex; align-items: center; gap: 10px; font-weight: 600;"><i class="fa-solid fa-clock-rotate-left"></i> Lịch sử Đánh giá Học tập</h4>
-                    <div class="table-wrapper" style="width: 100%; overflow-x: auto; border-radius: 12px;">
-                        <table style="width: 100%; border-collapse: collapse; min-width: 800px;">
-                            <thead>
-                                <tr style="background-color: rgba(91, 46, 255, 0.1); color: #FFF;">
-                                    <th style="padding: 12px 16px; font-weight: 600; text-align: left; font-size: 13px;">Tuần</th>
-                                    <th style="padding: 12px 16px; font-weight: 600; text-align: left; font-size: 13px;">Ngày dạy</th>
-                                    <th style="padding: 12px 16px; font-weight: 600; text-align: left; font-size: 13px;">Môn</th>
-                                    <th style="padding: 12px 16px; font-weight: 600; text-align: left; font-size: 13px;">Nội dung</th>
-                                    <th style="padding: 12px 16px; font-weight: 600; text-align: left; font-size: 13px;">Đánh giá BTVN</th>
-                                    <th style="padding: 12px 16px; font-weight: 600; text-align: left; font-size: 13px;">KT Đầu giờ</th>
-                                    <th style="padding: 12px 16px; font-weight: 600; text-align: left; font-size: 13px;">KT Định kì</th>
-                                    <th style="padding: 12px 16px; font-weight: 600; text-align: left; font-size: 13px;">Trạng thái</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                ${student.logs.slice().reverse().map((log, idx) => `
-                                    <tr style="border-bottom:1px solid rgba(142, 77, 255, 0.2); color:#E2D1FF;">
-                                        <td style="padding:12px 16px; font-size: 13px;">${student.logs.length - idx}</td>
-                                        <td style="padding:12px 16px; font-size: 13px; white-space:nowrap;">${log.date}</td>
-                                        <td style="padding:12px 16px; font-size: 13px;">${student.class.split(" ")[1] || "Toán"}</td>
-                                        <td style="padding:12px 16px; font-size: 13px; font-weight:500; color:#FFF;"><strong>${log.topic}</strong>. ${log.comment}</td>
-                                        <td style="padding:12px 16px; font-size: 13px;">
-                                            <span class="status-badge ${log.btvn === 'Đạt' ? 'badge-hoanthanh' : 'badge-thieu'}">${log.btvn === 'Đạt' ? 'Hoàn thành' : 'Thiếu'}</span>
-                                        </td>
-                                        <td style="padding:12px 16px; font-size: 13px; color:#A78BFA; font-weight:700;">${log.valDG !== null ? log.valDG.toFixed(1) : 'Không có'}</td>
-                                        <td style="padding:12px 16px; font-size: 13px; color:#FFD23F; font-weight:700;">${log.valDK !== null ? log.valDK.toFixed(1) : 'Không có'}</td>
-                                        <td style="padding:12px 16px; font-size: 13px;">
-                                            <span class="status-badge badge-dahoc">Đã học</span>
-                                        </td>
+                    <div class="desktop-table-view">
+                        <div class="table-wrapper" style="width: 100%; overflow-x: auto; border-radius: 12px;">
+                            <table style="width: 100%; border-collapse: collapse; min-width: 800px;">
+                                <thead>
+                                    <tr style="background-color: rgba(91, 46, 255, 0.1); color: #FFF;">
+                                        <th style="padding: 12px 16px; font-weight: 600; text-align: left; font-size: 13px;">Tuần</th>
+                                        <th style="padding: 12px 16px; font-weight: 600; text-align: left; font-size: 13px;">Ngày dạy</th>
+                                        <th style="padding: 12px 16px; font-weight: 600; text-align: left; font-size: 13px;">Môn</th>
+                                        <th style="padding: 12px 16px; font-weight: 600; text-align: left; font-size: 13px;">Nội dung</th>
+                                        <th style="padding: 12px 16px; font-weight: 600; text-align: left; font-size: 13px;">Đánh giá BTVN</th>
+                                        <th style="padding: 12px 16px; font-weight: 600; text-align: left; font-size: 13px;">KT Đầu giờ</th>
+                                        <th style="padding: 12px 16px; font-weight: 600; text-align: left; font-size: 13px;">KT Định kì</th>
+                                        <th style="padding: 12px 16px; font-weight: 600; text-align: left; font-size: 13px;">Trạng thái</th>
                                     </tr>
-                                `).join('')}
-                            </tbody>
-                        </table>
+                                </thead>
+                                <tbody>
+                                    ${student.logs.slice().reverse().map((log, idx) => `
+                                        <tr style="border-bottom:1px solid rgba(142, 77, 255, 0.2); color:#E2D1FF;">
+                                            <td style="padding:12px 16px; font-size: 13px;">${student.logs.length - idx}</td>
+                                            <td style="padding:12px 16px; font-size: 13px; white-space:nowrap;">${log.date}</td>
+                                            <td style="padding:12px 16px; font-size: 13px;">${student.class.split(" ")[1] || "Toán"}</td>
+                                            <td style="padding:12px 16px; font-size: 13px; font-weight:500; color:#FFF;"><strong>${log.topic}</strong>. ${log.comment}</td>
+                                            <td style="padding:12px 16px; font-size: 13px;">
+                                                <span class="status-badge ${log.btvn === 'Đạt' ? 'badge-hoanthanh' : 'badge-thieu'}">${log.btvn === 'Đạt' ? 'Hoàn thành' : 'Thiếu'}</span>
+                                            </td>
+                                            <td style="padding:12px 16px; font-size: 13px; color:#A78BFA; font-weight:700;">${log.valDG !== null ? log.valDG.toFixed(1) : 'Không có'}</td>
+                                            <td style="padding:12px 16px; font-size: 13px; color:#FFD23F; font-weight:700;">${log.valDK !== null ? log.valDK.toFixed(1) : 'Không có'}</td>
+                                            <td style="padding:12px 16px; font-size: 13px;">
+                                                <span class="status-badge badge-dahoc">Đã học</span>
+                                            </td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="mobile-cards-view" style="width: 100%;">
+                        ${student.logs.slice().reverse().map((log, idx) => `
+                            <div class="accordion-item" style="border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 12px; margin-bottom: 12px; overflow: hidden; background: rgba(255, 255, 255, 0.01);">
+                                <div class="accordion-header" onclick="toggleDemoAccordion(${idx})" style="display:flex; justify-content:space-between; align-items:center; padding:14px 18px; cursor:pointer;">
+                                    <div class="accordion-header-title" style="display:flex; flex-direction:column; gap:4px; text-align:left;">
+                                        <span style="font-weight:600; color:#FFF;">Tuần ${student.logs.length - idx}</span>
+                                        <span class="accordion-header-date" style="font-size:11.5px; color:#A6ADCE;">Ngày: ${log.date}</span>
+                                    </div>
+                                    <div class="accordion-header-status" style="display:flex; align-items:center; gap:8px;">
+                                        <span class="status-badge badge-dahoc">Đã học</span>
+                                        <i class="fa-solid fa-chevron-down" id="demo-chevron-${idx}" style="color:#A6ADCE; transition: transform 0.2s;"></i>
+                                    </div>
+                                </div>
+                                <div class="accordion-body" id="demo-accordion-body-${idx}" style="display:none; padding:15px; border-top:1px solid rgba(255,255,255,0.05); background:rgba(255,255,255,0.01); text-align:left;">
+                                    <div class="accordion-body-row" style="display:flex; justify-content:space-between; margin-bottom:8px; font-size:13px;"><span class="accordion-body-label" style="color:#A6ADCE;">Môn học</span><span class="accordion-body-val" style="color:#FFF;">${student.class.split(" ")[1] || "Toán"}</span></div>
+                                    <div class="accordion-body-row" style="display:flex; justify-content:space-between; margin-bottom:8px; font-size:13px;"><span class="accordion-body-label" style="color:#A6ADCE;">Nội dung dạy học & Nhận xét</span><span class="accordion-body-val" style="color:#FFF; font-weight:500;"><strong>${log.topic}</strong>. ${log.comment}</span></div>
+                                    <div class="accordion-body-row" style="display:flex; justify-content:space-between; margin-bottom:8px; font-size:13px;"><span class="accordion-body-label" style="color:#A6ADCE;">Đánh giá BTVN</span><span class="accordion-body-val"><span class="status-badge ${log.btvn === 'Đạt' ? 'badge-hoanthanh' : 'badge-thieu'}">${log.btvn === 'Đạt' ? 'Hoàn thành' : 'Thiếu'}</span></span></div>
+                                    <div class="accordion-body-row" style="display:flex; justify-content:space-between; margin-bottom:8px; font-size:13px;"><span class="accordion-body-label" style="color:#A6ADCE;">Kiểm tra đầu giờ</span><span class="accordion-body-val" style="font-weight:600; color:#A78BFA;">${log.valDG !== null ? log.valDG.toFixed(1) : 'Không có'}</span></div>
+                                    <div class="accordion-body-row" style="display:flex; justify-content:space-between; margin-bottom:8px; font-size:13px;"><span class="accordion-body-label" style="color:#A6ADCE;">Kiểm tra định kì</span><span class="accordion-body-val" style="font-weight:600; color:#FFD23F;">${log.valDK !== null ? log.valDK.toFixed(1) : 'Không có'}</span></div>
+                                </div>
+                            </div>
+                        `).join('')}
                     </div>
                 </div>
 
@@ -336,53 +362,97 @@
                 <!-- Thời khóa biểu tổng hợp -->
                 <div class="schedule-section">
                     <h3 style="color: #8E4DFF; margin: 0 0 15px 0; font-size: 18px; font-weight:700;"><i class="fa-regular fa-calendar-alt"></i> Thời khóa biểu tổng hợp</h3>
-                    <div class="table-wrapper desktop-table-view" style="width: 100%; overflow-x: auto; border-radius: 12px;">
-                        <table style="width:100%; border-collapse:collapse; min-width: 800px;">
-                            <thead>
-                                <tr style="background-color: rgba(91, 46, 255, 0.1); color:#FFF;">
-                                    <th style="padding:12px 16px; font-size:13px; font-weight:600;">Học sinh</th>
-                                    <th style="padding:12px 16px; font-size:13px; font-weight:600;">Thứ 2</th>
-                                    <th style="padding:12px 16px; font-size:13px; font-weight:600;">Thứ 3</th>
-                                    <th style="padding:12px 16px; font-size:13px; font-weight:600;">Thứ 4</th>
-                                    <th style="padding:12px 16px; font-size:13px; font-weight:600;">Thứ 5</th>
-                                    <th style="padding:12px 16px; font-size:13px; font-weight:600;">Thứ 6</th>
-                                    <th style="padding:12px 16px; font-size:13px; font-weight:600;">Thứ 7</th>
-                                    <th style="padding:12px 16px; font-size:13px; font-weight:600;">CN</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr style="border-bottom: 1px solid rgba(142, 77, 255, 0.2); color:#E2D1FF;">
-                                    <td style="padding:12px 16px; font-weight:bold; color:#FFD23F; font-size:13px;">Nguyễn Hoàng Nam</td>
-                                    <td style="padding:12px 16px; font-size:13px;">-</td>
-                                    <td style="padding:12px 16px; font-size:13px; color:#10B981; font-weight:500;">19:30 - 21:30</td>
-                                    <td style="padding:12px 16px; font-size:13px;">-</td>
-                                    <td style="padding:12px 16px; font-size:13px; color:#10B981; font-weight:500;">19:30 - 21:30</td>
-                                    <td style="padding:12px 16px; font-size:13px;">-</td>
-                                    <td style="padding:12px 16px; font-size:13px;">-</td>
-                                    <td style="padding:12px 16px; font-size:13px;">-</td>
-                                </tr>
-                                <tr style="border-bottom: 1px solid rgba(142, 77, 255, 0.2); color:#E2D1FF;">
-                                    <td style="padding:12px 16px; font-weight:bold; color:#FFD23F; font-size:13px;">Lê Minh Thư</td>
-                                    <td style="padding:12px 16px; font-size:13px;">-</td>
-                                    <td style="padding:12px 16px; font-size:13px;">-</td>
-                                    <td style="padding:12px 16px; font-size:13px; color:#10B981; font-weight:500;">18:00 - 20:00</td>
-                                    <td style="padding:12px 16px; font-size:13px;">-</td>
-                                    <td style="padding:12px 16px; font-size:13px; color:#10B981; font-weight:500;">18:00 - 20:00</td>
-                                    <td style="padding:12px 16px; font-size:13px;">-</td>
-                                    <td style="padding:12px 16px; font-size:13px;">-</td>
-                                </tr>
-                                <tr style="border-bottom: none; color:#E2D1FF;">
-                                    <td style="padding:12px 16px; font-weight:bold; color:#FFD23F; font-size:13px;">Phạm Hải Đăng</td>
-                                    <td style="padding:12px 16px; font-size:13px; color:#10B981; font-weight:500;">17:00 - 19:00</td>
-                                    <td style="padding:12px 16px; font-size:13px;">-</td>
-                                    <td style="padding:12px 16px; font-size:13px;">-</td>
-                                    <td style="padding:12px 16px; font-size:13px;">-</td>
-                                    <td style="padding:12px 16px; font-size:13px; color:#10B981; font-weight:500;">17:00 - 19:00</td>
-                                    <td style="padding:12px 16px; font-size:13px;">-</td>
-                                    <td style="padding:12px 16px; font-size:13px;">-</td>
-                                </tr>
-                            </tbody>
-                        </table>
+                    <div class="desktop-table-view">
+                        <div class="table-wrapper" style="width: 100%; overflow-x: auto; border-radius: 12px;">
+                            <table style="width:100%; border-collapse:collapse; min-width: 800px;">
+                                <thead>
+                                    <tr style="background-color: rgba(91, 46, 255, 0.1); color:#FFF;">
+                                        <th style="padding:12px 16px; font-size:13px; font-weight:600;">Học sinh</th>
+                                        <th style="padding:12px 16px; font-size:13px; font-weight:600;">Thứ 2</th>
+                                        <th style="padding:12px 16px; font-size:13px; font-weight:600;">Thứ 3</th>
+                                        <th style="padding:12px 16px; font-size:13px; font-weight:600;">Thứ 4</th>
+                                        <th style="padding:12px 16px; font-size:13px; font-weight:600;">Thứ 5</th>
+                                        <th style="padding:12px 16px; font-size:13px; font-weight:600;">Thứ 6</th>
+                                        <th style="padding:12px 16px; font-size:13px; font-weight:600;">Thứ 7</th>
+                                        <th style="padding:12px 16px; font-size:13px; font-weight:600;">CN</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr style="border-bottom: 1px solid rgba(142, 77, 255, 0.2); color:#E2D1FF;">
+                                        <td style="padding:12px 16px; font-weight:bold; color:#FFD23F; font-size:13px;">Nguyễn Hoàng Nam</td>
+                                        <td style="padding:12px 16px; font-size:13px;">-</td>
+                                        <td style="padding:12px 16px; font-size:13px; color:#10B981; font-weight:500;">19:30 - 21:30</td>
+                                        <td style="padding:12px 16px; font-size:13px;">-</td>
+                                        <td style="padding:12px 16px; font-size:13px; color:#10B981; font-weight:500;">19:30 - 21:30</td>
+                                        <td style="padding:12px 16px; font-size:13px;">-</td>
+                                        <td style="padding:12px 16px; font-size:13px;">-</td>
+                                        <td style="padding:12px 16px; font-size:13px;">-</td>
+                                    </tr>
+                                    <tr style="border-bottom: 1px solid rgba(142, 77, 255, 0.2); color:#E2D1FF;">
+                                        <td style="padding:12px 16px; font-weight:bold; color:#FFD23F; font-size:13px;">Lê Minh Thư</td>
+                                        <td style="padding:12px 16px; font-size:13px;">-</td>
+                                        <td style="padding:12px 16px; font-size:13px;">-</td>
+                                        <td style="padding:12px 16px; font-size:13px; color:#10B981; font-weight:500;">18:00 - 20:00</td>
+                                        <td style="padding:12px 16px; font-size:13px;">-</td>
+                                        <td style="padding:12px 16px; font-size:13px; color:#10B981; font-weight:500;">18:00 - 20:00</td>
+                                        <td style="padding:12px 16px; font-size:13px;">-</td>
+                                        <td style="padding:12px 16px; font-size:13px;">-</td>
+                                    </tr>
+                                    <tr style="border-bottom: none; color:#E2D1FF;">
+                                        <td style="padding:12px 16px; font-weight:bold; color:#FFD23F; font-size:13px;">Phạm Hải Đăng</td>
+                                        <td style="padding:12px 16px; font-size:13px; color:#10B981; font-weight:500;">17:00 - 19:00</td>
+                                        <td style="padding:12px 16px; font-size:13px;">-</td>
+                                        <td style="padding:12px 16px; font-size:13px;">-</td>
+                                        <td style="padding:12px 16px; font-size:13px;">-</td>
+                                        <td style="padding:12px 16px; font-size:13px; color:#10B981; font-weight:500;">17:00 - 19:00</td>
+                                        <td style="padding:12px 16px; font-size:13px;">-</td>
+                                        <td style="padding:12px 16px; font-size:13px;">-</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="mobile-cards-view" style="width: 100%; margin-bottom: 20px;">
+                        <div class="accordion-item" style="border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 12px; margin-bottom: 12px; overflow: hidden; background: rgba(255, 255, 255, 0.01);">
+                            <div class="accordion-header" onclick="toggleDemoTutorScheduleAccordion(0)" style="display:flex; justify-content:space-between; align-items:center; padding:14px 18px; cursor:pointer;">
+                                <div class="accordion-header-title" style="display:flex; flex-direction:column; gap:4px; text-align:left;">
+                                    <span style="font-weight:600; color:#FFF;">Nguyễn Hoàng Nam</span>
+                                    <span class="accordion-header-date" style="font-size:11.5px; color:#A6ADCE;">Thứ 3, Thứ 5</span>
+                                </div>
+                                <div class="accordion-header-status"><i class="fa-solid fa-chevron-down" id="demo-tutor-sched-chevron-0" style="color:#A6ADCE; transition: transform 0.2s;"></i></div>
+                            </div>
+                            <div class="accordion-body" id="demo-tutor-sched-body-0" style="display:none; padding:15px; border-top:1px solid rgba(255,255,255,0.05); background:rgba(255,255,255,0.01); text-align:left;">
+                                <div class="accordion-body-row" style="display:flex; justify-content:space-between; margin-bottom:8px; font-size:13px;"><span class="accordion-body-label" style="color:#A6ADCE;">Thứ 3</span><span class="accordion-body-val" style="font-weight:600; color:#10B981;">19:30 - 21:30</span></div>
+                                <div class="accordion-body-row" style="display:flex; justify-content:space-between; margin-bottom:8px; font-size:13px;"><span class="accordion-body-label" style="color:#A6ADCE;">Thứ 5</span><span class="accordion-body-val" style="font-weight:600; color:#10B981;">19:30 - 21:30</span></div>
+                            </div>
+                        </div>
+                        <div class="accordion-item" style="border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 12px; margin-bottom: 12px; overflow: hidden; background: rgba(255, 255, 255, 0.01);">
+                            <div class="accordion-header" onclick="toggleDemoTutorScheduleAccordion(1)" style="display:flex; justify-content:space-between; align-items:center; padding:14px 18px; cursor:pointer;">
+                                <div class="accordion-header-title" style="display:flex; flex-direction:column; gap:4px; text-align:left;">
+                                    <span style="font-weight:600; color:#FFF;">Lê Minh Thư</span>
+                                    <span class="accordion-header-date" style="font-size:11.5px; color:#A6ADCE;">Thứ 4, Thứ 6</span>
+                                </div>
+                                <div class="accordion-header-status"><i class="fa-solid fa-chevron-down" id="demo-tutor-sched-chevron-1" style="color:#A6ADCE; transition: transform 0.2s;"></i></div>
+                            </div>
+                            <div class="accordion-body" id="demo-tutor-sched-body-1" style="display:none; padding:15px; border-top:1px solid rgba(255,255,255,0.05); background:rgba(255,255,255,0.01); text-align:left;">
+                                <div class="accordion-body-row" style="display:flex; justify-content:space-between; margin-bottom:8px; font-size:13px;"><span class="accordion-body-label" style="color:#A6ADCE;">Thứ 4</span><span class="accordion-body-val" style="font-weight:600; color:#10B981;">18:00 - 20:00</span></div>
+                                <div class="accordion-body-row" style="display:flex; justify-content:space-between; margin-bottom:8px; font-size:13px;"><span class="accordion-body-label" style="color:#A6ADCE;">Thứ 6</span><span class="accordion-body-val" style="font-weight:600; color:#10B981;">18:00 - 20:00</span></div>
+                            </div>
+                        </div>
+                        <div class="accordion-item" style="border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 12px; margin-bottom: 12px; overflow: hidden; background: rgba(255, 255, 255, 0.01);">
+                            <div class="accordion-header" onclick="toggleDemoTutorScheduleAccordion(2)" style="display:flex; justify-content:space-between; align-items:center; padding:14px 18px; cursor:pointer;">
+                                <div class="accordion-header-title" style="display:flex; flex-direction:column; gap:4px; text-align:left;">
+                                    <span style="font-weight:600; color:#FFF;">Phạm Hải Đăng</span>
+                                    <span class="accordion-header-date" style="font-size:11.5px; color:#A6ADCE;">Thứ 2, Thứ 6</span>
+                                </div>
+                                <div class="accordion-header-status"><i class="fa-solid fa-chevron-down" id="demo-tutor-sched-chevron-2" style="color:#A6ADCE; transition: transform 0.2s;"></i></div>
+                            </div>
+                            <div class="accordion-body" id="demo-tutor-sched-body-2" style="display:none; padding:15px; border-top:1px solid rgba(255,255,255,0.05); background:rgba(255,255,255,0.01); text-align:left;">
+                                <div class="accordion-body-row" style="display:flex; justify-content:space-between; margin-bottom:8px; font-size:13px;"><span class="accordion-body-label" style="color:#A6ADCE;">Thứ 2</span><span class="accordion-body-val" style="font-weight:600; color:#10B981;">17:00 - 19:00</span></div>
+                                <div class="accordion-body-row" style="display:flex; justify-content:space-between; margin-bottom:8px; font-size:13px;"><span class="accordion-body-label" style="color:#A6ADCE;">Thứ 6</span><span class="accordion-body-val" style="font-weight:600; color:#10B981;">17:00 - 19:00</span></div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -453,64 +523,98 @@
                                     <button class="action-btn-hw btn-delete" style="font-size: 12px; cursor:pointer; display:flex; align-items:center; gap:6px; background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.3); color: #F87171; padding: 6px 12px; border-radius: 6px; font-weight:600;"><i class="fa-solid fa-trash-can"></i> Thùng rác bài tập</button>
                                 </div>
 
-                                <div class="table-wrapper desktop-table-view" style="width: 100%; overflow-x: auto; border-radius: 12px;">
+                                <div class="desktop-table-view">
+                                    <div class="table-wrapper" style="width: 100%; overflow-x: auto; border-radius: 12px;">
+                                        <table style="width:100%; border-collapse:collapse;">
+                                            <thead>
+                                                <tr style="background-color: rgba(91, 46, 255, 0.1); color:#FFF;">
+                                                    <th style="padding:12px 16px; font-size:13px; font-weight:600; text-align:left;">Ngày giao</th>
+                                                    <th style="padding:12px 16px; font-size:13px; font-weight:600; text-align:left;">Tên bài tập</th>
+                                                    <th style="padding:12px 16px; font-size:13px; font-weight:600; text-align:left;">File đính kèm</th>
+                                                    <th style="padding:12px 16px; font-size:13px; font-weight:600; text-align:center; width:80px;">Thao tác</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                ${student.assignedHw && student.assignedHw.length > 0 ? student.assignedHw.map((hw, index) => `
+                                                    <tr style="border-bottom:1px solid rgba(142, 77, 255, 0.2); color:#E2D1FF;">
+                                                        <td style="padding:12px 16px; font-size:13px; text-align:left;">${hw.date}</td>
+                                                        <td style="padding:12px 16px; font-size:13px; font-weight:500; color:#FFF; text-align:left;">${hw.title}</td>
+                                                        <td style="padding:12px 16px; font-size:13px; text-align:left;"><a href="javascript:void(0)" style="color:#FFD23F; text-decoration:none;"><i class="fa-solid fa-file-pdf" style="color:#FF4D4D;"></i> ${hw.file}</a></td>
+                                                        <td style="padding:12px 16px; text-align:center;"><button class="btn-icon-edit" onclick="deleteDemoAssignedHw(${index})" style="background:none; border:none; color:#FF4D4D; cursor:pointer;" title="Xóa bài tập"><i class="fa-solid fa-trash-can"></i></button></td>
+                                                    </tr>
+                                                `).join('') : `
+                                                    <tr>
+                                                        <td colspan="4" style="padding: 20px; text-align: center; color: #A6ADCE;"><i class="fa-solid fa-circle-info"></i> Chưa giao bài tập nào cho học sinh này!</td>
+                                                    </tr>
+                                                `}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+
+                                <div class="mobile-cards-view" style="width: 100%;">
+                                    ${student.assignedHw && student.assignedHw.length > 0 ? student.assignedHw.map((hw, index) => `
+                                        <div class="accordion-item" style="border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 12px; margin-bottom: 12px; background: rgba(255, 255, 255, 0.02); padding: 12px 16px; text-align: left;">
+                                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                                                <span style="font-weight:600; color:#FFF; font-size:13.5px;">${hw.title}</span>
+                                                <button onclick="deleteDemoAssignedHw(${index})" style="background:none; border:none; color:#FF4D4D; cursor:pointer;" title="Xóa bài tập"><i class="fa-solid fa-trash-can"></i></button>
+                                            </div>
+                                            <div style="font-size:11.5px; color:#A6ADCE; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:4px;">
+                                                <span>Ngày giao: ${hw.date}</span>
+                                                <span>File: <a href="javascript:void(0)" style="color:#FFD23F; text-decoration:none;"><i class="fa-solid fa-file-pdf" style="color:#FF4D4D;"></i> ${hw.file}</a></span>
+                                            </div>
+                                        </div>
+                                    `).join('') : `
+                                        <div style="text-align: center; color: #A6ADCE; padding: 20px; font-size: 13px;"><i class="fa-solid fa-circle-info"></i> Chưa giao bài tập nào cho học sinh này!</div>
+                                    `}
+                                </div>
+                            `}
+                        ` : `
+                            <!-- Tab Học sinh nộp bài -->
+                            <div class="desktop-table-view">
+                                <div class="table-wrapper" style="width: 100%; overflow-x: auto; border-radius: 12px;">
                                     <table style="width:100%; border-collapse:collapse;">
                                         <thead>
                                             <tr style="background-color: rgba(91, 46, 255, 0.1); color:#FFF;">
-                                                <th style="padding:12px 16px; font-size:13px; font-weight:600; text-align:left;">Ngày giao</th>
-                                                <th style="padding:12px 16px; font-size:13px; font-weight:600; text-align:left;">Tên bài tập</th>
-                                                <th style="padding:12px 16px; font-size:13px; font-weight:600; text-align:left;">File đính kèm</th>
-                                                <th style="padding:12px 16px; font-size:13px; font-weight:600; text-align:center; width:80px;">Thao tác</th>
+                                                <th style="padding:12px 16px; font-size:13px; font-weight:600; text-align:left;">Thời gian nộp</th>
+                                                <th style="padding:12px 16px; font-size:13px; font-weight:600; text-align:left;">Tên bài học</th>
+                                                <th style="padding:12px 16px; font-size:13px; font-weight:600; text-align:left;">File nộp bài</th>
+                                                <th style="padding:12px 16px; font-size:13px; font-weight:600; text-align:center; width:80px;">Tải về</th>
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            ${student.assignedHw && student.assignedHw.length > 0 ? student.assignedHw.map((hw, index) => `
+                                            ${student.submittedHw && student.submittedHw.length > 0 ? student.submittedHw.map(hw => `
                                                 <tr style="border-bottom:1px solid rgba(142, 77, 255, 0.2); color:#E2D1FF;">
-                                                    <td style="padding:12px 16px; font-size:13px; text-align:left;">${hw.date}</td>
+                                                    <td style="padding:12px 16px; font-size:13px; text-align:left;">${hw.time}</td>
                                                     <td style="padding:12px 16px; font-size:13px; font-weight:500; color:#FFF; text-align:left;">${hw.title}</td>
-                                                    <td style="padding:12px 16px; font-size:13px; text-align:left;"><a href="javascript:void(0)" style="color:#FFD23F; text-decoration:none;"><i class="fa-solid fa-file-pdf" style="color:#FF4D4D;"></i> ${hw.file}</a></td>
-                                                    <td style="padding:12px 16px; text-align:center;"><button class="btn-icon-edit" onclick="deleteDemoAssignedHw(${index})" style="background:none; border:none; color:#FF4D4D; cursor:pointer;" title="Xóa bài tập"><i class="fa-solid fa-trash-can"></i></button></td>
+                                                    <td style="padding:12px 16px; font-size:13px; color:#FFD23F; text-align:left;"><i class="fa-solid fa-file-image"></i> ${hw.file}</td>
+                                                    <td style="padding:12px 16px; text-align:center;"><button class="btn-icon-edit" style="background:none; border:none; color:#8E4DFF; cursor:pointer;"><i class="fa-solid fa-cloud-arrow-down"></i></button></td>
                                                 </tr>
                                             `).join('') : `
                                                 <tr>
-                                                    <td colspan="4" style="padding: 20px; text-align: center; color: #A6ADCE;"><i class="fa-solid fa-circle-info"></i> Chưa giao bài tập nào cho học sinh này!</td>
+                                                    <td colspan="4" style="padding: 20px; text-align: center; color: #A6ADCE;"><i class="fa-solid fa-circle-info"></i> Chưa có bài nộp nào từ học sinh này.</td>
                                                 </tr>
                                             `}
                                         </tbody>
                                     </table>
                                 </div>
-                            `}
-                        ` : `
-                            <!-- Tiêu đề Học sinh nộp bài -->
-                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                                <h4 style="color:#FFF; font-size:14px; margin:0; display:flex; align-items:center; gap:8px;"><i class="fa-solid fa-list"></i> Các bài tập học sinh đã nộp</h4>
                             </div>
 
-                            <div class="table-wrapper desktop-table-view" style="width: 100%; overflow-x: auto; border-radius: 12px;">
-                                <table style="width:100%; border-collapse:collapse;">
-                                    <thead>
-                                        <tr style="background-color: rgba(91, 46, 255, 0.1); color:#FFF;">
-                                            <th style="padding:12px 16px; font-size:13px; font-weight:600; text-align:left;">Thời gian nộp</th>
-                                            <th style="padding:12px 16px; font-size:13px; font-weight:600; text-align:left;">Tên bài học</th>
-                                            <th style="padding:12px 16px; font-size:13px; font-weight:600; text-align:left;">File nộp bài</th>
-                                            <th style="padding:12px 16px; font-size:13px; font-weight:600; text-align:center; width:80px;">Tải về</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        ${student.submittedHw && student.submittedHw.length > 0 ? student.submittedHw.map(hw => `
-                                            <tr style="border-bottom:1px solid rgba(142, 77, 255, 0.2); color:#E2D1FF;">
-                                                <td style="padding:12px 16px; font-size:13px; text-align:left;">${hw.time}</td>
-                                                <td style="padding:12px 16px; font-size:13px; font-weight:500; color:#FFF; text-align:left;">${hw.title}</td>
-                                                <td style="padding:12px 16px; font-size:13px; color:#FFD23F; text-align:left;"><i class="fa-solid fa-file-image"></i> ${hw.file}</td>
-                                                <td style="padding:12px 16px; text-align:center;"><button class="btn-icon-edit" style="background:none; border:none; color:#8E4DFF; cursor:pointer;"><i class="fa-solid fa-cloud-arrow-down"></i></button></td>
-                                            </tr>
-                                        `).join('') : `
-                                            <tr>
-                                                <td colspan="4" style="padding: 20px; text-align: center; color: #A6ADCE;"><i class="fa-solid fa-circle-info"></i> Chưa có bài nộp nào từ học sinh này.</td>
-                                            </tr>
-                                        `}
-                                    </tbody>
-                                </table>
+                            <div class="mobile-cards-view" style="width: 100%;">
+                                ${student.submittedHw && student.submittedHw.length > 0 ? student.submittedHw.map(hw => `
+                                    <div class="accordion-item" style="border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 12px; margin-bottom: 12px; background: rgba(255, 255, 255, 0.02); padding: 12px 16px; text-align: left;">
+                                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                                            <span style="font-weight:600; color:#FFF; font-size:13.5px;">${hw.title}</span>
+                                            <button style="background:none; border:none; color:#8E4DFF; cursor:pointer;"><i class="fa-solid fa-cloud-arrow-down"></i></button>
+                                        </div>
+                                        <div style="font-size:11.5px; color:#A6ADCE; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:4px;">
+                                            <span>Nộp lúc: ${hw.time}</span>
+                                            <span style="color:#FFD23F;"><i class="fa-solid fa-file-image"></i> ${hw.file}</span>
+                                        </div>
+                                    </div>
+                                `).join('') : `
+                                    <div style="text-align: center; color: #A6ADCE; padding: 20px; font-size: 13px;"><i class="fa-solid fa-circle-info"></i> Chưa có bài nộp nào từ học sinh này.</div>
+                                `}
                             </div>
                         `}
                     </div>
@@ -566,43 +670,79 @@
                                 <button class="btn-refresh-history" style="font-size:12px; cursor:pointer; font-family:Inter; border: 1px solid rgba(255,255,255,0.1); background:none; color:#FFF; padding:6px 16px; border-radius:20px;"><i class="fa-solid fa-arrows-rotate"></i> Làm mới</button>
                             </div>
                         </h3>
-                        <div class="table-wrapper" style="width: 100%; overflow-x: auto; border-radius: 12px;">
-                            <table style="width:100%; border-collapse:collapse; min-width: 800px;">
-                                <thead>
-                                    <tr style="background-color: rgba(91, 46, 255, 0.1); color:#FFF;">
-                                        <th style="padding:12px 16px; font-size:13px; font-weight:600; text-align: center; width:40px;"><input type="checkbox" checked style="cursor: pointer; width:15px; height:15px;"></th>
-                                        <th style="padding:12px 16px; font-size:13px; font-weight:600; text-align: left;">Tuần</th>
-                                        <th style="padding:12px 16px; font-size:13px; font-weight:600; text-align: left;">Ngày dạy</th>
-                                        <th style="padding:12px 16px; font-size:13px; font-weight:600; text-align: left;">Môn</th>
-                                        <th style="padding:12px 16px; font-size:13px; font-weight:600; text-align: left;">Nội dung</th>
-                                        <th style="padding:12px 16px; font-size:13px; font-weight:600; text-align: left;">Đánh giá BTVN</th>
-                                        <th style="padding:12px 16px; font-size:13px; font-weight:600; text-align: left;">KT Đầu giờ</th>
-                                        <th style="padding:12px 16px; font-size:13px; font-weight:600; text-align: left;">KT Định kì</th>
-                                        <th style="padding:12px 16px; font-size:13px; font-weight:600; text-align: left;">Trạng thái</th>
-                                        <th style="padding:12px 16px; font-size:13px; font-weight:600; text-align: center; width: 50px;">Sửa</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    ${student.logs.slice().reverse().map((log, idx) => `
-                                        <tr style="border-bottom:1px solid rgba(142, 77, 255, 0.2); color:#E2D1FF;">
-                                            <td style="padding:12px 16px; text-align: center;"><input type="checkbox" checked style="cursor: pointer; width:15px; height:15px;"></td>
-                                            <td style="padding:12px 16px; font-size:13px;">${student.logs.length - idx}</td>
-                                            <td style="padding:12px 16px; font-size: 13px; white-space:nowrap;">${log.date}</td>
-                                            <td style="padding:12px 16px; font-size: 13px;">${student.class.split(" ")[1] || "Toán"}</td>
-                                            <td style="padding:12px 16px; font-size: 13px; font-weight:500; color:#FFF;"><strong>${log.topic}</strong>. ${log.comment}</td>
-                                            <td style="padding:12px 16px; font-size: 13px;">
-                                                <span class="status-badge ${log.btvn === 'Đạt' ? 'badge-hoanthanh' : 'badge-thieu'}">${log.btvn === 'Đạt' ? 'Hoàn thành' : 'Thiếu'}</span>
-                                            </td>
-                                            <td style="padding:12px 16px; font-size: 13px; color:#A78BFA; font-weight:700;">${log.valDG !== null ? log.valDG.toFixed(1) : 'Không có'}</td>
-                                            <td style="padding:12px 16px; font-size: 13px; color:#FFD23F; font-weight:700;">${log.valDK !== null ? log.valDK.toFixed(1) : 'Không có'}</td>
-                                            <td style="padding:12px 16px; font-size: 13px;">
-                                                <span class="status-badge badge-dahoc">Đã học</span>
-                                            </td>
-                                            <td style="padding:12px 16px; text-align:center;"><button class="btn-icon-edit" style="background:none; border:none; color:#8E4DFF; cursor:pointer;"><i class="fa-solid fa-pen-to-square"></i></button></td>
+                        <div class="desktop-table-view">
+                            <div class="table-wrapper" style="width: 100%; overflow-x: auto; border-radius: 12px;">
+                                <table style="width:100%; border-collapse:collapse; min-width: 800px;">
+                                    <thead>
+                                        <tr style="background-color: rgba(91, 46, 255, 0.1); color:#FFF;">
+                                            <th style="padding:12px 16px; font-size:13px; font-weight:600; text-align: center; width:40px;"><input type="checkbox" checked style="cursor: pointer; width:15px; height:15px;"></th>
+                                            <th style="padding:12px 16px; font-size:13px; font-weight:600; text-align: left;">Tuần</th>
+                                            <th style="padding:12px 16px; font-size:13px; font-weight:600; text-align: left;">Ngày dạy</th>
+                                            <th style="padding:12px 16px; font-size:13px; font-weight:600; text-align: left;">Môn</th>
+                                            <th style="padding:12px 16px; font-size:13px; font-weight:600; text-align: left;">Nội dung</th>
+                                            <th style="padding:12px 16px; font-size:13px; font-weight:600; text-align: left;">Đánh giá BTVN</th>
+                                            <th style="padding:12px 16px; font-size:13px; font-weight:600; text-align: left;">KT Đầu giờ</th>
+                                            <th style="padding:12px 16px; font-size:13px; font-weight:600; text-align: left;">KT Định kì</th>
+                                            <th style="padding:12px 16px; font-size:13px; font-weight:600; text-align: left;">Trạng thái</th>
+                                            <th style="padding:12px 16px; font-size:13px; font-weight:600; text-align: center; width: 50px;">Sửa</th>
                                         </tr>
-                                    `).join('')}
-                                </tbody>
-                            </table>
+                                    </thead>
+                                    <tbody>
+                                        ${student.logs.slice().reverse().map((log, idx) => `
+                                            <tr style="border-bottom:1px solid rgba(142, 77, 255, 0.2); color:#E2D1FF;">
+                                                <td style="padding:12px 16px; text-align: center;"><input type="checkbox" checked style="cursor: pointer; width:15px; height:15px;"></td>
+                                                <td style="padding:12px 16px; font-size:13px;">${student.logs.length - idx}</td>
+                                                <td style="padding:12px 16px; font-size: 13px; white-space:nowrap;">${log.date}</td>
+                                                <td style="padding:12px 16px; font-size: 13px;">${student.class.split(" ")[1] || "Toán"}</td>
+                                                <td style="padding:12px 16px; font-size: 13px; font-weight:500; color:#FFF;"><strong>${log.topic}</strong>. ${log.comment}</td>
+                                                <td style="padding:12px 16px; font-size: 13px;">
+                                                    <span class="status-badge ${log.btvn === 'Đạt' ? 'badge-hoanthanh' : 'badge-thieu'}">${log.btvn === 'Đạt' ? 'Hoàn thành' : 'Thiếu'}</span>
+                                                </td>
+                                                <td style="padding:12px 16px; font-size: 13px; color:#A78BFA; font-weight:700;">${log.valDG !== null ? log.valDG.toFixed(1) : 'Không có'}</td>
+                                                <td style="padding:12px 16px; font-size: 13px; color:#FFD23F; font-weight:700;">${log.valDK !== null ? log.valDK.toFixed(1) : 'Không có'}</td>
+                                                <td style="padding:12px 16px; font-size: 13px;">
+                                                    <span class="status-badge badge-dahoc">Đã học</span>
+                                                </td>
+                                                <td style="padding:12px 16px; text-align:center;"><button class="btn-icon-edit" style="background:none; border:none; color:#8E4DFF; cursor:pointer;"><i class="fa-solid fa-pen-to-square"></i></button></td>
+                                            </tr>
+                                        `).join('')}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div class="mobile-cards-view" style="width: 100%;">
+                            <div class="mobile-select-all-container" style="display: flex; align-items: center; gap: 10px; padding: 12px 16px; background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 12px; margin-bottom: 12px;">
+                                <input type="checkbox" checked style="cursor: pointer; width: 16px; height: 16px;">
+                                <label style="cursor: pointer; font-size: 13px; color: #A6ADCE; font-weight: bold; margin: 0; user-select: none;">Chọn tất cả buổi học</label>
+                            </div>
+                            ${student.logs.slice().reverse().map((log, idx) => `
+                                <div class="accordion-item" style="border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 12px; margin-bottom: 12px; overflow: hidden; background: rgba(255, 255, 255, 0.01);">
+                                    <div class="accordion-header" onclick="toggleDemoTutorLogAccordion(${idx})" style="display:flex; justify-content:space-between; align-items:center; padding:14px 18px; cursor:pointer;">
+                                        <div style="display: flex; align-items: center;">
+                                            <input type="checkbox" checked onclick="event.stopPropagation();" style="margin-right: 8px; width: 16px; height: 16px; cursor: pointer;">
+                                            <div class="accordion-header-title" style="display:flex; flex-direction:column; gap:4px; text-align:left;">
+                                                <span style="font-weight:600; color:#FFF;">Tuần ${student.logs.length - idx}</span>
+                                                <span class="accordion-header-date" style="font-size:11.5px; color:#A6ADCE;">Ngày: ${log.date}</span>
+                                            </div>
+                                        </div>
+                                        <div class="accordion-header-status" style="display:flex; align-items:center; gap:8px;">
+                                            <span class="status-badge badge-dahoc">Đã học</span>
+                                            <i class="fa-solid fa-chevron-down" id="demo-tutor-chevron-${idx}" style="color:#A6ADCE; transition: transform 0.2s;"></i>
+                                        </div>
+                                    </div>
+                                    <div class="accordion-body" id="demo-tutor-accordion-body-${idx}" style="display:none; padding:15px; border-top:1px solid rgba(255,255,255,0.05); background:rgba(255,255,255,0.01); text-align:left;">
+                                        <div class="accordion-body-row" style="display:flex; justify-content:space-between; margin-bottom:8px; font-size:13px;"><span class="accordion-body-label" style="color:#A6ADCE;">Môn học</span><span class="accordion-body-val" style="color:#FFF;">${student.class.split(" ")[1] || "Toán"}</span></div>
+                                        <div class="accordion-body-row" style="display:flex; justify-content:space-between; margin-bottom:8px; font-size:13px;"><span class="accordion-body-label" style="color:#A6ADCE;">Nội dung dạy học & Nhận xét</span><span class="accordion-body-val" style="color:#FFF; font-weight:500;"><strong>${log.topic}</strong>. ${log.comment}</span></div>
+                                        <div class="accordion-body-row" style="display:flex; justify-content:space-between; margin-bottom:8px; font-size:13px;"><span class="accordion-body-label" style="color:#A6ADCE;">Đánh giá BTVN</span><span class="accordion-body-val"><span class="status-badge ${log.btvn === 'Đạt' ? 'badge-hoanthanh' : 'badge-thieu'}">${log.btvn === 'Đạt' ? 'Hoàn thành' : 'Thiếu'}</span></span></div>
+                                        <div class="accordion-body-row" style="display:flex; justify-content:space-between; margin-bottom:8px; font-size:13px;"><span class="accordion-body-label" style="color:#A6ADCE;">Kiểm tra đầu giờ</span><span class="accordion-body-val" style="font-weight:600; color:#A78BFA;">${log.valDG !== null ? log.valDG.toFixed(1) : 'Không có'}</span></div>
+                                        <div class="accordion-body-row" style="display:flex; justify-content:space-between; margin-bottom:8px; font-size:13px;"><span class="accordion-body-label" style="color:#A6ADCE;">Kiểm tra định kì</span><span class="accordion-body-val" style="font-weight:600; color:#FFD23F;">${log.valDK !== null ? log.valDK.toFixed(1) : 'Không có'}</span></div>
+                                        <div style="margin-top: 10px; text-align: right;">
+                                            <button class="action-btn-hw" style="border-color:#8E4DFF; color:#8E4DFF; cursor:pointer;" onclick="alert('Đây là tính năng giả lập không thay đổi dữ liệu thật!')"><i class="fa-solid fa-pen-to-square"></i> Chỉnh sửa</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            `).join('')}
                         </div>
                     </div>
                 </div>
@@ -621,6 +761,43 @@
         renderDemoChart(student.logs);
     }
  
+    // Accordion togglers for Mobile Demo Screen
+    window.toggleDemoAccordion = function(idx) {
+        const body = document.getElementById("demo-accordion-body-" + idx);
+        const chevron = document.getElementById("demo-chevron-" + idx);
+        if (body) {
+            const isCollapsed = body.style.display === "none" || body.style.display === "";
+            body.style.display = isCollapsed ? "block" : "none";
+            if (chevron) {
+                chevron.style.transform = isCollapsed ? "rotate(180deg)" : "rotate(0deg)";
+            }
+        }
+    };
+
+    window.toggleDemoTutorLogAccordion = function(idx) {
+        const body = document.getElementById("demo-tutor-accordion-body-" + idx);
+        const chevron = document.getElementById("demo-tutor-chevron-" + idx);
+        if (body) {
+            const isCollapsed = body.style.display === "none" || body.style.display === "";
+            body.style.display = isCollapsed ? "block" : "none";
+            if (chevron) {
+                chevron.style.transform = isCollapsed ? "rotate(180deg)" : "rotate(0deg)";
+            }
+        }
+    };
+
+    window.toggleDemoTutorScheduleAccordion = function(idx) {
+        const body = document.getElementById("demo-tutor-sched-body-" + idx);
+        const chevron = document.getElementById("demo-tutor-sched-chevron-" + idx);
+        if (body) {
+            const isCollapsed = body.style.display === "none" || body.style.display === "";
+            body.style.display = isCollapsed ? "block" : "none";
+            if (chevron) {
+                chevron.style.transform = isCollapsed ? "rotate(180deg)" : "rotate(0deg)";
+            }
+        }
+    };
+
     // 7. Định nghĩa các hàm toàn cục để đóng mở và xử lý Modal Thêm Buổi Học (Demo)
     window.openDemoAddLessonModal = function() {
         const student = demoStudents[currentDemoStudentIndex];

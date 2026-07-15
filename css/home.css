@@ -634,3 +634,31 @@
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
 }
+
+/* Responsive style for interactive demo widget on mobile */
+@media (max-width: 768px) {
+    .demo-container {
+        padding: 12px;
+        border-radius: 16px;
+    }
+    .simulated-screen-body {
+        padding: 10px;
+    }
+    .simulated-screen-header {
+        padding: 10px 12px;
+    }
+    .demo-selector {
+        gap: 8px;
+        margin-bottom: 15px;
+        padding-bottom: 15px;
+    }
+    .demo-tab-btn {
+        padding: 8px 16px;
+        font-size: 13px;
+        border-radius: 8px;
+    }
+    .summary-grid {
+        grid-template-columns: 1fr !important;
+        gap: 10px;
+    }
+}
