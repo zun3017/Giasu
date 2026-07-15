@@ -125,103 +125,345 @@
         });
     }
 
-    // 5. Render Giao diện Demo Học sinh
+    // 5. Render Giao diện Demo Học sinh (Khớp 100% bố cục trang student-dashboard.html)
     function renderStudentDemo() {
         const student = demoStudents[currentDemoStudentIndex];
         const contentArea = document.getElementById("demoContentArea");
         
         contentArea.innerHTML = `
-            <div class="simulated-screen">
-                <div class="simulated-screen-header">
+            <div class="simulated-screen" style="background:#06091F; border:1px solid #8E4DFF; border-radius:20px; padding:30px; box-shadow:0 0 50px rgba(91,46,255,0.2);">
+                <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(255,255,255,0.05); padding-bottom:15px; margin-bottom:20px;">
                     <div style="display:flex; align-items:center; gap:10px;">
                         <img src="https://cdn-icons-png.flaticon.com/512/3330/3330314.png" width="24" height="24">
-                        <span style="font-weight:700; color:#FFF; font-size:14px;">Màn hình PH/HS</span>
+                        <span style="font-weight:700; color:#FFF; font-size:14px;">Màn hình PH/HS (Demo)</span>
                     </div>
-                    <div class="simulated-badge"><i class="fa-solid fa-graduation-cap"></i> Phụ huynh / Học sinh</div>
+                    <div class="simulated-badge" style="background:rgba(142,77,255,0.15); color:#A78BFA; border:1px solid rgba(142,77,255,0.3); font-size:10px; font-weight:700; padding:2px 8px; border-radius:4px; text-transform:uppercase;"><i class="fa-solid fa-graduation-cap"></i> Phụ huynh / Học sinh</div>
                 </div>
-                <div class="simulated-screen-body">
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-                        <div>
-                            <h3 style="color:#FFD23F; font-size:16px; font-weight:800; margin:0;">Xin chào, ${student.name} 👋</h3>
-                            <p style="color:#A6ADCE; font-size:12px; margin:2px 0 0 0;">Lớp học: ${student.class} | SĐT tra cứu: ${student.id}</p>
+
+                <h3 style="color: #FFD23F; font-size: 20px; font-weight: 800; margin: 0 0 8px 0; text-align: center; font-family: Inter;">Xin chào, <span style="color: #FFFFFF;">${student.name}</span> 👋</h3>
+                <p style="color: #A6ADCE; font-size: 13px; text-align: center; margin: 0 0 25px 0; font-family: Inter;">(Lớp: ${student.class} • Số điện thoại: ${student.id})</p>
+
+                <!-- Bảng Tóm Tắt Kết Quả -->
+                <div class="summary-grid">
+                    <div class="summary-card">
+                        <div class="summary-icon icon-purple" style="background: linear-gradient(135deg, #8E4DFF, #5B2EFF); box-shadow: 0 0 20px rgba(142,77,255,0.4);"><i class="fa-solid fa-graduation-cap"></i></div>
+                        <div class="summary-info">
+                            <span class="summary-label">Điểm trung bình (theo tháng)</span>
+                            <span class="summary-val">${student.gpa}</span>
                         </div>
-                        <div style="text-align:right;">
-                            <span style="font-size:11px; color:#A6ADCE;">Mẫu dữ liệu mô phỏng</span>
+                    </div>
+                    <div class="summary-card">
+                        <div class="summary-icon icon-blue" style="background: linear-gradient(135deg, #33ccff, #0066ff); box-shadow: 0 0 20px rgba(0,102,255,0.4);"><i class="fa-solid fa-list-check"></i></div>
+                        <div class="summary-info">
+                            <span class="summary-label">Hoàn thành BTVN (theo tháng)</span>
+                            <span class="summary-val">${student.btvnRate}</span>
+                        </div>
+                    </div>
+                    <div class="summary-card">
+                        <div class="summary-icon icon-green" style="background: linear-gradient(135deg, #33ff99, #009933); box-shadow: 0 0 20px rgba(0,153,51,0.4);"><i class="fa-solid fa-calendar-check"></i></div>
+                        <div class="summary-info">
+                            <span class="summary-label">Số buổi đã học (tháng này)</span>
+                            <span class="summary-val">${student.buoiHoc}</span>
+                        </div>
+                    </div>
+                    <div class="summary-card">
+                        <div class="summary-icon icon-orange" style="background: linear-gradient(135deg, #ffcc66, #ff6600); box-shadow: 0 0 20px rgba(255,102,0,0.4);"><i class="fa-solid fa-calendar-times"></i></div>
+                        <div class="summary-info">
+                            <span class="summary-label">Số buổi nghỉ (tháng này)</span>
+                            <span class="summary-val">${student.buoiNghi}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Biểu Đồ Học Tập -->
+                <div class="chart-box" style="background: rgba(11, 8, 38, 0.95); border: 1px solid #8E4DFF; border-radius: 20px; padding: 20px; margin-bottom: 20px; box-shadow: 0 0 30px rgba(91, 46, 255, 0.1);">
+                    <div class="chart-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <i class="fa-solid fa-chart-line" style="color: #8E4DFF; font-size: 18px;"></i>
+                            <h4 style="margin: 0; color: #FFF; font-size: 14px; font-weight: 600;">Biểu đồ điểm số học tập</h4>
+                        </div>
+                        <div style="display: flex; gap: 10px; font-size: 11px;">
+                            <span><span style="display:inline-block; width:8px; height:8px; background:#8E4DFF; border-radius:50%; margin-right:4px;"></span>Đầu giờ</span>
+                            <span><span style="display:inline-block; width:8px; height:8px; background:#FFD23F; border-radius:50%; margin-right:4px;"></span>Định kì</span>
+                        </div>
+                    </div>
+                    <div class="chart-canvas-container" style="height: 180px; position: relative;">
+                        <canvas id="demoDiemChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Lịch sử Đánh giá Học tập -->
+                <div class="result-section" style="background: rgba(0,0,0,0.4); padding: 20px; border-radius: 16px; margin-bottom: 20px; border: 1px solid rgba(142, 77, 255, 0.2);">
+                    <h4 style="color: #8E4DFF; margin: 0 0 15px 0; font-size: 15px; display: flex; align-items: center; gap: 10px; font-weight: 600;"><i class="fa-solid fa-clock-rotate-left"></i> Lịch sử Đánh giá Học tập</h4>
+                    <div class="table-wrapper" style="width: 100%; overflow-x: auto; border-radius: 12px;">
+                        <table style="width: 100%; border-collapse: collapse; min-width: 800px;">
+                            <thead>
+                                <tr style="background-color: rgba(91, 46, 255, 0.1); color: #FFF;">
+                                    <th style="padding: 12px 16px; font-weight: 600; text-align: left; font-size: 13px;">Tuần</th>
+                                    <th style="padding: 12px 16px; font-weight: 600; text-align: left; font-size: 13px;">Ngày dạy</th>
+                                    <th style="padding: 12px 16px; font-weight: 600; text-align: left; font-size: 13px;">Môn</th>
+                                    <th style="padding: 12px 16px; font-weight: 600; text-align: left; font-size: 13px;">Nội dung</th>
+                                    <th style="padding: 12px 16px; font-weight: 600; text-align: left; font-size: 13px;">Đánh giá BTVN</th>
+                                    <th style="padding: 12px 16px; font-weight: 600; text-align: left; font-size: 13px;">KT Đầu giờ</th>
+                                    <th style="padding: 12px 16px; font-weight: 600; text-align: left; font-size: 13px;">KT Định kì</th>
+                                    <th style="padding: 12px 16px; font-weight: 600; text-align: left; font-size: 13px;">Trạng thái</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${student.logs.slice().reverse().map((log, idx) => `
+                                    <tr style="border-bottom:1px solid rgba(142, 77, 255, 0.2); color:#E2D1FF;">
+                                        <td style="padding:12px 16px; font-size: 13px;">${student.logs.length - idx}</td>
+                                        <td style="padding:12px 16px; font-size: 13px; white-space:nowrap;">${log.date}</td>
+                                        <td style="padding:12px 16px; font-size: 13px;">${student.class.split(" ")[1] || "Toán"}</td>
+                                        <td style="padding:12px 16px; font-size: 13px; font-weight:500; color:#FFF;"><strong>${log.topic}</strong>. ${log.comment}</td>
+                                        <td style="padding:12px 16px; font-size: 13px;">
+                                            <span class="status-badge ${log.btvn === 'Đạt' ? 'badge-hoanthanh' : 'badge-thieu'}">${log.btvn === 'Đạt' ? 'Hoàn thành' : 'Thiếu'}</span>
+                                        </td>
+                                        <td style="padding:12px 16px; font-size: 13px; color:#A78BFA; font-weight:700;">${log.valDG !== null ? log.valDG.toFixed(1) : 'Không có'}</td>
+                                        <td style="padding:12px 16px; font-size: 13px; color:#FFD23F; font-weight:700;">${log.valDK !== null ? log.valDK.toFixed(1) : 'Không có'}</td>
+                                        <td style="padding:12px 16px; font-size: 13px;">
+                                            <span class="status-badge badge-dahoc">Đã học</span>
+                                        </td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Bài kiểm tra & Tài liệu -->
+                <div class="result-section" style="background: rgba(0,0,0,0.4); padding: 20px; border-radius: 16px; margin-bottom: 20px; border: 1px solid rgba(142, 77, 255, 0.2);">
+                    <h4 style="color: #8E4DFF; margin: 0 0 15px 0; font-size: 15px; display: flex; align-items: center; gap: 10px; font-weight: 600;"><i class="fa-solid fa-file-pdf"></i> Bài kiểm tra & Tài liệu</h4>
+                    <div>
+                        <div class="bt-item" style="display:flex; justify-content:space-between; align-items:center; padding: 12px 0; border-bottom:1px dashed rgba(142, 77, 255, 0.3);">
+                            <div><strong style="color: #FFD23F;">[${student.class.split(" ")[1] || "Toán"}]</strong> <span style="color: #FFF; font-weight: 500; font-size: 14px; margin-left: 8px;">Đề cương ôn tập Giữa kỳ I</span></div>
+                            <a class="btn-download" href="javascript:void(0)" onclick="alert('Đây là giao diện Demo trải nghiệm. Tải tài liệu thực tế ở cổng Đăng nhập thật!')" style="display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; background: rgba(91, 46, 255, 0.2); color: #FFF; text-decoration: none; border-radius: 20px; font-size: 13px; font-weight: 600; border: 1px solid #8E4DFF;"><i class="fa-solid fa-cloud-arrow-down"></i> Tải về</a>
+                        </div>
+                        <div class="bt-item" style="display:flex; justify-content:space-between; align-items:center; padding: 12px 0; border-bottom:none;">
+                            <div><strong style="color: #FFD23F;">[${student.class.split(" ")[1] || "Toán"}]</strong> <span style="color: #FFF; font-weight: 500; font-size: 14px; margin-left: 8px;">Phiếu tự luyện Hệ thức lượng</span></div>
+                            <a class="btn-download" href="javascript:void(0)" onclick="alert('Đây là giao diện Demo trải nghiệm. Tải tài liệu thực tế ở cổng Đăng nhập thật!')" style="display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; background: rgba(91, 46, 255, 0.2); color: #FFF; text-decoration: none; border-radius: 20px; font-size: 13px; font-weight: 600; border: 1px solid #8E4DFF;"><i class="fa-solid fa-cloud-arrow-down"></i> Tải về</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Phản hồi từ Phụ huynh -->
+                <div class="result-section" style="background: rgba(0,0,0,0.4); padding: 20px; border-radius: 16px; margin-bottom: 20px; border: 1px solid rgba(142, 77, 255, 0.2);">
+                    <h4 style="color: #8E4DFF; margin: 0 0 15px 0; font-size: 15px; display: flex; align-items: center; gap: 10px; font-weight: 600;"><i class="fa-regular fa-comment-dots"></i> Phản hồi từ Phụ huynh</h4>
+                    <div style="display:flex; gap:12px; margin-top:10px; flex-wrap:wrap;">
+                        <textarea placeholder="Nhập ý kiến đóng góp hoặc phản hồi của phụ huynh gửi cho gia sư tại đây..." rows="2" style="flex:1; min-width:240px; background:#04020A; border:1px solid rgba(142, 77, 255, 0.3); border-radius:12px; padding:12px; color:#FFF; font-size:13px; outline:none; resize:none; font-family:sans-serif;"></textarea>
+                        <button onclick="alert('Đã gửi phản hồi mô phỏng thành công!')" class="btn-submit" style="padding:0 20px; height:45px; border-radius:12px; font-size:13px; font-weight:bold; background:linear-gradient(135deg, #8E4DFF 0%, #5B21B6 100%); color:#FFF; border:none; cursor:pointer; display:inline-flex; align-items:center; gap:8px;">Gửi phản hồi <i class="fa-regular fa-paper-plane"></i></button>
+                    </div>
+                </div>
+
+                <button onclick="alert('Quay về màn hình chính của cổng học sinh!')" class="btn-back" style="width: 100%; padding: 14px; background: transparent; border: 1px solid #8E4DFF; color: #FFF; border-radius: 25px; font-weight: 600; font-size: 15px; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 10px; margin-top:15px;"><i class="fa-solid fa-arrow-left"></i> Trở Về Màn Hình Chính</button>
+            </div>
+        `;
+ 
+        renderDemoChart(student.logs);
+    }
+ 
+    // 6. Render Giao diện Demo Gia sư (Khớp 100% bố cục trang tutor-dashboard.html)
+    function renderTutorDemo() {
+        const student = demoStudents[currentDemoStudentIndex];
+        const contentArea = document.getElementById("demoContentArea");
+        
+        contentArea.innerHTML = `
+            <div class="simulated-screen" style="background:#06091F; border:1px solid #FFD23F; border-radius:20px; padding:30px; box-shadow:0 0 50px rgba(255,210,63,0.15);">
+                <!-- Header -->
+                <div class="tutor-header" style="background: rgba(11, 8, 38, 0.95); border: 1px solid #FFD23F; border-radius: 20px; padding: 20px 30px; margin-bottom: 20px; box-shadow: 0 0 30px rgba(255, 210, 63, 0.15); display:flex; justify-content:space-between; align-items:center;">
+                    <div>
+                        <h2 style="color: #FFD23F; font-size: 24px; font-weight: 800; letter-spacing: -0.5px; margin:0;">Xin chào, Gia sư (Demo)</h2>
+                        <p style="color: #A6ADCE; font-size: 14px; margin-top: 5px; margin-bottom:0;">Tổng quan hệ thống giảng dạy</p>
+                    </div>
+                    <div style="display: flex; gap: 10px;">
+                        <button onclick="alert('Xem thông tin cá nhân giả lập!')" class="btn-back" style="width: auto; padding: 10px 20px; background: rgba(142,77,255,0.1); border-color: #8E4DFF; color:#FFF; font-size:13px; font-weight:600; border-radius:25px; cursor:pointer;"><i class="fa-solid fa-user"></i> Tài khoản</button>
+                        <button onclick="alert('Đã đăng xuất Demo!')" class="btn-back" style="width: auto; padding: 10px 20px; color:#FFF; font-size:13px; font-weight:600; border-radius:25px; cursor:pointer;"><i class="fa-solid fa-arrow-right-from-bracket"></i> Đăng xuất</button>
+                    </div>
+                </div>
+
+                <!-- Thời khóa biểu tổng hợp -->
+                <div class="schedule-section">
+                    <h3 style="color: #8E4DFF; margin: 0 0 15px 0; font-size: 18px; font-weight:700;"><i class="fa-regular fa-calendar-alt"></i> Thời khóa biểu tổng hợp</h3>
+                    <div class="table-wrapper desktop-table-view" style="width: 100%; overflow-x: auto; border-radius: 12px;">
+                        <table style="width:100%; border-collapse:collapse; min-width: 800px;">
+                            <thead>
+                                <tr style="background-color: rgba(91, 46, 255, 0.1); color:#FFF;">
+                                    <th style="padding:12px 16px; font-size:13px; font-weight:600;">Học sinh</th>
+                                    <th style="padding:12px 16px; font-size:13px; font-weight:600;">Thứ 2</th>
+                                    <th style="padding:12px 16px; font-size:13px; font-weight:600;">Thứ 3</th>
+                                    <th style="padding:12px 16px; font-size:13px; font-weight:600;">Thứ 4</th>
+                                    <th style="padding:12px 16px; font-size:13px; font-weight:600;">Thứ 5</th>
+                                    <th style="padding:12px 16px; font-size:13px; font-weight:600;">Thứ 6</th>
+                                    <th style="padding:12px 16px; font-size:13px; font-weight:600;">Thứ 7</th>
+                                    <th style="padding:12px 16px; font-size:13px; font-weight:600;">CN</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr style="border-bottom: 1px solid rgba(142, 77, 255, 0.2); color:#E2D1FF;">
+                                    <td style="padding:12px 16px; font-weight:bold; color:#FFD23F; font-size:13px;">Nguyễn Hoàng Nam</td>
+                                    <td style="padding:12px 16px; font-size:13px;">-</td>
+                                    <td style="padding:12px 16px; font-size:13px; color:#10B981; font-weight:500;">19:30 - 21:30</td>
+                                    <td style="padding:12px 16px; font-size:13px;">-</td>
+                                    <td style="padding:12px 16px; font-size:13px; color:#10B981; font-weight:500;">19:30 - 21:30</td>
+                                    <td style="padding:12px 16px; font-size:13px;">-</td>
+                                    <td style="padding:12px 16px; font-size:13px;">-</td>
+                                    <td style="padding:12px 16px; font-size:13px;">-</td>
+                                </tr>
+                                <tr style="border-bottom: 1px solid rgba(142, 77, 255, 0.2); color:#E2D1FF;">
+                                    <td style="padding:12px 16px; font-weight:bold; color:#FFD23F; font-size:13px;">Lê Minh Thư</td>
+                                    <td style="padding:12px 16px; font-size:13px;">-</td>
+                                    <td style="padding:12px 16px; font-size:13px;">-</td>
+                                    <td style="padding:12px 16px; font-size:13px; color:#10B981; font-weight:500;">18:00 - 20:00</td>
+                                    <td style="padding:12px 16px; font-size:13px;">-</td>
+                                    <td style="padding:12px 16px; font-size:13px; color:#10B981; font-weight:500;">18:00 - 20:00</td>
+                                    <td style="padding:12px 16px; font-size:13px;">-</td>
+                                    <td style="padding:12px 16px; font-size:13px;">-</td>
+                                </tr>
+                                <tr style="border-bottom: none; color:#E2D1FF;">
+                                    <td style="padding:12px 16px; font-weight:bold; color:#FFD23F; font-size:13px;">Phạm Hải Đăng</td>
+                                    <td style="padding:12px 16px; font-size:13px; color:#10B981; font-weight:500;">17:00 - 19:00</td>
+                                    <td style="padding:12px 16px; font-size:13px;">-</td>
+                                    <td style="padding:12px 16px; font-size:13px;">-</td>
+                                    <td style="padding:12px 16px; font-size:13px;">-</td>
+                                    <td style="padding:12px 16px; font-size:13px; color:#10B981; font-weight:500;">17:00 - 19:00</td>
+                                    <td style="padding:12px 16px; font-size:13px;">-</td>
+                                    <td style="padding:12px 16px; font-size:13px;">-</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Danh sách học sinh điều hướng -->
+                <div class="student-buttons-container" style="display: flex; gap: 15px; flex-wrap: wrap; margin-bottom: 25px; justify-content: center;">
+                    ${demoStudents.map((st, index) => `
+                        <button class="student-btn ${index === currentDemoStudentIndex ? 'active' : ''}" data-index="${index}" style="padding: 12px 24px; border-radius: 30px; font-size: 15px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; border: 1px solid rgba(255,255,255,0.1); color:#FFF; background:${index === currentDemoStudentIndex ? 'linear-gradient(135deg, #8E4DFF, #5B2EFF)' : 'rgba(255, 255, 255, 0.05)'}; box-shadow:${index === currentDemoStudentIndex ? '0 0 20px rgba(142, 77, 255, 0.5)' : 'none'};">
+                            ${st.name}
+                        </button>
+                    `).join('')}
+                </div>
+
+                <!-- Khối Chi tiết Học sinh đã chọn -->
+                <div style="display: block; position:relative; z-index:50;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 15px; flex-wrap: wrap; gap: 10px;">
+                        <h3 style="color: #FFF; margin: 0; display: flex; align-items: center; gap: 10px; font-size: 18px; font-family: Inter;">
+                            Học sinh: <span style="color: #FFD23F; font-weight: 800;">${student.name}</span>
+                            <button class="btn-icon-edit" onclick="alert('Tính năng sửa học sinh sẽ khả dụng ở cổng Đăng nhập thật!')" title="Sửa thông tin học sinh" style="background:none; border:none; color:#8E4DFF; cursor:pointer; font-size:16px;"><i class="fa-solid fa-pen-to-square"></i></button>
+                        </h3>
+                        <span style="background: linear-gradient(135deg, #10B981 0%, #059669 100%); border: none; color: #FFF; font-weight: bold; border-radius: 20px; padding: 8px 20px; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 10px rgba(16,185,129,0.2); font-family: 'Inter', sans-serif; cursor: default; font-size:13px;"><i class="fa-solid fa-book"></i> Bài tập</span>
+                    </div>
+
+                    <!-- Bảng bài tập của học sinh -->
+                    <div style="background: rgba(11, 8, 38, 0.6); border: 1px solid rgba(142, 77, 255, 0.3); border-radius: 16px; padding: 20px; margin-bottom: 25px;">
+                        <div style="display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 10px;">
+                            <button class="tutor-hw-tab active" onclick="alert('Đang xem danh sách bài tập của ${student.name}')" style="background:none; border:none; color:#8E4DFF; font-weight:bold; font-size:14px; border-bottom:2px solid #8E4DFF; padding-bottom:10px; cursor:default;"><i class="fa-solid fa-pen-ruler"></i> Lịch sử bài tập đã giao</button>
+                        </div>
+                        <div class="table-wrapper desktop-table-view" style="width: 100%; overflow-x: auto; border-radius: 12px;">
+                            <table style="width:100%; border-collapse:collapse;">
+                                <thead>
+                                    <tr style="background-color: rgba(91, 46, 255, 0.1); color:#FFF;">
+                                        <th style="padding:12px 16px; font-size:13px; font-weight:600;">Ngày giao</th>
+                                        <th style="padding:12px 16px; font-size:13px; font-weight:600;">Tên bài tập</th>
+                                        <th style="padding:12px 16px; font-size:13px; font-weight:600;">File đính kèm</th>
+                                        <th style="padding:12px 16px; font-size:13px; font-weight:600; text-align:center;">Thao tác</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr style="border-bottom:1px solid rgba(142, 77, 255, 0.2); color:#E2D1FF;">
+                                        <td style="padding:12px 16px; font-size:13px;">02/07/2026</td>
+                                        <td style="padding:12px 16px; font-size:13px; font-weight:500; color:#FFF;">Đề ôn tập số 1 chương Hệ thức lượng</td>
+                                        <td style="padding:12px 16px; font-size:13px;"><a href="javascript:void(0)" onclick="alert('Đang mở file giả lập...')" style="color:#FFD23F; text-decoration:none;"><i class="fa-solid fa-file-pdf" style="color:#FF4D4D;"></i> de_on_tap_1.pdf</a></td>
+                                        <td style="padding:12px 16px; text-align:center;"><button class="btn-icon-edit" onclick="alert('Sửa bài tập!')" style="background:none; border:none; color:#8E4DFF; cursor:pointer;"><i class="fa-solid fa-pen-to-square"></i></button></td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
 
-                    <!-- Tóm tắt thống kê học sinh -->
-                    <div class="demo-summary-row">
-                        <div class="demo-summary-card">
-                            <i class="fa-solid fa-star icon-purple icon-purple-glow" style="padding: 6px; border-radius: 6px; font-size: 13px;"></i>
-                            <div>
-                                <span class="val" style="font-size:15px;">${student.gpa}</span>
-                                <span class="lbl" style="font-size:9.5px;">ĐTB môn</span>
+                    <!-- Doanh thu & Tóm tắt thống kê lớp của HS -->
+                    <div class="summary-grid">
+                        <div class="summary-card">
+                            <div class="summary-icon icon-purple" style="background: linear-gradient(135deg, #8E4DFF, #5B2EFF); box-shadow: 0 0 20px rgba(142,77,255,0.4);"><i class="fa-solid fa-money-bill-wave"></i></div>
+                            <div class="summary-info">
+                                <span class="summary-label">Doanh thu dự kiến</span>
+                                <span class="summary-val">${(student.buoiHoc * 75000).toLocaleString('vi-VN')}đ</span>
                             </div>
                         </div>
-                        <div class="demo-summary-card">
-                            <i class="fa-solid fa-clipboard-check icon-blue icon-blue-glow" style="padding: 6px; border-radius: 6px; font-size: 13px;"></i>
-                            <div>
-                                <span class="val" style="font-size:15px;">${student.btvnRate}</span>
-                                <span class="lbl" style="font-size:9.5px;">BTVN đạt</span>
+                        <div class="summary-card">
+                            <div class="summary-icon icon-green" style="background: linear-gradient(135deg, #33ff99, #009933); box-shadow: 0 0 20px rgba(0,153,51,0.4);"><i class="fa-solid fa-check-circle"></i></div>
+                            <div class="summary-info">
+                                <span class="summary-label">Đã thanh toán</span>
+                                <span class="summary-val">${((student.buoiHoc - 1) * 75000).toLocaleString('vi-VN')}đ</span>
                             </div>
                         </div>
-                        <div class="demo-summary-card">
-                            <i class="fa-solid fa-calendar-check icon-green icon-green-glow" style="padding: 6px; border-radius: 6px; font-size: 13px;"></i>
-                            <div>
-                                <span class="val" style="font-size:15px;">${student.buoiHoc}</span>
-                                <span class="lbl" style="font-size:9.5px;">Số buổi học</span>
-                            </div>
-                        </div>
-                        <div class="demo-summary-card">
-                            <i class="fa-solid fa-calendar-times icon-orange icon-orange-glow" style="padding: 6px; border-radius: 6px; font-size: 13px;"></i>
-                            <div>
-                                <span class="val" style="font-size:15px;">${student.buoiNghi}</span>
-                                <span class="lbl" style="font-size:9.5px;">Số buổi nghỉ</span>
+                        <div class="summary-card">
+                            <div class="summary-icon icon-orange" style="background: linear-gradient(135deg, #ffcc66, #ff6600); box-shadow: 0 0 20px rgba(255,102,0,0.4);"><i class="fa-solid fa-calendar-check"></i></div>
+                            <div class="summary-info">
+                                <span class="summary-label">Tỷ lệ đi học</span>
+                                <span class="summary-val">${student.btvnRate}</span>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Biểu đồ điểm -->
-                    <div class="demo-chart-box">
-                        <div style="display:flex; justify-content:space-between; margin-bottom:10px; align-items:center;">
-                            <span style="font-size:12px; font-weight:700; color:#FFF;"><i class="fa-solid fa-chart-line"></i> Biểu đồ điểm học tập</span>
-                            <div style="display:flex; gap:10px; font-size:10px;">
+                    <!-- Biểu Đồ Học Tập -->
+                    <div class="chart-box" style="background: rgba(11, 8, 38, 0.95); border: 1px solid #8E4DFF; border-radius: 20px; padding: 20px; box-shadow: 0 0 30px rgba(91, 46, 255, 0.1); margin-bottom:30px;">
+                        <div class="chart-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <i class="fa-solid fa-chart-line" style="color: #8E4DFF; font-size: 18px;"></i>
+                                <h4 style="margin: 0; color: #FFF; font-size: 14px; font-weight: 600;">Biểu đồ điểm số học tập</h4>
+                            </div>
+                            <div style="display: flex; gap: 10px; font-size: 11px;">
                                 <span><span style="display:inline-block; width:8px; height:8px; background:#8E4DFF; border-radius:50%; margin-right:4px;"></span>Đầu giờ</span>
                                 <span><span style="display:inline-block; width:8px; height:8px; background:#FFD23F; border-radius:50%; margin-right:4px;"></span>Định kì</span>
                             </div>
                         </div>
-                        <div class="demo-chart-container">
+                        <div class="chart-canvas-container" style="height: 180px; position: relative;">
                             <canvas id="demoDiemChart"></canvas>
                         </div>
                     </div>
 
-                    <!-- Lịch sử đánh giá -->
-                    <div class="demo-history-box" style="margin-top:15px;">
-                        <span style="font-size:12px; font-weight:700; color:#FFF; display:block; margin-bottom:8px;"><i class="fa-solid fa-clock-rotate-left"></i> Lịch sử Đánh giá (Chi tiết)</span>
-                        <div style="overflow-x:auto; background:rgba(0,0,0,0.2); border-radius:8px; border:1px solid rgba(255,255,255,0.05);">
-                            <table style="width:100%; border-collapse:collapse; text-align:left; font-size:11.5px;">
+                    <!-- Lịch sử Đánh giá / Nhận xét Buổi Học -->
+                    <div class="schedule-section" style="margin-top: 30px; margin-bottom: 30px;">
+                        <h3 style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; font-family: Inter; color: #8E4DFF; font-size: 18px; margin:0 0 15px 0; font-weight:700;">
+                            <span style="display: flex; align-items: center; gap: 10px;"><i class="fa-solid fa-clock-rotate-left"></i> Lịch sử học tập & Nhận xét chi tiết</span>
+                            <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                                <button class="btn-refresh-history" onclick="openDemoAddLessonModal()" style="background: linear-gradient(135deg, #8E4DFF 0%, #5B21B6 100%); border: none; color: #FFF; font-weight: bold; border-radius: 20px; padding: 6px 16px; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 4px 10px rgba(142,77,255,0.2); font-size:12px; cursor:pointer; font-family:Inter;"><i class="fa-solid fa-calendar-plus"></i> Thêm buổi học</button>
+                                <button onclick="alert('Đã cập nhật làm mới lịch sử học tập!')" class="btn-refresh-history" style="font-size:12px; cursor:pointer; font-family:Inter; border: 1px solid rgba(255,255,255,0.1); background:none; color:#FFF; padding:6px 16px; border-radius:20px;"><i class="fa-solid fa-arrows-rotate"></i> Làm mới</button>
+                            </div>
+                        </h3>
+                        <div class="table-wrapper" style="width: 100%; overflow-x: auto; border-radius: 12px;">
+                            <table style="width:100%; border-collapse:collapse; min-width: 800px;">
                                 <thead>
-                                    <tr style="border-bottom:1px solid rgba(255,255,255,0.08); background:rgba(255,255,255,0.02); color:#FFF;">
-                                        <th style="padding:8px 10px;">Ngày</th>
-                                        <th style="padding:8px 10px;">Bài học</th>
-                                        <th style="padding:8px 10px; text-align:center;">Điểm ĐG</th>
-                                        <th style="padding:8px 10px; text-align:center;">Điểm ĐK</th>
-                                        <th style="padding:8px 10px;">BTVN</th>
-                                        <th style="padding:8px 10px;">Nhận xét gia sư</th>
+                                    <tr style="background-color: rgba(91, 46, 255, 0.1); color:#FFF;">
+                                        <th style="padding:12px 16px; font-size:13px; font-weight:600; text-align: center; width:40px;"><input type="checkbox" checked style="cursor: pointer; width:15px; height:15px;"></th>
+                                        <th style="padding:12px 16px; font-size:13px; font-weight:600; text-align: left;">Tuần</th>
+                                        <th style="padding:12px 16px; font-size:13px; font-weight:600; text-align: left;">Ngày dạy</th>
+                                        <th style="padding:12px 16px; font-size:13px; font-weight:600; text-align: left;">Môn</th>
+                                        <th style="padding:12px 16px; font-size:13px; font-weight:600; text-align: left;">Nội dung</th>
+                                        <th style="padding:12px 16px; font-size:13px; font-weight:600; text-align: left;">Đánh giá BTVN</th>
+                                        <th style="padding:12px 16px; font-size:13px; font-weight:600; text-align: left;">KT Đầu giờ</th>
+                                        <th style="padding:12px 16px; font-size:13px; font-weight:600; text-align: left;">KT Định kì</th>
+                                        <th style="padding:12px 16px; font-size:13px; font-weight:600; text-align: left;">Trạng thái</th>
+                                        <th style="padding:12px 16px; font-size:13px; font-weight:600; text-align: center; width: 50px;">Sửa</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    ${student.logs.slice().reverse().map(log => `
-                                        <tr style="border-bottom:1px solid rgba(255,255,255,0.04); color:#E2D1FF;">
-                                            <td style="padding:8px 10px; white-space:nowrap;">${log.date}</td>
-                                            <td style="padding:8px 10px; font-weight:600; color:#FFF;">${log.topic}</td>
-                                            <td style="padding:8px 10px; text-align:center; color:#A78BFA; font-weight:700;">${log.valDG !== null ? log.valDG.toFixed(1) : '-'}</td>
-                                            <td style="padding:8px 10px; text-align:center; color:#FFD23F; font-weight:700;">${log.valDK !== null ? log.valDK.toFixed(1) : '-'}</td>
-                                            <td style="padding:8px 10px;">
-                                                <span style="padding:2px 6px; border-radius:4px; font-size:9.5px; font-weight:bold; background:${log.btvn === 'Đạt' ? 'rgba(16,185,129,0.15)' : 'rgba(239,68,68,0.15)'}; color:${log.btvn === 'Đạt' ? '#34D399' : '#F87171'}">${log.btvn}</span>
+                                    ${student.logs.slice().reverse().map((log, idx) => `
+                                        <tr style="border-bottom:1px solid rgba(142, 77, 255, 0.2); color:#E2D1FF;">
+                                            <td style="padding:12px 16px; text-align: center;"><input type="checkbox" checked style="cursor: pointer; width:15px; height:15px;"></td>
+                                            <td style="padding:12px 16px; font-size:13px;">${student.logs.length - idx}</td>
+                                            <td style="padding:12px 16px; font-size: 13px; white-space:nowrap;">${log.date}</td>
+                                            <td style="padding:12px 16px; font-size: 13px;">${student.class.split(" ")[1] || "Toán"}</td>
+                                            <td style="padding:12px 16px; font-size: 13px; font-weight:500; color:#FFF;"><strong>${log.topic}</strong>. ${log.comment}</td>
+                                            <td style="padding:12px 16px; font-size: 13px;">
+                                                <span class="status-badge ${log.btvn === 'Đạt' ? 'badge-hoanthanh' : 'badge-thieu'}">${log.btvn === 'Đạt' ? 'Hoàn thành' : 'Thiếu'}</span>
                                             </td>
-                                            <td style="padding:8px 10px; max-width:200px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${log.comment}">${log.comment}</td>
+                                            <td style="padding:12px 16px; font-size: 13px; color:#A78BFA; font-weight:700;">${log.valDG !== null ? log.valDG.toFixed(1) : 'Không có'}</td>
+                                            <td style="padding:12px 16px; font-size: 13px; color:#FFD23F; font-weight:700;">${log.valDK !== null ? log.valDK.toFixed(1) : 'Không có'}</td>
+                                            <td style="padding:12px 16px; font-size: 13px;">
+                                                <span class="status-badge badge-dahoc">Đã học</span>
+                                            </td>
+                                            <td style="padding:12px 16px; text-align:center;"><button class="btn-icon-edit" onclick="alert('Tính năng sửa nhật ký buổi học sẽ khả dụng ở cổng Đăng nhập thật!')" style="background:none; border:none; color:#8E4DFF; cursor:pointer;"><i class="fa-solid fa-pen-to-square"></i></button></td>
                                         </tr>
                                     `).join('')}
                                 </tbody>
@@ -231,170 +473,163 @@
                 </div>
             </div>
         `;
-
-        renderDemoChart(student.logs);
-    }
-
-    // 6. Render Giao diện Demo Gia sư
-    function renderTutorDemo() {
-        const contentArea = document.getElementById("demoContentArea");
-        
-        contentArea.innerHTML = `
-            <div class="simulated-screen">
-                <div class="simulated-screen-header">
-                    <div style="display:flex; align-items:center; gap:10px;">
-                        <i class="fa-solid fa-chalkboard-user" style="color:#8E4DFF;"></i>
-                        <span style="font-weight:700; color:#FFF; font-size:14px;">Màn hình Quản lý Gia sư</span>
-                    </div>
-                    <div class="simulated-badge" style="background:rgba(142,77,255,0.15); color:#A78BFA; border-color:rgba(142,77,255,0.3);"><i class="fa-solid fa-lock"></i> Gia sư đăng nhập</div>
-                </div>
-                <div class="simulated-screen-body">
-                    <div class="demo-tutor-layout">
-                        <!-- Cột trái: Chọn học sinh -->
-                        <div class="demo-sidebar">
-                            <h4>Học sinh của bạn</h4>
-                            <div style="display:flex; flex-direction:column;">
-                                ${demoStudents.map((st, index) => `
-                                    <div class="demo-student-item ${index === currentDemoStudentIndex ? 'active' : ''}" data-index="${index}">
-                                        <i class="fa-regular fa-user"></i>
-                                        <div>
-                                            <strong style="display:block; font-size:12.5px;">${st.name}</strong>
-                                            <span style="font-size:10.5px; opacity:0.7;">${st.class}</span>
-                                        </div>
-                                    </div>
-                                `).join('')}
-                            </div>
-                            <div style="margin-top:20px; padding:10px; background:rgba(142, 77, 255, 0.05); border:1px dashed rgba(142, 77, 255, 0.2); border-radius:8px;">
-                                <p style="font-size:10px; color:#A6ADCE; margin:0; line-height:1.4;">
-                                    💡 <strong>Tương tác thử:</strong> Chọn học sinh, nhập điểm mới ở form bên phải rồi nhấn "Cập nhật thử". Hệ thống sẽ vẽ lại đồ thị tức thì!
-                                </p>
-                            </div>
-                        </div>
-
-                        <!-- Cột phải: Form nhập liệu giả lập -->
-                        <div class="demo-tutor-form">
-                            <h4><i class="fa-regular fa-edit" style="color:#FFD23F;"></i> Nhập điểm & Đánh giá buổi học</h4>
-                            <p style="color:#A6ADCE; font-size:11.5px; margin-bottom:15px; line-height:1.4;">
-                                Đang thao tác nhập dữ liệu cho học sinh: <span style="color:#FFD23F; font-weight:700;">${demoStudents[currentDemoStudentIndex].name}</span>
-                            </p>
-                            
-                            <form id="demoTutorInputForm">
-                                <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px;">
-                                    <div>
-                                        <label style="display:block; font-size:11px; color:#A6ADCE; margin-bottom:4px;">Chủ đề/Bài học *</label>
-                                        <input type="text" id="demoTopic" value="Luyện đề tổng hợp số 2" required style="width:100%; padding:8px 10px; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:6px; color:#FFF; font-size:12px;">
-                                    </div>
-                                    <div>
-                                        <label style="display:block; font-size:11px; color:#A6ADCE; margin-bottom:4px;">Ngày dạy *</label>
-                                        <input type="text" id="demoDate" value="${getTodayFormatted()}" required style="width:100%; padding:8px 10px; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:6px; color:#FFF; font-size:12px;">
-                                    </div>
-                                </div>
-
-                                <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; margin-bottom:12px;">
-                                    <div>
-                                        <label style="display:block; font-size:11px; color:#A6ADCE; margin-bottom:4px;">Điểm đầu giờ (0-10)</label>
-                                        <input type="number" id="demoValDG" min="0" max="10" step="0.5" value="8.0" style="width:100%; padding:8px 10px; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:6px; color:#FFF; font-size:12px;">
-                                    </div>
-                                    <div>
-                                        <label style="display:block; font-size:11px; color:#A6ADCE; margin-bottom:4px;">Điểm định kì (0-10)</label>
-                                        <input type="number" id="demoValDK" min="0" max="10" step="0.5" value="8.5" style="width:100%; padding:8px 10px; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:6px; color:#FFF; font-size:12px;">
-                                    </div>
-                                    <div>
-                                        <label style="display:block; font-size:11px; color:#A6ADCE; margin-bottom:4px;">BTVN về nhà</label>
-                                        <select id="demoBtvn" style="width:100%; padding:8px 10px; background:rgba(3,8,29,0.9); border:1px solid rgba(255,255,255,0.08); border-radius:6px; color:#FFF; font-size:12px; height:34px;">
-                                            <option value="Đạt">Đạt</option>
-                                            <option value="Chưa đạt">Chưa đạt</option>
-                                            <option value="Chưa nộp">Chưa nộp</option>
-                                        </select>
-                                    </div>
-                                </div>
-
-                                <div style="margin-bottom:15px;">
-                                    <label style="display:block; font-size:11px; color:#A6ADCE; margin-bottom:4px;">Nhận xét chi tiết</label>
-                                    <textarea id="demoComment" rows="2" style="width:100%; padding:8px 10px; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:6px; color:#FFF; font-size:12px; resize:none;">Tập trung làm bài nhanh, tiến bộ phần tính toán đạo hàm</textarea>
-                                </div>
-
-                                <button type="submit" style="width:100%; padding:10px; border-radius:8px; border:none; background:linear-gradient(135deg, #10B981 0%, #059669 100%); color:#FFF; font-weight:bold; font-size:12.5px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; box-shadow:0 4px 10px rgba(16,185,129,0.2);">
-                                    <i class="fa-solid fa-save"></i> Cập nhật thử (Mô phỏng)
-                                </button>
-                            </form>
-                            <div id="demoSuccessAlert" style="display:none; margin-top:12px; padding:10px; border-radius:6px; background:rgba(16,185,129,0.1); border:1px solid rgba(16,185,129,0.3); color:#34D399; font-size:11.5px; text-align:center;">
-                                <i class="fa-solid fa-check-circle"></i> Đã cập nhật thành công dữ liệu giả lập cho ${demoStudents[currentDemoStudentIndex].name}!
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        `;
-
-        // Đăng ký sự kiện chọn học sinh cột bên trái
-        const studentItems = document.querySelectorAll(".demo-student-item");
-        studentItems.forEach(item => {
-            item.addEventListener("click", () => {
-                currentDemoStudentIndex = parseInt(item.getAttribute("data-index"));
+ 
+        // Đăng ký sự kiện chọn học sinh cột trên
+        const studentBtns = document.querySelectorAll(".student-btn");
+        studentBtns.forEach(btn => {
+            btn.addEventListener("click", () => {
+                currentDemoStudentIndex = parseInt(btn.getAttribute("data-index"));
                 renderTutorDemo(); // Re-render tutor panel
             });
         });
+ 
+        renderDemoChart(student.logs);
+    }
+ 
+    // 7. Định nghĩa các hàm toàn cục để đóng mở và xử lý Modal Thêm Buổi Học (Demo)
+    window.openDemoAddLessonModal = function() {
+        const student = demoStudents[currentDemoStudentIndex];
+        
+        // Tạo tệp overlay modal
+        const modal = document.createElement("div");
+        modal.id = "demoAddLessonModalOverlay";
+        modal.className = "modal-overlay";
+        modal.style.position = "fixed";
+        modal.style.top = "0";
+        modal.style.left = "0";
+        modal.style.width = "100%";
+        modal.style.height = "100%";
+        modal.style.background = "rgba(4, 2, 10, 0.8)";
+        modal.style.display = "flex";
+        modal.style.justifyContent = "center";
+        modal.style.alignItems = "center";
+        modal.style.zIndex = "10000";
+        
+        modal.innerHTML = `
+            <div class="modal-content" style="background:#0b0826; border:2px solid #8e4dff; border-radius:20px; max-width:600px; width:90%; padding:25px; box-shadow:0 0 50px rgba(91,46,255,0.4); font-family: 'Inter', sans-serif; position:relative; z-index:10001; box-sizing:border-box;">
+                <div class="modal-header" style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(255,255,255,0.05); padding-bottom:12px; margin-bottom:15px;">
+                    <h3 style="color:#FFD23F; margin:0; font-size:16px; font-weight:800;"><i class="fa-solid fa-calendar-plus"></i> Thêm nhật ký buổi học (Demo)</h3>
+                    <button onclick="closeDemoAddLessonModal()" class="modal-close" style="background:none; border:none; color:#FFF; font-size:22px; cursor:pointer;">&times;</button>
+                </div>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px;">
+                    <div style="display:flex; flex-direction:column; gap:4px;">
+                        <label style="color:#A6ADCE; font-size:11.5px; font-weight:500;">Tuần dạy</label>
+                        <input type="text" id="demoLesTuan" placeholder="Ví dụ: 5" value="${student.logs.length + 1}" style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:8px; padding:8px 12px; color:#FFF; font-size:12.5px; outline:none;">
+                    </div>
+                    <div style="display:flex; flex-direction:column; gap:4px;">
+                        <label style="color:#A6ADCE; font-size:11.5px; font-weight:500;">Ngày học</label>
+                        <input type="text" id="demoLesNgay" placeholder="dd/mm/yyyy" value="${getTodayFormatted()}" style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:8px; padding:8px 12px; color:#FFF; font-size:12.5px; outline:none;">
+                    </div>
+                </div>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px;">
+                    <div style="display:flex; flex-direction:column; gap:4px;">
+                        <label style="color:#A6ADCE; font-size:11.5px; font-weight:500;">Môn học</label>
+                        <select id="demoLesMon" style="background:#04020a; border:1px solid rgba(255,255,255,0.08); border-radius:8px; padding:8px 12px; color:#FFF; font-size:12.5px; outline:none; height:37px;">
+                            <option value="Toán học">Toán học</option>
+                            <option value="Vật lý">Vật lý</option>
+                            <option value="Hóa học">Hóa học</option>
+                            <option value="Khoa học tự nhiên">Khoa học tự nhiên</option>
+                        </select>
+                    </div>
+                    <div style="display:flex; flex-direction:column; gap:4px;">
+                        <label style="color:#A6ADCE; font-size:11.5px; font-weight:500;">Trạng thái</label>
+                        <select id="demoLesTrangThai" style="background:#04020a; border:1px solid rgba(255,255,255,0.08); border-radius:8px; padding:8px 12px; color:#FFF; font-size:12.5px; outline:none; height:37px;">
+                            <option value="Đã học">Đã học</option>
+                            <option value="Học bù">Học bù</option>
+                            <option value="Hủy/ nghỉ">Hủy/ nghỉ</option>
+                        </select>
+                    </div>
+                </div>
+                <div style="display:flex; flex-direction:column; gap:4px; margin-bottom:12px;">
+                    <label style="color:#A6ADCE; font-size:11.5px; font-weight:500;">Đánh giá Bài tập về nhà</label>
+                    <select id="demoLesBtvn" style="background:#04020a; border:1px solid rgba(255,255,255,0.08); border-radius:8px; padding:8px 12px; color:#FFF; font-size:12.5px; outline:none; height:37px; width:100%;">
+                        <option value="Hoàn thành">Hoàn thành</option>
+                        <option value="Thiếu">Thiếu</option>
+                        <option value="Không làm">Không làm</option>
+                        <option value="Phụ huynh nhớ nhắc nhở bé làm bài tập gia sư mới giao">Phụ huynh nhớ nhắc nhở bé làm bài tập gia sư mới giao</option>
+                    </select>
+                </div>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px;">
+                    <div style="display:flex; flex-direction:column; gap:4px;">
+                        <label style="color:#A6ADCE; font-size:11.5px; font-weight:500;">Điểm kiểm tra đầu giờ</label>
+                        <input type="text" id="demoLesDiemDau" placeholder="Ví dụ: 8.5 hoặc Không có" value="8.0" style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:8px; padding:8px 12px; color:#FFF; font-size:12.5px; outline:none;">
+                    </div>
+                    <div style="display:flex; flex-direction:column; gap:4px;">
+                        <label style="color:#A6ADCE; font-size:11.5px; font-weight:500;">Điểm kiểm tra định kì</label>
+                        <input type="text" id="demoLesDiemDinhKi" placeholder="Ví dụ: 9.0 hoặc Không có" value="8.5" style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:8px; padding:8px 12px; color:#FFF; font-size:12.5px; outline:none;">
+                    </div>
+                </div>
+                <div style="display:flex; flex-direction:column; gap:4px; margin-bottom:15px;">
+                    <label style="color:#A6ADCE; font-size:11.5px; font-weight:500;">Nội dung bài học & Nhận xét</label>
+                    <textarea id="demoLesNoiDung" rows="2" placeholder="Nhập nội dung giảng dạy và nhận xét chi tiết..." style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:8px; padding:8px 12px; color:#FFF; font-size:12.5px; outline:none; resize:none; font-family:sans-serif;box-sizing:border-box;width:100%;">Tập trung ôn luyện tốt lý thuyết lượng giác.</textarea>
+                </div>
+                <div style="display:flex; justify-content:flex-end; gap:8px; border-top:1px solid rgba(255,255,255,0.05); padding-top:12px;">
+                    <button onclick="closeDemoAddLessonModal()" style="width:90px; padding:8px; border-radius:6px; font-weight:bold; font-size:12px; border:1px solid rgba(255,255,255,0.1); background:none; color:#FFF; cursor:pointer;">Đóng</button>
+                    <button onclick="saveDemoLessonLog()" style="width:110px; padding:8px; border-radius:6px; font-weight:bold; font-size:12px; border:none; background:linear-gradient(135deg, #8E4DFF 0%, #5B21B6 100%); color:#FFF; cursor:pointer;">Cập nhật</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+    };
 
-        // Đăng ký sự kiện nộp biểu mẫu nhập điểm
-        const form = document.getElementById("demoTutorInputForm");
-        form.addEventListener("submit", function(e) {
-            e.preventDefault();
-            
-            const topic = document.getElementById("demoTopic").value.trim();
-            const date = document.getElementById("demoDate").value.trim();
-            const valDG = parseFloat(document.getElementById("demoValDG").value);
-            const valDK = parseFloat(document.getElementById("demoValDK").value);
-            const btvn = document.getElementById("demoBtvn").value;
-            const comment = document.getElementById("demoComment").value.trim();
-            
-            // Cập nhật mảng dữ liệu RAM
-            const student = demoStudents[currentDemoStudentIndex];
-            student.logs.push({
-                date: date,
-                topic: topic,
-                valDG: isNaN(valDG) ? null : valDG,
-                valDK: isNaN(valDK) ? null : valDK,
-                btvn: btvn,
-                comment: comment
-            });
+    window.closeDemoAddLessonModal = function() {
+        const overlay = document.getElementById("demoAddLessonModalOverlay");
+        if (overlay) overlay.remove();
+    };
 
-            // Tự động tính toán lại điểm GPA giả lập
-            let sum = 0;
-            let count = 0;
-            student.logs.forEach(log => {
-                if (log.valDK !== null) {
-                    sum += log.valDK;
-                    count++;
-                }
-                if (log.valDG !== null) {
-                    sum += log.valDG;
-                    count++;
-                }
-            });
-            if (count > 0) {
-                student.gpa = (sum / count).toFixed(1);
+    window.saveDemoLessonLog = function() {
+        const dateInput = document.getElementById("demoLesNgay").value.trim() || getTodayFormatted();
+        const topicInput = document.getElementById("demoLesTrangThai").value + " - " + document.getElementById("demoLesMon").value;
+        const btvnSelect = document.getElementById("demoLesBtvn").value;
+        const valDGInput = parseFloat(document.getElementById("demoLesDiemDau").value);
+        const valDKInput = parseFloat(document.getElementById("demoLesDiemDinhKi").value);
+        const commentText = document.getElementById("demoLesNoiDung").value.trim();
+
+        // Cập nhật cấu trúc logs của student
+        const student = demoStudents[currentDemoStudentIndex];
+        student.logs.push({
+            date: dateInput,
+            topic: topicInput,
+            valDG: isNaN(valDGInput) ? null : valDGInput,
+            valDK: isNaN(valDKInput) ? null : valDKInput,
+            btvn: btvnSelect === 'Hoàn thành' ? 'Đạt' : 'Chưa đạt',
+            comment: commentText
+        });
+
+        // Tính toán lại điểm số
+        let sum = 0;
+        let count = 0;
+        student.logs.forEach(log => {
+            if (log.valDK !== null) {
+                sum += log.valDK;
+                count++;
             }
-            
-            // Tăng số buổi học giả lập
-            student.buoiHoc += 1;
+            if (log.valDG !== null) {
+                sum += log.valDG;
+                count++;
+            }
+        });
+        if (count > 0) {
+            student.gpa = (sum / count).toFixed(1);
+        }
+        student.buoiHoc += 1;
 
-            // Hiển thị thông báo thành công
-            const successAlert = document.getElementById("demoSuccessAlert");
-            successAlert.style.display = "block";
-            
-            // Reset alert sau 2.5s
-            setTimeout(() => {
-                if(successAlert) successAlert.style.display = "none";
-                // Chuyển về xem giao diện học sinh để thấy sự thay đổi
-                const studentTab = document.querySelector('.demo-tab-btn[data-role="student"]');
-                const tutorTab = document.querySelector('.demo-tab-btn[data-role="tutor"]');
+        closeDemoAddLessonModal();
+
+        alert('Đã cập nhật nhật ký buổi học giả lập thành công cho học sinh ' + student.name + '!');
+        
+        // Render lại và tự động chuyển về Giao diện Học sinh để xem sự tiến bộ
+        renderTutorDemo();
+        setTimeout(() => {
+            const studentTab = document.querySelector('.demo-tab-btn[data-role="student"]');
+            const tutorTab = document.querySelector('.demo-tab-btn[data-role="tutor"]');
+            if (tutorTab && studentTab) {
                 tutorTab.classList.remove("active");
                 studentTab.classList.add("active");
                 renderStudentDemo();
-            }, 2000);
-        });
-    }
+            }
+        }, 1200);
+    };
 
     // 7. Vẽ biểu đồ giả lập bằng Chart.js
     function renderDemoChart(logs) {
