@@ -1501,9 +1501,6 @@ function doPost(e) {
     if (typeof global[functionName] === 'function') {
       var result = global[functionName].apply(null, args);
       
-      // Định dạng tất cả các sheet sang Arial 11, căn giữa
-      formatAllSheets();
-      
       // Trả về kết quả JSON với cấu hình CORS đầy đủ
       return ContentService.createTextOutput(JSON.stringify({ result: result }))
                            .setMimeType(ContentService.MimeType.JSON);
@@ -2305,8 +2302,13 @@ function parseAppScriptDate(dateStr) {
 // Lấy danh sách ý kiến phụ huynh thuộc các lớp của Gia sư
 function getTutorFeedback(tutorPhone) {
   try {
-    // 1. Dọn dẹp các phản hồi cũ trước
-    cleanupOldFeedback();
+    // 1. Dọn dẹp các phản hồi cũ trước (tối đa 1 lần mỗi 12 tiếng để tránh làm chậm web)
+    var cache = CacheService.getScriptCache();
+    var lastClean = cache.get("lastFeedbackClean");
+    if (!lastClean) {
+      cleanupOldFeedback();
+      cache.put("lastFeedbackClean", "done", 12 * 60 * 60); // Lưu trong 12 giờ
+    }
     
     var ss = SpreadsheetApp.getActiveSpreadsheet();
     
