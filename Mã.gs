@@ -1501,6 +1501,9 @@ function doPost(e) {
     if (typeof global[functionName] === 'function') {
       var result = global[functionName].apply(null, args);
       
+      // Định dạng tất cả các sheet sang Arial 11, căn giữa
+      formatAllSheets();
+      
       // Trả về kết quả JSON với cấu hình CORS đầy đủ
       return ContentService.createTextOutput(JSON.stringify({ result: result }))
                            .setMimeType(ContentService.MimeType.JSON);
@@ -2171,6 +2174,70 @@ function getStudentSubmissionsForTutor(maBaiTap) {
     return { submissions: submissions };
   } catch (e) {
     return { error: "Lỗi hệ thống: " + e.toString() };
+  }
+}
+
+// ================= TỰ ĐỘNG ĐỊNH DẠNG SHEET (ARIAL, 11, CENTER) =================
+
+// Định dạng toàn bộ các sheet trong file (từ dòng 2 trở đi để giữ nguyên tiêu đề dòng 1)
+function formatAllSheets() {
+  try {
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var sheets = ss.getSheets();
+    for (var i = 0; i < sheets.length; i++) {
+      formatSheetFromRow2(sheets[i]);
+    }
+  } catch (e) {
+    Logger.log("Lỗi định dạng toàn bộ sheet: " + e.toString());
+  }
+}
+
+// Định dạng một sheet cụ thể (từ dòng 2 trở đi)
+function formatSheetFromRow2(sheet) {
+  if (!sheet) return;
+  try {
+    var lastRow = sheet.getLastRow();
+    var lastCol = sheet.getLastColumn();
+    if (lastRow >= 2 && lastCol >= 1) {
+      sheet.getRange(2, 1, lastRow - 1, lastCol)
+           .setFontFamily("Arial")
+           .setFontSize(11)
+           .setHorizontalAlignment("center")
+           .setVerticalAlignment("middle");
+    }
+  } catch (e) {
+    Logger.log("Lỗi định dạng sheet " + sheet.getName() + ": " + e.toString());
+  }
+}
+
+// Simple Trigger onEdit chạy tự động khi người dùng sửa tay trên sheet
+function onEdit(e) {
+  if (!e) return;
+  try {
+    var range = e.range;
+    var startRow = range.getRow();
+    var endRow = range.getLastRow();
+    var sheet = range.getSheet();
+    
+    if (startRow === 1) {
+      if (endRow > 1) {
+        // Nếu bôi đen chọn cả tiêu đề dòng 1, chỉ format từ dòng 2 trở xuống
+        var numRows = range.getNumRows();
+        var dataRange = sheet.getRange(2, range.getColumn(), numRows - 1, range.getNumColumns());
+        dataRange.setFontFamily("Arial")
+                 .setFontSize(11)
+                 .setHorizontalAlignment("center")
+                 .setVerticalAlignment("middle");
+      }
+    } else {
+      // Format trực tiếp vùng ô đang sửa
+      range.setFontFamily("Arial")
+           .setFontSize(11)
+           .setHorizontalAlignment("center")
+           .setVerticalAlignment("middle");
+    }
+  } catch (err) {
+    Logger.log("Lỗi onEdit: " + err.toString());
   }
 }
 
