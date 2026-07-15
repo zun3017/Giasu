@@ -1554,17 +1554,10 @@ function saveFileToDrive(studentName, lessonName, fileBase64, fileName, mimeType
   var parentFolder;
   var driveApp = DriveApp;
   
-  // 1. Lấy thư mục cha theo ID chỉ định từ người dùng
   try {
     parentFolder = driveApp.getFolderById(parentFolderId);
   } catch (err) {
-    // Dự phòng: Nếu không lấy được ID, tự động tạo ngoài root
-    var folders = driveApp.getFoldersByName("Bài Tập Học Viên Giasu");
-    if (folders.hasNext()) {
-      parentFolder = folders.next();
-    } else {
-      parentFolder = driveApp.createFolder("Bài Tập Học Viên Giasu");
-    }
+    throw new Error("Không thể truy cập thư mục Google Drive (ID: " + parentFolderId + "). Lỗi: " + err.toString() + ". Vui lòng đảm bảo tài khoản chạy script có quyền chỉnh sửa thư mục này.");
   }
   
   // 2. Tìm hoặc tạo thư mục con theo tên học sinh
