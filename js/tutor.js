@@ -138,6 +138,9 @@ function formatScheduleCell(val) {
             var currentMonth = new Date().getMonth() + 1;
             var monthSelect = document.getElementById('invoiceMonthSelect');
             if (monthSelect) monthSelect.value = currentMonth;
+            
+            // Load ý kiến phản hồi của phụ huynh
+            loadTutorFeedbacks();
         }
 
         function toggleTutorScheduleAccordion(idx) {
@@ -2365,4 +2368,36 @@ function getGoogleDriveDownloadUrl(url) {
         return "https://drive.google.com/uc?export=download&id=" + matches[0];
     }
     return url;
+}
+
+// Nạp ý kiến phản hồi của phụ huynh cho các lớp của Gia sư này
+function loadTutorFeedbacks() {
+    var container = document.getElementById('tutorFeedbackList');
+    if (!container) return;
+    
+    google.script.run.withSuccessHandler(function(response) {
+        if (response && response.success && response.feedbacks) {
+            var feedbacks = response.feedbacks;
+            if (feedbacks.length === 0) {
+                container.innerHTML = "<div style='text-align: center; color: rgba(255,255,255,0.3); font-style: italic; padding: 25px;'><i class='fa-regular fa-comment-slash' style='font-size: 20px; display: block; margin-bottom: 8px;'></i>Chưa có ý kiến phản hồi nào trong 10 ngày gần đây.</div>";
+                return;
+            }
+            
+            var html = "";
+            feedbacks.forEach(function(fb) {
+                html += '<div class="agenda-event-card" style="border-left-color: #FFD23F; background: rgba(255, 210, 63, 0.04); border: 1px solid rgba(255, 210, 63, 0.1); border-left-width: 4px; padding: 12px 15px; border-radius: 10px; flex-direction: column; align-items: stretch; cursor: default; gap: 6px;">' +
+                    '  <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 5px;">' +
+                    '    <span style="font-weight: 800; color: #FFD23F; font-size: 13.5px;"><i class="fa-solid fa-graduation-cap"></i> ' + fb.studentName + ' <span style="font-size: 11.5px; color: rgba(255,255,255,0.4); font-weight: normal;">(' + fb.studentPhone + ')</span></span>' +
+                    '    <span style="font-size: 11px; color: rgba(255,255,255,0.4); font-weight: 600;"><i class="fa-regular fa-clock"></i> ' + fb.timestamp + '</span>' +
+                    '  </div>' +
+                    '  <div style="font-size: 13px; color: #E2D1FF; line-height: 1.5; font-style: italic; background: rgba(0,0,0,0.2); padding: 8px 12px; border-radius: 8px; margin-top: 4px;">' +
+                    '    "' + fb.content + '"' +
+                    '  </div>' +
+                    '</div>';
+            });
+            container.innerHTML = html;
+        } else {
+            container.innerHTML = "<div style='text-align: center; color: #EF4444; padding: 20px;'>Lỗi tải dữ liệu phản hồi.</div>";
+        }
+    }).getTutorFeedback(currentTutorPhone);
 }

@@ -1557,6 +1557,10 @@ function writeTrashLog(ss, type, action, rowData) {
       phone = (rowData.length > 4) ? String(rowData[4]).trim() : ""; // Mã bài tập
       name = (rowData.length > 1) ? String(rowData[1]).trim() : "";  // Tên học sinh
       relatedPhone = (rowData.length > 2) ? String(rowData[2]).trim() : ""; // Tên bài học
+    } else if (type === "Ý kiến phụ huynh") {
+      phone = (rowData.length > 1) ? String(rowData[1]).trim() : ""; // Số điện thoại học sinh
+      name = (rowData.length > 2) ? String(rowData[2]).trim() : "";  // Tên học sinh
+      relatedPhone = "";
     }
     
     var jsonData = JSON.stringify(rowData);
@@ -2238,6 +2242,108 @@ function onEdit(e) {
     }
   } catch (err) {
     Logger.log("Lỗi onEdit: " + err.toString());
+  }
+}
+
+// Dọn dẹp ý kiến phụ huynh gửi quá 10 ngày trước (chuyển vào Thùng rác và xóa khỏi sheet)
+function cleanupOldFeedback() {
+  try {
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var sheet = ss.getSheetByName('Ý kiến phụ huynh');
+    if (!sheet) return;
+    
+    var data = sheet.getDataRange().getDisplayValues();
+    if (data.length <= 1) return;
+    
+    var now = new Date();
+    var tenDaysAgo = new Date(now.getTime() - 10 * 24 * 60 * 60 * 1000);
+    
+    // Quét ngược từ dưới lên để xóa an toàn
+    for (var i = data.length - 1; i >= 1; i--) {
+      var timeStr = data[i][0];
+      if (!timeStr) continue;
+      
+      var dateVal = parseAppScriptDate(timeStr);
+      if (dateVal && dateVal < tenDaysAgo) {
+        // Ghi nhật ký vào Thùng rác
+        writeTrashLog(ss, "Ý kiến phụ huynh", "Tự động xóa (quá 10 ngày)", data[i]);
+        // Xóa dòng
+        sheet.deleteRow(i + 1);
+      }
+    }
+  } catch (e) {
+    Logger.log("Lỗi dọn dẹp ý kiến phụ huynh: " + e.toString());
+  }
+}
+
+// Phân tích chuỗi ngày sang đối tượng Date trong Apps Script
+function parseAppScriptDate(dateStr) {
+  try {
+    if (!dateStr) return null;
+    var parts = dateStr.split(" ");
+    var dateParts = parts[0].split("/");
+    if (dateParts.length === 3) {
+      var day = parseInt(dateParts[0]);
+      var month = parseInt(dateParts[1]) - 1;
+      var year = parseInt(dateParts[2]);
+      
+      var hour = 0, min = 0, sec = 0;
+      if (parts.length > 1) {
+        var timeParts = parts[1].split(":");
+        hour = parseInt(timeParts[0] || "0");
+        min = parseInt(timeParts[1] || "0");
+        sec = parseInt(timeParts[2] || "0");
+      }
+      return new Date(year, month, day, hour, min, sec);
+    }
+    var parsed = new Date(dateStr);
+    if (!isNaN(parsed.getTime())) return parsed;
+  } catch (err) {}
+  return null;
+}
+
+// Lấy danh sách ý kiến phụ huynh thuộc các lớp của Gia sư
+function getTutorFeedback(tutorPhone) {
+  try {
+    // 1. Dọn dẹp các phản hồi cũ trước
+    cleanupOldFeedback();
+    
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    
+    // 2. Tìm SĐT của toàn bộ học sinh do gia sư này phụ trách
+    var sheetHS = ss.getSheetByName('Mã học sinh');
+    var studentPhones = [];
+    if (sheetHS) {
+      var dataHS = sheetHS.getDataRange().getDisplayValues();
+      var normTutorPhone = normalizePhone(tutorPhone);
+      for (var i = 1; i < dataHS.length; i++) {
+        if (normalizePhone(dataHS[i][6]) === normTutorPhone) {
+          studentPhones.push(normalizePhone(dataHS[i][3])); // SĐT học sinh
+        }
+      }
+    }
+    
+    // 3. Đọc dữ liệu ý kiến phụ huynh và lọc theo học sinh tương ứng
+    var sheetFeedback = ss.getSheetByName('Ý kiến phụ huynh');
+    var feedbacks = [];
+    if (sheetFeedback) {
+      var dataFB = sheetFeedback.getDataRange().getDisplayValues();
+      for (var j = dataFB.length - 1; j >= 1; j--) { // Phản hồi mới nhất lên đầu
+        var studentPhone = normalizePhone(dataFB[j][1]);
+        if (studentPhones.indexOf(studentPhone) !== -1) {
+          feedbacks.push({
+            timestamp: dataFB[j][0],
+            studentPhone: dataFB[j][1],
+            studentName: dataFB[j][2],
+            content: dataFB[j][3]
+          });
+        }
+      }
+    }
+    
+    return { success: true, feedbacks: feedbacks };
+  } catch (e) {
+    return { error: "Lỗi backend: " + e.toString() };
   }
 }
 
