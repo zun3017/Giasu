@@ -309,20 +309,6 @@
                     </div>
                 </div>
 
-                <!-- Bài kiểm tra & Tài liệu -->
-                <div class="result-section" style="background: rgba(0,0,0,0.4); padding: 20px; border-radius: 16px; margin-bottom: 20px; border: 1px solid rgba(142, 77, 255, 0.2);">
-                    <h4 style="color: #8E4DFF; margin: 0 0 15px 0; font-size: 15px; display: flex; align-items: center; gap: 10px; font-weight: 600;"><i class="fa-solid fa-file-pdf"></i> Bài kiểm tra & Tài liệu</h4>
-                    <div>
-                        <div class="bt-item" style="display:flex; justify-content:space-between; align-items:center; padding: 12px 0; border-bottom:1px dashed rgba(142, 77, 255, 0.3);">
-                            <div><strong style="color: #FFD23F;">[${student.class.split(" ")[1] || "Toán"}]</strong> <span style="color: #FFF; font-weight: 500; font-size: 14px; margin-left: 8px;">Đề cương ôn tập Giữa kỳ I</span></div>
-                            <a class="btn-download" href="javascript:void(0)" style="display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; background: rgba(91, 46, 255, 0.2); color: #FFF; text-decoration: none; border-radius: 20px; font-size: 13px; font-weight: 600; border: 1px solid #8E4DFF;"><i class="fa-solid fa-cloud-arrow-down"></i> Tải về</a>
-                        </div>
-                        <div class="bt-item" style="display:flex; justify-content:space-between; align-items:center; padding: 12px 0; border-bottom:none;">
-                            <div><strong style="color: #FFD23F;">[${student.class.split(" ")[1] || "Toán"}]</strong> <span style="color: #FFF; font-weight: 500; font-size: 14px; margin-left: 8px;">Phiếu tự luyện Hệ thức lượng</span></div>
-                            <a class="btn-download" href="javascript:void(0)" style="display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; background: rgba(91, 46, 255, 0.2); color: #FFF; text-decoration: none; border-radius: 20px; font-size: 13px; font-weight: 600; border: 1px solid #8E4DFF;"><i class="fa-solid fa-cloud-arrow-down"></i> Tải về</a>
-                        </div>
-                    </div>
-                </div>
 
                 <!-- Phản hồi từ Phụ huynh -->
                 <div class="result-section" style="background: rgba(0,0,0,0.4); padding: 20px; border-radius: 16px; margin-bottom: 20px; border: 1px solid rgba(142, 77, 255, 0.2);">

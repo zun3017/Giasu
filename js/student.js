@@ -384,18 +384,21 @@ var currentStudentName = "";
                 }
                 
                 // Render Bài tập / File tải về
-                var htmlBaiTap = "";
-                if (ketQua.baiTap.length > 0) {
-                    ketQua.baiTap.slice().reverse().forEach(function(bt) {
-                        htmlBaiTap += "<div class='bt-item'>";
-                        htmlBaiTap += "<div><strong style='color: #FFD23F;'>[" + bt.mon + "]</strong> <span style='color: #FFF; font-weight: 500; font-size: 15px; margin-left: 8px;'>" + bt.tenBai + "</span></div>";
-                        htmlBaiTap += "<a href='" + bt.link + "' target='_blank' class='btn-download'><i class='fa-solid fa-cloud-arrow-down'></i> Tải Xuống</a>";
-                        htmlBaiTap += "</div>";
-                    });
-                } else {
-                    htmlBaiTap = "<p style='color: #A6ADCE;'>Chưa có bài kiểm tra hoặc tài liệu nào.</p>";
+                var khuVucBaiTapEl = document.getElementById('khuVucBaiTap');
+                if (khuVucBaiTapEl) {
+                    var htmlBaiTap = "";
+                    if (ketQua.baiTap && ketQua.baiTap.length > 0) {
+                        ketQua.baiTap.slice().reverse().forEach(function(bt) {
+                            htmlBaiTap += "<div class='bt-item'>";
+                            htmlBaiTap += "<div><strong style='color: #FFD23F;'>[" + bt.mon + "]</strong> <span style='color: #FFF; font-weight: 500; font-size: 15px; margin-left: 8px;'>" + bt.tenBai + "</span></div>";
+                            htmlBaiTap += "<a href='" + bt.link + "' target='_blank' class='btn-download'><i class='fa-solid fa-cloud-arrow-down'></i> Tải Xuống</a>";
+                            htmlBaiTap += "</div>";
+                        });
+                    } else {
+                        htmlBaiTap = "<p style='color: #A6ADCE;'>Chưa có bài kiểm tra hoặc tài liệu nào.</p>";
+                    }
+                    khuVucBaiTapEl.innerHTML = htmlBaiTap;
                 }
-                document.getElementById('khuVucBaiTap').innerHTML = htmlBaiTap;
                 
         } // End renderStudentView
         
