@@ -234,10 +234,10 @@ var currentStudentName = "";
                                     data: dataDauGio,
                                     borderColor: '#8E4DFF',
                                     backgroundColor: 'rgba(142, 77, 255, 0.1)',
-                                    borderWidth: 3,
+                                    borderWidth: 2,
                                     pointBackgroundColor: '#8E4DFF',
                                     pointBorderColor: '#ffffff',
-                                    pointHoverRadius: 6,
+                                    pointHoverRadius: 5,
                                     tension: 0.3,
                                     spanGaps: true
                                 },
@@ -246,10 +246,10 @@ var currentStudentName = "";
                                     data: dataDinhKi,
                                     borderColor: '#FFD23F',
                                     backgroundColor: 'rgba(255, 210, 63, 0.1)',
-                                    borderWidth: 3,
+                                    borderWidth: 2,
                                     pointBackgroundColor: '#FFD23F',
                                     pointBorderColor: '#ffffff',
-                                    pointHoverRadius: 6,
+                                    pointHoverRadius: 5,
                                     tension: 0.3,
                                     spanGaps: true
                                 }
@@ -264,8 +264,10 @@ var currentStudentName = "";
                                 },
                                 tooltip: {
                                     backgroundColor: 'rgba(11, 8, 38, 0.95)',
-                                    titleFont: { family: 'Inter', weight: 'bold' },
-                                    bodyFont: { family: 'Inter' },
+                                    titleColor: '#FFF',
+                                    bodyColor: '#A6ADCE',
+                                    titleFont: { family: 'Inter', weight: 'bold', size: 11 },
+                                    bodyFont: { family: 'Inter', size: 10 },
                                     borderColor: '#8E4DFF',
                                     borderWidth: 1
                                 }
@@ -273,13 +275,13 @@ var currentStudentName = "";
                             scales: {
                                 x: {
                                     grid: { color: 'rgba(255, 255, 255, 0.03)' },
-                                    ticks: { color: '#A6ADCE', font: { family: 'Inter' } }
+                                    ticks: { color: '#A6ADCE', font: { family: 'Inter', size: 9.5 } }
                                 },
                                 y: {
                                     min: 0,
                                     max: 10,
-                                    grid: { color: 'rgba(255, 255, 255, 0.05)' },
-                                    ticks: { color: '#A6ADCE', font: { family: 'Inter' }, stepSize: 2 }
+                                    grid: { color: 'rgba(255, 255, 255, 0.03)' },
+                                    ticks: { color: '#A6ADCE', font: { family: 'Inter', size: 9.5 }, stepSize: 2 }
                                 }
                             }
                         }

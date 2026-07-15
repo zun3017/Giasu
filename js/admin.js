@@ -325,13 +325,15 @@ var pinVerifyAction = "deleteStudent";
                         legend: {
                             labels: {
                                 color: '#A6ADCE',
-                                font: { family: 'Inter', size: 12 }
+                                font: { family: 'Inter', size: 11 }
                             }
                         },
                         tooltip: {
-                            backgroundColor: '#0B0826',
+                            backgroundColor: 'rgba(11, 8, 38, 0.95)',
                             titleColor: '#FFF',
                             bodyColor: '#A6ADCE',
+                            titleFont: { family: 'Inter', weight: 'bold', size: 11 },
+                            bodyFont: { family: 'Inter', size: 10 },
                             borderColor: '#8E4DFF',
                             borderWidth: 1,
                             callbacks: {
@@ -343,12 +345,12 @@ var pinVerifyAction = "deleteStudent";
                     },
                     scales: {
                         x: {
-                            grid: { color: 'rgba(255, 255, 255, 0.04)' },
-                            ticks: { color: '#A6ADCE', font: { family: 'Inter' } }
+                            grid: { color: 'rgba(255, 255, 255, 0.03)' },
+                            ticks: { color: '#A6ADCE', font: { family: 'Inter', size: 9.5 } }
                         },
                         y: {
                             min: 0,
-                            grid: { color: 'rgba(255, 255, 255, 0.04)' },
+                            grid: { color: 'rgba(255, 255, 255, 0.03)' },
                             ticks: {
                                 color: '#A6ADCE',
                                 font: { family: 'Inter' },
