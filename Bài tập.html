@@ -9,7 +9,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="css/style.css?v=1.2.6">
+    <link rel="stylesheet" href="css/style.css?v=1.2.7">
     
     <style>
         /* ================= RESET & CƠ BẢN ================= */
@@ -666,7 +666,7 @@
         </div>
     </div>
 
-    <script src="js/api.js?v=1.2.6"></script>
+    <script src="js/api.js?v=1.2.7"></script>
     <script>
         // --- Web App Notification and Confirmation Dialogs ---
         function showToast(message, type = 'info') {
@@ -866,8 +866,8 @@
             if (!assignedContainer || !assignedCard) return;
             
             assignedContainer.innerHTML = "";
+            assignedCard.style.display = 'block';
             if (currentHW && currentHW.assignedList && currentHW.assignedList.length > 0) {
-                assignedCard.style.display = 'block';
                 currentHW.assignedList.forEach(function(hw) {
                     var html = "";
                     html += '<div class="assigned-hw-item" style="border: 1px dashed rgba(142, 77, 255, 0.4); border-radius: 12px; margin-bottom: 12px; background: rgba(20, 22, 60, 0.3); padding: 15px 18px; text-align: left;">';
@@ -886,7 +886,7 @@
                     assignedContainer.innerHTML += html;
                 });
             } else {
-                assignedCard.style.display = 'none';
+                assignedContainer.innerHTML = '<div style="text-align: center; color: #A6ADCE; padding: 20px; font-size: 13px;"><i class="fa-solid fa-circle-info"></i> Hiện chưa có bài tập nào được giao từ Gia sư.</div>';
             }
         }
 
