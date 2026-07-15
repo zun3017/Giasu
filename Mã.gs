@@ -1594,8 +1594,12 @@ function saveFileToDrive(studentName, lessonName, fileBase64, fileName, mimeType
   var blob = Utilities.newBlob(fileData, mimeType, newFileName);
   var file = studentFolder.createFile(blob);
   
-  // 6. Cấp quyền xem cho bất kỳ ai có link
-  file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+  // 6. Cấp quyền xem cho bất kỳ ai có link (nếu lỗi quyền của tổ chức Workspace thì bỏ qua và tiếp tục)
+  try {
+    file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+  } catch (sharingErr) {
+    Logger.log("Không thể chia sẻ file công khai (Bỏ qua): " + sharingErr.toString());
+  }
   
   return file.getUrl();
 }
