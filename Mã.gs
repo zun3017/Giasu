@@ -1737,6 +1737,8 @@ function xacThucMaBaiTap(ma) {
     }
     
     // Truy vấn danh sách bài tập được giao cho mã này trong sheet 'Bài tập giao'
+    var sheetAssigned = ss.getSheetByName('Bài tập giao');
+    var assignedList = [];
     if (sheetAssigned) {
       var dataAssigned = sheetAssigned.getDataRange().getDisplayValues();
       for (var k = 1; k < dataAssigned.length; k++) {
