@@ -1592,6 +1592,33 @@ function initHomeworkSheet(ss) {
   return sheet;
 }
 
+// Helper: Lấy chỉ số các cột dựa trên tên tiêu đề hàng 1 của sheet
+function getHeaderIndices(sheet) {
+  var lastCol = sheet.getLastColumn();
+  if (lastCol < 1) return {};
+  var headers = sheet.getRange(1, 1, 1, lastCol).getValues()[0];
+  var indices = {};
+  for (var i = 0; i < headers.length; i++) {
+    var title = headers[i] ? headers[i].toString().trim() : "";
+    if (title !== "") {
+      indices[title] = i;
+    }
+  }
+  return indices;
+}
+
+// Helper: Ghi dữ liệu vào dòng mới theo đúng cột tiêu đề
+function writeRowWithHeaders(sheet, headerMap, rowDataMap) {
+  var nextRow = sheet.getLastRow() + 1;
+  for (var key in rowDataMap) {
+    var colIdx = headerMap[key];
+    if (colIdx !== undefined) {
+      sheet.getRange(nextRow, colIdx + 1).setValue(rowDataMap[key]);
+    }
+  }
+  return nextRow;
+}
+
 // Lưu file vào Google Drive và trả về URL
 function saveFileToDrive(studentName, lessonName, fileBase64, fileName, mimeType) {
   var parentFolderId = "1ZKHCDdZzkMqLTV4guvMNkKYbaQHCEGus";
@@ -1601,7 +1628,13 @@ function saveFileToDrive(studentName, lessonName, fileBase64, fileName, mimeType
   try {
     parentFolder = driveApp.getFolderById(parentFolderId);
   } catch (err) {
-    throw new Error("Không thể truy cập thư mục Google Drive (ID: " + parentFolderId + "). Lỗi: " + err.toString() + ". Vui lòng đảm bảo tài khoản chạy script có quyền chỉnh sửa thư mục này.");
+    // FALLBACK: Tự động tìm hoặc tạo thư mục "BÀI TẬP GIA SƯ" ở gốc Drive của tài khoản chạy script
+    var folders = driveApp.getRootFolder().getFoldersByName("BÀI TẬP GIA SƯ");
+    if (folders.hasNext()) {
+      parentFolder = folders.next();
+    } else {
+      parentFolder = driveApp.getRootFolder().createFolder("BÀI TẬP GIA SƯ");
+    }
   }
   
   // 2. Tìm hoặc tạo thư mục con theo tên học sinh
@@ -1676,22 +1709,33 @@ function xacThucMaBaiTap(ma) {
     // Truy vấn lịch sử bài nộp của mã này trong sheet 'Bài tập'
     var sheetHW = initHomeworkSheet(ss);
     var dataHW = sheetHW.getDataRange().getDisplayValues();
+    var hwHeaders = getHeaderIndices(sheetHW);
+    
+    var colMa = hwHeaders["Mã bài tập"] !== undefined ? hwHeaders["Mã bài tập"] : 4;
+    var colTime = hwHeaders["Thời gian nộp"] !== undefined ? hwHeaders["Thời gian nộp"] : 0;
+    var colName = hwHeaders["Tên học sinh"] !== undefined ? hwHeaders["Tên học sinh"] : 1;
+    var colLesson = hwHeaders["Tên bài học"] !== undefined ? hwHeaders["Tên bài học"] : 2;
+    var colUrl = hwHeaders["Link Google Drive liên kết"] !== undefined ? hwHeaders["Link Google Drive liên kết"] : 3;
+    var colDate = hwHeaders["Ngày nộp"] !== undefined ? hwHeaders["Ngày nộp"] : 5;
+    var colStatus = hwHeaders["Trạng thái nộp"] !== undefined ? hwHeaders["Trạng thái nộp"] : 6;
+    
     var submissions = [];
     
     for (var j = 1; j < dataHW.length; j++) {
-      if (dataHW[j].length > 4 && String(dataHW[j][4]).trim().toUpperCase() === cleanMa) {
+      if (dataHW[j].length > colMa && String(dataHW[j][colMa]).trim().toUpperCase() === cleanMa) {
         submissions.push({
-          timestamp: dataHW[j][0],
-          studentName: dataHW[j][1],
-          lessonName: dataHW[j][2],
-          fileUrl: dataHW[j][3],
-          ma: dataHW[j][4],
-          submissionDate: dataHW[j][5],
-          status: dataHW[j][6] || "Active",
+          timestamp: dataHW[j][colTime] || "",
+          studentName: dataHW[j][colName] || "",
+          lessonName: dataHW[j][colLesson] || "",
+          fileUrl: dataHW[j][colUrl] || "",
+          ma: dataHW[j][colMa] || "",
+          submissionDate: dataHW[j][colDate] || "",
+          status: dataHW[j][colStatus] || "Active",
           rowIndex: j + 1 // 1-indexed row number in 'Bài tập' sheet
         });
       }
     }
+    
     // Truy vấn danh sách bài tập được giao cho mã này trong sheet 'Bài tập giao'
     var sheetAssigned = ss.getSheetByName('Bài tập giao');
     var assignedList = [];
@@ -1728,6 +1772,7 @@ function uploadHomeworkFile(ma, studentName, lessonName, fileBase64, fileName, m
   try {
     var ss = SpreadsheetApp.getActiveSpreadsheet();
     var sheetHW = initHomeworkSheet(ss);
+    var hwHeaders = getHeaderIndices(sheetHW);
     
     // Tải file lên Drive
     var fileUrl = saveFileToDrive(studentName, lessonName, fileBase64, fileName, mimeType);
@@ -1736,19 +1781,18 @@ function uploadHomeworkFile(ma, studentName, lessonName, fileBase64, fileName, m
     var dateString = Utilities.formatDate(now, Session.getScriptTimeZone(), "dd/MM/yyyy HH:mm:ss");
     var shortDateString = Utilities.formatDate(now, Session.getScriptTimeZone(), "dd/MM/yyyy");
     
-    // Thêm dòng mới: Cột A -> G
-    sheetHW.appendRow([
-      dateString,
-      studentName,
-      lessonName,
-      fileUrl,
-      ma.toUpperCase(),
-      shortDateString,
-      "Active"
-    ]);
+    // Chuẩn bị dữ liệu ghi theo tên cột
+    var rowData = {};
+    rowData["Thời gian nộp"] = dateString;
+    rowData["Tên học sinh"] = studentName;
+    rowData["Tên bài học"] = lessonName;
+    rowData["Link Google Drive liên kết"] = fileUrl;
+    rowData["Mã bài tập"] = ma.toUpperCase();
+    rowData["Ngày nộp"] = shortDateString;
+    rowData["Trạng thái nộp"] = "Active";
     
-    var lastRow = sheetHW.getLastRow();
-    sheetHW.getRange(lastRow, 1, 1, 7).setFontFamily("Arial");
+    var lastRow = writeRowWithHeaders(sheetHW, hwHeaders, rowData);
+    sheetHW.getRange(lastRow, 1, 1, sheetHW.getLastColumn()).setFontFamily("Arial");
     
     return {
       success: true,
@@ -1768,6 +1812,7 @@ function editHomeworkFile(rowIndex, lessonName, fileBase64, fileName, mimeType) 
   try {
     var ss = SpreadsheetApp.getActiveSpreadsheet();
     var sheetHW = initHomeworkSheet(ss);
+    var hwHeaders = getHeaderIndices(sheetHW);
     var r = parseInt(rowIndex);
     
     var data = sheetHW.getDataRange().getDisplayValues();
@@ -1775,31 +1820,38 @@ function editHomeworkFile(rowIndex, lessonName, fileBase64, fileName, mimeType) 
       return { error: "Vị trí dòng không hợp lệ." };
     }
     
+    var colDateIdx = hwHeaders["Ngày nộp"] !== undefined ? hwHeaders["Ngày nộp"] : 5;
+    var colNameIdx = hwHeaders["Tên học sinh"] !== undefined ? hwHeaders["Tên học sinh"] : 1;
+    var colUrlIdx = hwHeaders["Link Google Drive liên kết"] !== undefined ? hwHeaders["Link Google Drive liên kết"] : 3;
+    var colLessonIdx = hwHeaders["Tên bài học"] !== undefined ? hwHeaders["Tên bài học"] : 2;
+    var colTimeIdx = hwHeaders["Thời gian nộp"] !== undefined ? hwHeaders["Thời gian nộp"] : 0;
+    var colStatusIdx = hwHeaders["Trạng thái nộp"] !== undefined ? hwHeaders["Trạng thái nộp"] : 6;
+    
     // Kiểm tra khóa ngày nộp
     var now = new Date();
     var todayStr = Utilities.formatDate(now, Session.getScriptTimeZone(), "dd/MM/yyyy");
-    var submissionDateStr = data[r - 1][5].trim();
+    var submissionDateStr = data[r - 1][colDateIdx].trim();
     
     if (submissionDateStr !== todayStr) {
       return { error: "Đã quá hạn sửa bài tập (chỉ được sửa trong ngày nộp)." };
     }
     
-    var studentName = data[r - 1][1];
+    var studentName = data[r - 1][colNameIdx];
     
     // Cập nhật tên bài học
-    sheetHW.getRange(r, 3).setValue(lessonName);
+    sheetHW.getRange(r, colLessonIdx + 1).setValue(lessonName);
     
     // Nếu có file mới truyền lên
-    var fileUrl = data[r - 1][3];
+    var fileUrl = data[r - 1][colUrlIdx];
     if (fileBase64 && fileName) {
       fileUrl = saveFileToDrive(studentName, lessonName, fileBase64, fileName, mimeType);
-      sheetHW.getRange(r, 4).setValue(fileUrl);
+      sheetHW.getRange(r, colUrlIdx + 1).setValue(fileUrl);
     }
     
     var dateString = Utilities.formatDate(now, Session.getScriptTimeZone(), "dd/MM/yyyy HH:mm:ss");
-    sheetHW.getRange(r, 1).setValue(dateString);
-    sheetHW.getRange(r, 7).setValue("Active"); // Reset trạng thái nếu đang tạm xóa
-    sheetHW.getRange(r, 1, 1, 7).setFontFamily("Arial");
+    sheetHW.getRange(r, colTimeIdx + 1).setValue(dateString);
+    sheetHW.getRange(r, colStatusIdx + 1).setValue("Active"); // Reset trạng thái nếu đang tạm xóa
+    sheetHW.getRange(r, 1, 1, sheetHW.getLastColumn()).setFontFamily("Arial");
     
     return { success: true, fileUrl: fileUrl, timestamp: dateString };
   } catch (e) {
@@ -1812,6 +1864,7 @@ function deleteHomeworkFile(rowIndex) {
   try {
     var ss = SpreadsheetApp.getActiveSpreadsheet();
     var sheetHW = initHomeworkSheet(ss);
+    var hwHeaders = getHeaderIndices(sheetHW);
     var r = parseInt(rowIndex);
     
     var data = sheetHW.getDataRange().getValues();
@@ -1819,16 +1872,19 @@ function deleteHomeworkFile(rowIndex) {
       return { error: "Vị trí dòng không hợp lệ." };
     }
     
+    var colDateIdx = hwHeaders["Ngày nộp"] !== undefined ? hwHeaders["Ngày nộp"] : 5;
+    var colStatusIdx = hwHeaders["Trạng thái nộp"] !== undefined ? hwHeaders["Trạng thái nộp"] : 6;
+    
     var now = new Date();
     var todayStr = Utilities.formatDate(now, Session.getScriptTimeZone(), "dd/MM/yyyy");
-    var submissionDateStr = sheetHW.getRange(r, 6).getDisplayValue().trim();
+    var submissionDateStr = sheetHW.getRange(r, colDateIdx + 1).getDisplayValue().trim();
     
     if (submissionDateStr !== todayStr) {
       return { error: "Đã quá hạn xóa bài tập (chỉ được xóa trong ngày nộp)." };
     }
     
     // Đổi trạng thái sang Deleted
-    sheetHW.getRange(r, 7).setValue("Deleted").setFontFamily("Arial");
+    sheetHW.getRange(r, colStatusIdx + 1).setValue("Deleted").setFontFamily("Arial");
     
     // Ghi log Thùng rác
     writeTrashLog(ss, "Bài tập", "Xóa bài tập tạm thời", data[r - 1]);
@@ -1844,6 +1900,7 @@ function restoreHomeworkFile(rowIndex) {
   try {
     var ss = SpreadsheetApp.getActiveSpreadsheet();
     var sheetHW = initHomeworkSheet(ss);
+    var hwHeaders = getHeaderIndices(sheetHW);
     var r = parseInt(rowIndex);
     
     var data = sheetHW.getDataRange().getValues();
@@ -1851,16 +1908,19 @@ function restoreHomeworkFile(rowIndex) {
       return { error: "Vị trí dòng không hợp lệ." };
     }
     
+    var colDateIdx = hwHeaders["Ngày nộp"] !== undefined ? hwHeaders["Ngày nộp"] : 5;
+    var colStatusIdx = hwHeaders["Trạng thái nộp"] !== undefined ? hwHeaders["Trạng thái nộp"] : 6;
+    
     var now = new Date();
     var todayStr = Utilities.formatDate(now, Session.getScriptTimeZone(), "dd/MM/yyyy");
-    var submissionDateStr = sheetHW.getRange(r, 6).getDisplayValue().trim();
+    var submissionDateStr = sheetHW.getRange(r, colDateIdx + 1).getDisplayValue().trim();
     
     if (submissionDateStr !== todayStr) {
       return { error: "Đã quá hạn khôi phục (chỉ được khôi phục trong ngày nộp)." };
     }
     
     // Đổi trạng thái sang Active
-    sheetHW.getRange(r, 7).setValue("Active").setFontFamily("Arial");
+    sheetHW.getRange(r, colStatusIdx + 1).setValue("Active").setFontFamily("Arial");
     
     // Ghi log Thùng rác
     writeTrashLog(ss, "Bài tập", "Khôi phục bài tập", data[r - 1]);
@@ -2156,14 +2216,21 @@ function getStudentSubmissionsForTutor(maBaiTap) {
       return { submissions: [] };
     }
     
+    var hwHeaders = getHeaderIndices(sheetHW);
+    var colMa = hwHeaders["Mã bài tập"] !== undefined ? hwHeaders["Mã bài tập"] : 4;
+    var colStatus = hwHeaders["Trạng thái nộp"] !== undefined ? hwHeaders["Trạng thái nộp"] : 6;
+    var colTime = hwHeaders["Thời gian nộp"] !== undefined ? hwHeaders["Thời gian nộp"] : 0;
+    var colLesson = hwHeaders["Tên bài học"] !== undefined ? hwHeaders["Tên bài học"] : 2;
+    var colUrl = hwHeaders["Link Google Drive liên kết"] !== undefined ? hwHeaders["Link Google Drive liên kết"] : 3;
+    
     for (var i = 1; i < dataHW.length; i++) {
-      if (dataHW[i].length > 4 && String(dataHW[i][4]).trim().toUpperCase() === cleanMa) {
-        var statusStr = (dataHW[i].length > 6) ? dataHW[i][6] : "Active";
+      if (dataHW[i].length > colMa && String(dataHW[i][colMa]).trim().toUpperCase() === cleanMa) {
+        var statusStr = (dataHW[i].length > colStatus) ? dataHW[i][colStatus] : "Active";
         if (statusStr === "Active") {
           submissions.push({
-            timestamp: dataHW[i][0],
-            lessonName: dataHW[i][2],
-            fileUrl: dataHW[i][3]
+            timestamp: dataHW[i][colTime] || "",
+            lessonName: dataHW[i][colLesson] || "",
+            fileUrl: dataHW[i][colUrl] || ""
           });
         }
       }
