@@ -1950,23 +1950,33 @@ function loadTutorAssignedHomework() {
 }
 
 // 8. Render bảng danh sách bài tập hoạt động
-function renderAssignedHwList(list) {
+var assignedHwShowAll = false;
+var ASSIGNED_HW_LIMIT = 5;
+
+function renderAssignedHwList(list, showAll) {
+    assignedHwShowAll = !!showAll;
     var tableBody = document.getElementById('assignedHwTableBody');
     var mobileContainer = document.getElementById('assignedHwMobile');
     if (!tableBody) return;
     
-    if (list.length === 0) {
+    if (!list || list.length === 0) {
         tableBody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:#A6ADCE; padding: 20px;"><i class="fa-solid fa-circle-info"></i> Chưa giao bài tập nào cho học sinh này!</td></tr>';
         if (mobileContainer) {
             mobileContainer.innerHTML = '<div style="text-align:center; color:#A6ADCE; padding: 20px; font-size: 13px;"><i class="fa-solid fa-circle-info"></i> Chưa giao bài tập nào cho học sinh này!</div>';
         }
         return;
     }
+
+    // Đảo ngược: bài giao mới nhất lên đầu
+    var sortedList = list.slice().reverse();
+    var totalCount = sortedList.length;
+    var limit = showAll ? totalCount : ASSIGNED_HW_LIMIT;
+    var visibleList = sortedList.slice(0, limit);
     
     tableBody.innerHTML = "";
     var mobileHtml = "";
     
-    list.forEach(function(item, idx) {
+    visibleList.forEach(function(item, idx) {
         var fileLink = item.fileUrl ? '<a href="' + item.fileUrl + '" target="_blank" style="color:#8E4DFF; font-weight:600; text-decoration:none; display:inline-flex; align-items:center; gap:6px;"><i class="fa-solid fa-file-pdf"></i> Xem bài tập</a>' : '<span style="color:#A6ADCE;">Không có file</span>';
         
         var actionsHtml = 
@@ -1998,23 +2008,45 @@ function renderAssignedHwList(list) {
         mobileHtml += "  <div class='accordion-body' id='assign-hw-body-" + idx + "' style='display: none;'>";
         mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Ngày giao</span><span class='accordion-body-val'>" + item.releaseDate + "</span></div>";
         mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Tài liệu</span><span class='accordion-body-val'>" + fileLink + "</span></div>";
-        
-        // Thao tác
         mobileHtml += "    <div class='accordion-body-row' style='margin-top: 5px;'><span class='accordion-body-label'>Thao tác</span>";
         mobileHtml += "      <span class='accordion-body-val' style='display:inline-flex; gap:10px;'>";
         mobileHtml += "        <button onclick=\"startEditAssignedHw(" + item.rowIndex + ", '" + item.title.replace(/'/g, "\\'") + "', '" + item.releaseDate + "')\" class='action-btn-hw' style='border-color:#F59E0B; color:#F59E0B; cursor:pointer;'><i class='fa-solid fa-pen-to-square'></i> Sửa</button>";
         mobileHtml += "        <button onclick='deleteAssignedHomework(" + item.rowIndex + ")' class='action-btn-hw' style='border-color:#EF4444; color:#EF4444; cursor:pointer;'><i class='fa-solid fa-trash-can'></i> Xóa</button>";
         mobileHtml += "      </span>";
         mobileHtml += "    </div>";
-        
         mobileHtml += "  </div>";
         mobileHtml += "</div>";
     });
+
+    // Nút Xem thêm / Thu gọn
+    if (totalCount > ASSIGNED_HW_LIMIT) {
+        var remaining = totalCount - ASSIGNED_HW_LIMIT;
+        if (!showAll) {
+            tableBody.innerHTML += '<tr><td colspan="4" style="text-align:center; padding:10px;">'
+                + '<button onclick="renderAssignedHwList(assignedHwListGlobal, true)" style="background:none; border:1px solid #4B5563; color:#8E4DFF; padding:6px 20px; border-radius:8px; cursor:pointer; font-size:13px;">'
+                + '<i class="fa-solid fa-chevron-down" style="margin-right:5px;"></i>Xem thêm ' + remaining + ' bài cũ hơn'
+                + '</button></td></tr>';
+            mobileHtml += '<div style="text-align:center; padding:10px;">'
+                + '<button onclick="renderAssignedHwList(assignedHwListGlobal, true)" style="background:none; border:1px solid #4B5563; color:#8E4DFF; padding:6px 20px; border-radius:8px; cursor:pointer; font-size:13px; width:100%;">'
+                + '<i class="fa-solid fa-chevron-down" style="margin-right:5px;"></i>Xem thêm ' + remaining + ' bài cũ hơn'
+                + '</button></div>';
+        } else {
+            tableBody.innerHTML += '<tr><td colspan="4" style="text-align:center; padding:10px;">'
+                + '<button onclick="renderAssignedHwList(assignedHwListGlobal, false)" style="background:none; border:1px solid #4B5563; color:#9CA3AF; padding:6px 20px; border-radius:8px; cursor:pointer; font-size:13px;">'
+                + '<i class="fa-solid fa-chevron-up" style="margin-right:5px;"></i>Thu gọn'
+                + '</button></td></tr>';
+            mobileHtml += '<div style="text-align:center; padding:10px;">'
+                + '<button onclick="renderAssignedHwList(assignedHwListGlobal, false)" style="background:none; border:1px solid #4B5563; color:#9CA3AF; padding:6px 20px; border-radius:8px; cursor:pointer; font-size:13px; width:100%;">'
+                + '<i class="fa-solid fa-chevron-up" style="margin-right:5px;"></i>Thu gọn'
+                + '</button></div>';
+        }
+    }
     
     if (mobileContainer) {
         mobileContainer.innerHTML = mobileHtml;
     }
 }
+
 
 function toggleTutorAssignedHwAccordion(idx) {
     var body = document.getElementById('assign-hw-body-' + idx);
