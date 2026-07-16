@@ -1815,6 +1815,7 @@ function uploadHomeworkFiles(ma, studentName, lessonName, filesList) {
     var fileUrl = "";
     
     if (filesList && filesList.length > 0) {
+      // Tạo blob cho tất cả các file
       var blobs = [];
       for (var i = 0; i < filesList.length; i++) {
         var fileObj = filesList[i];
@@ -1832,21 +1833,21 @@ function uploadHomeworkFiles(ma, studentName, lessonName, filesList) {
           else if (fileObj.mimeType === "application/vnd.openxmlformats-officedocument.wordprocessingml.document") ext = ".docx";
         }
         
-        var newFileName = studentName + " - " + lessonName + " - " + (i + 1) + ext;
-        var blob = Utilities.newBlob(fileData, fileObj.mimeType, newFileName);
-        blobs.push(blob);
+        var newFileName = studentName + " - " + shortDateString.replace(/\//g, "-") + " - " + lessonName + (filesList.length > 1 ? (" - " + (i + 1)) : "") + ext;
+        blobs.push(Utilities.newBlob(fileData, fileObj.mimeType, newFileName));
       }
       
-      if (blobs.length > 0) {
+      if (blobs.length === 1) {
+        // 1 file: tải thẳng không nén
+        var singleFile = studentFolder.createFile(blobs[0]);
+        try { singleFile.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW); } catch (fErr) {}
+        fileUrl = singleFile.getUrl();
+      } else if (blobs.length > 1) {
+        // Nhiều file: nén thành ZIP
         var zipName = studentName + " - " + shortDateString.replace(/\//g, "-") + " - " + lessonName + ".zip";
         var zipBlob = Utilities.zip(blobs, zipName);
         var zipFile = studentFolder.createFile(zipBlob);
-        
-        // Cấp quyền xem cho file ZIP để giáo viên/học sinh tải trực tiếp
-        try {
-          zipFile.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
-        } catch (fErr) {}
-        
+        try { zipFile.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW); } catch (fErr) {}
         fileUrl = zipFile.getUrl();
       }
     }
