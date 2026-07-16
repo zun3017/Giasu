@@ -11,7 +11,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="css/style.css?v=1.5.4">
+    <link rel="stylesheet" href="css/style.css?v=1.5.5">
     
     <style>
         /* ================= RESET & CƠ BẢN ================= */
@@ -671,7 +671,7 @@
         </div>
     </div>
 
-    <script src="js/api.js?v=1.5.4"></script>
+    <script src="js/api.js?v=1.5.5"></script>
     <script>
         // --- Web App Notification and Confirmation Dialogs ---
         function showToast(message, type = 'info') {
@@ -924,12 +924,21 @@
                 var mobileHtml = "";
                 currentHW.submissions.forEach(function(item, idx) {
                     var isFolder = item.fileUrl && (item.fileUrl.indexOf("/folders/") !== -1 || item.fileUrl.indexOf("/drive/folders/") !== -1);
-                    var viewText = isFolder ? '<i class="fa-solid fa-folder-open"></i> Xem thư mục bài nộp' : '<i class="fa-solid fa-file-pdf"></i> Xem file bài nộp';
+                    var isZip = item.fileUrl && (item.fileUrl.toLowerCase().indexOf(".zip") !== -1 || item.fileUrl.indexOf("/file/d/") !== -1);
+                    var viewText = isFolder ? '<i class="fa-solid fa-folder-open"></i> Xem thư mục bài nộp' : (isZip ? '<i class="fa-solid fa-file-zipper"></i> Tải bài nộp (ZIP)' : '<i class="fa-solid fa-file-pdf"></i> Xem file bài nộp');
+
+                    var finalUrl = item.fileUrl;
+                    if (isZip && item.fileUrl) {
+                        var matches = item.fileUrl.match(/[-\w]{25,}/);
+                        if (matches && matches[0]) {
+                            finalUrl = "https://drive.google.com/uc?export=download&id=" + matches[0];
+                        }
+                    }
 
                     var rowHtml = "<tr>";
                     rowHtml += "<td>" + item.timestamp + "</td>";
                     rowHtml += "<td><strong style='color:#FFF;'>" + item.lessonName + "</strong></td>";
-                    rowHtml += "<td><a href='" + item.fileUrl + "' target='_blank' style='color:#FFD23F; font-weight:600; text-decoration:none;'>" + viewText + "</a></td>";
+                    rowHtml += "<td><a href='" + finalUrl + "' target='_blank' style='color:#FFD23F; font-weight:600; text-decoration:none;'>" + viewText + "</a></td>";
                     
                     // Cột Trạng thái
                     var statusStr = item.status || "Active";
@@ -986,7 +995,7 @@
                     mobileHtml += "  </div>";
                     mobileHtml += "  <div class='accordion-body' id='hw-accordion-body-" + idx + "' style='display: none;'>";
                     mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Thời gian nộp</span><span class='accordion-body-val'>" + item.timestamp + "</span></div>";
-                    mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Bài nộp</span><span class='accordion-body-val'><a href='" + item.fileUrl + "' target='_blank' style='color:#FFD23F; font-weight:600; text-decoration:none;'>" + viewText + "</a></span></div>";
+                    mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Bài nộp</span><span class='accordion-body-val'><a href='" + finalUrl + "' target='_blank' style='color:#FFD23F; font-weight:600; text-decoration:none;'>" + viewText + "</a></span></div>";
                     mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Thao tác</span><span class='accordion-body-val'>" + mobileActionsHtml + "</span></div>";
                     mobileHtml += "  </div>";
                     mobileHtml += "</div>";

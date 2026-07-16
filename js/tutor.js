@@ -2280,11 +2280,12 @@ function renderStudentSubmissionsList() {
     
     showList.forEach(function(item, idx) {
         var isFolder = item.fileUrl && (item.fileUrl.indexOf("/folders/") !== -1 || item.fileUrl.indexOf("/drive/folders/") !== -1);
+        var isZip = item.fileUrl && (item.fileUrl.toLowerCase().indexOf(".zip") !== -1 || item.fileUrl.indexOf("/file/d/") !== -1);
         
-        var viewText = isFolder ? '<i class="fa-solid fa-folder-open"></i> Xem thư mục' : '<i class="fa-solid fa-image"></i> Xem file nộp';
-        var fileLink = item.fileUrl ? '<a href="' + item.fileUrl + '" target="_blank" style="color:#FFD23F; font-weight:600; text-decoration:none;">' + viewText + '</a>' : '<span style="color:#A6ADCE;">Không có file</span>';
+        var viewText = isFolder ? '<i class="fa-solid fa-folder-open"></i> Xem thư mục' : (isZip ? '<i class="fa-solid fa-file-zipper"></i> Tải bài nộp (ZIP)' : '<i class="fa-solid fa-image"></i> Xem file nộp');
+        var fileLink = item.fileUrl ? '<a href="' + (isZip ? getGoogleDriveDownloadUrl(item.fileUrl) : item.fileUrl) + '" target="_blank" style="color:#FFD23F; font-weight:600; text-decoration:none;">' + viewText + '</a>' : '<span style="color:#A6ADCE;">Không có file</span>';
         
-        var dlText = isFolder ? '<i class="fa-solid fa-folder-arrow-down"></i> Tải cả thư mục' : '<i class="fa-solid fa-cloud-arrow-down"></i> Tải về';
+        var dlText = isFolder ? '<i class="fa-solid fa-folder-arrow-down"></i> Tải cả thư mục' : (isZip ? '<i class="fa-solid fa-file-zipper"></i> Tải bài nộp (ZIP)' : '<i class="fa-solid fa-cloud-arrow-down"></i> Tải về');
         var downloadBtn = item.fileUrl ? '<a href="' + getGoogleDriveDownloadUrl(item.fileUrl) + '" target="_blank" download class="action-btn-hw" style="color:#10B981; border-color:rgba(16,185,129,0.3); background:rgba(16,185,129,0.1); padding: 4px 14px; text-decoration: none;">' + dlText + '</a>' : '<span style="color:#A6ADCE;">N/A</span>';
         
         // Desktop Row

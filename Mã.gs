@@ -1776,7 +1776,7 @@ function uploadHomeworkFile(ma, studentName, lessonName, fileBase64, fileName, m
   }
 }
 
-// Học sinh nộp nhiều file bài tập mới (tạo thư mục con lưu trên Drive và lưu link thư mục vào sheet)
+// Học sinh nộp nhiều file bài tập mới (nén thành 1 file ZIP lưu trên Drive và lưu link ZIP vào sheet)
 function uploadHomeworkFiles(ma, studentName, lessonName, filesList) {
   try {
     var ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -1812,19 +1812,10 @@ function uploadHomeworkFiles(ma, studentName, lessonName, filesList) {
     var shortDateString = Utilities.formatDate(now, Session.getScriptTimeZone(), "dd/MM/yyyy");
     var dateString = Utilities.formatDate(now, Session.getScriptTimeZone(), "dd/MM/yyyy HH:mm:ss");
     
-    // 3. Tạo thư mục con riêng cho buổi nộp bài này
-    var submissionFolderName = shortDateString.replace(/\//g, "-") + " - " + lessonName;
-    var submissionFolder = studentFolder.createFolder(submissionFolderName);
+    var fileUrl = "";
     
-    // Cấp quyền xem cho thư mục con
-    try {
-      submissionFolder.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
-    } catch (sharingErr) {
-      Logger.log("Không thể chia sẻ thư mục công khai: " + sharingErr.toString());
-    }
-    
-    // 4. Lưu từng file vào thư mục con này
     if (filesList && filesList.length > 0) {
+      var blobs = [];
       for (var i = 0; i < filesList.length; i++) {
         var fileObj = filesList[i];
         if (!fileObj || !fileObj.fileBase64) continue;
@@ -1843,11 +1834,22 @@ function uploadHomeworkFiles(ma, studentName, lessonName, filesList) {
         
         var newFileName = studentName + " - " + lessonName + " - " + (i + 1) + ext;
         var blob = Utilities.newBlob(fileData, fileObj.mimeType, newFileName);
-        submissionFolder.createFile(blob);
+        blobs.push(blob);
+      }
+      
+      if (blobs.length > 0) {
+        var zipName = studentName + " - " + shortDateString.replace(/\//g, "-") + " - " + lessonName + ".zip";
+        var zipBlob = Utilities.zip(blobs, zipName);
+        var zipFile = studentFolder.createFile(zipBlob);
+        
+        // Cấp quyền xem cho file ZIP để giáo viên/học sinh tải trực tiếp
+        try {
+          zipFile.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+        } catch (fErr) {}
+        
+        fileUrl = zipFile.getUrl();
       }
     }
-    
-    var fileUrl = submissionFolder.getUrl();
     
     // Chuẩn bị dữ liệu ghi theo tên cột (thêm dấu ' để giữ số 0 ở đầu)
     var rowData = {};
@@ -1875,7 +1877,7 @@ function uploadHomeworkFiles(ma, studentName, lessonName, filesList) {
   }
 }
 
-// Chỉnh sửa bài tập đã nộp (thay tên bài hoặc tệp mới trong thư mục buổi nộp)
+// Chỉnh sửa bài tập đã nộp (thay tên bài hoặc nén file ZIP mới thay thế file cũ)
 function editHomeworkFile(rowIndex, lessonName, fileBase64OrList, fileName, mimeType) {
   try {
     var ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -1923,60 +1925,48 @@ function editHomeworkFile(rowIndex, lessonName, fileBase64OrList, fileName, mime
     // Nếu có danh sách file mới truyền lên
     if (filesList && filesList.length > 0) {
       var driveApp = DriveApp;
-      var targetFolder = null;
       
-      // Kiểm tra xem link cũ có phải là thư mục không
-      if (oldUrl && (oldUrl.indexOf("/folders/") !== -1 || oldUrl.indexOf("/drive/folders/") !== -1)) {
+      // Xóa file ZIP cũ hoặc thư mục cũ của buổi nộp này
+      if (oldUrl) {
         var matches = oldUrl.match(/[-\w]{25,}/);
         if (matches && matches[0]) {
           try {
-            targetFolder = driveApp.getFolderById(matches[0]);
-            // Xóa tất cả các file cũ trong thư mục con này để thay thế bằng file mới
-            var oldFiles = targetFolder.getFiles();
-            while (oldFiles.hasNext()) {
-              var oldFile = oldFiles.next();
+            if (oldUrl.indexOf("/folders/") !== -1 || oldUrl.indexOf("/drive/folders/") !== -1) {
+              var oldFolder = driveApp.getFolderById(matches[0]);
+              oldFolder.setTrashed(true);
+            } else {
+              var oldFile = driveApp.getFileById(matches[0]);
               oldFile.setTrashed(true);
             }
-          } catch (folderErr) {
-            targetFolder = null;
+          } catch (deleteErr) {
+            Logger.log("Không thể dọn dẹp tệp cũ: " + deleteErr.toString());
           }
         }
       }
       
-      // Nếu chưa có thư mục con (ví dụ lúc trước chỉ nộp 1 file đơn lẻ), tạo thư mục con mới
-      if (!targetFolder) {
-        // Tìm thư mục học sinh
-        var parentFolderId = "1ZKHCDdZzkMqLTV4guvMNkKYbaQHCEGus";
-        var parentFolder;
-        try {
-          parentFolder = driveApp.getFolderById(parentFolderId);
-        } catch (err) {
-          var folders = driveApp.getRootFolder().getFoldersByName("BÀI TẬP GIA SƯ");
-          if (folders.hasNext()) {
-            parentFolder = folders.next();
-          } else {
-            parentFolder = driveApp.getRootFolder().createFolder("BÀI TẬP GIA SƯ");
-          }
-        }
-        
-        var studentFolders = parentFolder.getFoldersByName(studentName);
-        var studentFolder;
-        if (studentFolders.hasNext()) {
-          studentFolder = studentFolders.next();
+      // Tìm hoặc tạo thư mục học sinh
+      var parentFolderId = "1ZKHCDdZzkMqLTV4guvMNkKYbaQHCEGus";
+      var parentFolder;
+      try {
+        parentFolder = driveApp.getFolderById(parentFolderId);
+      } catch (err) {
+        var folders = driveApp.getRootFolder().getFoldersByName("BÀI TẬP GIA SƯ");
+        if (folders.hasNext()) {
+          parentFolder = folders.next();
         } else {
-          studentFolder = parentFolder.createFolder(studentName);
+          parentFolder = driveApp.getRootFolder().createFolder("BÀI TẬP GIA SƯ");
         }
-        
-        var shortDateString = Utilities.formatDate(now, Session.getScriptTimeZone(), "dd/MM/yyyy");
-        var submissionFolderName = shortDateString.replace(/\//g, "-") + " - " + lessonName;
-        targetFolder = studentFolder.createFolder(submissionFolderName);
-        
-        try {
-          targetFolder.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
-        } catch (shErr) {}
       }
       
-      // Lưu các file mới vào thư mục
+      var studentFolders = parentFolder.getFoldersByName(studentName);
+      var studentFolder;
+      if (studentFolders.hasNext()) {
+        studentFolder = studentFolders.next();
+      } else {
+        studentFolder = parentFolder.createFolder(studentName);
+      }
+      
+      var blobs = [];
       for (var i = 0; i < filesList.length; i++) {
         var fileObj = filesList[i];
         if (!fileObj || !fileObj.fileBase64) continue;
@@ -1995,11 +1985,22 @@ function editHomeworkFile(rowIndex, lessonName, fileBase64OrList, fileName, mime
         
         var newFileName = studentName + " - " + lessonName + " - " + (i + 1) + ext;
         var blob = Utilities.newBlob(fileData, fileObj.mimeType, newFileName);
-        targetFolder.createFile(blob);
+        blobs.push(blob);
       }
       
-      fileUrl = targetFolder.getUrl();
-      sheetHW.getRange(r, colUrlIdx + 1).setValue(fileUrl);
+      if (blobs.length > 0) {
+        var shortDateString = Utilities.formatDate(now, Session.getScriptTimeZone(), "dd/MM/yyyy");
+        var zipName = studentName + " - " + shortDateString.replace(/\//g, "-") + " - " + lessonName + ".zip";
+        var zipBlob = Utilities.zip(blobs, zipName);
+        var zipFile = studentFolder.createFile(zipBlob);
+        
+        try {
+          zipFile.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+        } catch (fErr) {}
+        
+        fileUrl = zipFile.getUrl();
+        sheetHW.getRange(r, colUrlIdx + 1).setValue(fileUrl);
+      }
     }
     
     var dateString = Utilities.formatDate(now, Session.getScriptTimeZone(), "dd/MM/yyyy HH:mm:ss");
@@ -2012,6 +2013,7 @@ function editHomeworkFile(rowIndex, lessonName, fileBase64OrList, fileName, mime
     return { error: "Lỗi hệ thống: " + e.toString() };
   }
 }
+
 
 // Xóa tạm thời bài tập (Cột G = Deleted)
 function deleteHomeworkFile(rowIndex) {
