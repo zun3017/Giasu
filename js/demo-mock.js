@@ -198,7 +198,7 @@
                     <div class="summary-card">
                         <div class="summary-icon icon-purple" style="background: linear-gradient(135deg, #8E4DFF, #5B2EFF); box-shadow: 0 0 20px rgba(142,77,255,0.4);"><i class="fa-solid fa-graduation-cap"></i></div>
                         <div class="summary-info">
-                            <span class="summary-label">Điểm trung bình (theo tháng)</span>
+                            <span class="summary-label">Điểm trung bình (tháng)</span>
                             <span class="summary-val">${student.gpa}</span>
                             ${gpaBadgeHtml}
                         </div>
@@ -206,7 +206,7 @@
                     <div class="summary-card">
                         <div class="summary-icon icon-blue" style="background: linear-gradient(135deg, #33ccff, #0066ff); box-shadow: 0 0 20px rgba(0,102,255,0.4);"><i class="fa-solid fa-list-check"></i></div>
                         <div class="summary-info">
-                            <span class="summary-label">Hoàn thành BTVN (theo tháng)</span>
+                            <span class="summary-label">Hoàn thành BTVN (tháng)</span>
                             <span class="summary-val">${student.btvnRate}</span>
                             ${btvnBadgeHtml}
                         </div>
