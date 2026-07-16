@@ -1815,39 +1815,65 @@ function uploadHomeworkFiles(ma, studentName, lessonName, filesList) {
     var fileUrl = "";
     
     if (filesList && filesList.length > 0) {
-      var blobs = [];
-      for (var i = 0; i < filesList.length; i++) {
-        var fileObj = filesList[i];
-        if (!fileObj || !fileObj.fileBase64) continue;
-        
-        var fileData = Utilities.base64Decode(fileObj.fileBase64);
-        var ext = "";
-        var lastDot = fileObj.fileName.lastIndexOf(".");
-        if (lastDot !== -1) {
-          ext = fileObj.fileName.substring(lastDot);
-        } else {
-          if (fileObj.mimeType === "application/pdf") ext = ".pdf";
-          else if (fileObj.mimeType === "image/png") ext = ".png";
-          else if (fileObj.mimeType === "image/jpeg" || fileObj.mimeType === "image/jpg") ext = ".jpg";
-          else if (fileObj.mimeType === "application/vnd.openxmlformats-officedocument.wordprocessingml.document") ext = ".docx";
+      if (filesList.length === 1) {
+        var fileObj = filesList[0];
+        if (fileObj && fileObj.fileBase64) {
+          var fileData = Utilities.base64Decode(fileObj.fileBase64);
+          var ext = "";
+          var lastDot = fileObj.fileName.lastIndexOf(".");
+          if (lastDot !== -1) {
+            ext = fileObj.fileName.substring(lastDot);
+          } else {
+            if (fileObj.mimeType === "application/pdf") ext = ".pdf";
+            else if (fileObj.mimeType === "image/png") ext = ".png";
+            else if (fileObj.mimeType === "image/jpeg" || fileObj.mimeType === "image/jpg") ext = ".jpg";
+            else if (fileObj.mimeType === "application/vnd.openxmlformats-officedocument.wordprocessingml.document") ext = ".docx";
+          }
+          
+          var newFileName = studentName + " - " + shortDateString.replace(/\//g, "-") + " - " + lessonName + ext;
+          var blob = Utilities.newBlob(fileData, fileObj.mimeType, newFileName);
+          var file = studentFolder.createFile(blob);
+          
+          try {
+            file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+          } catch (fErr) {}
+          
+          fileUrl = file.getUrl();
+        }
+      } else {
+        var blobs = [];
+        for (var i = 0; i < filesList.length; i++) {
+          var fileObj = filesList[i];
+          if (!fileObj || !fileObj.fileBase64) continue;
+          
+          var fileData = Utilities.base64Decode(fileObj.fileBase64);
+          var ext = "";
+          var lastDot = fileObj.fileName.lastIndexOf(".");
+          if (lastDot !== -1) {
+            ext = fileObj.fileName.substring(lastDot);
+          } else {
+            if (fileObj.mimeType === "application/pdf") ext = ".pdf";
+            else if (fileObj.mimeType === "image/png") ext = ".png";
+            else if (fileObj.mimeType === "image/jpeg" || fileObj.mimeType === "image/jpg") ext = ".jpg";
+            else if (fileObj.mimeType === "application/vnd.openxmlformats-officedocument.wordprocessingml.document") ext = ".docx";
+          }
+          
+          var newFileName = studentName + " - " + lessonName + " - " + (i + 1) + ext;
+          var blob = Utilities.newBlob(fileData, fileObj.mimeType, newFileName);
+          blobs.push(blob);
         }
         
-        var newFileName = studentName + " - " + lessonName + " - " + (i + 1) + ext;
-        var blob = Utilities.newBlob(fileData, fileObj.mimeType, newFileName);
-        blobs.push(blob);
-      }
-      
-      if (blobs.length > 0) {
-        var zipName = studentName + " - " + shortDateString.replace(/\//g, "-") + " - " + lessonName + ".zip";
-        var zipBlob = Utilities.zip(blobs, zipName);
-        var zipFile = studentFolder.createFile(zipBlob);
-        
-        // Cấp quyền xem cho file ZIP để giáo viên/học sinh tải trực tiếp
-        try {
-          zipFile.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
-        } catch (fErr) {}
-        
-        fileUrl = zipFile.getUrl();
+        if (blobs.length > 0) {
+          var zipName = studentName + " - " + shortDateString.replace(/\//g, "-") + " - " + lessonName + ".zip";
+          var zipBlob = Utilities.zip(blobs, zipName);
+          var zipFile = studentFolder.createFile(zipBlob);
+          
+          try {
+            zipFile.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+          } catch (fErr) {}
+          
+          fileUrl = zipFile.getUrl();
+        }
       }
     }
     
@@ -1899,7 +1925,8 @@ function editHomeworkFile(rowIndex, lessonName, fileBase64OrList, fileName, mime
     
     // Kiểm tra khóa ngày nộp
     var now = new Date();
-    var todayStr = Utilities.formatDate(now, Session.getScriptTimeZone(), "dd/MM/yyyy");
+    var shortDateString = Utilities.formatDate(now, Session.getScriptTimeZone(), "dd/MM/yyyy");
+    var todayStr = shortDateString;
     var submissionDateStr = data[r - 1][colDateIdx].trim();
     
     if (submissionDateStr !== todayStr) {

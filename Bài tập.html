@@ -11,7 +11,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="css/style.css?v=1.6.0">
+    <link rel="stylesheet" href="css/style.css?v=1.6.1">
     
     <style>
         /* ================= RESET & CƠ BẢN ================= */
@@ -705,7 +705,7 @@
         </div>
     </div>
 
-    <script src="js/api.js?v=1.6.0"></script>
+    <script src="js/api.js?v=1.6.1"></script>
     <script>
         // --- Web App Notification and Confirmation Dialogs ---
         function showToast(message, type = 'info') {
@@ -1459,18 +1459,19 @@
         })();
 
         // Tự động khôi phục trạng thái đăng nhập khi làm mới trang
-        window.addEventListener('DOMContentLoaded', function() {
+        (function() {
             var savedCode = sessionStorage.getItem('currentHwCode');
             if (savedCode) {
                 document.getElementById('loadingText').style.display = 'block';
                 google.script.run
                     .withSuccessHandler(showHomeworkDashboard)
                     .withFailureHandler(function(err) {
+                        sessionStorage.removeItem('currentHwCode');
                         document.getElementById('loadingText').style.display = 'none';
                     })
                     .xacThucMaBaiTap(savedCode);
             }
-        });
+        })();
     </script>
 </body>
 </html>
