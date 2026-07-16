@@ -75,6 +75,8 @@ function loginSystem(phone, pin) {
   }
 
   // Nếu đã truyền mã PIN, xác thực phân luồng dựa trên PIN (Trùng SĐT vẫn nhận diện đúng vai trò)
+  var phoneFound = false; // Cờ kiểm tra SĐT có tồn tại trong hệ thống không
+
   // A. Thử đối chiếu với quyền Admin trước
   var sheetAdmin = ss.getSheetByName('Mã admin');
   if (sheetAdmin) {
@@ -82,6 +84,7 @@ function loginSystem(phone, pin) {
     for (var i = 1; i < dataAdmin.length; i++) {
       var adminPhone = normalizePhone(dataAdmin[i][2]);
       if (adminPhone !== "" && adminPhone === normPhone) {
+        phoneFound = true;
         var trueAdminPin = String(dataAdmin[i][3]).trim();
         if (String(pin).trim() === trueAdminPin) {
           return {
@@ -103,7 +106,7 @@ function loginSystem(phone, pin) {
       if (gsPhone !== "" && gsPhone === normPhone) {
         var tDelDate = (dataGS[i].length > 5) ? dataGS[i][5].trim() : "";
         if (tDelDate !== "") continue;
-        
+        phoneFound = true;
         var trueTutorPin = String(dataGS[i][3]).trim();
         if (String(pin).trim() === trueTutorPin) {
           return { 
@@ -116,7 +119,10 @@ function loginSystem(phone, pin) {
     }
   }
 
-  // Nếu đã nhập PIN nhưng không khớp cả hai
+  // Phân biệt lỗi: SĐT không tồn tại vs PIN sai
+  if (!phoneFound) {
+    return { error: 'Số điện thoại không tồn tại trên hệ thống.' };
+  }
   return { error: 'Mã PIN không chính xác!' };
 }
 
