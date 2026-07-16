@@ -17,7 +17,7 @@
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Global CSS -->
-    <link rel="stylesheet" href="css/style.css?v=1.4.6">
+    <link rel="stylesheet" href="css/style.css?v=1.4.7">
 </head>
 <body>
     <div id="resultBox">
@@ -35,7 +35,7 @@
                 <div class="summary-info">
                     <span class="summary-label">Điểm trung bình (theo tháng)</span>
                     <span class="summary-val" id="valGPA">-</span>
-                    <div id="gpaBadgeContainer" style="margin-top: 6px; display: flex;"></div>
+                    <div id="gpaBadgeContainer" style="margin-top: 6px;"></div>
                 </div>
             </div>
             <div class="summary-card">
@@ -43,7 +43,7 @@
                 <div class="summary-info">
                     <span class="summary-label">Hoàn thành BTVN (theo tháng)</span>
                     <span class="summary-val" id="valBTVN">-</span>
-                    <div id="btvnBadgeContainer" style="margin-top: 6px; display: flex;"></div>
+                    <div id="btvnBadgeContainer" style="margin-top: 6px;"></div>
                 </div>
             </div>
             <div class="summary-card">
@@ -134,8 +134,8 @@
     <div class="star twinkle-2" style="top: 85%; left: 30%; width: 2px; height: 2px;"></div>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="js/api.js?v=1.4.6"></script>
-    <script src="js/student.js?v=1.4.6"></script>
+    <script src="js/api.js?v=1.4.7"></script>
+    <script src="js/student.js?v=1.4.7"></script>
     <script>
         window.addEventListener('DOMContentLoaded', () => {
             var data = JSON.parse(sessionStorage.getItem('dashboardData'));
