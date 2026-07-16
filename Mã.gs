@@ -1693,7 +1693,7 @@ function xacThucMaBaiTap(ma) {
     
     // Tìm kiếm trong Cột H (index 7) của Mã học sinh
     for (var i = 1; i < dataHS.length; i++) {
-      if (dataHS[i].length > 7 && String(dataHS[i][7]).trim().toUpperCase() === cleanMa) {
+      if (dataHS[i].length > 7 && normalizeMa(dataHS[i][7]) === normalizeMa(cleanMa)) {
         foundStudentRow = i;
         break;
       }
@@ -1722,7 +1722,7 @@ function xacThucMaBaiTap(ma) {
     var submissions = [];
     
     for (var j = 1; j < dataHW.length; j++) {
-      if (dataHW[j].length > colMa && String(dataHW[j][colMa]).trim().toUpperCase() === cleanMa) {
+      if (dataHW[j].length > colMa && normalizeMa(dataHW[j][colMa]) === normalizeMa(cleanMa)) {
         submissions.push({
           timestamp: dataHW[j][colTime] || "",
           studentName: dataHW[j][colName] || "",
@@ -1737,12 +1737,10 @@ function xacThucMaBaiTap(ma) {
     }
     
     // Truy vấn danh sách bài tập được giao cho mã này trong sheet 'Bài tập giao'
-    var sheetAssigned = ss.getSheetByName('Bài tập giao');
-    var assignedList = [];
     if (sheetAssigned) {
       var dataAssigned = sheetAssigned.getDataRange().getDisplayValues();
       for (var k = 1; k < dataAssigned.length; k++) {
-        if (dataAssigned[k].length > 6 && String(dataAssigned[k][5]).trim().toUpperCase() === cleanMa && dataAssigned[k][6] === "Active") {
+        if (dataAssigned[k].length > 6 && normalizeMa(dataAssigned[k][5]) === normalizeMa(cleanMa) && dataAssigned[k][6] === "Active") {
           assignedList.push({
             rowIndex: k + 1,
             timestamp: dataAssigned[k][0],
@@ -1781,13 +1779,13 @@ function uploadHomeworkFile(ma, studentName, lessonName, fileBase64, fileName, m
     var dateString = Utilities.formatDate(now, Session.getScriptTimeZone(), "dd/MM/yyyy HH:mm:ss");
     var shortDateString = Utilities.formatDate(now, Session.getScriptTimeZone(), "dd/MM/yyyy");
     
-    // Chuẩn bị dữ liệu ghi theo tên cột
+    // Chuẩn bị dữ liệu ghi theo tên cột (thêm dấu ' để giữ số 0 ở đầu)
     var rowData = {};
     rowData["Thời gian nộp"] = dateString;
     rowData["Tên học sinh"] = studentName;
     rowData["Tên bài học"] = lessonName;
     rowData["Link Google Drive liên kết"] = fileUrl;
-    rowData["Mã bài tập"] = ma.toUpperCase();
+    rowData["Mã bài tập"] = "'" + ma.toUpperCase();
     rowData["Ngày nộp"] = shortDateString;
     rowData["Trạng thái nộp"] = "Active";
     
@@ -2224,7 +2222,7 @@ function getStudentSubmissionsForTutor(maBaiTap) {
     var colUrl = hwHeaders["Link Google Drive liên kết"] !== undefined ? hwHeaders["Link Google Drive liên kết"] : 3;
     
     for (var i = 1; i < dataHW.length; i++) {
-      if (dataHW[i].length > colMa && String(dataHW[i][colMa]).trim().toUpperCase() === cleanMa) {
+      if (dataHW[i].length > colMa && normalizeMa(dataHW[i][colMa]) === normalizeMa(cleanMa)) {
         var statusStr = (dataHW[i].length > colStatus) ? dataHW[i][colStatus] : "Active";
         if (statusStr === "Active") {
           submissions.push({
@@ -2414,5 +2412,20 @@ function getTutorFeedback(tutorPhone) {
   } catch (e) {
     return { error: "Lỗi backend: " + e.toString() };
   }
+}
+
+// Chuẩn hóa mã bài tập (nếu là số điện thoại hoặc mã thuần số bị mất số 0 ở đầu trên Sheets thì chuyển đổi so sánh cho khớp)
+function normalizeMa(ma) {
+  if (!ma) return "";
+  var clean = String(ma).trim().toUpperCase();
+  // Loại bỏ ký tự nháy đơn ở đầu nếu có
+  if (clean.indexOf("'") === 0) {
+    clean = clean.substring(1);
+  }
+  // Nếu là mã số thuần (chỉ chứa chữ số), bỏ các số 0 ở đầu để so sánh giá trị số tương đương
+  if (/^\d+$/.test(clean)) {
+    return String(Number(clean));
+  }
+  return clean;
 }
 
