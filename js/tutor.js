@@ -2301,14 +2301,17 @@ function renderStudentSubmissionsList() {
         if (mobileContainer) {
             mobileContainer.innerHTML = '<div style="text-align:center; color:#A6ADCE; padding: 20px; font-size: 13px;"><i class="fa-solid fa-circle-info"></i> Học sinh này chưa nộp bài tập nào!</div>';
         }
+        document.getElementById('submissionViewMoreBtnContainer').style.display = 'none';
         return;
     }
-    
+
+    // Đảo ngược: bài nộp mới nhất lên đầu
+    var sortedList = studentSubmissionsGlobal.slice().reverse();
+    var totalCount = sortedList.length;
+    var showList = sortedList.slice(0, submissionsLimit);
+
     tableBody.innerHTML = "";
     var mobileHtml = "";
-    
-    // Cắt mảng hiển thị theo giới hạn
-    var showList = studentSubmissionsGlobal.slice(0, submissionsLimit);
     
     showList.forEach(function(item, idx) {
         var isFolder = item.fileUrl && (item.fileUrl.indexOf("/folders/") !== -1 || item.fileUrl.indexOf("/drive/folders/") !== -1);
@@ -2347,18 +2350,36 @@ function renderStudentSubmissionsList() {
         mobileHtml += "  </div>";
         mobileHtml += "</div>";
     });
-    
+
+    // Nút Xem thêm / Thu gọn cho cả desktop lẫn mobile
+    if (totalCount > submissionsLimit) {
+        var remaining = totalCount - submissionsLimit;
+        tableBody.innerHTML += '<tr><td colspan="4" style="text-align:center; padding:10px;">'
+            + '<button onclick="loadMoreStudentSubmissions()" style="background:none; border:1px solid #4B5563; color:#FFD23F; padding:6px 20px; border-radius:8px; cursor:pointer; font-size:13px;">'
+            + '<i class="fa-solid fa-chevron-down" style="margin-right:5px;"></i>Xem thêm ' + remaining + ' bài nộp cũ hơn'
+            + '</button></td></tr>';
+        mobileHtml += '<div style="text-align:center; padding:10px;">'
+            + '<button onclick="loadMoreStudentSubmissions()" style="background:none; border:1px solid #4B5563; color:#FFD23F; padding:6px 20px; border-radius:8px; cursor:pointer; font-size:13px; width:100%;">'
+            + '<i class="fa-solid fa-chevron-down" style="margin-right:5px;"></i>Xem thêm ' + remaining + ' bài nộp cũ hơn'
+            + '</button></div>';
+    } else if (submissionsLimit > 5 && totalCount <= submissionsLimit) {
+        // Nút Thu gọn khi đang xem tất cả
+        tableBody.innerHTML += '<tr><td colspan="4" style="text-align:center; padding:10px;">'
+            + '<button onclick="collapseStudentSubmissions()" style="background:none; border:1px solid #4B5563; color:#9CA3AF; padding:6px 20px; border-radius:8px; cursor:pointer; font-size:13px;">'
+            + '<i class="fa-solid fa-chevron-up" style="margin-right:5px;"></i>Thu gọn'
+            + '</button></td></tr>';
+        mobileHtml += '<div style="text-align:center; padding:10px;">'
+            + '<button onclick="collapseStudentSubmissions()" style="background:none; border:1px solid #4B5563; color:#9CA3AF; padding:6px 20px; border-radius:8px; cursor:pointer; font-size:13px; width:100%;">'
+            + '<i class="fa-solid fa-chevron-up" style="margin-right:5px;"></i>Thu gọn'
+            + '</button></div>';
+    }
+
     if (mobileContainer) {
         mobileContainer.innerHTML = mobileHtml;
     }
     
-    // Hiển thị nút "Xem thêm" nếu còn bài nộp chưa hiển thị
-    var viewMoreContainer = document.getElementById('submissionViewMoreBtnContainer');
-    if (studentSubmissionsGlobal.length > submissionsLimit) {
-        viewMoreContainer.style.display = 'block';
-    } else {
-        viewMoreContainer.style.display = 'none';
-    }
+    // Ẩn nút Xem thêm cũ (đã tích hợp inline)
+    document.getElementById('submissionViewMoreBtnContainer').style.display = 'none';
 }
 
 function toggleTutorSubmittedHwAccordion(idx) {
@@ -2377,6 +2398,12 @@ function toggleTutorSubmittedHwAccordion(idx) {
 // 14. Bấm nút Xem thêm để mở rộng toàn bộ lịch sử bài nộp
 function loadMoreStudentSubmissions() {
     submissionsLimit = studentSubmissionsGlobal.length;
+    renderStudentSubmissionsList();
+}
+
+// Thu gọn về 5 bài đầu
+function collapseStudentSubmissions() {
+    submissionsLimit = 3;
     renderStudentSubmissionsList();
 }
 
