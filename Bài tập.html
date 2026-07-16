@@ -11,7 +11,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="css/style.css?v=1.5.9">
+    <link rel="stylesheet" href="css/style.css?v=1.6.0">
     
     <style>
         /* ================= RESET & CƠ BẢN ================= */
@@ -705,7 +705,7 @@
         </div>
     </div>
 
-    <script src="js/api.js?v=1.5.9"></script>
+    <script src="js/api.js?v=1.6.0"></script>
     <script>
         // --- Web App Notification and Confirmation Dialogs ---
         function showToast(message, type = 'info') {
@@ -873,6 +873,7 @@
             var errorMsg = document.getElementById('error');
 
             if (res.timThay) {
+                sessionStorage.setItem('currentHwCode', res.ma);
                 currentHW = res; // lưu trữ dữ liệu phiên
 
                 // Ẩn UI chính
@@ -1408,6 +1409,7 @@
 
         // 10. Đăng xuất khỏi cổng nộp bài tập
         function backToLogin() {
+            sessionStorage.removeItem('currentHwCode');
             currentHW = null;
             cancelEdit();
             
@@ -1455,6 +1457,20 @@
                 }, false);
             }
         })();
+
+        // Tự động khôi phục trạng thái đăng nhập khi làm mới trang
+        window.addEventListener('DOMContentLoaded', function() {
+            var savedCode = sessionStorage.getItem('currentHwCode');
+            if (savedCode) {
+                document.getElementById('loadingText').style.display = 'block';
+                google.script.run
+                    .withSuccessHandler(showHomeworkDashboard)
+                    .withFailureHandler(function(err) {
+                        document.getElementById('loadingText').style.display = 'none';
+                    })
+                    .xacThucMaBaiTap(savedCode);
+            }
+        });
     </script>
 </body>
 </html>
