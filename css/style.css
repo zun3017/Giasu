@@ -794,7 +794,8 @@
             font-size: 11px;
             color: #A6ADCE;
             font-weight: 500;
-            white-space: nowrap;
+            white-space: normal;
+            line-height: 1.3;
         }
         
         .summary-val {
