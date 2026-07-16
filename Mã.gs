@@ -1843,12 +1843,7 @@ function uploadHomeworkFiles(ma, studentName, lessonName, filesList) {
         
         var newFileName = studentName + " - " + lessonName + " - " + (i + 1) + ext;
         var blob = Utilities.newBlob(fileData, fileObj.mimeType, newFileName);
-        var file = submissionFolder.createFile(blob);
-        
-        // Cấp quyền xem cho file
-        try {
-          file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
-        } catch (fErr) {}
+        submissionFolder.createFile(blob);
       }
     }
     
@@ -2000,11 +1995,7 @@ function editHomeworkFile(rowIndex, lessonName, fileBase64OrList, fileName, mime
         
         var newFileName = studentName + " - " + lessonName + " - " + (i + 1) + ext;
         var blob = Utilities.newBlob(fileData, fileObj.mimeType, newFileName);
-        var file = targetFolder.createFile(blob);
-        
-        try {
-          file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
-        } catch (fErr) {}
+        targetFolder.createFile(blob);
       }
       
       fileUrl = targetFolder.getUrl();
