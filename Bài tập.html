@@ -11,7 +11,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="css/style.css?v=1.5.7">
+    <link rel="stylesheet" href="css/style.css?v=1.5.8">
     
     <style>
         /* ================= RESET & CƠ BẢN ================= */
@@ -465,6 +465,16 @@
                 width: 100%;
             }
         }
+        
+        /* Hiển thị có điều kiện vùng nộp bài Desktop / Mobile */
+        @media (min-width: 769px) {
+            #uploadAreaMobile { display: none !important; }
+            #uploadAreaDesktop { display: block !important; }
+        }
+        @media (max-width: 768px) {
+            #uploadAreaMobile { display: block !important; }
+            #uploadAreaDesktop { display: none !important; }
+        }
     </style>
 </head>
 <body>
@@ -605,24 +615,35 @@
                         <input type="text" id="hwLessonInput" placeholder="Nhập tên bài học (VD: Bài tập Tuần 1, Đề số 2)..." style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.15); background: rgba(0,0,0,0.2); color: #FFF; outline: none; font-size: 14px; font-family: 'Inter', sans-serif;">
                     </div>
                     
-                    <div class="upload-area" id="uploadArea" style="cursor: default; padding: 25px 15px;">
-                        <i class="fa-solid fa-cloud-arrow-up upload-icon" id="uploadAreaIcon" style="font-size: 32px; margin-bottom: 12px; color: #00E5FF;"></i>
-                        <div class="upload-text" id="uploadAreaText" style="font-size: 14px; font-weight: 600; margin-bottom: 15px; color: #FFF; text-align: center;">Kéo thả hoặc chọn hình ảnh/tài liệu bài tập</div>
-                        
-                        <div style="display: flex; flex-direction: column; gap: 10px; width: 100%; max-width: 280px; margin: 0 auto;">
-                            <!-- Nút chọn ảnh từ thư viện hoặc chụp camera -->
-                            <button type="button" onclick="document.getElementById('hwImageInput').click()" class="btn-submit" style="background: linear-gradient(135deg, #00C8FF 0%, #0072FF 100%); border: none; font-size: 13px; padding: 10px 16px; border-radius: 20px; font-weight: bold; width: 100%; justify-content: center; gap: 8px; box-shadow: 0 0 15px rgba(0, 200, 255, 0.4); display: inline-flex; align-items: center; cursor: pointer; color: #FFF; font-family: 'Inter', sans-serif;">
-                                <i class="fa-solid fa-camera"></i> Chụp ảnh / Chọn Thư viện
-                            </button>
-                            <!-- Nút chọn tài liệu PDF/Word -->
-                            <button type="button" onclick="document.getElementById('hwDocInput').click()" style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); color: #FFF; font-size: 12px; padding: 8px 16px; border-radius: 20px; font-weight: 600; width: 100%; justify-content: center; gap: 6px; cursor: pointer; transition: all 0.3s; display: inline-flex; align-items: center; font-family: 'Inter', sans-serif;">
-                                <i class="fa-solid fa-file-pdf"></i> Tải Tài liệu (PDF, Word...)
-                            </button>
+                    <div id="uploadAreaWrapper">
+                        <!-- Upload Area cho Desktop -->
+                        <div class="upload-area" id="uploadAreaDesktop" onclick="document.getElementById('hwFileInputDesktop').click()">
+                            <i class="fa-solid fa-file-arrow-up upload-icon" id="uploadAreaIcon"></i>
+                            <div class="upload-text" id="uploadAreaText">Kéo thả hoặc click chọn hình ảnh/tài liệu bài tập của bạn</div>
+                            <div class="upload-hint">Hỗ trợ PDF, Word, PNG, JPG, JPEG (Có thể chọn nhiều tệp)</div>
+                            <input type="file" id="hwFileInputDesktop" style="display: none;" multiple onchange="handleFileSelect(event)">
                         </div>
-                        
-                        <!-- Inputs ẩn -->
-                        <input type="file" id="hwImageInput" style="display: none;" multiple accept="image/*" onchange="handleFileSelect(event)">
-                        <input type="file" id="hwDocInput" style="display: none;" multiple accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" onchange="handleFileSelect(event)">
+
+                        <!-- Upload Area cho Mobile (Phương án 3) -->
+                        <div class="upload-area" id="uploadAreaMobile" style="cursor: default; padding: 25px 15px;">
+                            <i class="fa-solid fa-cloud-arrow-up upload-icon" style="font-size: 32px; margin-bottom: 12px; color: #00E5FF;"></i>
+                            <div class="upload-text" style="font-size: 14px; font-weight: 600; margin-bottom: 15px; color: #FFF; text-align: center;">Chọn hình ảnh hoặc tài liệu bài tập</div>
+                            
+                            <div style="display: flex; flex-direction: column; gap: 10px; width: 100%; max-width: 280px; margin: 0 auto;">
+                                <!-- Nút chọn ảnh từ thư viện hoặc chụp camera -->
+                                <button type="button" onclick="document.getElementById('hwImageInputMobile').click()" class="btn-submit" style="background: linear-gradient(135deg, #00C8FF 0%, #0072FF 100%); border: none; font-size: 13px; padding: 10px 16px; border-radius: 20px; font-weight: bold; width: 100%; justify-content: center; gap: 8px; box-shadow: 0 0 15px rgba(0, 200, 255, 0.4); display: inline-flex; align-items: center; cursor: pointer; color: #FFF; font-family: 'Inter', sans-serif;">
+                                    <i class="fa-solid fa-camera"></i> Chụp ảnh / Chọn Thư viện
+                                </button>
+                                <!-- Nút chọn tài liệu PDF/Word -->
+                                <button type="button" onclick="document.getElementById('hwDocInputMobile').click()" style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); color: #FFF; font-size: 12px; padding: 8px 16px; border-radius: 20px; font-weight: 600; width: 100%; justify-content: center; gap: 6px; cursor: pointer; transition: all 0.3s; display: inline-flex; align-items: center; font-family: 'Inter', sans-serif;">
+                                    <i class="fa-solid fa-file-pdf"></i> Tải Tài liệu (PDF, Word...)
+                                </button>
+                            </div>
+                            
+                            <!-- Inputs ẩn -->
+                            <input type="file" id="hwImageInputMobile" style="display: none;" multiple accept="image/*" onchange="handleFileSelect(event)">
+                            <input type="file" id="hwDocInputMobile" style="display: none;" multiple accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" onchange="handleFileSelect(event)">
+                        </div>
                     </div>
 
                     <!-- Hàng đợi tệp tin chuẩn bị nộp -->
@@ -684,7 +705,7 @@
         </div>
     </div>
 
-    <script src="js/api.js?v=1.5.7"></script>
+    <script src="js/api.js?v=1.5.8"></script>
     <script>
         // --- Web App Notification and Confirmation Dialogs ---
         function showToast(message, type = 'info') {
@@ -927,11 +948,13 @@
             // Trạng thái tổng của học sinh (luôn active)
             document.getElementById('hwLockBadge').innerHTML = '<span class="active-badge"><i class="fa-solid fa-lock-open"></i> Đang mở (Trong ngày)</span>';
             document.getElementById('hwFormCard').style.opacity = "1";
-            if (document.getElementById('hwImageInput')) document.getElementById('hwImageInput').disabled = false;
-            if (document.getElementById('hwDocInput')) document.getElementById('hwDocInput').disabled = false;
+            if (document.getElementById('hwFileInputDesktop')) document.getElementById('hwFileInputDesktop').disabled = false;
+            if (document.getElementById('hwImageInputMobile')) document.getElementById('hwImageInputMobile').disabled = false;
+            if (document.getElementById('hwDocInputMobile')) document.getElementById('hwDocInputMobile').disabled = false;
             document.getElementById('btnSubmitHomework').disabled = false;
-            document.getElementById('uploadArea').style.pointerEvents = "auto";
-            document.getElementById('uploadAreaText').innerText = "Kéo thả hoặc click chọn hình ảnh/tài liệu bài tập của bạn";
+            if (document.getElementById('uploadAreaWrapper')) {
+                document.getElementById('uploadAreaWrapper').style.pointerEvents = "auto";
+            }
 
             // Nếu học sinh đã có tệp nộp trước đó
             if (currentHW.submissions && currentHW.submissions.length > 0) {
@@ -1083,8 +1106,9 @@
 
             renderFileQueue();
             // Reset input value để cho phép chọn lại cùng file sau khi xóa
-            if (document.getElementById('hwImageInput')) document.getElementById('hwImageInput').value = "";
-            if (document.getElementById('hwDocInput')) document.getElementById('hwDocInput').value = "";
+            if (document.getElementById('hwFileInputDesktop')) document.getElementById('hwFileInputDesktop').value = "";
+            if (document.getElementById('hwImageInputMobile')) document.getElementById('hwImageInputMobile').value = "";
+            if (document.getElementById('hwDocInputMobile')) document.getElementById('hwDocInputMobile').value = "";
         }
 
         // Vẽ danh sách hàng đợi file
@@ -1092,13 +1116,13 @@
             var container = document.getElementById('fileQueueContainer');
             var list = document.getElementById('fileQueueList');
             var countText = document.getElementById('fileQueueCount');
-            var uploadArea = document.getElementById('uploadArea');
+            var uploadArea = document.getElementById('uploadAreaWrapper');
 
             list.innerHTML = "";
 
             if (selectedFilesQueue.length === 0) {
                 container.style.display = 'none';
-                uploadArea.style.display = 'block';
+                if (uploadArea) uploadArea.style.display = 'block';
                 return;
             }
 
@@ -1152,10 +1176,13 @@
         // 5. Hủy toàn bộ file đã chọn
         function clearSelectedFile() {
             selectedFilesQueue = [];
-            if (document.getElementById('hwImageInput')) document.getElementById('hwImageInput').value = "";
-            if (document.getElementById('hwDocInput')) document.getElementById('hwDocInput').value = "";
+            if (document.getElementById('hwFileInputDesktop')) document.getElementById('hwFileInputDesktop').value = "";
+            if (document.getElementById('hwImageInputMobile')) document.getElementById('hwImageInputMobile').value = "";
+            if (document.getElementById('hwDocInputMobile')) document.getElementById('hwDocInputMobile').value = "";
             document.getElementById('fileQueueContainer').style.display = 'none';
-            document.getElementById('uploadArea').style.display = 'block';
+            if (document.getElementById('uploadAreaWrapper')) {
+                document.getElementById('uploadAreaWrapper').style.display = 'block';
+            }
             
             // Ẩn tiến trình
             document.getElementById('progressBarContainer').style.display = 'none';
@@ -1397,9 +1424,9 @@
             }
         }
 
-        // 11. Khởi tạo Kéo & Thả cho uploadArea
+        // 11. Khởi tạo Kéo & Thả cho uploadAreaDesktop
         (function() {
-            var uploadArea = document.getElementById('uploadArea');
+            var uploadArea = document.getElementById('uploadAreaDesktop');
             if (uploadArea) {
                 ['dragenter', 'dragover'].forEach(function(eventName) {
                     uploadArea.addEventListener(eventName, function(e) {
