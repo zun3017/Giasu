@@ -931,7 +931,9 @@
         }
 
         // 3. Render danh sách các file bài tập đã nộp
-        function renderHomeworkList() {
+        var hwDisplayLimit = 5; // Số bài hiện mặc định
+
+        function renderHomeworkList(showAll) {
             var body = document.getElementById('homeworkListBody');
             var mobileContainer = document.getElementById('homeworkMobileList');
             body.innerHTML = "";
@@ -944,9 +946,8 @@
             var dd = String(now.getDate()).padStart(2, '0');
             var mm = String(now.getMonth() + 1).padStart(2, '0');
             var yyyy = now.getFullYear();
-            var todayStr = dd + "/" + mm + "/" + yyyy; // định dạng dd/MM/yyyy
+            var todayStr = dd + "/" + mm + "/" + yyyy;
 
-            // Trạng thái tổng của học sinh (luôn active)
             document.getElementById('hwLockBadge').innerHTML = '<span class="active-badge"><i class="fa-solid fa-lock-open"></i> Đang mở (Trong ngày)</span>';
             document.getElementById('hwFormCard').style.opacity = "1";
             if (document.getElementById('hwFileInputDesktop')) document.getElementById('hwFileInputDesktop').disabled = false;
@@ -957,10 +958,15 @@
                 document.getElementById('uploadAreaWrapper').style.pointerEvents = "auto";
             }
 
-            // Nếu học sinh đã có tệp nộp trước đó
             if (currentHW.submissions && currentHW.submissions.length > 0) {
+                // Đảo ngược: bài nộp mới nhất lên đầu
+                var sortedList = currentHW.submissions.slice().reverse();
+                var totalCount = sortedList.length;
+                var limit = showAll ? totalCount : hwDisplayLimit;
+                var visibleList = sortedList.slice(0, limit);
+
                 var mobileHtml = "";
-                currentHW.submissions.forEach(function(item, idx) {
+                visibleList.forEach(function(item, idx) {
                     var isFolder = item.fileUrl && (item.fileUrl.indexOf("/folders/") !== -1 || item.fileUrl.indexOf("/drive/folders/") !== -1);
                     var isZip = item.fileUrl && (item.fileUrl.toLowerCase().indexOf(".zip") !== -1 || item.fileUrl.indexOf("/file/d/") !== -1);
                     var viewText = isFolder ? '<i class="fa-solid fa-folder-open"></i> Xem thư mục bài nộp' : (isZip ? '<i class="fa-solid fa-file-zipper"></i> Tải bài nộp (ZIP)' : '<i class="fa-solid fa-file-pdf"></i> Xem file bài nộp');
@@ -977,8 +983,7 @@
                     rowHtml += "<td>" + item.timestamp + "</td>";
                     rowHtml += "<td><strong style='color:#FFF;'>" + item.lessonName + "</strong></td>";
                     rowHtml += "<td><a href='" + finalUrl + "' target='_blank' style='color:#FFD23F; font-weight:600; text-decoration:none;'>" + viewText + "</a></td>";
-                    
-                    // Cột Trạng thái
+
                     var statusStr = item.status || "Active";
                     var statusBadge = "";
                     if (statusStr === "Deleted") {
@@ -988,15 +993,13 @@
                     }
                     rowHtml += "<td>" + statusBadge + "</td>";
 
-                    // Kiểm tra điều kiện khóa ngày nộp (Chỉ cho phép sửa/xóa/khôi phục trong ngày nộp)
                     var isToday = (item.submissionDate === todayStr);
                     var isRowLocked = !isToday;
 
-                    // Cột Thao tác
                     rowHtml += "<td style='text-align: center; vertical-align: middle;'>";
                     var actionsHtml = "";
                     var mobileActionsHtml = "";
-                    
+
                     if (isRowLocked) {
                         actionsHtml = '<span class="lock-badge"><i class="fa-solid fa-lock"></i> Khóa sửa/xóa</span>';
                         mobileActionsHtml = '<span class="lock-badge"><i class="fa-solid fa-lock"></i> Khóa sửa/xóa</span>';
@@ -1007,7 +1010,7 @@
                         } else {
                             actionsHtml = '<button onclick="editHomework(' + item.rowIndex + ', \'' + item.lessonName.replace(/'/g, "\\'") + '\')" class="action-btn-hw btn-edit" style="padding: 4px 12px; margin-right: 6px;"><i class="fa-solid fa-pen-to-square"></i> Sửa</button>';
                             actionsHtml += '<button onclick="deleteHomework(' + item.rowIndex + ')" class="action-btn-hw btn-delete" style="padding: 4px 12px;"><i class="fa-solid fa-trash-can"></i> Xóa</button>';
-                            
+
                             mobileActionsHtml = '<div style="display: flex; gap: 8px;">';
                             mobileActionsHtml += '  <button onclick="editHomework(' + item.rowIndex + ', \'' + item.lessonName.replace(/'/g, "\\'") + '\')" class="action-btn-hw btn-edit" style="padding: 4px 12px; flex: 1; justify-content: center;"><i class="fa-solid fa-pen-to-square"></i> Sửa</button>';
                             mobileActionsHtml += '  <button onclick="deleteHomework(' + item.rowIndex + ')" class="action-btn-hw btn-delete" style="padding: 4px 12px; flex: 1; justify-content: center;"><i class="fa-solid fa-trash-can"></i> Xóa</button>';
@@ -1016,9 +1019,8 @@
                     }
                     rowHtml += actionsHtml + "</td>";
                     rowHtml += "</tr>";
-
                     body.innerHTML += rowHtml;
-                    
+
                     // Mobile Accordion Card
                     mobileHtml += "<div class='accordion-item' id='hw-item-" + idx + "'>";
                     mobileHtml += "  <div class='accordion-header' onclick='toggleHwAccordion(" + idx + ")'>";
@@ -1038,6 +1040,34 @@
                     mobileHtml += "  </div>";
                     mobileHtml += "</div>";
                 });
+
+                // Nút Xem thêm / Thu gọn
+                if (totalCount > hwDisplayLimit) {
+                    var remaining = totalCount - hwDisplayLimit;
+                    if (!showAll) {
+                        // Thêm dòng Xem thêm vào bảng desktop
+                        body.innerHTML += "<tr><td colspan='5' style='text-align:center; padding:10px;'>"
+                            + "<button onclick=\"renderHomeworkList(true)\" style=\"background:none; border:1px solid #4B5563; color:#FFD23F; padding:6px 20px; border-radius:8px; cursor:pointer; font-size:13px;\">"
+                            + "<i class='fa-solid fa-chevron-down' style='margin-right:5px;'></i>Xem thêm " + remaining + " bài nộp cũ hơn"
+                            + "</button></td></tr>";
+                        // Thêm nút Xem thêm vào mobile
+                        mobileHtml += "<div style='text-align:center; padding:10px;'>"
+                            + "<button onclick=\"renderHomeworkList(true)\" style=\"background:none; border:1px solid #4B5563; color:#FFD23F; padding:6px 20px; border-radius:8px; cursor:pointer; font-size:13px; width:100%;\">"
+                            + "<i class='fa-solid fa-chevron-down' style='margin-right:5px;'></i>Xem thêm " + remaining + " bài nộp cũ hơn"
+                            + "</button></div>";
+                    } else {
+                        // Nút Thu gọn
+                        body.innerHTML += "<tr><td colspan='5' style='text-align:center; padding:10px;'>"
+                            + "<button onclick=\"renderHomeworkList(false)\" style=\"background:none; border:1px solid #4B5563; color:#9CA3AF; padding:6px 20px; border-radius:8px; cursor:pointer; font-size:13px;\">"
+                            + "<i class='fa-solid fa-chevron-up' style='margin-right:5px;'></i>Thu gọn"
+                            + "</button></td></tr>";
+                        mobileHtml += "<div style='text-align:center; padding:10px;'>"
+                            + "<button onclick=\"renderHomeworkList(false)\" style=\"background:none; border:1px solid #4B5563; color:#9CA3AF; padding:6px 20px; border-radius:8px; cursor:pointer; font-size:13px; width:100%;\">"
+                            + "<i class='fa-solid fa-chevron-up' style='margin-right:5px;'></i>Thu gọn"
+                            + "</button></div>";
+                    }
+                }
+
                 if (mobileContainer) mobileContainer.innerHTML = mobileHtml;
             } else {
                 body.innerHTML = "<tr><td colspan='5' style='text-align:center; color:#6A6E8D;'>Chưa có file bài tập nào được nộp cho mã này.</td></tr>";
