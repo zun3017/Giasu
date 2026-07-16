@@ -900,15 +900,24 @@
         }
 
         // Render danh sách bài tập được giao cho học sinh
-        function renderAssignedHomeworkList() {
+        var assignedHwLimit = 5;
+
+        function renderAssignedHomeworkList(showAll) {
             var assignedCard = document.getElementById('hwAssignedCard');
             var assignedContainer = document.getElementById('hwAssignedListContainer');
             if (!assignedContainer || !assignedCard) return;
             
             assignedContainer.innerHTML = "";
             assignedCard.style.display = 'block';
+
             if (currentHW && currentHW.assignedList && currentHW.assignedList.length > 0) {
-                currentHW.assignedList.forEach(function(hw) {
+                // Đảo ngược: bài mới nhất lên đầu
+                var sortedList = currentHW.assignedList.slice().reverse();
+                var totalCount = sortedList.length;
+                var limit = showAll ? totalCount : assignedHwLimit;
+                var visibleList = sortedList.slice(0, limit);
+
+                visibleList.forEach(function(hw) {
                     var html = "";
                     html += '<div class="assigned-hw-item" style="border: 1px dashed rgba(142, 77, 255, 0.4); border-radius: 12px; margin-bottom: 12px; background: rgba(20, 22, 60, 0.3); padding: 15px 18px; text-align: left;">';
                     html += '  <div style="font-size: 13px; color: #B2B8D9; margin-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 8px;">';
@@ -925,6 +934,24 @@
                     html += '</div>';
                     assignedContainer.innerHTML += html;
                 });
+
+                // Nút Xem thêm / Thu gọn
+                if (totalCount > assignedHwLimit) {
+                    var remaining = totalCount - assignedHwLimit;
+                    if (!showAll) {
+                        assignedContainer.innerHTML +=
+                            '<div style="text-align:center; margin-top:4px;">' +
+                            '<button onclick="renderAssignedHomeworkList(true)" style="background:none; border:1px solid #4B5563; color:#8E4DFF; padding:6px 20px; border-radius:8px; cursor:pointer; font-size:13px; width:100%;">' +
+                            '<i class="fa-solid fa-chevron-down" style="margin-right:5px;"></i>Xem thêm ' + remaining + ' bài cũ hơn' +
+                            '</button></div>';
+                    } else {
+                        assignedContainer.innerHTML +=
+                            '<div style="text-align:center; margin-top:4px;">' +
+                            '<button onclick="renderAssignedHomeworkList(false)" style="background:none; border:1px solid #4B5563; color:#9CA3AF; padding:6px 20px; border-radius:8px; cursor:pointer; font-size:13px; width:100%;">' +
+                            '<i class="fa-solid fa-chevron-up" style="margin-right:5px;"></i>Thu gọn' +
+                            '</button></div>';
+                    }
+                }
             } else {
                 assignedContainer.innerHTML = '<div style="text-align: center; color: #A6ADCE; padding: 20px; font-size: 13px;"><i class="fa-solid fa-circle-info"></i> Hiện chưa có bài tập nào được giao từ Gia sư.</div>';
             }
