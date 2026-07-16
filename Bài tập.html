@@ -11,7 +11,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="css/style.css?v=1.5.3">
+    <link rel="stylesheet" href="css/style.css?v=1.5.4">
     
     <style>
         /* ================= RESET & CƠ BẢN ================= */
@@ -671,7 +671,7 @@
         </div>
     </div>
 
-    <script src="js/api.js?v=1.5.3"></script>
+    <script src="js/api.js?v=1.5.4"></script>
     <script>
         // --- Web App Notification and Confirmation Dialogs ---
         function showToast(message, type = 'info') {
@@ -1018,8 +1018,27 @@
             var files = e.target.files;
             if (!files || files.length === 0) return;
 
+            var MAX_FILE_SIZE = 15 * 1024 * 1024; // Giới hạn 15MB mỗi file để tránh quá tải
+            var MAX_TOTAL_SIZE = 25 * 1024 * 1024; // Giới hạn tổng dung lượng 25MB
+            var tooLargeFiles = [];
+            
+            var currentTotalSize = selectedFilesQueue.reduce(function(sum, item) {
+                return sum + item.size;
+            }, 0);
+
             for (var i = 0; i < files.length; i++) {
                 var file = files[i];
+                
+                if (file.size > MAX_FILE_SIZE) {
+                    tooLargeFiles.push(file.name + " (" + (file.size / (1024 * 1024)).toFixed(1) + " MB)");
+                    continue;
+                }
+
+                if (currentTotalSize + file.size > MAX_TOTAL_SIZE) {
+                    showToast("Không thể thêm " + file.name + " vì tổng dung lượng hàng đợi sẽ vượt quá 25MB!", "error");
+                    continue;
+                }
+
                 // Tránh tệp trùng lặp trong hàng đợi
                 var isDuplicate = selectedFilesQueue.some(function(item) {
                     return item.name === file.name && item.size === file.size;
@@ -1031,7 +1050,12 @@
                         size: file.size,
                         mimeType: file.type
                     });
+                    currentTotalSize += file.size;
                 }
+            }
+
+            if (tooLargeFiles.length > 0) {
+                showToast("Bỏ qua file quá lớn (>15MB): " + tooLargeFiles.join(", "), "error");
             }
 
             renderFileQueue();
