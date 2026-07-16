@@ -1966,40 +1966,67 @@ function editHomeworkFile(rowIndex, lessonName, fileBase64OrList, fileName, mime
         studentFolder = parentFolder.createFolder(studentName);
       }
       
-      var blobs = [];
-      for (var i = 0; i < filesList.length; i++) {
-        var fileObj = filesList[i];
-        if (!fileObj || !fileObj.fileBase64) continue;
-        
-        var fileData = Utilities.base64Decode(fileObj.fileBase64);
-        var ext = "";
-        var lastDot = fileObj.fileName.lastIndexOf(".");
-        if (lastDot !== -1) {
-          ext = fileObj.fileName.substring(lastDot);
-        } else {
-          if (fileObj.mimeType === "application/pdf") ext = ".pdf";
-          else if (fileObj.mimeType === "image/png") ext = ".png";
-          else if (fileObj.mimeType === "image/jpeg" || fileObj.mimeType === "image/jpg") ext = ".jpg";
-          else if (fileObj.mimeType === "application/vnd.openxmlformats-officedocument.wordprocessingml.document") ext = ".docx";
+      if (filesList.length === 1) {
+        var fileObj = filesList[0];
+        if (fileObj && fileObj.fileBase64) {
+          var fileData = Utilities.base64Decode(fileObj.fileBase64);
+          var ext = "";
+          var lastDot = fileObj.fileName.lastIndexOf(".");
+          if (lastDot !== -1) {
+            ext = fileObj.fileName.substring(lastDot);
+          } else {
+            if (fileObj.mimeType === "application/pdf") ext = ".pdf";
+            else if (fileObj.mimeType === "image/png") ext = ".png";
+            else if (fileObj.mimeType === "image/jpeg" || fileObj.mimeType === "image/jpg") ext = ".jpg";
+            else if (fileObj.mimeType === "application/vnd.openxmlformats-officedocument.wordprocessingml.document") ext = ".docx";
+          }
+          
+          var newFileName = studentName + " - " + shortDateString.replace(/\//g, "-") + " - " + lessonName + ext;
+          var blob = Utilities.newBlob(fileData, fileObj.mimeType, newFileName);
+          var file = studentFolder.createFile(blob);
+          
+          try {
+            file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+          } catch (fErr) {}
+          
+          fileUrl = file.getUrl();
+          sheetHW.getRange(r, colUrlIdx + 1).setValue(fileUrl);
+        }
+      } else {
+        var blobs = [];
+        for (var i = 0; i < filesList.length; i++) {
+          var fileObj = filesList[i];
+          if (!fileObj || !fileObj.fileBase64) continue;
+          
+          var fileData = Utilities.base64Decode(fileObj.fileBase64);
+          var ext = "";
+          var lastDot = fileObj.fileName.lastIndexOf(".");
+          if (lastDot !== -1) {
+            ext = fileObj.fileName.substring(lastDot);
+          } else {
+            if (fileObj.mimeType === "application/pdf") ext = ".pdf";
+            else if (fileObj.mimeType === "image/png") ext = ".png";
+            else if (fileObj.mimeType === "image/jpeg" || fileObj.mimeType === "image/jpg") ext = ".jpg";
+            else if (fileObj.mimeType === "application/vnd.openxmlformats-officedocument.wordprocessingml.document") ext = ".docx";
+          }
+          
+          var newFileName = studentName + " - " + lessonName + " - " + (i + 1) + ext;
+          var blob = Utilities.newBlob(fileData, fileObj.mimeType, newFileName);
+          blobs.push(blob);
         }
         
-        var newFileName = studentName + " - " + lessonName + " - " + (i + 1) + ext;
-        var blob = Utilities.newBlob(fileData, fileObj.mimeType, newFileName);
-        blobs.push(blob);
-      }
-      
-      if (blobs.length > 0) {
-        var shortDateString = Utilities.formatDate(now, Session.getScriptTimeZone(), "dd/MM/yyyy");
-        var zipName = studentName + " - " + shortDateString.replace(/\//g, "-") + " - " + lessonName + ".zip";
-        var zipBlob = Utilities.zip(blobs, zipName);
-        var zipFile = studentFolder.createFile(zipBlob);
-        
-        try {
-          zipFile.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
-        } catch (fErr) {}
-        
-        fileUrl = zipFile.getUrl();
-        sheetHW.getRange(r, colUrlIdx + 1).setValue(fileUrl);
+        if (blobs.length > 0) {
+          var zipName = studentName + " - " + shortDateString.replace(/\//g, "-") + " - " + lessonName + ".zip";
+          var zipBlob = Utilities.zip(blobs, zipName);
+          var zipFile = studentFolder.createFile(zipBlob);
+          
+          try {
+            zipFile.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+          } catch (fErr) {}
+          
+          fileUrl = zipFile.getUrl();
+          sheetHW.getRange(r, colUrlIdx + 1).setValue(fileUrl);
+        }
       }
     }
     
