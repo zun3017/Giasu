@@ -1492,35 +1492,12 @@
         (function() {
             var savedCode = sessionStorage.getItem('currentHwCode');
             if (savedCode) {
-                // Ẩn ngay màn hình đăng nhập, hiện loading để tránh nhấp nháy
-                document.getElementById('mainScreen').style.display = 'none';
-                document.getElementById('deskSurface').style.display = 'none';
-                document.getElementById('charBoy').style.display = 'none';
-                document.getElementById('charGirl').style.display = 'none';
                 document.getElementById('loadingText').style.display = 'block';
-
                 google.script.run
-                    .withSuccessHandler(function(res) {
-                        if (res && res.timThay) {
-                            showHomeworkDashboard(res);
-                        } else {
-                            // Mã không hợp lệ → xoá session, quay về màn hình đăng nhập
-                            sessionStorage.removeItem('currentHwCode');
-                            document.getElementById('loadingText').style.display = 'none';
-                            document.getElementById('mainScreen').style.display = 'flex';
-                            document.getElementById('deskSurface').style.display = 'block';
-                            document.getElementById('charBoy').style.display = 'block';
-                            document.getElementById('charGirl').style.display = 'block';
-                        }
-                    })
+                    .withSuccessHandler(showHomeworkDashboard)
                     .withFailureHandler(function(err) {
-                        // Lỗi mạng → xoá session, quay về màn hình đăng nhập
                         sessionStorage.removeItem('currentHwCode');
                         document.getElementById('loadingText').style.display = 'none';
-                        document.getElementById('mainScreen').style.display = 'flex';
-                        document.getElementById('deskSurface').style.display = 'block';
-                        document.getElementById('charBoy').style.display = 'block';
-                        document.getElementById('charGirl').style.display = 'block';
                     })
                     .xacThucMaBaiTap(savedCode);
             }
