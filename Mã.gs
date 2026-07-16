@@ -1767,19 +1767,92 @@ function xacThucMaBaiTap(ma) {
   }
 }
 
-// Học sinh nộp bài tập mới (thêm dòng mới vào sheet 'Bài tập')
+// Học sinh nộp bài tập mới (hỗ trợ file đơn lẻ - tương thích ngược)
 function uploadHomeworkFile(ma, studentName, lessonName, fileBase64, fileName, mimeType) {
+  try {
+    return uploadHomeworkFiles(ma, studentName, lessonName, [{ fileBase64: fileBase64, fileName: fileName, mimeType: mimeType }]);
+  } catch (e) {
+    return { error: "Lỗi hệ thống: " + e.toString() };
+  }
+}
+
+// Học sinh nộp nhiều file bài tập mới (tạo thư mục con lưu trên Drive và lưu link thư mục vào sheet)
+function uploadHomeworkFiles(ma, studentName, lessonName, filesList) {
   try {
     var ss = SpreadsheetApp.getActiveSpreadsheet();
     var sheetHW = initHomeworkSheet(ss);
     var hwHeaders = getHeaderIndices(sheetHW);
     
-    // Tải file lên Drive
-    var fileUrl = saveFileToDrive(studentName, lessonName, fileBase64, fileName, mimeType);
+    // 1. Tạo hoặc lấy thư mục cha
+    var parentFolderId = "1ZKHCDdZzkMqLTV4guvMNkKYbaQHCEGus";
+    var parentFolder;
+    var driveApp = DriveApp;
+    
+    try {
+      parentFolder = driveApp.getFolderById(parentFolderId);
+    } catch (err) {
+      var folders = driveApp.getRootFolder().getFoldersByName("BÀI TẬP GIA SƯ");
+      if (folders.hasNext()) {
+        parentFolder = folders.next();
+      } else {
+        parentFolder = driveApp.getRootFolder().createFolder("BÀI TẬP GIA SƯ");
+      }
+    }
+    
+    // 2. Tìm hoặc tạo thư mục học sinh
+    var studentFolders = parentFolder.getFoldersByName(studentName);
+    var studentFolder;
+    if (studentFolders.hasNext()) {
+      studentFolder = studentFolders.next();
+    } else {
+      studentFolder = parentFolder.createFolder(studentName);
+    }
     
     var now = new Date();
-    var dateString = Utilities.formatDate(now, Session.getScriptTimeZone(), "dd/MM/yyyy HH:mm:ss");
     var shortDateString = Utilities.formatDate(now, Session.getScriptTimeZone(), "dd/MM/yyyy");
+    var dateString = Utilities.formatDate(now, Session.getScriptTimeZone(), "dd/MM/yyyy HH:mm:ss");
+    
+    // 3. Tạo thư mục con riêng cho buổi nộp bài này
+    var submissionFolderName = shortDateString.replace(/\//g, "-") + " - " + lessonName;
+    var submissionFolder = studentFolder.createFolder(submissionFolderName);
+    
+    // Cấp quyền xem cho thư mục con
+    try {
+      submissionFolder.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+    } catch (sharingErr) {
+      Logger.log("Không thể chia sẻ thư mục công khai: " + sharingErr.toString());
+    }
+    
+    // 4. Lưu từng file vào thư mục con này
+    if (filesList && filesList.length > 0) {
+      for (var i = 0; i < filesList.length; i++) {
+        var fileObj = filesList[i];
+        if (!fileObj || !fileObj.fileBase64) continue;
+        
+        var fileData = Utilities.base64Decode(fileObj.fileBase64);
+        var ext = "";
+        var lastDot = fileObj.fileName.lastIndexOf(".");
+        if (lastDot !== -1) {
+          ext = fileObj.fileName.substring(lastDot);
+        } else {
+          if (fileObj.mimeType === "application/pdf") ext = ".pdf";
+          else if (fileObj.mimeType === "image/png") ext = ".png";
+          else if (fileObj.mimeType === "image/jpeg" || fileObj.mimeType === "image/jpg") ext = ".jpg";
+          else if (fileObj.mimeType === "application/vnd.openxmlformats-officedocument.wordprocessingml.document") ext = ".docx";
+        }
+        
+        var newFileName = studentName + " - " + lessonName + " - " + (i + 1) + ext;
+        var blob = Utilities.newBlob(fileData, fileObj.mimeType, newFileName);
+        var file = submissionFolder.createFile(blob);
+        
+        // Cấp quyền xem cho file
+        try {
+          file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+        } catch (fErr) {}
+      }
+    }
+    
+    var fileUrl = submissionFolder.getUrl();
     
     // Chuẩn bị dữ liệu ghi theo tên cột (thêm dấu ' để giữ số 0 ở đầu)
     var rowData = {};
@@ -1807,8 +1880,8 @@ function uploadHomeworkFile(ma, studentName, lessonName, fileBase64, fileName, m
   }
 }
 
-// Chỉnh sửa bài tập đã nộp (thay tên bài hoặc file của dòng rowIndex)
-function editHomeworkFile(rowIndex, lessonName, fileBase64, fileName, mimeType) {
+// Chỉnh sửa bài tập đã nộp (thay tên bài hoặc tệp mới trong thư mục buổi nộp)
+function editHomeworkFile(rowIndex, lessonName, fileBase64OrList, fileName, mimeType) {
   try {
     var ss = SpreadsheetApp.getActiveSpreadsheet();
     var sheetHW = initHomeworkSheet(ss);
@@ -1837,14 +1910,104 @@ function editHomeworkFile(rowIndex, lessonName, fileBase64, fileName, mimeType) 
     }
     
     var studentName = data[r - 1][colNameIdx];
+    var oldUrl = data[r - 1][colUrlIdx];
     
     // Cập nhật tên bài học
     sheetHW.getRange(r, colLessonIdx + 1).setValue(lessonName);
     
-    // Nếu có file mới truyền lên
-    var fileUrl = data[r - 1][colUrlIdx];
-    if (fileBase64 && fileName) {
-      fileUrl = saveFileToDrive(studentName, lessonName, fileBase64, fileName, mimeType);
+    var fileUrl = oldUrl;
+    
+    // Tương thích ngược: Phân tách danh sách file
+    var filesList = [];
+    if (Array.isArray(fileBase64OrList)) {
+      filesList = fileBase64OrList;
+    } else if (fileBase64OrList && fileName) {
+      filesList = [{ fileBase64: fileBase64OrList, fileName: fileName, mimeType: mimeType }];
+    }
+    
+    // Nếu có danh sách file mới truyền lên
+    if (filesList && filesList.length > 0) {
+      var driveApp = DriveApp;
+      var targetFolder = null;
+      
+      // Kiểm tra xem link cũ có phải là thư mục không
+      if (oldUrl && (oldUrl.indexOf("/folders/") !== -1 || oldUrl.indexOf("/drive/folders/") !== -1)) {
+        var matches = oldUrl.match(/[-\w]{25,}/);
+        if (matches && matches[0]) {
+          try {
+            targetFolder = driveApp.getFolderById(matches[0]);
+            // Xóa tất cả các file cũ trong thư mục con này để thay thế bằng file mới
+            var oldFiles = targetFolder.getFiles();
+            while (oldFiles.hasNext()) {
+              var oldFile = oldFiles.next();
+              oldFile.setTrashed(true);
+            }
+          } catch (folderErr) {
+            targetFolder = null;
+          }
+        }
+      }
+      
+      // Nếu chưa có thư mục con (ví dụ lúc trước chỉ nộp 1 file đơn lẻ), tạo thư mục con mới
+      if (!targetFolder) {
+        // Tìm thư mục học sinh
+        var parentFolderId = "1ZKHCDdZzkMqLTV4guvMNkKYbaQHCEGus";
+        var parentFolder;
+        try {
+          parentFolder = driveApp.getFolderById(parentFolderId);
+        } catch (err) {
+          var folders = driveApp.getRootFolder().getFoldersByName("BÀI TẬP GIA SƯ");
+          if (folders.hasNext()) {
+            parentFolder = folders.next();
+          } else {
+            parentFolder = driveApp.getRootFolder().createFolder("BÀI TẬP GIA SƯ");
+          }
+        }
+        
+        var studentFolders = parentFolder.getFoldersByName(studentName);
+        var studentFolder;
+        if (studentFolders.hasNext()) {
+          studentFolder = studentFolders.next();
+        } else {
+          studentFolder = parentFolder.createFolder(studentName);
+        }
+        
+        var shortDateString = Utilities.formatDate(now, Session.getScriptTimeZone(), "dd/MM/yyyy");
+        var submissionFolderName = shortDateString.replace(/\//g, "-") + " - " + lessonName;
+        targetFolder = studentFolder.createFolder(submissionFolderName);
+        
+        try {
+          targetFolder.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+        } catch (shErr) {}
+      }
+      
+      // Lưu các file mới vào thư mục
+      for (var i = 0; i < filesList.length; i++) {
+        var fileObj = filesList[i];
+        if (!fileObj || !fileObj.fileBase64) continue;
+        
+        var fileData = Utilities.base64Decode(fileObj.fileBase64);
+        var ext = "";
+        var lastDot = fileObj.fileName.lastIndexOf(".");
+        if (lastDot !== -1) {
+          ext = fileObj.fileName.substring(lastDot);
+        } else {
+          if (fileObj.mimeType === "application/pdf") ext = ".pdf";
+          else if (fileObj.mimeType === "image/png") ext = ".png";
+          else if (fileObj.mimeType === "image/jpeg" || fileObj.mimeType === "image/jpg") ext = ".jpg";
+          else if (fileObj.mimeType === "application/vnd.openxmlformats-officedocument.wordprocessingml.document") ext = ".docx";
+        }
+        
+        var newFileName = studentName + " - " + lessonName + " - " + (i + 1) + ext;
+        var blob = Utilities.newBlob(fileData, fileObj.mimeType, newFileName);
+        var file = targetFolder.createFile(blob);
+        
+        try {
+          file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+        } catch (fErr) {}
+      }
+      
+      fileUrl = targetFolder.getUrl();
       sheetHW.getRange(r, colUrlIdx + 1).setValue(fileUrl);
     }
     

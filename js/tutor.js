@@ -2279,8 +2279,13 @@ function renderStudentSubmissionsList() {
     var showList = studentSubmissionsGlobal.slice(0, submissionsLimit);
     
     showList.forEach(function(item, idx) {
-        var fileLink = item.fileUrl ? '<a href="' + item.fileUrl + '" target="_blank" style="color:#FFD23F; font-weight:600; text-decoration:none;"><i class="fa-solid fa-image"></i> Xem file nộp</a>' : '<span style="color:#A6ADCE;">Không có file</span>';
-        var downloadBtn = item.fileUrl ? '<a href="' + getGoogleDriveDownloadUrl(item.fileUrl) + '" target="_blank" download class="action-btn-hw" style="color:#10B981; border-color:rgba(16,185,129,0.3); background:rgba(16,185,129,0.1); padding: 4px 14px; text-decoration: none;"><i class="fa-solid fa-cloud-arrow-down"></i> Tải về</a>' : '<span style="color:#A6ADCE;">N/A</span>';
+        var isFolder = item.fileUrl && (item.fileUrl.indexOf("/folders/") !== -1 || item.fileUrl.indexOf("/drive/folders/") !== -1);
+        
+        var viewText = isFolder ? '<i class="fa-solid fa-folder-open"></i> Xem thư mục' : '<i class="fa-solid fa-image"></i> Xem file nộp';
+        var fileLink = item.fileUrl ? '<a href="' + item.fileUrl + '" target="_blank" style="color:#FFD23F; font-weight:600; text-decoration:none;">' + viewText + '</a>' : '<span style="color:#A6ADCE;">Không có file</span>';
+        
+        var dlText = isFolder ? '<i class="fa-solid fa-folder-arrow-down"></i> Tải cả thư mục' : '<i class="fa-solid fa-cloud-arrow-down"></i> Tải về';
+        var downloadBtn = item.fileUrl ? '<a href="' + getGoogleDriveDownloadUrl(item.fileUrl) + '" target="_blank" download class="action-btn-hw" style="color:#10B981; border-color:rgba(16,185,129,0.3); background:rgba(16,185,129,0.1); padding: 4px 14px; text-decoration: none;">' + dlText + '</a>' : '<span style="color:#A6ADCE;">N/A</span>';
         
         // Desktop Row
         tableBody.innerHTML += 
@@ -2363,6 +2368,9 @@ function formatDateDDMMYYYY(date) {
 // Helper: Chuyển đổi link xem Drive thành link tải trực tiếp
 function getGoogleDriveDownloadUrl(url) {
     if (!url) return "";
+    if (url.indexOf("/folders/") !== -1 || url.indexOf("/drive/folders/") !== -1) {
+        return url;
+    }
     var matches = url.match(/[-\w]{25,}/);
     if (matches && matches[0]) {
         return "https://drive.google.com/uc?export=download&id=" + matches[0];
