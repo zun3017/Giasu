@@ -22,9 +22,7 @@
 <body>
     <div id="tutorDashboardBox">
         <!-- Dòng chữ chạy thông báo từ Admin -->
-        <div id="tutorMarqueeContainer" style="display: none; background: rgba(255, 210, 63, 0.1); border-bottom: 1px solid rgba(255, 210, 63, 0.25); padding: 8px 10px; margin: -20px -20px 20px -20px; border-top-left-radius: 12px; border-top-right-radius: 12px;">
-            <marquee id="tutorMarqueeText" scrollamount="5" style="color: #FFD23F; font-size: 13.5px; font-weight: bold; font-family: Inter; vertical-align: middle;"></marquee>
-        </div>
+        <div id="tutorMarqueeContainer" style="display: none; background: rgba(255, 210, 63, 0.1); border-bottom: 1px solid rgba(255, 210, 63, 0.25); padding: 8px 10px; margin: -20px -20px 20px -20px; border-top-left-radius: 12px; border-top-right-radius: 12px; overflow: hidden;"></div>
         <div class="tutor-header">
             <div>
                 <h2 id="tutorNameDisplay">Xin chào, Gia sư</h2>
@@ -816,7 +814,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="js/api.js?v=1.6.7"></script>
-    <script src="js/tutor.js?v=1.6.5"></script>
+    <script src="js/tutor.js?v=1.6.6"></script>
     <script>
         window.addEventListener('DOMContentLoaded', () => {
             var data = JSON.parse(sessionStorage.getItem('dashboardData'));

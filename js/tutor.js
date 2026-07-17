@@ -35,14 +35,13 @@ function formatScheduleCell(val) {
             
             // Hiển thị thông báo chạy chữ từ Admin
             var marqueeContainer = document.getElementById('tutorMarqueeContainer');
-            var marqueeText = document.getElementById('tutorMarqueeText');
-            if (marqueeContainer && marqueeText) {
+            if (marqueeContainer) {
                 if (data.marqueeAnnouncement && data.marqueeAnnouncement.trim() !== "") {
-                    marqueeText.innerText = data.marqueeAnnouncement;
+                    marqueeContainer.innerHTML = '<marquee behavior="scroll" direction="left" scrollamount="5" style="color: #FFD23F; font-size: 13.5px; font-weight: bold; font-family: Inter; vertical-align: middle; margin: 0; padding: 0; line-height: 1;">' + data.marqueeAnnouncement + '</marquee>';
                     marqueeContainer.style.display = "block";
                 } else {
+                    marqueeContainer.innerHTML = "";
                     marqueeContainer.style.display = "none";
-                    marqueeText.innerText = "";
                 }
             }
             // Load Schedule
