@@ -109,6 +109,11 @@ function loginSystem(phone, pin) {
         phoneFound = true;
         var trueTutorPin = String(dataGS[i][3]).trim();
         if (String(pin).trim() === trueTutorPin) {
+          // Kiểm tra xem gia sư có bị vô hiệu hóa không (Cột J - index 9)
+          var tStatus = (dataGS[i].length > 9) ? dataGS[i][9].trim() : "";
+          if (tStatus === "Vô hiệu hóa") {
+            return { error: 'Tài khoản của bạn đã bị vô hiệu hóa. Vui lòng liên hệ Admin!' };
+          }
           return { 
             role: 'tutor', 
             thongBao: "Đăng nhập với quyền Gia sư thành công!", 
@@ -1052,6 +1057,8 @@ function getAdminDashboardData() {
           sheetUpdated = true;
         }
         
+        var tStatus = (dataGS[i].length > 9) ? dataGS[i][9].trim() : "";
+        
         if (tDelDate === "") {
           data.tutors.push({
             name: tName,
@@ -1060,7 +1067,8 @@ function getAdminDashboardData() {
             qrUrl: tQrUrl,
             createdDate: tCreatedDate,
             nextBillingDate: tNextBillingDate,
-            lastActive: tLastActive
+            lastActive: tLastActive,
+            status: tStatus
           });
           tutorMap[normalizePhone(tPhone)] = tName;
         } else {
@@ -1071,7 +1079,8 @@ function getAdminDashboardData() {
             qrUrl: tQrUrl,
             createdDate: tCreatedDate,
             nextBillingDate: tNextBillingDate,
-            lastActive: tLastActive
+            lastActive: tLastActive,
+            status: tStatus
           });
         }
       }
@@ -1257,9 +1266,9 @@ function adminLuuGiaSur(oldPhone, name, phone, pin, qrUrl, createdDate, nextBill
       var regDate = createdDate || todayStr;
       var billDate = nextBillingDate || addOneMonthToDateString(regDate);
       
-      sheetGS.appendRow([nextStt, name, "'" + phone, "'" + pin, qrUrl, "", "'" + regDate, "'" + billDate, ""]);
+      sheetGS.appendRow([nextStt, name, "'" + phone, "'" + pin, qrUrl, "", "'" + regDate, "'" + billDate, "", ""]);
       var lastRow = sheetGS.getLastRow();
-      sheetGS.getRange(lastRow, 1, 1, 9).setFontFamily("Arial");
+      sheetGS.getRange(lastRow, 1, 1, 10).setFontFamily("Arial");
     }
     return { success: true };
   } catch (e) {
@@ -2788,5 +2797,38 @@ function normalizeMa(ma) {
     return String(Number(clean));
   }
   return clean;
+}
+
+// Thay đổi trạng thái vô hiệu hóa/kích hoạt của gia sư (Cột J - index 9)
+function adminSetTutorStatus(tutorPhone, status) {
+  var lock = LockService.getScriptLock();
+  try {
+    lock.waitLock(10000);
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var sheetGS = ss.getSheetByName('Mã gia sư');
+    if (!sheetGS) return { error: "Không tìm thấy sheet 'Mã gia sư'" };
+    
+    var dataGS = sheetGS.getDataRange().getDisplayValues();
+    var normT = normalizePhone(tutorPhone);
+    var rowIndex = -1;
+    for (var i = 1; i < dataGS.length; i++) {
+      if (normalizePhone(dataGS[i][2]) === normT) {
+        rowIndex = i + 1;
+        break;
+      }
+    }
+    
+    if (rowIndex !== -1) {
+      sheetGS.getRange(rowIndex, 10).setValue(status); // Cột J là cột số 10
+      SpreadsheetApp.flush();
+      return { success: true };
+    } else {
+      return { error: "Không tìm thấy gia sư cần cập nhật trạng thái." };
+    }
+  } catch (e) {
+    return { error: "Lỗi hệ thống: " + e.toString() };
+  } finally {
+    lock.releaseLock();
+  }
 }
 

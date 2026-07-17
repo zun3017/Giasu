@@ -437,74 +437,91 @@ var pinVerifyAction = "deleteStudent";
             
             var mobileHtml = "";
             adminDataGlobal.tutors.forEach((t, idx) => {
-                var sCount = getActiveStudentsForTutor(t.phone);
-                var webFee = Math.ceil(sCount / 2) * 30000;
-                
-                var isDue = isBillingDue(t.nextBillingDate);
-                if (isDue) {
-                    dueAlerts.push({
-                        name: t.name,
-                        phone: t.phone,
-                        nextBillingDate: t.nextBillingDate,
-                        students: sCount,
-                        fee: webFee
-                    });
-                }
-                
-                var statusText = isDue 
-                    ? "<span style='color:#FF4D4D; font-weight:bold;'><i class='fa-solid fa-triangle-exclamation'></i> Đến hạn</span>" 
-                    : "<span style='color:#00CC66;'><i class='fa-solid fa-circle-check'></i> Bình thường</span>";
-                
-                var quickPayBtn = isDue 
-                    ? "<button class='modal-btn modal-btn-primary' onclick='confirmQuickPaid(\"" + t.phone + "\", \"" + t.name + "\")' style='padding:4px 10px; font-size:11px; border-radius:15px; background:linear-gradient(135deg, #10B981, #059669); border:none; color:#FFF; font-weight:bold; cursor:pointer;'><i class='fa-solid fa-check'></i> Đã thu</button>"
-                    : "<span style='color:#A6ADCE; font-size:11px;'>Chưa đến hạn</span>";
-                
-                var lastActiveDisplay = t.lastActive ? t.lastActive : "<i style='color:#6c757d;'>Chưa hoạt động</i>";
-                
-                // Desktop row
-                var tr = document.createElement('tr');
-                if (isDue) {
-                    tr.style.background = "rgba(239, 68, 68, 0.04)";
-                }
-                tr.innerHTML = "<td><b>" + t.name + "</b></td>" +
-                               "<td>" + t.phone + "</td>" +
-                               "<td><code style='letter-spacing:2px; font-weight:bold; color:#FFD23F;'>" + t.pin + "</code></td>" +
-                               "<td>" + (t.createdDate || "-") + "</td>" +
-                               "<td><b style='" + (isDue ? "color:#FF8080;" : "") + "'>" + (t.nextBillingDate || "-") + "</b></td>" +
-                               "<td style='text-align:center;'><b>" + sCount + "</b></td>" +
-                               "<td><b style='color:#A78BFA;'>" + webFee.toLocaleString('vi-VN') + "đ</b></td>" +
-                               "<td style='font-size:12px;'>" + lastActiveDisplay + "</td>" +
-                               "<td style='text-align:center;'>" + quickPayBtn + "</td>" +
-                               "<td style='text-align:center;'>" +
-                                 "<button class='btn-icon-edit' onclick='openAdminEditTutorModal(\"" + t.phone + "\")' title='Sửa gia sư'><i class='fa-solid fa-pen-to-square'></i></button>" +
-                               "</td>";
-                tbody.appendChild(tr);
-                
-                // Mobile accordion view
-                var editBtn = "<button class='action-btn-hw' onclick='openAdminEditTutorModal(\"" + t.phone + "\")' style='color:#FFD23F; border-color:rgba(255,210,63,0.3); background:rgba(255,210,63,0.1); padding: 4px 14px; text-decoration: none; font-size:12px; border-radius: 20px;'><i class='fa-solid fa-pen-to-square'></i> Sửa</button>";
-                var mobilePayBtn = isDue 
-                    ? "<button class='action-btn-hw' onclick='confirmQuickPaid(\"" + t.phone + "\", \"" + t.name + "\")' style='color:#10B981; border-color:rgba(16,185,129,0.3); background:rgba(16,185,129,0.1); padding: 4px 14px; text-decoration: none; font-size:12px; border-radius: 20px; margin-right: 8px;'><i class='fa-solid fa-check'></i> Xác nhận đã thu</button>"
-                    : "";
-                
-                mobileHtml += "<div class='accordion-item' style='" + (isDue ? "border: 1px solid rgba(239, 68, 68, 0.35);" : "") + "'>";
-                mobileHtml += "  <div class='accordion-header' onclick='toggleAdminTutorAccordion(" + idx + ")'>";
-                mobileHtml += "    <div class='accordion-header-title'>";
-                mobileHtml += "      <span>" + t.name + "</span>" + (isDue ? " <span style='background:#EF4444; color:#FFF; font-size:9px; padding:1px 5px; border-radius:10px; font-weight:bold; margin-left:5px;'>Đến hạn</span>" : "");
-                mobileHtml += "    </div>";
-                mobileHtml += "    <div class='accordion-header-status'><i class='fa-solid fa-chevron-down' id='adm-tutor-chevron-" + idx + "'></i></div>";
-                mobileHtml += "  </div>";
-                mobileHtml += "  <div class='accordion-body' id='adm-tutor-body-" + idx + "' style='display: none;'>";
-                mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Số điện thoại</span><span class='accordion-body-val'>" + t.phone + "</span></div>";
-                mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Mã PIN</span><span class='accordion-body-val'><code style='letter-spacing:2px; font-weight:bold; color:#FFD23F;'>" + t.pin + "</code></span></div>";
-                mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Ngày đăng ký</span><span class='accordion-body-val'>" + (t.createdDate || "-") + "</span></div>";
-                mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Ngày hạn kế</span><span class='accordion-body-val' style='" + (isDue ? "color:#FF8080; font-weight:bold;" : "") + "'>" + (t.nextBillingDate || "-") + "</span></div>";
-                mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Số HS hoạt động</span><span class='accordion-body-val'><b>" + sCount + "</b></span></div>";
-                mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Phí thuê Web</span><span class='accordion-body-val'><b style='color:#A78BFA;'>" + webFee.toLocaleString('vi-VN') + "đ</b></span></div>";
-                mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Hoạt động cuối</span><span class='accordion-body-val'>" + lastActiveDisplay + "</span></div>";
-                mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Trạng thái</span><span class='accordion-body-val'>" + statusText + "</span></div>";
-                mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Thao tác</span><span class='accordion-body-val'>" + mobilePayBtn + editBtn + "</span></div>";
-                mobileHtml += "  </div>";
-                mobileHtml += "</div>";
+                 var sCount = getActiveStudentsForTutor(t.phone);
+                 var webFee = Math.ceil(sCount / 2) * 30000;
+                 
+                 var isCurrentlyDeactivated = (t.status === "Vô hiệu hóa");
+                 var isDue = isBillingDue(t.nextBillingDate) && !isCurrentlyDeactivated;
+                 if (isDue) {
+                     dueAlerts.push({
+                         name: t.name,
+                         phone: t.phone,
+                         nextBillingDate: t.nextBillingDate,
+                         students: sCount,
+                         fee: webFee
+                     });
+                 }
+                 
+                 var statusText = "";
+                 if (isCurrentlyDeactivated) {
+                     statusText = "<span style='color:#F59E0B; font-weight:bold;'><i class='fa-solid fa-ban'></i> Bị vô hiệu hóa</span>";
+                 } else if (isDue) {
+                     statusText = "<span style='color:#FF4D4D; font-weight:bold;'><i class='fa-solid fa-triangle-exclamation'></i> Đến hạn</span>";
+                 } else {
+                     statusText = "<span style='color:#00CC66;'><i class='fa-solid fa-circle-check'></i> Hoạt động</span>";
+                 }
+                 
+                 var quickPayBtn = "";
+                 if (isCurrentlyDeactivated) {
+                     quickPayBtn = "<span style='color:#6c757d; font-size:11px;'>Tài khoản đang khóa</span>";
+                 } else if (isDue) {
+                     quickPayBtn = "<button class='modal-btn modal-btn-primary' onclick='confirmQuickPaid(\"" + t.phone + "\", \"" + t.name + "\")' style='padding:4px 10px; font-size:11px; border-radius:15px; background:linear-gradient(135deg, #10B981, #059669); border:none; color:#FFF; font-weight:bold; cursor:pointer;'><i class='fa-solid fa-check'></i> Đã thu</button>";
+                 } else {
+                     quickPayBtn = "<span style='color:#A6ADCE; font-size:11px;'>Chưa đến hạn</span>";
+                 }
+                 
+                 var lastActiveDisplay = t.lastActive ? t.lastActive : "<i style='color:#6c757d;'>Chưa hoạt động</i>";
+                 
+                 // Desktop row
+                 var tr = document.createElement('tr');
+                 if (isCurrentlyDeactivated) {
+                     tr.style.background = "rgba(245, 158, 11, 0.02)";
+                     tr.style.opacity = "0.8";
+                 } else if (isDue) {
+                     tr.style.background = "rgba(239, 68, 68, 0.04)";
+                 }
+                 tr.innerHTML = "<td><b>" + t.name + "</b></td>" +
+                                "<td>" + t.phone + "</td>" +
+                                "<td><code style='letter-spacing:2px; font-weight:bold; color:#FFD23F;'>" + t.pin + "</code></td>" +
+                                "<td>" + (t.createdDate || "-") + "</td>" +
+                                "<td><b style='" + (isDue ? "color:#FF8080;" : "") + "'>" + (t.nextBillingDate || "-") + "</b></td>" +
+                                "<td style='text-align:center;'><b>" + sCount + "</b></td>" +
+                                "<td><b style='color:#A78BFA;'>" + webFee.toLocaleString('vi-VN') + "đ</b></td>" +
+                                "<td style='font-size:12px;'>" + lastActiveDisplay + "</td>" +
+                                "<td style='text-align:center;'>" + statusText + "</td>" +
+                                "<td style='text-align:center;'>" +
+                                  "<button class='btn-icon-edit' onclick='openAdminEditTutorModal(\"" + t.phone + "\")' title='Sửa/Vô hiệu hóa gia sư'><i class='fa-solid fa-pen-to-square'></i> Sửa</button>" +
+                                "</td>";
+                 tbody.appendChild(tr);
+                 
+                 // Mobile accordion view
+                 var editBtn = "<button class='action-btn-hw' onclick='openAdminEditTutorModal(\"" + t.phone + "\")' style='color:#FFD23F; border-color:rgba(255,210,63,0.3); background:rgba(255,210,63,0.1); padding: 4px 14px; text-decoration: none; font-size:12px; border-radius: 20px;'><i class='fa-solid fa-pen-to-square'></i> Sửa</button>";
+                 var mobilePayBtn = "";
+                 if (isCurrentlyDeactivated) {
+                     mobilePayBtn = "<span style='color:#6c757d; font-size:12px; margin-right: 8px;'>Đã khóa</span>";
+                 } else if (isDue) {
+                     mobilePayBtn = "<button class='action-btn-hw' onclick='confirmQuickPaid(\"" + t.phone + "\", \"" + t.name + "\")' style='color:#10B981; border-color:rgba(16,185,129,0.3); background:rgba(16,185,129,0.1); padding: 4px 14px; text-decoration: none; font-size:12px; border-radius: 20px; margin-right: 8px;'><i class='fa-solid fa-check'></i> Xác nhận đã thu</button>";
+                 }
+                 
+                 mobileHtml += "<div class='accordion-item' style='" + (isCurrentlyDeactivated ? "border: 1px solid rgba(245, 158, 11, 0.25); opacity: 0.85;" : (isDue ? "border: 1px solid rgba(239, 68, 68, 0.35);" : "")) + "'>";
+                 mobileHtml += "  <div class='accordion-header' onclick='toggleAdminTutorAccordion(" + idx + ")'>";
+                 mobileHtml += "    <div class='accordion-header-title'>";
+                 mobileHtml += "      <span>" + t.name + "</span>" + (isCurrentlyDeactivated ? " <span style='background:#F59E0B; color:#000; font-size:9px; padding:1px 5px; border-radius:10px; font-weight:bold; margin-left:5px;'>Vô hiệu hóa</span>" : (isDue ? " <span style='background:#EF4444; color:#FFF; font-size:9px; padding:1px 5px; border-radius:10px; font-weight:bold; margin-left:5px;'>Đến hạn</span>" : ""));
+                 mobileHtml += "    </div>";
+                 mobileHtml += "    <div class='accordion-header-status'><i class='fa-solid fa-chevron-down' id='adm-tutor-chevron-" + idx + "'></i></div>";
+                 mobileHtml += "  </div>";
+                 mobileHtml += "  <div class='accordion-body' id='adm-tutor-body-" + idx + "' style='display: none;'>";
+                 mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Số điện thoại</span><span class='accordion-body-val'>" + t.phone + "</span></div>";
+                 mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Mã PIN</span><span class='accordion-body-val'><code style='letter-spacing:2px; font-weight:bold; color:#FFD23F;'>" + t.pin + "</code></span></div>";
+                 mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Ngày đăng ký</span><span class='accordion-body-val'>" + (t.createdDate || "-") + "</span></div>";
+                 mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Ngày hạn kế</span><span class='accordion-body-val' style='" + (isDue ? "color:#FF8080; font-weight:bold;" : "") + "'>" + (t.nextBillingDate || "-") + "</span></div>";
+                 mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Số HS hoạt động</span><span class='accordion-body-val'><b>" + sCount + "</b></span></div>";
+                 mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Phí thuê Web</span><span class='accordion-body-val'><b style='color:#A78BFA;'>" + webFee.toLocaleString('vi-VN') + "đ</b></span></div>";
+                 mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Hoạt động cuối</span><span class='accordion-body-val'>" + lastActiveDisplay + "</span></div>";
+                 mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Trạng thái</span><span class='accordion-body-val'>" + statusText + "</span></div>";
+                 mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Thao tác</span><span class='accordion-body-val'>" + mobilePayBtn + editBtn + "</span></div>";
+                 mobileHtml += "  </div>";
+                 mobileHtml += "</div>";
             });
             
             if (mobileContainer) {
@@ -653,6 +670,7 @@ var pinVerifyAction = "deleteStudent";
             document.getElementById('adminTutorCreatedDate').value = "";
             document.getElementById('adminTutorNextBillingDate').value = "";
             document.getElementById('btnDeleteAdminTutor').style.display = "none";
+            document.getElementById('btnDeactivateAdminTutor').style.display = "none";
             document.getElementById('adminEditTutorModal').style.display = "flex";
         }
         
@@ -669,6 +687,24 @@ var pinVerifyAction = "deleteStudent";
             document.getElementById('adminTutorCreatedDate').value = tutor.createdDate || "";
             document.getElementById('adminTutorNextBillingDate').value = tutor.nextBillingDate || "";
             document.getElementById('btnDeleteAdminTutor').style.display = "flex";
+            
+            // Thiết lập nút Vô hiệu hóa
+            var btnDeact = document.getElementById('btnDeactivateAdminTutor');
+            if (btnDeact) {
+                btnDeact.style.display = "flex";
+                if (tutor.status === "Vô hiệu hóa") {
+                    btnDeact.innerHTML = '<i class="fa-solid fa-user-check"></i> Kích hoạt lại';
+                    btnDeact.style.background = "rgba(16, 185, 129, 0.1)";
+                    btnDeact.style.border = "1px solid #10B981";
+                    btnDeact.style.color = "#10B981";
+                } else {
+                    btnDeact.innerHTML = '<i class="fa-solid fa-user-slash"></i> Vô hiệu hóa';
+                    btnDeact.style.background = "rgba(245, 158, 11, 0.1)";
+                    btnDeact.style.border = "1px solid #F59E0B";
+                    btnDeact.style.color = "#F59E0B";
+                }
+            }
+            
             document.getElementById('adminEditTutorModal').style.display = "flex";
         }
         
@@ -738,25 +774,25 @@ var pinVerifyAction = "deleteStudent";
         }
 
         function deleteTutorBackend() {
-            var phone = document.getElementById('adminTutorOldPhone').value;
-            var name = document.getElementById('adminTutorName').value;
-            
-            showCustomConfirm("Xác nhận vô hiệu hóa gia sư " + name + "? Tài khoản gia sư này sẽ bị khóa tạm thời và đưa vào thùng rác.", function() {
-                google.script.run
-                    .withSuccessHandler(function(res) {
-                        if (res.error) {
-                            showToast("Lỗi: " + res.error, "error");
-                        } else {
-                            showToast("Đã vô hiệu hóa tài khoản gia sư thành công!", "success");
-                            refreshAdminDashboard();
-                        }
-                    })
-                    .withFailureHandler(function(err) {
-                        showToast("Lỗi kết nối hoặc hệ thống: " + err.toString(), "error");
-                    })
-                    .xoaGiaSuTamThoi(phone);
-            });
-        }
+             var phone = document.getElementById('adminTutorOldPhone').value;
+             var name = document.getElementById('adminTutorName').value;
+             
+             showCustomConfirm("Xác nhận đưa gia sư " + name + " vào thùng rác? Gia sư sẽ ẩn khỏi danh sách và sẽ bị xóa vĩnh viễn sau 10 ngày.", function() {
+                 google.script.run
+                     .withSuccessHandler(function(res) {
+                         if (res.error) {
+                             showToast("Lỗi: " + res.error, "error");
+                         } else {
+                             showToast("Đã đưa gia sư vào thùng rác thành công!", "success");
+                             refreshAdminDashboard();
+                         }
+                     })
+                     .withFailureHandler(function(err) {
+                         showToast("Lỗi kết nối hoặc hệ thống: " + err.toString(), "error");
+                     })
+                     .xoaGiaSuTamThoi(phone);
+             });
+         }
 
         function openTutorTrashModal() {
             renderTrashTutorList();
@@ -1056,6 +1092,36 @@ var pinVerifyAction = "deleteStudent";
                     .adminXacNhanDongTienTutor(phone);
             });
         }
+
+        // Hàm chuyển đổi trạng thái Vô hiệu hóa / Kích hoạt lại gia sư
+         function toggleTutorDeactivateStatus() {
+             var phone = document.getElementById('adminTutorOldPhone').value;
+             var name = document.getElementById('adminTutorName').value;
+             var tutor = adminDataGlobal.tutors.find(t => t.phone === phone);
+             if (!tutor) return;
+             
+             var isCurrentlyDeactivated = (tutor.status === "Vô hiệu hóa");
+             var newStatus = isCurrentlyDeactivated ? "" : "Vô hiệu hóa";
+             var actionText = isCurrentlyDeactivated ? "kích hoạt lại" : "vô hiệu hóa";
+             
+             showCustomConfirm("Xác nhận " + actionText + " tài khoản gia sư " + name + "?", function() {
+                 showToast("Đang cập nhật trạng thái gia sư...", "info");
+                 google.script.run
+                     .withSuccessHandler(function(res) {
+                         if (res.error) {
+                             showToast("Lỗi: " + res.error, "error");
+                         } else {
+                             showToast((isCurrentlyDeactivated ? "Kích hoạt lại" : "Vô hiệu hóa") + " tài khoản gia sư thành công!", "success");
+                             closeAdminEditTutorModal();
+                             refreshAdminDashboard();
+                         }
+                     })
+                     .withFailureHandler(function(err) {
+                         showToast("Lỗi kết nối: " + err.toString(), "error");
+                     })
+                     .adminSetTutorStatus(phone, newStatus);
+             });
+         }
 
         function saveAdminMarquee() {
             var text = document.getElementById('adminMarqueeInput').value.trim();
