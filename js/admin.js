@@ -70,6 +70,11 @@ var pinVerifyAction = "deleteStudent";
         function renderAdminView(data) {
             adminDataGlobal = data;
             
+            // Khởi tạo số điện thoại Admin hiện tại nếu chưa có
+            if (!currentAdminPhone) {
+                currentAdminPhone = sessionStorage.getItem('userPhone') || (document.getElementById('maHocSinh') ? document.getElementById('maHocSinh').value : "");
+            }
+            
             // Ẩn màn hình chính và các nhân vật 3D nếu tồn tại
             var mainScr = document.getElementById('mainScreen');
             if (mainScr) mainScr.style.display = 'none';
