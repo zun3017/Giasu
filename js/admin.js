@@ -741,13 +741,13 @@ var pinVerifyAction = "deleteStudent";
             var phone = document.getElementById('adminTutorOldPhone').value;
             var name = document.getElementById('adminTutorName').value;
             
-            showCustomConfirm("Xác nhận đưa gia sư " + name + " vào thùng rác? Gia sư sẽ ẩn khỏi danh sách và tài khoản này sẽ bị khóa tạm thời.", function() {
+            showCustomConfirm("Xác nhận vô hiệu hóa gia sư " + name + "? Tài khoản gia sư này sẽ bị khóa tạm thời và đưa vào thùng rác.", function() {
                 google.script.run
                     .withSuccessHandler(function(res) {
                         if (res.error) {
                             showToast("Lỗi: " + res.error, "error");
                         } else {
-                            showToast("Đã đưa gia sư vào thùng rác!", "success");
+                            showToast("Đã vô hiệu hóa tài khoản gia sư thành công!", "success");
                             refreshAdminDashboard();
                         }
                     })

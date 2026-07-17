@@ -258,7 +258,7 @@
                 </div>
             </div>
             <div class="modal-footer" style="display: flex; justify-content: space-between;">
-                <button onclick="confirmDeleteAdminTutor()" class="modal-btn" id="btnDeleteAdminTutor" style="background: rgba(239, 68, 68, 0.1); border: 1px solid #EF4444; color: #EF4444; border-radius: 20px; padding: 8px 16px; cursor: pointer; display: none; align-items: center; gap: 6px;"><i class="fa-solid fa-trash-can"></i> Xóa gia sư</button>
+                <button onclick="confirmDeleteAdminTutor()" class="modal-btn" id="btnDeleteAdminTutor" style="background: rgba(239, 68, 68, 0.1); border: 1px solid #EF4444; color: #EF4444; border-radius: 20px; padding: 8px 16px; cursor: pointer; display: none; align-items: center; gap: 6px;"><i class="fa-solid fa-user-slash"></i> Vô hiệu hóa gia sư</button>
                 <div style="display: flex; gap: 8px;">
                     <button onclick="closeAdminEditTutorModal()" class="modal-btn modal-btn-secondary">Hủy</button>
                     <button onclick="saveAdminTutor()" class="modal-btn modal-btn-primary" id="btnSaveAdminTutor">Lưu lại</button>
@@ -376,7 +376,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="js/api.js?v=1.6.7"></script>
-    <script src="js/admin.js?v=1.6.4"></script>
+    <script src="js/admin.js?v=1.6.5"></script>
     <script>
         window.addEventListener('DOMContentLoaded', () => {
             var data = JSON.parse(sessionStorage.getItem('dashboardData'));
