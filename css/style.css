@@ -1881,3 +1881,13 @@
                 font-size: 12px !important;
             }
         }
+
+        /* Định kiểu màu trắng cho con mắt hiển thị mật khẩu của trình duyệt */
+        input::-ms-reveal, input::-ms-clear {
+            filter: invert(100%) brightness(1.5) !important;
+        }
+        input::-webkit-contacts-auto-fill-button, 
+        input::-webkit-credentials-auto-fill-button {
+            filter: invert(100%) brightness(1.5) !important;
+        }
+
