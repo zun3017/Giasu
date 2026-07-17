@@ -577,6 +577,36 @@ function suaThongTinHocSinh(oldPhone, phuHuynhName, studentName, studentPhone, t
   }
 }
 
+// Cập nhật nhanh thông báo phụ huynh/học sinh (việc gấp)
+function capNhatThongBaoHocSinh(studentPhone, thongBao) {
+  var lock = LockService.getScriptLock();
+  try {
+    lock.waitLock(10000);
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var sheetHS = ss.getSheetByName('Mã học sinh');
+    if (!sheetHS) return { error: "Không tìm thấy sheet 'Mã học sinh'" };
+    
+    var dataHS = sheetHS.getDataRange().getDisplayValues();
+    var rowIndex = -1;
+    var normPhone = normalizePhone(studentPhone);
+    for (var i = 1; i < dataHS.length; i++) {
+      if (normalizePhone(dataHS[i][3]) === normPhone) {
+        rowIndex = i + 1;
+        break;
+      }
+    }
+    
+    if (rowIndex === -1) return { error: "Không tìm thấy học sinh." };
+    
+    sheetHS.getRange(rowIndex, 5).setValue(thongBao || "").setFontFamily("Arial");
+    return { success: true };
+  } catch (e) {
+    return { error: "Lỗi backend: " + e.toString() };
+  } finally {
+    lock.releaseLock();
+  }
+}
+
 // Thêm buổi học
 function themBuoiHoc(studentPhone, studentName, tuan, ngayDay, monHoc, noiDung, danhGiaBTVN, diemDauGio, diemDinhKi, trangThai) {
   try {

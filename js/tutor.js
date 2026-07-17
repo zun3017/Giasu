@@ -164,6 +164,10 @@ function formatScheduleCell(val) {
             document.getElementById('tutorStudentDetail').style.display = 'block';
             document.getElementById('selectedStudentNameHeader').innerText = currentTutorStudent.name;
             document.getElementById('invStudentName').innerText = currentTutorStudent.name;
+            document.getElementById('quickAnnouncementInput').value = currentTutorStudent.thongBao || "";
+            if (document.getElementById('announcementStatus')) {
+                document.getElementById('announcementStatus').style.display = 'none';
+            }
             
             // Mở sẵn trạng thái bài tập theo mặc định
             var hwSec = document.getElementById('tutorHomeworkSection');
@@ -556,7 +560,7 @@ function formatScheduleCell(val) {
             var phone = document.getElementById('addStudentPhone').value.trim();
             var tuition = document.getElementById('addStudentTuition').value.trim();
             var maBaiTap = document.getElementById('addStudentMaBaiTap').value.trim();
-            var thongBao = document.getElementById('addStudentThongBao').value.trim();
+            var thongBao = "";
             
             if(!pName || !sName || !phone || !tuition || !maBaiTap) {
                 showToast("Vui lòng điền đầy đủ các thông tin!", "error");
@@ -583,7 +587,6 @@ function formatScheduleCell(val) {
             document.getElementById('editStudentName').value = currentTutorStudent.name;
             document.getElementById('editStudentTuition').value = currentTutorStudent.tuition || "";
             document.getElementById('editStudentMaBaiTap').value = currentTutorStudent.maBaiTap || "";
-            document.getElementById('editStudentThongBao').value = currentTutorStudent.thongBao || "";
             
             document.getElementById('editParentName').value = ""; 
             document.getElementById('editParentName').placeholder = "Đang tải tên phụ huynh...";
@@ -605,7 +608,7 @@ function formatScheduleCell(val) {
             var phone = document.getElementById('editStudentPhone').value.trim();
             var tuition = document.getElementById('editStudentTuition').value.trim();
             var maBaiTap = document.getElementById('editStudentMaBaiTap').value.trim();
-            var thongBao = document.getElementById('editStudentThongBao').value.trim();
+            var thongBao = currentTutorStudent.thongBao || "";
             
             if(!pName || !sName || !phone || !tuition || !maBaiTap) {
                 showToast("Vui lòng điền đầy đủ các thông tin!", "error");
@@ -631,6 +634,46 @@ function formatScheduleCell(val) {
                     }).loginSystem(tutorDataGlobal.tutorPhone, document.getElementById('maPin').value.trim());
                 }
             }).suaThongTinHocSinh(oldPhone, pName, sName, phone, parseFloat(tuition), maBaiTap, thongBao);
+        }
+
+        function saveQuickAnnouncement() {
+            if (!currentTutorStudent) return;
+            var text = document.getElementById('quickAnnouncementInput').value.trim();
+            var btn = document.getElementById('btnSaveQuickAnnouncement');
+            var statusLabel = document.getElementById('announcementStatus');
+            
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang gửi...';
+            statusLabel.style.display = 'none';
+            
+            google.script.run
+                .withSuccessHandler(function(res) {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Gửi thông báo';
+                    if (res && res.error) {
+                        showToast("Lỗi: " + res.error, "error");
+                    } else {
+                        currentTutorStudent.thongBao = text;
+                        // Đồng bộ lại vào mảng global
+                        var globalIndex = tutorDataGlobal.students.findIndex(s => s.phone === currentTutorStudent.phone);
+                        if (globalIndex !== -1) {
+                            tutorDataGlobal.students[globalIndex].thongBao = text;
+                        }
+                        // Hiển thị trạng thái lưu thành công trong 3 giây
+                        statusLabel.innerText = "Đã lưu thành công!";
+                        statusLabel.style.display = 'inline';
+                        setTimeout(function() {
+                            statusLabel.style.display = 'none';
+                        }, 3000);
+                        showToast("Cập nhật thông báo thành công!", "success");
+                    }
+                })
+                .withFailureHandler(function(err) {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Gửi thông báo';
+                    showToast("Lỗi kết nối: " + err.toString(), "error");
+                })
+                .capNhatThongBaoHocSinh(currentTutorStudent.phone, text);
         }
 
         // 4. Cửa sổ Thêm buổi học (Add Lesson) & Preview

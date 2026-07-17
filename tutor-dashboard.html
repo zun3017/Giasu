@@ -65,6 +65,18 @@
                 <span class="btn-refresh-history" style="background: linear-gradient(135deg, #10B981 0%, #059669 100%); border: none; color: #FFF; font-weight: bold; border-radius: 20px; padding: 8px 20px; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 10px rgba(16,185,129,0.2); font-family: 'Inter', sans-serif; cursor: default;" id="btnTutorHomeworkToggle"><i class="fa-solid fa-book"></i> Bài tập</span>
             </div>
 
+            <!-- Widget thông báo nhanh cho Phụ huynh / Học sinh -->
+            <div id="tutorQuickAnnouncementWidget" style="background: rgba(142, 77, 255, 0.08); border: 1px dashed rgba(142, 77, 255, 0.3); border-radius: 12px; padding: 15px; margin-bottom: 20px; display: flex; flex-direction: column; gap: 10px;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="color: #A6ADCE; font-size: 13.5px; font-weight: bold; display: inline-flex; align-items: center; gap: 6px;"><i class="fa-solid fa-bullhorn" style="color: #8E4DFF;"></i> Thông báo nhanh cho phụ huynh (Việc gấp)</span>
+                    <span id="announcementStatus" style="font-size: 12px; color: #10B981; font-weight: bold; display: none;"><i class="fa-solid fa-circle-check"></i> Đã lưu thành công!</span>
+                </div>
+                <div style="display: flex; gap: 10px; flex-wrap: wrap; width: 100%;">
+                    <input type="text" id="quickAnnouncementInput" placeholder="Ví dụ: Hôm nay nghỉ học nhé phụ huynh ơi..." style="flex: 1; min-width: 250px; padding: 10px 15px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.25); color: #FFF; font-size: 13.5px; outline: none; transition: border 0.3s;" onfocus="this.style.borderColor='#8E4DFF'" onblur="this.style.borderColor='rgba(255,255,255,0.1)'">
+                    <button onclick="saveQuickAnnouncement()" id="btnSaveQuickAnnouncement" class="modal-btn modal-btn-primary" style="width: auto; padding: 10px 20px; margin: 0; background: linear-gradient(135deg, #8E4DFF 0%, #5B21B6 100%); display: inline-flex; align-items: center; gap: 8px; justify-content: center; font-size: 13.5px; font-weight: bold; border-radius: 8px; box-shadow: 0 4px 12px rgba(142,77,255,0.2);"><i class="fa-solid fa-paper-plane"></i> Gửi thông báo</button>
+                </div>
+            </div>
+
             <!-- Section Bài tập (Mở sẵn mặc định) -->
             <div id="tutorHomeworkSection" style="display: block; overflow: hidden; transition: max-height 0.4s ease-out; margin-bottom: 25px;">
                 <div class="hw-tutor-container" style="background: rgba(11, 8, 38, 0.6); border: 1px solid rgba(142, 77, 255, 0.3); border-radius: 16px; padding: 20px; margin-top: 10px;">
@@ -352,10 +364,6 @@
                 <label>Mã bài tập *</label>
                 <input type="text" id="addStudentMaBaiTap" placeholder="Mã để đăng nhập nộp bài (Ví dụ: BT101)">
             </div>
-            <div class="modal-form-group">
-                <label>Thông báo cho phụ huynh (Không bắt buộc)</label>
-                <textarea id="addStudentThongBao" placeholder="Ví dụ: Phụ huynh nhớ nhắc nhở bé làm bài tập nhé..." style="width:100%; height:70px; border-radius:8px; border:1px solid rgba(255,255,255,0.1); background:rgba(0,0,0,0.2); color:#FFF; padding:10px; font-size:13px; outline:none; resize:none; font-family:Inter;"></textarea>
-            </div>
             <div class="modal-footer">
                 <button onclick="closeAddStudentModal()" class="modal-btn modal-btn-secondary">Hủy</button>
                 <button onclick="saveNewStudent()" class="modal-btn modal-btn-primary">Thêm mới</button>
@@ -390,10 +398,6 @@
             <div class="modal-form-group">
                 <label>Mã bài tập *</label>
                 <input type="text" id="editStudentMaBaiTap" placeholder="Mã để đăng nhập nộp bài (Ví dụ: BT101)">
-            </div>
-            <div class="modal-form-group">
-                <label>Thông báo cho phụ huynh (Không bắt buộc)</label>
-                <textarea id="editStudentThongBao" placeholder="Ví dụ: Phụ huynh nhớ nhắc nhở bé làm bài tập nhé..." style="width:100%; height:70px; border-radius:8px; border:1px solid rgba(255,255,255,0.1); background:rgba(0,0,0,0.2); color:#FFF; padding:10px; font-size:13px; outline:none; resize:none; font-family:Inter;"></textarea>
             </div>
             <div class="modal-footer" style="justify-content: space-between;">
                 <button onclick="confirmDeleteStudent()" class="modal-btn" style="background: rgba(239, 68, 68, 0.1); border: 1px solid #EF4444; color: #EF4444; border-radius: 20px; padding: 8px 16px; cursor: pointer; display: flex; align-items: center; gap: 6px;"><i class="fa-solid fa-trash-can"></i> Xóa học sinh</button>
