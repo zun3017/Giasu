@@ -210,7 +210,16 @@
                 </div>
 
                 <h3 style="color: #FFD23F; font-size: 20px; font-weight: 800; margin: 0 0 8px 0; text-align: center; font-family: Inter;">Xin chào, <span style="color: #FFFFFF;">${student.name}</span> 👋</h3>
-                <p style="color: #A6ADCE; font-size: 13px; text-align: center; margin: 0 0 25px 0; font-family: Inter;">(${student.class} • Số điện thoại: ${student.id})</p>
+                <p style="color: #A6ADCE; font-size: 13px; text-align: center; margin: 0 0 20px 0; font-family: Inter;">(${student.class} • Số điện thoại: ${student.id})</p>
+
+                <!-- Hộp Thông Báo từ Gia Sư (giống thực tế) -->
+                <div class="announcement-box has-msg" style="margin-bottom: 20px;">
+                    <div class="announcement-icon"><i class="fa-solid fa-bullhorn"></i></div>
+                    <div class="announcement-content">
+                        <div class="announcement-title">Thông báo từ gia sư</div>
+                        <div class="announcement-text">Phụ huynh nhớ nhắc bé ôn lại chương I trước buổi kiểm tra định kì tuần tới nhé! 📚</div>
+                    </div>
+                </div>
 
                 <!-- Bảng Tóm Tắt Kết Quả -->
                 <div class="summary-grid">
@@ -248,14 +257,24 @@
 
                 <!-- Biểu Đồ Học Tập -->
                 <div class="chart-box" style="background: rgba(11, 8, 38, 0.95); border: 1px solid #8E4DFF; border-radius: 20px; padding: 20px; margin-bottom: 20px; box-shadow: 0 0 30px rgba(91, 46, 255, 0.1);">
-                    <div class="chart-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
+                    <div class="chart-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 10px;">
                         <div style="display: flex; align-items: center; gap: 10px;">
                             <i class="fa-solid fa-chart-line" style="color: #8E4DFF; font-size: 18px;"></i>
                             <h4 style="margin: 0; color: #FFF; font-size: 14px; font-weight: 600;">Biểu đồ điểm số học tập</h4>
                         </div>
-                        <div style="display: flex; gap: 10px; font-size: 11px;">
-                            <span><span style="display:inline-block; width:8px; height:8px; background:#8E4DFF; border-radius:50%; margin-right:4px;"></span>Đầu giờ</span>
-                            <span><span style="display:inline-block; width:8px; height:8px; background:#FFD23F; border-radius:50%; margin-right:4px;"></span>Định kì</span>
+                        <div class="chart-instruction" style="font-size: 11.5px; color: #A6ADCE; display:flex; align-items:center; gap:5px;">
+                            <i class="fa-solid fa-circle-info" style="color:#8E4DFF;"></i> Nhấn nút điểm để ẩn/hiện đường dữ liệu
+                        </div>
+                    </div>
+                    <!-- Legend Buttons giống trang thật -->
+                    <div class="chart-legend-wrapper" style="margin-bottom: 12px;">
+                        <div class="chart-legend-container" style="display:flex; gap:8px; flex-wrap:wrap;">
+                            <button class="legend-btn active btn-dau-gio" style="display:inline-flex; align-items:center; gap:6px; padding:5px 12px; border-radius:20px; border:1px solid #8E4DFF; background:rgba(142,77,255,0.15); color:#A78BFA; font-size:12px; font-weight:600; cursor:pointer; font-family:Inter;">
+                                <span style="display:inline-block; width:8px; height:8px; background:#8E4DFF; border-radius:50%;"></span>Điểm đầu giờ
+                            </button>
+                            <button class="legend-btn active btn-dinh-ki" style="display:inline-flex; align-items:center; gap:6px; padding:5px 12px; border-radius:20px; border:1px solid #FFD23F; background:rgba(255,210,63,0.1); color:#FFD23F; font-size:12px; font-weight:600; cursor:pointer; font-family:Inter;">
+                                <span style="display:inline-block; width:8px; height:8px; background:#FFD23F; border-radius:50%;"></span>Điểm định kì
+                            </button>
                         </div>
                     </div>
                     <div class="chart-canvas-container" style="height: 180px; position: relative;">
@@ -677,6 +696,17 @@
                         <span style="background: linear-gradient(135deg, #10B981 0%, #059669 100%); border: none; color: #FFF; font-weight: bold; border-radius: 20px; padding: 8px 20px; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 10px rgba(16,185,129,0.2); font-family: 'Inter', sans-serif; cursor: default; font-size:13px;"><i class="fa-solid fa-book"></i> Bài tập</span>
                     </div>
 
+                    <!-- Widget Thông báo nhanh cho phụ huynh (giống thực tế) -->
+                    <div style="background: rgba(142, 77, 255, 0.08); border: 1px dashed rgba(142, 77, 255, 0.3); border-radius: 12px; padding: 15px; margin-bottom: 20px; display: flex; flex-direction: column; gap: 10px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span style="color: #A6ADCE; font-size: 13.5px; font-weight: bold; display: inline-flex; align-items: center; gap: 6px;"><i class="fa-solid fa-bullhorn" style="color: #8E4DFF;"></i> Thông báo nhanh cho phụ huynh (Việc gấp)</span>
+                        </div>
+                        <div style="display: flex; gap: 10px; flex-wrap: wrap; width: 100%;">
+                            <input type="text" placeholder="Ví dụ: Hôm nay nghỉ học nhé phụ huynh ơi..." value="Phụ huynh nhớ nhắc bé ôn bài trước khi kiểm tra nhé! 📚" style="flex: 1; min-width: 250px; padding: 10px 15px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.25); color: #FFF; font-size: 13.5px; outline: none;">
+                            <button style="padding: 10px 20px; background: linear-gradient(135deg, #8E4DFF 0%, #5B21B6 100%); color:#FFF; border:none; border-radius: 8px; font-size:13.5px; font-weight:bold; cursor:pointer; display:inline-flex; align-items:center; gap:8px; box-shadow:0 4px 12px rgba(142,77,255,0.2);" onclick="alert('Đây là tính năng giả lập. Trên thực tế thông báo sẽ được gửi đến phụ huynh!')"><i class="fa-solid fa-paper-plane"></i> Gửi thông báo</button>
+                        </div>
+                    </div>
+
                     <!-- Bảng bài tập của học sinh -->
                     <div style="background: rgba(11, 8, 38, 0.6); border: 1px solid rgba(142, 77, 255, 0.3); border-radius: 16px; padding: 20px; margin-bottom: 25px;">
                         <!-- Menu Tabs thực tế -->
@@ -914,15 +944,22 @@
 
                     <!-- Biểu Đồ Học Tập -->
                     <div class="chart-box" style="background: rgba(11, 8, 38, 0.95); border: 1px solid #8E4DFF; border-radius: 20px; padding: 20px; box-shadow: 0 0 30px rgba(91, 46, 255, 0.1); margin-bottom:30px;">
-                        <div class="chart-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
+                        <div class="chart-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 10px;">
                             <div style="display: flex; align-items: center; gap: 10px;">
                                 <i class="fa-solid fa-chart-line" style="color: #8E4DFF; font-size: 18px;"></i>
                                 <h4 style="margin: 0; color: #FFF; font-size: 14px; font-weight: 600;">Biểu đồ điểm số học tập</h4>
                             </div>
-                            <div style="display: flex; gap: 10px; font-size: 11px;">
-                                <span><span style="display:inline-block; width:8px; height:8px; background:#8E4DFF; border-radius:50%; margin-right:4px;"></span>Đầu giờ</span>
-                                <span><span style="display:inline-block; width:8px; height:8px; background:#FFD23F; border-radius:50%; margin-right:4px;"></span>Định kì</span>
+                            <div style="font-size: 11.5px; color: #A6ADCE; display:flex; align-items:center; gap:5px;">
+                                <i class="fa-solid fa-circle-info" style="color:#8E4DFF;"></i> Nhấn nút điểm để ẩn/hiện đường dữ liệu
                             </div>
+                        </div>
+                        <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px;">
+                            <button style="display:inline-flex; align-items:center; gap:6px; padding:5px 12px; border-radius:20px; border:1px solid #8E4DFF; background:rgba(142,77,255,0.15); color:#A78BFA; font-size:12px; font-weight:600; cursor:pointer; font-family:Inter;">
+                                <span style="display:inline-block; width:8px; height:8px; background:#8E4DFF; border-radius:50%;"></span>Điểm đầu giờ
+                            </button>
+                            <button style="display:inline-flex; align-items:center; gap:6px; padding:5px 12px; border-radius:20px; border:1px solid #FFD23F; background:rgba(255,210,63,0.1); color:#FFD23F; font-size:12px; font-weight:600; cursor:pointer; font-family:Inter;">
+                                <span style="display:inline-block; width:8px; height:8px; background:#FFD23F; border-radius:50%;"></span>Điểm định kì
+                            </button>
                         </div>
                         <div class="chart-canvas-container" style="height: 180px; position: relative;">
                             <canvas id="demoDiemChart"></canvas>
@@ -931,7 +968,7 @@
 
                     <!-- Lịch sử Đánh giá / Nhận xét Buổi Học -->
                     <div class="schedule-section" style="margin-top: 30px; margin-bottom: 30px;">
-                        <h3 style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; font-family: Inter; color: #8E4DFF; font-size: 18px; margin:0 0 15px 0; font-weight:700;">
+                        <h3 style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; font-family: Inter; color: #8E4DFF; font-size: 18px; margin:0 0 6px 0; font-weight:700;">
                             <span style="display: flex; align-items: center; gap: 10px;"><i class="fa-solid fa-clock-rotate-left"></i> Lịch sử học tập & Nhận xét chi tiết</span>
                             <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
                                 <button class="btn-refresh-history" onclick="openDemoAddLessonModal()" style="background: linear-gradient(135deg, #8E4DFF 0%, #5B21B6 100%); border: none; color: #FFF; font-weight: bold; border-radius: 20px; padding: 6px 16px; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 4px 10px rgba(142,77,255,0.2); font-size:12px; cursor:pointer; font-family:Inter;"><i class="fa-solid fa-calendar-plus"></i> Thêm buổi học</button>
@@ -943,7 +980,12 @@
                                 <table style="width:100%; border-collapse:collapse; min-width: 800px;">
                                     <thead>
                                         <tr style="background-color: rgba(91, 46, 255, 0.1); color:#FFF;">
-                                            <th style="padding:12px 16px; font-size:13px; font-weight:600; text-align: center; width:40px;"><input type="checkbox" checked style="cursor: pointer; width:15px; height:15px;"></th>
+                                            <th style="padding:12px 16px; font-size:13px; font-weight:600; text-align: center; width:105px;" title="Tích chọn để đóng học phí hàng loạt cho tất cả các buổi học chưa đóng">
+                                                <div style="display:flex; align-items:center; justify-content:center; gap:6px;">
+                                                    <input type="checkbox" checked style="cursor: pointer; width:15px; height:15px;">
+                                                    <span style="font-size:12px; font-weight:bold; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-wallet" style="color:#10B981;"></i> Đóng tiền</span>
+                                                </div>
+                                            </th>
                                             <th style="padding:12px 16px; font-size:13px; font-weight:600; text-align: left;">Tuần</th>
                                             <th style="padding:12px 16px; font-size:13px; font-weight:600; text-align: left;">Ngày dạy</th>
                                             <th style="padding:12px 16px; font-size:13px; font-weight:600; text-align: left;">Môn</th>
@@ -981,8 +1023,8 @@
 
                         <div class="mobile-cards-view" style="width: 100%;">
                             <div class="mobile-select-all-container" style="display: flex; align-items: center; gap: 10px; padding: 12px 16px; background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 12px; margin-bottom: 12px;">
-                                <input type="checkbox" checked style="cursor: pointer; width: 16px; height: 16px;">
-                                <label style="cursor: pointer; font-size: 13px; color: #A6ADCE; font-weight: bold; margin: 0; user-select: none;">Chọn tất cả buổi học</label>
+                                <input type="checkbox" checked style="cursor: pointer; width: 16px; height: 16px;" title="Tích chọn để đóng học phí cho tất cả các buổi">
+                                <label style="cursor: pointer; font-size: 13.5px; font-weight: bold; margin: 0; user-select: none; display:inline-flex; align-items:center; gap:6px;"><i class="fa-solid fa-wallet" style="color:#10B981;"></i> Đóng học phí tất cả các buổi</label>
                             </div>
                             ${student.logs.slice().reverse().map((log, idx) => `
                                 <div class="accordion-item" style="border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 12px; margin-bottom: 12px; overflow: hidden; background: rgba(255, 255, 255, 0.01);">
