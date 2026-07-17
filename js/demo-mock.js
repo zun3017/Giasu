@@ -1151,6 +1151,8 @@
                             <option value="Vật lý">Vật lý</option>
                             <option value="Hóa học">Hóa học</option>
                             <option value="Khoa học tự nhiên">Khoa học tự nhiên</option>
+                            <option value="Ngữ văn">Ngữ văn</option>
+                            <option value="Tiếng anh">Tiếng anh</option>
                         </select>
                     </div>
                     <div style="display:flex; flex-direction:column; gap:4px;">
