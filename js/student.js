@@ -228,7 +228,13 @@ var currentStudentName = "";
                 
                 var lichSuVe = ketQua.lichSuHocTap.slice(); // Dùng thứ tự thời gian gốc (cũ trước mới sau)
                 lichSuVe.forEach(function(item) {
-                    labels.push("Tuần " + item.tuan);
+                    // Dùng ngày thực tế thay vì số tuần
+                    var rawDate = item.ngay || "";
+                    // Chuẩn hoá: nếu ngày là dd/mm/yyyy thì lấy dd/mm
+                    var shortDate = rawDate;
+                    var dateParts = rawDate.match(/(\d{1,2})\/(\d{1,2})/);
+                    if (dateParts) shortDate = dateParts[1] + "/" + dateParts[2];
+                    labels.push(shortDate);
 
                     var valDG = parseFloat(item.diemDauGio);
                     var valDK = parseFloat(item.diemDinhKi);
@@ -290,7 +296,14 @@ var currentStudentName = "";
                             scales: {
                                 x: {
                                     grid: { color: 'rgba(255, 255, 255, 0.03)' },
-                                    ticks: { color: '#A6ADCE', font: { family: 'Inter', size: 9.5 } }
+                                    ticks: {
+                                        color: '#A6ADCE',
+                                        font: { family: 'Inter', size: 9.5 },
+                                        maxRotation: 45,
+                                        minRotation: 0,
+                                        autoSkip: true,
+                                        maxTicksLimit: 12
+                                    }
                                 },
                                 y: {
                                     min: 0,

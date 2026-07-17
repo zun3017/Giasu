@@ -221,7 +221,12 @@ function formatScheduleCell(val) {
             var dataDinhKi = [];
             
             lichSuVe.forEach(function(item, idx) {
-                labels.push("Buổi " + (idx + 1));
+                // Dùng ngày thực tế thay vì số buổi
+                var rawDate = item.ngay || "";
+                var shortDate = rawDate;
+                var dateParts = rawDate.match(/(\d{1,2})\/(\d{1,2})/);
+                if (dateParts) shortDate = dateParts[1] + "/" + dateParts[2];
+                labels.push(shortDate);
                 
                 var valDG = parseFloat(item.diemDauGio);
                 var valDK = parseFloat(item.diemDinhKi);
@@ -281,7 +286,14 @@ function formatScheduleCell(val) {
                         scales: {
                             x: {
                                 grid: { color: 'rgba(255, 255, 255, 0.03)' },
-                                ticks: { color: '#A6ADCE', font: { family: 'Inter', size: 9.5 } }
+                                ticks: {
+                                    color: '#A6ADCE',
+                                    font: { family: 'Inter', size: 9.5 },
+                                    maxRotation: 45,
+                                    minRotation: 0,
+                                    autoSkip: true,
+                                    maxTicksLimit: 12
+                                }
                             },
                             y: {
                                 min: 0,
