@@ -32,6 +32,9 @@
             </div>
         </div>
 
+        <!-- Khung Cảnh báo đóng phí thuê Web của Gia sư -->
+        <div id="adminBillingAlerts" style="margin-bottom: 25px; display: none; flex-direction: column; gap: 12px;"></div>
+
         <!-- Admin Tab Navigation -->
         <div class="student-buttons-container" style="margin-bottom: 25px; gap: 15px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 15px; flex-wrap: wrap; justify-content: flex-start;">
             <button class="student-btn active" id="btnAdminTabReport" onclick="switchAdminTab('report')" style="width: auto; padding: 12px 25px; border-radius: 30px; font-weight: bold;"><i class="fa-solid fa-chart-pie"></i> Báo Cáo Học Phí</button>
@@ -128,14 +131,29 @@
                 </div>
             </div>
             
+            <!-- Cấu hình Dòng chữ chạy thông báo -->
+            <div style="background: rgba(142, 77, 255, 0.08); border: 1px dashed rgba(142, 77, 255, 0.3); border-radius: 12px; padding: 15px; margin-bottom: 20px; display: flex; flex-direction: column; gap: 8px;">
+                <span style="color: #A6ADCE; font-size: 13px; font-weight: bold; display: inline-flex; align-items: center; gap: 6px;"><i class="fa-solid fa-bullhorn" style="color: #8E4DFF;"></i> Cấu hình dòng chữ chạy thông báo cho Gia sư (Để trống sẽ tự động ẩn)</span>
+                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <input type="text" id="adminMarqueeInput" placeholder="Nhập thông báo gửi đến toàn bộ gia sư... (Ví dụ: Trung tâm nghỉ lễ từ ngày...)" style="flex: 1; min-width: 250px; padding: 8px 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.25); color: #FFF; font-size: 13px; outline: none;">
+                    <button onclick="saveAdminMarquee()" class="modal-btn modal-btn-primary" style="width: auto; padding: 8px 20px; font-size: 13px; border-radius: 8px; font-weight: bold; display: inline-flex; align-items: center; gap: 6px;"><i class="fa-solid fa-floppy-disk"></i> Lưu thông báo</button>
+                </div>
+            </div>
+            
             <div class="table-responsive desktop-table-view">
                 <table class="history-table" id="adminTutorsTable">
                     <thead>
                         <tr>
                             <th>Tên Gia Sư</th>
                             <th>Số Điện Thoại</th>
-                            <th>Mã PIN Đăng Nhập</th>
-                            <th style="width: 80px; text-align: center;">Sửa</th>
+                            <th>Mã PIN</th>
+                            <th>Ngày Đăng Ký</th>
+                            <th>Ngày Hạn Kế</th>
+                            <th>Số HS</th>
+                            <th>Phí Thuê Web</th>
+                            <th>Hoạt Động Cuối</th>
+                            <th style="width: 120px; text-align: center;">Hành động nhanh</th>
+                            <th style="width: 60px; text-align: center;">Sửa</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -229,6 +247,14 @@
                 <div class="modal-form-group">
                     <label>Ảnh mã QR chuyển khoản (Link)</label>
                     <input type="text" id="adminTutorQrUrl" placeholder="Ví dụ: https://img.vietqr.io/image/...">
+                </div>
+                <div class="modal-form-group">
+                    <label>Ngày đăng ký (dd/mm/yyyy - Để trống tự lấy hôm nay)</label>
+                    <input type="text" id="adminTutorCreatedDate" placeholder="Ví dụ: 15/07/2026">
+                </div>
+                <div class="modal-form-group">
+                    <label>Ngày đến hạn đóng phí (dd/mm/yyyy - Để trống tự động cộng 1 tháng)</label>
+                    <input type="text" id="adminTutorNextBillingDate" placeholder="Ví dụ: 15/08/2026">
                 </div>
             </div>
             <div class="modal-footer" style="display: flex; justify-content: space-between;">

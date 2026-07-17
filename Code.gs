@@ -219,6 +219,9 @@ function traCuuDuLieuHocSinh(phone, hsRow, ss) {
 
 // Lấy dữ liệu tổng quan cho Gia sư
 function getTutorDashboardData(tutorPhone, gsRow, ss) {
+  // Cập nhật ngày hoạt động cuối cùng của Gia sư ngầm
+  updateTutorLastActive(ss, tutorPhone);
+  
   var tutorData = {
     tutorPhone: tutorPhone,
     tutorName: gsRow[1],
@@ -227,7 +230,8 @@ function getTutorDashboardData(tutorPhone, gsRow, ss) {
     students: [],
     deletedStudents: [],
     totalUnpaidIncome: 0,
-    classCount: 0
+    classCount: 0,
+    marqueeAnnouncement: PropertiesService.getScriptProperties().getProperty('marquee_announcement') || ""
   };
 
   var normTutorPhone = normalizePhone(tutorPhone);
@@ -1029,13 +1033,19 @@ function getAdminDashboardData() {
         var tPin = dataGS[i][3];
         var tQrUrl = (dataGS[i].length > 4) ? dataGS[i][4].trim() : "";
         var tDelDate = (dataGS[i].length > 5) ? dataGS[i][5].trim() : "";
+        var tCreatedDate = (dataGS[i].length > 6) ? dataGS[i][6].trim() : "";
+        var tNextBillingDate = (dataGS[i].length > 7) ? dataGS[i][7].trim() : "";
+        var tLastActive = (dataGS[i].length > 8) ? dataGS[i][8].trim() : "";
         
         if (tDelDate === "") {
           data.tutors.push({
             name: tName,
             phone: tPhone,
             pin: tPin,
-            qrUrl: tQrUrl
+            qrUrl: tQrUrl,
+            createdDate: tCreatedDate,
+            nextBillingDate: tNextBillingDate,
+            lastActive: tLastActive
           });
           tutorMap[normalizePhone(tPhone)] = tName;
         } else {
@@ -1043,7 +1053,10 @@ function getAdminDashboardData() {
             name: tName,
             phone: tPhone,
             deletedDate: tDelDate,
-            qrUrl: tQrUrl
+            qrUrl: tQrUrl,
+            createdDate: tCreatedDate,
+            nextBillingDate: tNextBillingDate,
+            lastActive: tLastActive
           });
         }
       }
@@ -1122,14 +1135,60 @@ function getAdminDashboardData() {
       data.incomeReports = reports;
     }
     
+    // Tải dòng chữ chạy thông báo
+    data.marqueeAnnouncement = PropertiesService.getScriptProperties().getProperty('marquee_announcement') || "";
+    
     return data;
   } catch (e) {
     return { error: "Lỗi hệ thống Admin: " + e.toString() };
   }
 }
 
+// Helper cộng thêm 1 tháng cho định dạng ngày dd/MM/yyyy
+function addOneMonthToDateString(dateStr) {
+  try {
+    var parts = dateStr.split("/");
+    if (parts.length === 3) {
+      var d = parseInt(parts[0], 10);
+      var m = parseInt(parts[1], 10) - 1; // Tháng tính từ 0
+      var y = parseInt(parts[2], 10);
+      var dateObj = new Date(y, m, d);
+      dateObj.setMonth(dateObj.getMonth() + 1);
+      
+      var day = String(dateObj.getDate());
+      if (day.length === 1) day = "0" + day;
+      var month = String(dateObj.getMonth() + 1);
+      if (month.length === 1) month = "0" + month;
+      var year = dateObj.getFullYear();
+      
+      return day + "/" + month + "/" + year;
+    }
+  } catch (e) {
+    Logger.log("Lỗi addOneMonthToDateString: " + e.toString());
+  }
+  return dateStr;
+}
+
+// Cập nhật ngày giờ hoạt động cuối cùng của gia sư
+function updateTutorLastActive(ss, tutorPhone) {
+  try {
+    var sheetGS = ss.getSheetByName('Mã gia sư');
+    if (!sheetGS) return;
+    var dataGS = sheetGS.getDataRange().getDisplayValues();
+    for (var i = 1; i < dataGS.length; i++) {
+      if (String(dataGS[i][2]).trim() === String(tutorPhone).trim()) {
+        var todayStr = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), "dd/MM/yyyy HH:mm");
+        sheetGS.getRange(i + 1, 9).setValue(todayStr); // Cột I (9) là lastActive
+        break;
+      }
+    }
+  } catch (e) {
+    Logger.log("Lỗi cập nhật lastActive: " + e.toString());
+  }
+}
+
 // Lưu thông tin gia sư (Thêm mới/Cập nhật) từ quyền Admin
-function adminLuuGiaSur(oldPhone, name, phone, pin, qrUrl) {
+function adminLuuGiaSur(oldPhone, name, phone, pin, qrUrl, createdDate, nextBillingDate) {
   var lock = LockService.getScriptLock();
   try {
     lock.waitLock(10000);
@@ -1148,6 +1207,8 @@ function adminLuuGiaSur(oldPhone, name, phone, pin, qrUrl) {
       }
     }
     
+    var todayStr = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), "dd/MM/yyyy");
+    
     if (oldPhone) {
       for (var i = 1; i < dataGS.length; i++) {
         if (String(dataGS[i][2]).trim() === String(oldPhone).trim()) {
@@ -1160,6 +1221,12 @@ function adminLuuGiaSur(oldPhone, name, phone, pin, qrUrl) {
         sheetGS.getRange(rowIndex, 3).setValue("'" + phone);
         sheetGS.getRange(rowIndex, 4).setValue("'" + pin);
         sheetGS.getRange(rowIndex, 5).setValue(qrUrl);
+        if (createdDate) {
+          sheetGS.getRange(rowIndex, 7).setValue("'" + createdDate);
+        }
+        if (nextBillingDate) {
+          sheetGS.getRange(rowIndex, 8).setValue("'" + nextBillingDate);
+        }
       } else {
         return { error: "Không tìm thấy gia sư để cập nhật." };
       }
@@ -1169,15 +1236,65 @@ function adminLuuGiaSur(oldPhone, name, phone, pin, qrUrl) {
         var lastStt = parseInt(dataGS[dataGS.length - 1][0]);
         if (!isNaN(lastStt)) nextStt = lastStt + 1;
       }
-      sheetGS.appendRow([nextStt, name, "'" + phone, "'" + pin, qrUrl, ""]);
+      var regDate = createdDate || todayStr;
+      var billDate = nextBillingDate || addOneMonthToDateString(regDate);
+      
+      sheetGS.appendRow([nextStt, name, "'" + phone, "'" + pin, qrUrl, "", "'" + regDate, "'" + billDate, ""]);
       var lastRow = sheetGS.getLastRow();
-      sheetGS.getRange(lastRow, 1, 1, 6).setFontFamily("Arial");
+      sheetGS.getRange(lastRow, 1, 1, 9).setFontFamily("Arial");
     }
     return { success: true };
   } catch (e) {
     return { error: "Lỗi backend: " + e.toString() };
   } finally {
     lock.releaseLock();
+  }
+}
+
+// Admin xác nhận đóng tiền và gia hạn chu kỳ nhắc đóng phí thuê web thêm 1 tháng
+function adminXacNhanDongTienTutor(tutorPhone) {
+  var lock = LockService.getScriptLock();
+  try {
+    lock.waitLock(10000);
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var sheetGS = ss.getSheetByName('Mã gia sư');
+    if (!sheetGS) return { error: "Không tìm thấy sheet 'Mã gia sư'" };
+    
+    var dataGS = sheetGS.getDataRange().getDisplayValues();
+    var rowIndex = -1;
+    
+    for (var i = 1; i < dataGS.length; i++) {
+      if (String(dataGS[i][2]).trim() === String(tutorPhone).trim()) {
+        rowIndex = i + 1;
+        break;
+      }
+    }
+    
+    if (rowIndex === -1) return { error: "Không tìm thấy gia sư này trên hệ thống." };
+    
+    var currentBillDate = sheetGS.getRange(rowIndex, 8).getDisplayValue().trim();
+    if (!currentBillDate) {
+      currentBillDate = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), "dd/MM/yyyy");
+    }
+    
+    var newBillDate = addOneMonthToDateString(currentBillDate);
+    sheetGS.getRange(rowIndex, 8).setValue("'" + newBillDate);
+    
+    return { success: true, newBillingDate: newBillDate };
+  } catch (e) {
+    return { error: "Lỗi gia hạn chu kỳ đóng tiền: " + e.toString() };
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+// Lưu dòng chạy chữ thông báo từ Admin gửi cho các Gia sư
+function adminLuuMarquee(text) {
+  try {
+    PropertiesService.getScriptProperties().setProperty('marquee_announcement', text || "");
+    return { success: true };
+  } catch (e) {
+    return { error: "Lỗi lưu thông báo chạy chữ: " + e.toString() };
   }
 }
 

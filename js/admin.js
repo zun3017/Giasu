@@ -98,6 +98,12 @@ var pinVerifyAction = "deleteStudent";
             // Cập nhật tên hiển thị
             document.getElementById('adminNameDisplay').innerText = "Xin chào, Admin " + (data.tutors.find(t => t.phone === currentAdminPhone)?.name || "Hệ Thống");
             
+            // Nạp thông báo chạy chữ vào ô input
+            var marqueeInput = document.getElementById('adminMarqueeInput');
+            if (marqueeInput) {
+                marqueeInput.value = data.marqueeAnnouncement || "";
+            }
+            
             // Render dữ liệu từng tab
             renderAdminReportDropdown();
             renderAdminTutorsList();
@@ -373,6 +379,40 @@ var pinVerifyAction = "deleteStudent";
         }
 
         // 2. Tutors Management Tab
+        // Helper tính số học sinh hoạt động của 1 gia sư
+        function getActiveStudentsForTutor(tPhone) {
+            if (!adminDataGlobal.students) return 0;
+            var normT = normalizePhone(tPhone);
+            return adminDataGlobal.students.filter(s => 
+                normalizePhone(s.tutorPhone) === normT && 
+                (!s.deletedDate || s.deletedDate.trim() === "")
+            ).length;
+        }
+
+        // Kiểm tra xem đã đến kỳ đóng phí thuê web chưa (đúng ngày chốt chu kỳ)
+        function isBillingDue(dateStr) {
+            if (!dateStr) return false;
+            try {
+                var parts = dateStr.split("/");
+                if (parts.length === 3) {
+                    var d = parseInt(parts[0], 10);
+                    var m = parseInt(parts[1], 10) - 1;
+                    var y = parseInt(parts[2], 10);
+                    var billDate = new Date(y, m, d);
+                    billDate.setHours(0,0,0,0);
+                    
+                    var today = new Date();
+                    today.setHours(0,0,0,0);
+                    
+                    return billDate <= today;
+                }
+            } catch (e) {
+                console.error("Lỗi isBillingDue: ", e);
+            }
+            return false;
+        }
+
+        // 2. Tutors Management Tab
         function renderAdminTutorsList() {
             var tbody = document.querySelector('#adminTutorsTable tbody');
             var mobileContainer = document.getElementById('adminTutorsMobile');
@@ -380,46 +420,118 @@ var pinVerifyAction = "deleteStudent";
             if (!tbody) return;
             tbody.innerHTML = "";
             
+            var dueAlerts = [];
+            var alertContainer = document.getElementById('adminBillingAlerts');
+            
             if (!adminDataGlobal.tutors || adminDataGlobal.tutors.length === 0) {
-                tbody.innerHTML = "<tr><td colspan='4' style='text-align:center; color:#A6ADCE;'>Không có gia sư nào trên hệ thống.</td></tr>";
+                tbody.innerHTML = "<tr><td colspan='10' style='text-align:center; color:#A6ADCE;'>Không có gia sư nào trên hệ thống.</td></tr>";
                 if (mobileContainer) {
                     mobileContainer.innerHTML = "<div style='text-align:center; color:#A6ADCE; padding: 20px; font-size: 13px;'><i class='fa-solid fa-circle-info'></i> Không có gia sư nào trên hệ thống.</div>";
+                }
+                if (alertContainer) {
+                    alertContainer.style.display = "none";
+                    alertContainer.innerHTML = "";
                 }
                 return;
             }
             
             var mobileHtml = "";
             adminDataGlobal.tutors.forEach((t, idx) => {
-                // Desktop
+                var sCount = getActiveStudentsForTutor(t.phone);
+                var webFee = Math.ceil(sCount / 2) * 30000;
+                
+                var isDue = isBillingDue(t.nextBillingDate);
+                if (isDue) {
+                    dueAlerts.push({
+                        name: t.name,
+                        phone: t.phone,
+                        nextBillingDate: t.nextBillingDate,
+                        students: sCount,
+                        fee: webFee
+                    });
+                }
+                
+                var statusText = isDue 
+                    ? "<span style='color:#FF4D4D; font-weight:bold;'><i class='fa-solid fa-triangle-exclamation'></i> Đến hạn</span>" 
+                    : "<span style='color:#00CC66;'><i class='fa-solid fa-circle-check'></i> Bình thường</span>";
+                
+                var quickPayBtn = isDue 
+                    ? "<button class='modal-btn modal-btn-primary' onclick='confirmQuickPaid(\"" + t.phone + "\", \"" + t.name + "\")' style='padding:4px 10px; font-size:11px; border-radius:15px; background:linear-gradient(135deg, #10B981, #059669); border:none; color:#FFF; font-weight:bold; cursor:pointer;'><i class='fa-solid fa-check'></i> Đã thu</button>"
+                    : "<span style='color:#A6ADCE; font-size:11px;'>Chưa đến hạn</span>";
+                
+                var lastActiveDisplay = t.lastActive ? t.lastActive : "<i style='color:#6c757d;'>Chưa hoạt động</i>";
+                
+                // Desktop row
                 var tr = document.createElement('tr');
+                if (isDue) {
+                    tr.style.background = "rgba(239, 68, 68, 0.04)";
+                }
                 tr.innerHTML = "<td><b>" + t.name + "</b></td>" +
                                "<td>" + t.phone + "</td>" +
                                "<td><code style='letter-spacing:2px; font-weight:bold; color:#FFD23F;'>" + t.pin + "</code></td>" +
+                               "<td>" + (t.createdDate || "-") + "</td>" +
+                               "<td><b style='" + (isDue ? "color:#FF8080;" : "") + "'>" + (t.nextBillingDate || "-") + "</b></td>" +
+                               "<td style='text-align:center;'><b>" + sCount + "</b></td>" +
+                               "<td><b style='color:#A78BFA;'>" + webFee.toLocaleString('vi-VN') + "đ</b></td>" +
+                               "<td style='font-size:12px;'>" + lastActiveDisplay + "</td>" +
+                               "<td style='text-align:center;'>" + quickPayBtn + "</td>" +
                                "<td style='text-align:center;'>" +
                                  "<button class='btn-icon-edit' onclick='openAdminEditTutorModal(\"" + t.phone + "\")' title='Sửa gia sư'><i class='fa-solid fa-pen-to-square'></i></button>" +
                                "</td>";
                 tbody.appendChild(tr);
                 
-                // Mobile
-                var editBtn = "<button class='action-btn-hw' onclick='openAdminEditTutorModal(\"" + t.phone + "\")' style='color:#FFD23F; border-color:rgba(255,210,63,0.3); background:rgba(255,210,63,0.1); padding: 4px 14px; text-decoration: none; font-size:12px; border-radius: 20px;'><i class='fa-solid fa-pen-to-square'></i> Chỉnh sửa</button>";
+                // Mobile accordion view
+                var editBtn = "<button class='action-btn-hw' onclick='openAdminEditTutorModal(\"" + t.phone + "\")' style='color:#FFD23F; border-color:rgba(255,210,63,0.3); background:rgba(255,210,63,0.1); padding: 4px 14px; text-decoration: none; font-size:12px; border-radius: 20px;'><i class='fa-solid fa-pen-to-square'></i> Sửa</button>";
+                var mobilePayBtn = isDue 
+                    ? "<button class='action-btn-hw' onclick='confirmQuickPaid(\"" + t.phone + "\", \"" + t.name + "\")' style='color:#10B981; border-color:rgba(16,185,129,0.3); background:rgba(16,185,129,0.1); padding: 4px 14px; text-decoration: none; font-size:12px; border-radius: 20px; margin-right: 8px;'><i class='fa-solid fa-check'></i> Xác nhận đã thu</button>"
+                    : "";
                 
-                mobileHtml += "<div class='accordion-item'>";
+                mobileHtml += "<div class='accordion-item' style='" + (isDue ? "border: 1px solid rgba(239, 68, 68, 0.35);" : "") + "'>";
                 mobileHtml += "  <div class='accordion-header' onclick='toggleAdminTutorAccordion(" + idx + ")'>";
                 mobileHtml += "    <div class='accordion-header-title'>";
-                mobileHtml += "      <span>" + t.name + "</span>";
+                mobileHtml += "      <span>" + t.name + "</span>" + (isDue ? " <span style='background:#EF4444; color:#FFF; font-size:9px; padding:1px 5px; border-radius:10px; font-weight:bold; margin-left:5px;'>Đến hạn</span>" : "");
                 mobileHtml += "    </div>";
                 mobileHtml += "    <div class='accordion-header-status'><i class='fa-solid fa-chevron-down' id='adm-tutor-chevron-" + idx + "'></i></div>";
                 mobileHtml += "  </div>";
                 mobileHtml += "  <div class='accordion-body' id='adm-tutor-body-" + idx + "' style='display: none;'>";
                 mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Số điện thoại</span><span class='accordion-body-val'>" + t.phone + "</span></div>";
                 mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Mã PIN</span><span class='accordion-body-val'><code style='letter-spacing:2px; font-weight:bold; color:#FFD23F;'>" + t.pin + "</code></span></div>";
-                mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Thao tác</span><span class='accordion-body-val'>" + editBtn + "</span></div>";
+                mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Ngày đăng ký</span><span class='accordion-body-val'>" + (t.createdDate || "-") + "</span></div>";
+                mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Ngày hạn kế</span><span class='accordion-body-val' style='" + (isDue ? "color:#FF8080; font-weight:bold;" : "") + "'>" + (t.nextBillingDate || "-") + "</span></div>";
+                mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Số HS hoạt động</span><span class='accordion-body-val'><b>" + sCount + "</b></span></div>";
+                mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Phí thuê Web</span><span class='accordion-body-val'><b style='color:#A78BFA;'>" + webFee.toLocaleString('vi-VN') + "đ</b></span></div>";
+                mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Hoạt động cuối</span><span class='accordion-body-val'>" + lastActiveDisplay + "</span></div>";
+                mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Trạng thái</span><span class='accordion-body-val'>" + statusText + "</span></div>";
+                mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Thao tác</span><span class='accordion-body-val'>" + mobilePayBtn + editBtn + "</span></div>";
                 mobileHtml += "  </div>";
                 mobileHtml += "</div>";
             });
             
             if (mobileContainer) {
                 mobileContainer.innerHTML = mobileHtml;
+            }
+            
+            // Vẽ hộp cảnh báo đỏ lên đầu trang Admin
+            if (alertContainer) {
+                if (dueAlerts.length > 0) {
+                    var alertHtml = "";
+                    dueAlerts.forEach(a => {
+                        alertHtml += `
+                            <div style="background: rgba(239, 68, 68, 0.12); border: 1px solid rgba(239, 68, 68, 0.35); border-radius: 12px; padding: 15px; color: #FF8080; font-size: 13.5px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; font-family: Inter;">
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <i class="fa-solid fa-circle-exclamation" style="font-size: 16px; color: #EF4444;"></i>
+                                    <span>⚠️ Gia sư <b>${a.name}</b> (${a.students} HS) đến hạn đóng tiền thuê Web: <b style="color: #FFF; background: #EF4444; padding: 2px 8px; border-radius: 4px;">${a.fee.toLocaleString('vi-VN')}đ</b> (Hạn: ${a.nextBillingDate})</span>
+                                </div>
+                                <button onclick="confirmQuickPaid('${a.phone}', '${a.name}')" class="modal-btn modal-btn-primary" style="padding: 6px 14px; font-size: 12px; border-radius: 20px; background: linear-gradient(135deg, #10B981, #059669); border: none; box-shadow: 0 4px 10px rgba(16,185,129,0.2); color:#FFF; font-weight:bold; cursor:pointer;"><i class="fa-solid fa-check"></i> Xác nhận đã thu</button>
+                            </div>
+                        `;
+                    });
+                    alertContainer.innerHTML = alertHtml;
+                    alertContainer.style.display = "flex";
+                } else {
+                    alertContainer.innerHTML = "";
+                    alertContainer.style.display = "none";
+                }
             }
         }
 
@@ -538,6 +650,8 @@ var pinVerifyAction = "deleteStudent";
             document.getElementById('adminTutorPhone').value = "";
             document.getElementById('adminTutorPin').value = "";
             document.getElementById('adminTutorQrUrl').value = "";
+            document.getElementById('adminTutorCreatedDate').value = "";
+            document.getElementById('adminTutorNextBillingDate').value = "";
             document.getElementById('btnDeleteAdminTutor').style.display = "none";
             document.getElementById('adminEditTutorModal').style.display = "flex";
         }
@@ -552,6 +666,8 @@ var pinVerifyAction = "deleteStudent";
             document.getElementById('adminTutorPhone').value = tutor.phone;
             document.getElementById('adminTutorPin').value = tutor.pin;
             document.getElementById('adminTutorQrUrl').value = tutor.qrUrl || "";
+            document.getElementById('adminTutorCreatedDate').value = tutor.createdDate || "";
+            document.getElementById('adminTutorNextBillingDate').value = tutor.nextBillingDate || "";
             document.getElementById('btnDeleteAdminTutor').style.display = "flex";
             document.getElementById('adminEditTutorModal').style.display = "flex";
         }
@@ -566,6 +682,8 @@ var pinVerifyAction = "deleteStudent";
             var phone = document.getElementById('adminTutorPhone').value.trim();
             var pin = document.getElementById('adminTutorPin').value.trim();
             var qrUrl = document.getElementById('adminTutorQrUrl').value.trim();
+            var createdDate = document.getElementById('adminTutorCreatedDate').value.trim();
+            var nextBillingDate = document.getElementById('adminTutorNextBillingDate').value.trim();
             
             if(!name || !phone || !pin) {
                 showToast("Vui lòng điền đầy đủ các ô!", "error");
@@ -593,7 +711,7 @@ var pinVerifyAction = "deleteStudent";
                     btn.innerText = "Lưu lại";
                     showToast("Lỗi kết nối: " + err.toString(), "error");
                 })
-                .adminLuuGiaSur(oldPhone, name, phone, pin, qrUrl);
+                .adminLuuGiaSur(oldPhone, name, phone, pin, qrUrl, createdDate, nextBillingDate);
         }
 
         // Xóa/Khôi phục & Thùng rác Gia sư JS Controllers
@@ -917,4 +1035,58 @@ var pinVerifyAction = "deleteStudent";
                     chevron.classList.add('fa-chevron-up');
                 }
             }
+        }
+
+        // --- Cải tiến Admin quản lý Phí thuê Web và Marquee ---
+        function confirmQuickPaid(phone, name) {
+            showCustomConfirm("Xác nhận đã nhận tiền thuê Web của gia sư " + name + " cho chu kỳ này và tự động gia hạn thêm 1 tháng?", function() {
+                showToast("Đang gửi xác nhận lên Google Sheets...", "info");
+                google.script.run
+                    .withSuccessHandler(function(res) {
+                        if (res.error) {
+                            showToast("Lỗi: " + res.error, "error");
+                        } else {
+                            showToast("Xác nhận đóng phí thuê web và gia hạn thành công!", "success");
+                            refreshAdminDashboard();
+                        }
+                    })
+                    .withFailureHandler(function(err) {
+                        showToast("Lỗi kết nối: " + err.toString(), "error");
+                    })
+                    .adminXacNhanDongTienTutor(phone);
+            });
+        }
+
+        function saveAdminMarquee() {
+            var text = document.getElementById('adminMarqueeInput').value.trim();
+            var btn = document.querySelector('button[onclick="saveAdminMarquee()"]');
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang lưu...';
+            }
+            
+            google.script.run
+                .withSuccessHandler(function(res) {
+                    if (btn) {
+                        btn.disabled = false;
+                        btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Lưu thông báo';
+                    }
+                    if (res.error) {
+                        showToast("Lỗi: " + res.error, "error");
+                    } else {
+                        showToast("Lưu dòng chạy chữ thông báo thành công!", "success");
+                        // Cập nhật lại cache cục bộ
+                        if (adminDataGlobal) {
+                            adminDataGlobal.marqueeAnnouncement = text;
+                        }
+                    }
+                })
+                .withFailureHandler(function(err) {
+                    if (btn) {
+                        btn.disabled = false;
+                        btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Lưu thông báo';
+                    }
+                    showToast("Lỗi hệ thống: " + err.toString(), "error");
+                })
+                .adminLuuMarquee(text);
         }

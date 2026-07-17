@@ -33,6 +33,18 @@ function formatScheduleCell(val) {
             document.getElementById('tutorStudentDetail').style.display = 'none'; // Đảm bảo ẩn chi tiết khi mới đăng nhập
             document.getElementById('tutorNameDisplay').innerText = "Xin chào, Gia sư " + data.tutorName;
             
+            // Hiển thị thông báo chạy chữ từ Admin
+            var marqueeContainer = document.getElementById('tutorMarqueeContainer');
+            var marqueeText = document.getElementById('tutorMarqueeText');
+            if (marqueeContainer && marqueeText) {
+                if (data.marqueeAnnouncement && data.marqueeAnnouncement.trim() !== "") {
+                    marqueeText.innerText = data.marqueeAnnouncement;
+                    marqueeContainer.style.display = "block";
+                } else {
+                    marqueeContainer.style.display = "none";
+                    marqueeText.innerText = "";
+                }
+            }
             // Load Schedule
             google.script.run.withSuccessHandler(function(schedule) {
                 var table = document.getElementById('tutorScheduleTable');
@@ -1075,7 +1087,7 @@ function formatScheduleCell(val) {
                 
                 // 1. Desktop View (Table)
                 htmlLichSu += "<div class='desktop-table-view'>";
-                htmlLichSu += "<table><tr><th style='width: 105px; text-align: center;' title='Tích chọn để đóng học phí hàng loạt cho tất cả các buổi học chưa đóng'><div style='display: flex; align-items: center; justify-content: center; gap: 6px; cursor: pointer;' onclick='var c=document.getElementById(\"tutorSelectAllLessons\"); if(c){c.checked=!c.checked;toggleSelectAllTutorLessons(c);}event.stopPropagation();'><input type='checkbox' id='tutorSelectAllLessons' onchange='toggleSelectAllTutorLessons(this)' onclick='event.stopPropagation();' style='cursor: pointer; width: 15px; height: 15px;' title='Tích chọn để đóng học phí cho tất cả các buổi'><span style='font-size: 12px; font-weight: bold; display: inline-flex; align-items: center; gap: 4px; user-select: none;'><i class='fa-solid fa-wallet' style='color:#10B981;'></i> Đóng tiền</span></div></th><th>Tuần</th><th>Ngày dạy</th><th>Môn</th><th>Nội dung</th><th>Đánh giá BTVN</th><th>KT Đầu giờ</th><th>KT Định kì</th><th>Trạng thái</th><th style='width: 50px;'>Sửa</th></tr>";
+                htmlLichSu += "<table><tr><th style='width: 105px; text-align: center;' title='Tích chọn để đóng học phí hàng loạt cho tất cả các buổi học chưa đóng'><div style='display: flex; align-items: center; justify-content: center; gap: 6px; cursor: pointer;' onclick='var c=document.getElementById(\"tutorSelectAllLessons\"); if(c){c.checked=!c.checked;toggleSelectAllTutorLessons(c);}event.stopPropagation();'><input type='checkbox' id='tutorSelectAllLessons' onchange='toggleSelectAllTutorLessons(this)' onclick='event.stopPropagation();' style='cursor: pointer; width: 15px; height: 15px;' title='Tích chọn để đóng học phí cho tất cả các buổi'><span style='font-size: 12px; font-weight: bold; display: inline-flex; align-items: center; gap: 4px; user-select: none;'><i class='fa-solid fa-wallet' style='color:#10B981;'></i> Đóng tiền</span></div></th><th>Tuần</th><th>Ngày dạy</th><th>Môn</th><th>Nội dung</th><th>Đánh giá BTVN</th><th>KT Đầu giờ</th><th>KT Định kì</th><th>Trạng thái</th><th style='width: 90px; text-align: center;'>Thao tác</th></tr>";
                 
                 // 2. Mobile View (Accordion list)
                 var htmlMobile = "<div class='mobile-cards-view'>";
@@ -1115,7 +1127,10 @@ function formatScheduleCell(val) {
                     htmlLichSu += "<td>" + (item.diemDauGio || "") + "</td>";
                     htmlLichSu += "<td>" + (item.diemDinhKi || "") + "</td>";
                     htmlLichSu += "<td>" + getStatusBadge(item.trangThai) + "</td>";
-                    htmlLichSu += "<td><button onclick='openEditLessonModal(" + item.rowIndex + ")' class='btn-icon-edit' title='Sửa buổi học' style='margin: 0; padding: 4px;'><i class='fa-solid fa-pen-to-square'></i></button></td>";
+                    htmlLichSu += "<td style='text-align: center; white-space: nowrap;'>" +
+                                  "  <button onclick='openEditLessonModal(" + item.rowIndex + ")' class='btn-icon-edit' title='Sửa buổi học' style='margin: 0; padding: 4px;'><i class='fa-solid fa-pen-to-square'></i></button>" +
+                                  "  <button onclick='duplicateLesson(" + item.rowIndex + ")' class='btn-icon-edit' title='Nhân bản buổi học' style='margin: 0 0 0 8px; padding: 4px; color: #10B981;'><i class='fa-solid fa-copy'></i></button>" +
+                                  "</td>";
                     htmlLichSu += "</tr>";
 
                     // Mobile Row (Accordion Card)
@@ -1140,8 +1155,9 @@ function formatScheduleCell(val) {
                     htmlMobile += "    <div class='accordion-body-row'><span class='accordion-body-label'>Đánh giá bài tập về nhà</span><span class='accordion-body-val'>" + getBtvnBadge(item.btvn) + "</span></div>";
                     htmlMobile += "    <div class='accordion-body-row'><span class='accordion-body-label'>Kiểm tra đầu giờ</span><span class='accordion-body-val'>" + (item.diemDauGio || "") + "</span></div>";
                     htmlMobile += "    <div class='accordion-body-row'><span class='accordion-body-label'>Kiểm tra định kì</span><span class='accordion-body-val'>" + (item.diemDinhKi || "") + "</span></div>";
-                    htmlMobile += "    <div class='accordion-body-row' style='justify-content: flex-end; border-top: 1px dashed rgba(255,255,255,0.05); padding-top: 10px; margin-top: 5px;'>";
-                    htmlMobile += "      <button onclick='openEditLessonModal(" + item.rowIndex + ")' class='modal-btn modal-btn-secondary' style='width: 100%; border-radius: 20px;'><i class='fa-solid fa-pen-to-square'></i> Sửa buổi học</button>";
+                    htmlMobile += "    <div class='accordion-body-row' style='justify-content: space-between; gap: 10px; border-top: 1px dashed rgba(255,255,255,0.05); padding-top: 10px; margin-top: 5px; width: 100%;'>";
+                    htmlMobile += "      <button onclick='duplicateLesson(" + item.rowIndex + ")' class='modal-btn modal-btn-primary' style='flex: 1; border-radius: 20px; font-size: 12px; background: linear-gradient(135deg, #8E4DFF 0%, #5B21B6 100%); border: none; color: #FFF; font-weight: bold; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 6px;'><i class='fa-solid fa-copy'></i> Nhân bản</button>";
+                    htmlMobile += "      <button onclick='openEditLessonModal(" + item.rowIndex + ")' class='modal-btn modal-btn-secondary' style='flex: 1; border-radius: 20px; font-size: 12px; display: inline-flex; align-items: center; justify-content: center; gap: 6px;'><i class='fa-solid fa-pen-to-square'></i> Sửa</button>";
                     htmlMobile += "    </div>";
                     htmlMobile += "  </div>";
                     htmlMobile += "</div>";
@@ -2502,4 +2518,44 @@ function loadTutorFeedbacks() {
             container.innerHTML = "<div style='text-align: center; color: #EF4444; padding: 20px;'>Lỗi tải dữ liệu phản hồi.</div>";
         }
     }).getTutorFeedback(currentTutorPhone);
+}
+
+// Hàm nhân bản buổi học nhanh cho gia sư
+function duplicateLesson(rowIndex) {
+    var log = null;
+    if (currentTutorStudent && currentTutorStudent.logs) {
+        for (var i = 0; i < currentTutorStudent.logs.length; i++) {
+            if (currentTutorStudent.logs[i].rowIndex === rowIndex) {
+                log = currentTutorStudent.logs[i];
+                break;
+            }
+        }
+    }
+    if (!log) {
+        showToast("Không tìm thấy thông tin buổi học để nhân bản.", "error");
+        return;
+    }
+    
+    // 1. Mở modal thêm buổi học (để nó tự điền ngày hôm nay và tự tính Tuần phù hợp)
+    openAddLessonModal();
+    
+    // 2. Ghi đè các thông tin cũ của buổi học này (ngoại trừ Ngày dạy)
+    document.getElementById('lesTuan').value = log.tuan || "";
+    var monVal = log.mon || "Toán học";
+    if (monVal.trim().toLowerCase() === "vật lý") {
+        monVal = "Vật Lý"; // Chuẩn hóa
+    }
+    document.getElementById('lesMon').value = monVal;
+    
+    var tt = log.trangThai || "Đã học";
+    if (tt.trim().toLowerCase() === "hủy/nghỉ") {
+        tt = "Hủy/ nghỉ"; // Chuẩn hóa
+    }
+    document.getElementById('lesTrangThai').value = tt;
+    document.getElementById('lesBtvn').value = log.btvn || "Hoàn thành";
+    document.getElementById('lesDiemDau').value = log.diemDauGio || "Không có";
+    document.getElementById('lesDiemDinhKi').value = log.diemDinhKi || "Không có";
+    document.getElementById('lesNoiDung').value = log.noiDung || "";
+    
+    showToast("Đã nhân bản dữ liệu buổi học! Vui lòng kiểm tra ngày dạy và nhận xét.", "success");
 }
