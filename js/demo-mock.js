@@ -699,7 +699,7 @@
                     <!-- Widget Thông báo nhanh cho phụ huynh (giống thực tế) -->
                     <div style="background: rgba(142, 77, 255, 0.08); border: 1px dashed rgba(142, 77, 255, 0.3); border-radius: 12px; padding: 15px; margin-bottom: 20px; display: flex; flex-direction: column; gap: 10px;">
                         <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <span style="color: #A6ADCE; font-size: 13.5px; font-weight: bold; display: inline-flex; align-items: center; gap: 6px;"><i class="fa-solid fa-bullhorn" style="color: #8E4DFF;"></i> Thông báo nhanh cho phụ huynh (Việc gấp)</span>
+                            <span style="color: #A6ADCE; font-size: 13.5px; font-weight: bold; display: inline-flex; align-items: center; gap: 6px;"><i class="fa-solid fa-bullhorn" style="color: #8E4DFF;"></i> Thông báo nhanh cho phụ huynh</span>
                         </div>
                         <div style="display: flex; gap: 10px; flex-wrap: wrap; width: 100%;">
                             <input type="text" placeholder="Ví dụ: Hôm nay nghỉ học nhé phụ huynh ơi..." value="Phụ huynh nhớ nhắc bé ôn bài trước khi kiểm tra nhé! 📚" style="flex: 1; min-width: 250px; padding: 10px 15px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.25); color: #FFF; font-size: 13.5px; outline: none;">
