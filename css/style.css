@@ -1703,48 +1703,7 @@
 
         @media (max-width: 768px) {
             .homework-shortcut-left {
-                /* Trên mobile: đổi sang thanh bottom bar cố định ở đáy màn hình */
-                position: fixed;
-                bottom: 0;
-                left: 0;
-                right: 0;
-                top: auto;
-                width: 100%;
-                z-index: 1001;
-                padding: 0 16px 12px 16px;
-                background: linear-gradient(to top, rgba(6, 9, 31, 0.98) 60%, rgba(6, 9, 31, 0));
-                backdrop-filter: blur(16px);
-                -webkit-backdrop-filter: blur(16px);
-                display: flex;
-                justify-content: center;
-                align-items: flex-end;
-                padding-bottom: env(safe-area-inset-bottom, 12px);
-                box-sizing: border-box;
-            }
-            .hw-btn-left {
-                /* Nút trải rộng theo chiều ngang thay vì vuông */
-                width: 100%;
-                max-width: 480px;
-                height: 50px;
-                flex-direction: row;
-                font-size: 15px;
-                font-weight: 700;
-                border-radius: 14px;
-                gap: 10px;
-                border: 1.5px solid rgba(142, 77, 255, 0.7);
-                box-shadow: 
-                    0 0 20px rgba(142, 77, 255, 0.3),
-                    0 -4px 20px rgba(0,0,0,0.4);
-                padding: 0 24px;
-                background: linear-gradient(135deg, rgba(20, 14, 60, 0.97) 0%, rgba(10, 7, 38, 0.97) 100%);
-                justify-content: center;
-            }
-            .hw-btn-left i {
-                font-size: 20px;
-            }
-            /* Thêm padding đáy cho nội dung để không bị nút che */
-            #resultBox {
-                padding-bottom: 80px;
+                display: none; /* Ẩn hoàn toàn vì đã chuyển thành summary card */
             }
         }
 
