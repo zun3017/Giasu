@@ -17,12 +17,14 @@
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Global CSS -->
-    <link rel="stylesheet" href="css/style.css?v=1.6.5">
+    <link rel="stylesheet" href="css/style.css?v=1.6.6">
 </head>
 <body>
     <div id="tutorDashboardBox">
         <!-- Dòng chữ chạy thông báo từ Admin -->
-        <div id="tutorMarqueeContainer" style="display: none; background: rgba(255, 210, 63, 0.1); border-bottom: 1px solid rgba(255, 210, 63, 0.25); padding: 8px 10px; margin: -20px -20px 20px -20px; border-top-left-radius: 12px; border-top-right-radius: 12px; overflow: hidden;"></div>
+        <div id="tutorMarqueeContainer" class="smooth-marquee-container">
+            <div class="smooth-marquee-wrapper" id="tutorMarqueeWrapper"></div>
+        </div>
         <div class="tutor-header">
             <div>
                 <h2 id="tutorNameDisplay">Xin chào, Gia sư</h2>
@@ -814,7 +816,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="js/api.js?v=1.6.7"></script>
-    <script src="js/tutor.js?v=1.6.6"></script>
+    <script src="js/tutor.js?v=1.6.7"></script>
     <script>
         window.addEventListener('DOMContentLoaded', () => {
             var data = JSON.parse(sessionStorage.getItem('dashboardData'));

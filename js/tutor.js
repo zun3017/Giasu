@@ -35,12 +35,13 @@ function formatScheduleCell(val) {
             
             // Hiển thị thông báo chạy chữ từ Admin
             var marqueeContainer = document.getElementById('tutorMarqueeContainer');
-            if (marqueeContainer) {
+            var marqueeWrapper = document.getElementById('tutorMarqueeWrapper');
+            if (marqueeContainer && marqueeWrapper) {
                 if (data.marqueeAnnouncement && data.marqueeAnnouncement.trim() !== "") {
-                    marqueeContainer.innerHTML = '<marquee behavior="scroll" direction="left" scrollamount="5" style="color: #FFD23F; font-size: 13.5px; font-weight: bold; font-family: Inter; vertical-align: middle; margin: 0; padding: 0; line-height: 1;">' + data.marqueeAnnouncement + '</marquee>';
+                    marqueeWrapper.innerHTML = '<div class="smooth-marquee-content"><i class="fa-solid fa-circle-exclamation" style="margin-right: 8px;"></i>' + data.marqueeAnnouncement + '</div>';
                     marqueeContainer.style.display = "block";
                 } else {
-                    marqueeContainer.innerHTML = "";
+                    marqueeWrapper.innerHTML = "";
                     marqueeContainer.style.display = "none";
                 }
             }
