@@ -1263,11 +1263,7 @@ function formatScheduleCell(val) {
                 ngayValue = ngayValue + "/" + year;
             }
             document.getElementById('editLesNgay').value = ngayValue;
-            var monVal = log.mon || "Toán học";
-            if (monVal.trim().toLowerCase() === "vật lý") {
-                monVal = "Vật Lý";
-            }
-            document.getElementById('editLesMon').value = monVal;
+            document.getElementById('editLesMon').value = mapSubjectToSelectValue(log.mon);
             
             var tt = log.trangThai || "Đã học";
             if (tt.trim().toLowerCase() === "hủy/nghỉ") {
@@ -2541,11 +2537,7 @@ function duplicateLesson(rowIndex) {
     
     // 2. Ghi đè các thông tin cũ của buổi học này (ngoại trừ Ngày dạy)
     document.getElementById('lesTuan').value = log.tuan || "";
-    var monVal = log.mon || "Toán học";
-    if (monVal.trim().toLowerCase() === "vật lý") {
-        monVal = "Vật Lý"; // Chuẩn hóa
-    }
-    document.getElementById('lesMon').value = monVal;
+    document.getElementById('lesMon').value = mapSubjectToSelectValue(log.mon);
     
     var tt = log.trangThai || "Đã học";
     if (tt.trim().toLowerCase() === "hủy/nghỉ") {
@@ -2558,4 +2550,28 @@ function duplicateLesson(rowIndex) {
     document.getElementById('lesNoiDung').value = log.noiDung || "";
     
     showToast("Đã nhân bản dữ liệu buổi học! Vui lòng kiểm tra ngày dạy và nhận xét.", "success");
+}
+
+// Hàm chuẩn hóa và ánh xạ môn học từ Google Sheet về đúng giá trị option trong thẻ select
+function mapSubjectToSelectValue(val) {
+    if (!val) return "Toán học";
+    var clean = val.trim().toLowerCase();
+    
+    // So khớp trực tiếp hoặc từ viết tắt phổ biến
+    if (clean === "toán học" || clean === "toán") return "Toán học";
+    if (clean === "vật lý" || clean === "vật lí" || clean === "lý" || clean === "lí") return "Vật lý";
+    if (clean === "hóa học" || clean === "hóa") return "Hóa học";
+    if (clean === "khoa học tự nhiên" || clean === "khtn" || clean === "sinh" || clean === "sinh học" || clean === "lý, hóa, sinh") return "Khoa học tự nhiên";
+    if (clean === "ngữ văn" || clean === "văn") return "Ngữ văn";
+    if (clean === "tiếng anh" || clean === "anh" || clean === "english") return "Tiếng anh";
+    
+    // Nếu có chứa từ khóa
+    if (clean.indexOf("toán") !== -1) return "Toán học";
+    if (clean.indexOf("lý") !== -1 || clean.indexOf("lí") !== -1 || clean.indexOf("phys") !== -1) return "Vật lý";
+    if (clean.indexOf("hóa") !== -1 || clean.indexOf("chem") !== -1) return "Hóa học";
+    if (clean.indexOf("khoa học") !== -1 || clean.indexOf("tự nhiên") !== -1 || clean.indexOf("khtn") !== -1) return "Khoa học tự nhiên";
+    if (clean.indexOf("văn") !== -1 || clean.indexOf("ngữ") !== -1) return "Ngữ văn";
+    if (clean.indexOf("anh") !== -1 || clean.indexOf("eng") !== -1) return "Tiếng anh";
+    
+    return "Toán học"; // Mặc định nếu không khớp
 }
