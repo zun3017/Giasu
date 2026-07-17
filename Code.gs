@@ -241,12 +241,14 @@ function getTutorDashboardData(tutorPhone, gsRow, ss) {
       if (normalizePhone(sdtPhuTrach) === normTutorPhone) {
         var xoaDate = (dataHS[i].length > 8) ? String(dataHS[i][8]).trim() : "";
         var maHw = (dataHS[i].length > 7) ? String(dataHS[i][7]).trim().toUpperCase() : "";
+        var thongBao = (dataHS[i].length > 4) ? String(dataHS[i][4]).trim() : "";
         if (!xoaDate) {
           tutorData.students.push({
             phone: dataHS[i][3],
             name: dataHS[i][2],
             tuition: dataHS[i][5],
-            maBaiTap: maHw
+            maBaiTap: maHw,
+            thongBao: thongBao
           });
         } else {
           tutorData.deletedStudents.push({
@@ -254,7 +256,8 @@ function getTutorDashboardData(tutorPhone, gsRow, ss) {
             name: dataHS[i][2],
             tuition: dataHS[i][5],
             deletedDate: xoaDate,
-            maBaiTap: maHw
+            maBaiTap: maHw,
+            thongBao: thongBao
           });
         }
       }
@@ -397,7 +400,7 @@ function guiPhanHoi(maHS, tenHocSinh, noiDung) {
 }
 
 // Thêm học sinh mới kèm tự động cấp phát 15 dòng
-function themHocSinhMoi(tutorPhone, phuHuynhName, studentName, studentPhone, tuition, maBaiTap) {
+function themHocSinhMoi(tutorPhone, phuHuynhName, studentName, studentPhone, tuition, maBaiTap, thongBao) {
   try {
     var ss = SpreadsheetApp.getActiveSpreadsheet();
     var sheetHS = ss.getSheetByName('Mã học sinh');
@@ -429,7 +432,7 @@ function themHocSinhMoi(tutorPhone, phuHuynhName, studentName, studentPhone, tui
     }
     
     // Ghi vào sheet Mã học sinh
-    sheetHS.appendRow([nextStt, phuHuynhName, studentName, "'" + studentPhone, "", tuition, "'" + tutorPhone, "'" + cleanMa]);
+    sheetHS.appendRow([nextStt, phuHuynhName, studentName, "'" + studentPhone, thongBao || "", tuition, "'" + tutorPhone, "'" + cleanMa]);
     var lastRowHS = sheetHS.getLastRow();
     sheetHS.getRange(lastRowHS, 1, 1, 8).setFontFamily("Arial");
     
@@ -455,7 +458,7 @@ function themHocSinhMoi(tutorPhone, phuHuynhName, studentName, studentPhone, tui
 }
 
 // Sửa thông tin học sinh
-function suaThongTinHocSinh(oldPhone, phuHuynhName, studentName, studentPhone, tuition, maBaiTap) {
+function suaThongTinHocSinh(oldPhone, phuHuynhName, studentName, studentPhone, tuition, maBaiTap, thongBao) {
   try {
     var ss = SpreadsheetApp.getActiveSpreadsheet();
     var sheetHS = ss.getSheetByName('Mã học sinh');
@@ -498,6 +501,7 @@ function suaThongTinHocSinh(oldPhone, phuHuynhName, studentName, studentPhone, t
     sheetHS.getRange(rowIndex, 2).setValue(phuHuynhName).setFontFamily("Arial");
     sheetHS.getRange(rowIndex, 3).setValue(studentName).setFontFamily("Arial");
     sheetHS.getRange(rowIndex, 4).setValue("'" + studentPhone).setFontFamily("Arial");
+    sheetHS.getRange(rowIndex, 5).setValue(thongBao || "").setFontFamily("Arial"); // Lưu thông báo
     sheetHS.getRange(rowIndex, 6).setValue(tuition).setFontFamily("Arial");
     sheetHS.getRange(rowIndex, 8).setValue("'" + cleanMa).setFontFamily("Arial"); // Lưu Mã bài tập
     

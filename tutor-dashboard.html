@@ -352,6 +352,10 @@
                 <label>Mã bài tập *</label>
                 <input type="text" id="addStudentMaBaiTap" placeholder="Mã để đăng nhập nộp bài (Ví dụ: BT101)">
             </div>
+            <div class="modal-form-group">
+                <label>Thông báo cho phụ huynh (Không bắt buộc)</label>
+                <textarea id="addStudentThongBao" placeholder="Ví dụ: Phụ huynh nhớ nhắc nhở bé làm bài tập nhé..." style="width:100%; height:70px; border-radius:8px; border:1px solid rgba(255,255,255,0.1); background:rgba(0,0,0,0.2); color:#FFF; padding:10px; font-size:13px; outline:none; resize:none; font-family:Inter;"></textarea>
+            </div>
             <div class="modal-footer">
                 <button onclick="closeAddStudentModal()" class="modal-btn modal-btn-secondary">Hủy</button>
                 <button onclick="saveNewStudent()" class="modal-btn modal-btn-primary">Thêm mới</button>
@@ -386,6 +390,10 @@
             <div class="modal-form-group">
                 <label>Mã bài tập *</label>
                 <input type="text" id="editStudentMaBaiTap" placeholder="Mã để đăng nhập nộp bài (Ví dụ: BT101)">
+            </div>
+            <div class="modal-form-group">
+                <label>Thông báo cho phụ huynh (Không bắt buộc)</label>
+                <textarea id="editStudentThongBao" placeholder="Ví dụ: Phụ huynh nhớ nhắc nhở bé làm bài tập nhé..." style="width:100%; height:70px; border-radius:8px; border:1px solid rgba(255,255,255,0.1); background:rgba(0,0,0,0.2); color:#FFF; padding:10px; font-size:13px; outline:none; resize:none; font-family:Inter;"></textarea>
             </div>
             <div class="modal-footer" style="justify-content: space-between;">
                 <button onclick="confirmDeleteStudent()" class="modal-btn" style="background: rgba(239, 68, 68, 0.1); border: 1px solid #EF4444; color: #EF4444; border-radius: 20px; padding: 8px 16px; cursor: pointer; display: flex; align-items: center; gap: 6px;"><i class="fa-solid fa-trash-can"></i> Xóa học sinh</button>

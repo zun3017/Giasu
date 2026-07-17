@@ -544,6 +544,7 @@ function formatScheduleCell(val) {
             document.getElementById('addStudentPhone').value = "";
             document.getElementById('addStudentTuition').value = "";
             document.getElementById('addStudentMaBaiTap').value = "";
+            document.getElementById('addStudentThongBao').value = "";
             document.getElementById('addStudentModal').style.display = "flex";
         }
         function closeAddStudentModal() {
@@ -555,6 +556,7 @@ function formatScheduleCell(val) {
             var phone = document.getElementById('addStudentPhone').value.trim();
             var tuition = document.getElementById('addStudentTuition').value.trim();
             var maBaiTap = document.getElementById('addStudentMaBaiTap').value.trim();
+            var thongBao = document.getElementById('addStudentThongBao').value.trim();
             
             if(!pName || !sName || !phone || !tuition || !maBaiTap) {
                 showToast("Vui lòng điền đầy đủ các thông tin!", "error");
@@ -563,15 +565,15 @@ function formatScheduleCell(val) {
             
             google.script.run.withSuccessHandler(function(res) {
                 if(res.error) {
-                    showToast("Lỗi: " + res.error, "error");
+                     showToast("Lỗi: " + res.error, "error");
                 } else {
-                    showToast("Thêm học sinh mới thành công!", "success");
-                    closeAddStudentModal();
-                    google.script.run.withSuccessHandler(function(loginRes) {
-                        if(loginRes.role === 'tutor') renderTutorView(loginRes.data);
-                    }).loginSystem(tutorDataGlobal.tutorPhone, document.getElementById('maPin').value.trim());
+                     showToast("Thêm học sinh mới thành công!", "success");
+                     closeAddStudentModal();
+                     google.script.run.withSuccessHandler(function(loginRes) {
+                         if(loginRes.role === 'tutor') renderTutorView(loginRes.data);
+                     }).loginSystem(tutorDataGlobal.tutorPhone, document.getElementById('maPin').value.trim());
                 }
-            }).themHocSinhMoi(tutorDataGlobal.tutorPhone, pName, sName, phone, parseFloat(tuition), maBaiTap);
+            }).themHocSinhMoi(tutorDataGlobal.tutorPhone, pName, sName, phone, parseFloat(tuition), maBaiTap, thongBao);
         }
 
         // 3. Cửa sổ Sửa học sinh (Edit Student)
@@ -581,6 +583,7 @@ function formatScheduleCell(val) {
             document.getElementById('editStudentName').value = currentTutorStudent.name;
             document.getElementById('editStudentTuition').value = currentTutorStudent.tuition || "";
             document.getElementById('editStudentMaBaiTap').value = currentTutorStudent.maBaiTap || "";
+            document.getElementById('editStudentThongBao').value = currentTutorStudent.thongBao || "";
             
             document.getElementById('editParentName').value = ""; 
             document.getElementById('editParentName').placeholder = "Đang tải tên phụ huynh...";
@@ -602,6 +605,7 @@ function formatScheduleCell(val) {
             var phone = document.getElementById('editStudentPhone').value.trim();
             var tuition = document.getElementById('editStudentTuition').value.trim();
             var maBaiTap = document.getElementById('editStudentMaBaiTap').value.trim();
+            var thongBao = document.getElementById('editStudentThongBao').value.trim();
             
             if(!pName || !sName || !phone || !tuition || !maBaiTap) {
                 showToast("Vui lòng điền đầy đủ các thông tin!", "error");
@@ -626,7 +630,7 @@ function formatScheduleCell(val) {
                         }
                     }).loginSystem(tutorDataGlobal.tutorPhone, document.getElementById('maPin').value.trim());
                 }
-            }).suaThongTinHocSinh(oldPhone, pName, sName, phone, parseFloat(tuition), maBaiTap);
+            }).suaThongTinHocSinh(oldPhone, pName, sName, phone, parseFloat(tuition), maBaiTap, thongBao);
         }
 
         // 4. Cửa sổ Thêm buổi học (Add Lesson) & Preview
