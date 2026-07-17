@@ -1027,6 +1027,9 @@ function getAdminDashboardData() {
     if (sheetGS) {
       clearOldDeletedTutors(sheetGS);
       var dataGS = sheetGS.getDataRange().getDisplayValues();
+      var todayStr = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), "dd/MM/yyyy");
+      var sheetUpdated = false;
+      
       for (var i = 1; i < dataGS.length; i++) {
         var tPhone = dataGS[i][2].trim();
         var tName = dataGS[i][1];
@@ -1036,6 +1039,18 @@ function getAdminDashboardData() {
         var tCreatedDate = (dataGS[i].length > 6) ? dataGS[i][6].trim() : "";
         var tNextBillingDate = (dataGS[i].length > 7) ? dataGS[i][7].trim() : "";
         var tLastActive = (dataGS[i].length > 8) ? dataGS[i][8].trim() : "";
+        
+        // Tự động điền mặc định nếu gia sư chưa có ngày tạo/hạn đóng phí (do nhập thủ công trên Google Sheet)
+        if (tCreatedDate === "") {
+          tCreatedDate = todayStr;
+          sheetGS.getRange(i + 1, 7).setValue("'" + tCreatedDate);
+          sheetUpdated = true;
+        }
+        if (tNextBillingDate === "") {
+          tNextBillingDate = addOneMonthToDateString(tCreatedDate);
+          sheetGS.getRange(i + 1, 8).setValue("'" + tNextBillingDate);
+          sheetUpdated = true;
+        }
         
         if (tDelDate === "") {
           data.tutors.push({
@@ -1059,6 +1074,9 @@ function getAdminDashboardData() {
             lastActive: tLastActive
           });
         }
+      }
+      if (sheetUpdated) {
+        SpreadsheetApp.flush();
       }
     }
     
