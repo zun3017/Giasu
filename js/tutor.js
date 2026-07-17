@@ -385,7 +385,7 @@ function formatScheduleCell(val) {
                 document.getElementById('invHwMissDates').innerHTML = "• Không thiếu bài";
             }
             
-            document.getElementById('invMonthDisplay').innerText = "TỔNG HỢP CÁC BUỔI CHƯA ĐÓNG";
+            document.getElementById('invMonthDisplay').innerText = "TỔNG HỢP CÁC BUỔI ĐÃ HỌC";
             
             var feeStr = feePerClass.toLocaleString('vi-VN');
             var totalStr = expectedRev.toLocaleString('vi-VN');
