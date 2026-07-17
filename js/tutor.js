@@ -135,10 +135,6 @@ function formatScheduleCell(val) {
             // Nút Thùng rác (Chỉ hiển thị icon)
             btnContainer.innerHTML += "<button class='student-btn' onclick='openTrashModal()' style='background: rgba(239, 68, 68, 0.1); border: 1px dashed #EF4444; color: #EF4444; width: 45px; display: inline-flex; align-items: center; justify-content: center; margin-left: 5px;' title='Thùng rác học sinh'><i class='fa-solid fa-trash-can'></i></button>";
             
-            var currentMonth = new Date().getMonth() + 1;
-            var monthSelect = document.getElementById('invoiceMonthSelect');
-            if (monthSelect) monthSelect.value = currentMonth;
-            
             // Load ý kiến phản hồi của phụ huynh
             loadTutorFeedbacks();
         }
@@ -310,7 +306,6 @@ function formatScheduleCell(val) {
         function renderInvoice() {
             if(!currentTutorStudent || !currentTutorStudent.logs) return;
             var logs = currentTutorStudent.logs;
-            var selectedMonth = document.getElementById('invoiceMonthSelect').value;
             var feePerClass = parseFloat(currentTutorStudent.tuition) || 75000;
             
             var presentClasses = 0;
@@ -326,29 +321,13 @@ function formatScheduleCell(val) {
             
             var logsToProcess = [];
             
-            if (selectedMonth === 'all') {
-                var lastPaidIndex = -1;
-                for (var i = 0; i < logs.length; i++) {
-                    var isPaid = (logs[i].tienDong || "").trim().toLowerCase().indexOf("đã đóng") !== -1;
-                    if (isPaid) lastPaidIndex = i;
-                }
-                logsToProcess = logs.slice(lastPaidIndex + 1);
-            } else {
-                var selM = parseInt(selectedMonth, 10);
-                logsToProcess = logs.filter(function(log) {
-                    if (!log || !log.ngay) return false;
-                    var cleanStr = log.ngay.split(" ")[0].trim();
-                    var parts = cleanStr.split(/[-/]/);
-                    var logMonth = -1;
-                    if (parts.length === 3) {
-                        if (parts[0].length === 4) logMonth = parseInt(parts[1], 10);
-                        else logMonth = parseInt(parts[1], 10);
-                    } else if (parts.length === 2) {
-                        logMonth = parseInt(parts[1], 10);
-                    }
-                    return logMonth === selM;
-                });
+            // Tìm buổi học đã đóng gần nhất và lấy tất cả các buổi sau đó (chưa đóng)
+            var lastPaidIndex = -1;
+            for (var i = 0; i < logs.length; i++) {
+                var isPaid = (logs[i].tienDong || "").trim().toLowerCase().indexOf("đã đóng") !== -1;
+                if (isPaid) lastPaidIndex = i;
             }
+            logsToProcess = logs.slice(lastPaidIndex + 1);
             
             logsToProcess.forEach(function(log) {
                 if (!log) return;
@@ -406,12 +385,7 @@ function formatScheduleCell(val) {
                 document.getElementById('invHwMissDates').innerHTML = "• Không thiếu bài";
             }
             
-            if (selectedMonth === 'all') {
-                document.getElementById('invMonthDisplay').innerText = "TỔNG HỢP CÁC BUỔI ĐÃ HỌC";
-            } else {
-                var currentYear = new Date().getFullYear();
-                document.getElementById('invMonthDisplay').innerText = "THÁNG " + selectedMonth + " • NĂM " + currentYear;
-            }
+            document.getElementById('invMonthDisplay').innerText = "TỔNG HỢP CÁC BUỔI CHƯA ĐÓNG";
             
             var feeStr = feePerClass.toLocaleString('vi-VN');
             var totalStr = expectedRev.toLocaleString('vi-VN');
@@ -433,7 +407,7 @@ function formatScheduleCell(val) {
             }
             
             // Update Textarea with prefilled text
-            var msg = "Dạ em chào anh/chị, em gửi anh chị phiếu học tập " + (selectedMonth === 'all' ? "tổng hợp" : "tháng " + selectedMonth) + " của bé " + currentTutorStudent.name + " ạ.\nTổng số buổi chưa đóng là " + unpaidClasses + " buổi, thành tiền là " + totalStr + " VNĐ.\nAnh/chị quét mã QR trên phiếu để thanh toán giúp em nhé. Em cảm ơn ạ!";
+            var msg = "Dạ em chào anh/chị, em gửi anh chị phiếu học tập tổng hợp của bé " + currentTutorStudent.name + " ạ.\nTổng số buổi chưa đóng là " + unpaidClasses + " buổi, thành tiền là " + totalStr + " VNĐ.\nAnh/chị quét mã QR trên phiếu để thanh toán giúp em nhé. Em cảm ơn ạ!";
             var ta = document.getElementById('invTextarea');
             ta.innerText = msg;
         }
