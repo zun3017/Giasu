@@ -1682,7 +1682,7 @@ var assignedHwTrashGlobal = [];
 var studentSubmissionsGlobal = [];
 var isEditingAssignedHw = false;
 var editingAssignedHwRowIndex = null;
-var submissionsLimit = 3;
+var submissionsLimit = 5;
 
 // 1. Accordion Toggle Section Bài tập (Đã lược bỏ chế độ thu gọn theo yêu cầu)
 function toggleTutorHomeworkSection() {
@@ -2292,7 +2292,7 @@ function loadStudentSubmissions() {
             }
             
             studentSubmissionsGlobal = res.submissions || [];
-            submissionsLimit = 3; // Reset limit về 3
+            submissionsLimit = 5; // Reset limit về 5
             renderStudentSubmissionsList();
         })
         .withFailureHandler(function(err) {
@@ -2415,7 +2415,7 @@ function loadMoreStudentSubmissions() {
 
 // Thu gọn về 5 bài đầu
 function collapseStudentSubmissions() {
-    submissionsLimit = 3;
+    submissionsLimit = 5;
     renderStudentSubmissionsList();
 }
 
