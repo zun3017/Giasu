@@ -21,10 +21,20 @@
                 { date: "12/07", topic: "Luyện tập tổng hợp chương I", valDG: 9.0, valDK: 9.0, comment: "Xuất sắc, nắm vững lý thuyết và bài tập tự luyện", btvn: "Đạt" }
             ],
             assignedHw: [
-                { date: "02/07/2026", title: "Đề ôn tập số 1 chương Hệ thức lượng", file: "de_on_tap_1.pdf" }
+                { date: "02/07/2026", title: "Đề ôn tập số 1 chương Hệ thức lượng", file: "de_on_tap_1.pdf" },
+                { date: "05/07/2026", title: "Bài tập Tỉ số lượng giác góc nhọn", file: "ti_so_luong_giac.pdf" },
+                { date: "09/07/2026", title: "Hệ thức về cạnh và góc tự luyện", file: "he_thuc_canh_goc.docx" },
+                { date: "12/07/2026", title: "Luyện tập tổng hợp chương I nâng cao", file: "tong_hop_chuong_1.pdf" },
+                { date: "14/07/2026", title: "Đề thi khảo sát chất lượng giữa kì", file: "de_khao_sat_gk.pdf" },
+                { date: "16/07/2026", title: "Phiếu học tập định lí Sin và Cosin", file: "phieu_dinh_li_sin_cos.docx" }
             ],
             submittedHw: [
-                { time: "02/07/2026 21:45", title: "Đề ôn tập số 1 chương Hệ thức lượng", file: "nguyenhoangnam_on_tap_1_done.jpg" }
+                { time: "02/07/2026 21:45", title: "Đề ôn tập số 1 chương Hệ thức lượng", file: "nguyenhoangnam_on_tap_1_done.jpg" },
+                { time: "05/07/2026 22:10", title: "Bài tập Tỉ số lượng giác góc nhọn", file: "nguyenhoangnam_ti_so_done.jpg" },
+                { time: "09/07/2026 20:30", title: "Hệ thức về cạnh và góc tự luyện", file: "nguyenhoangnam_he_thuc_done.zip" },
+                { time: "12/07/2026 23:15", title: "Luyện tập tổng hợp chương I nâng cao", file: "nguyenhoangnam_tong_hop_done.pdf" },
+                { time: "14/07/2026 19:40", title: "Đề thi khảo sát chất lượng giữa kì", file: "nguyenhoangnam_gk_done.pdf" },
+                { time: "16/07/2026 21:05", title: "Phiếu học tập định lí Sin và Cosin", file: "nguyenhoangnam_sin_cos_done.jpg" }
             ]
         },
         {
@@ -75,6 +85,13 @@
     let demoTutorHwTab = "assign"; // "assign" or "submit"
     let demoTutorHwSubTab = "list"; // "list" or "upload"
     let demoSelectedFileName = ""; // Lưu tên file đính kèm giả lập khi giao bài tập
+    
+    // Trạng thái Xem thêm / Thu gọn của các danh sách demo
+    let demoStudentLogsShowAll = false;
+    let demoTutorShowAllAssigned = false;
+    let demoTutorShowAllSubmitted = false;
+    let demoHomeworkShowAllAssigned = false;
+    let demoHomeworkShowAllSubmitted = false;
 
     // 2. Khởi tạo khi trang tải xong
     document.addEventListener("DOMContentLoaded", function() {
@@ -95,6 +112,8 @@
                 const role = tab.getAttribute("data-role");
                 if (role === "student") {
                     renderStudentDemo();
+                } else if (role === "homework") {
+                    renderHomeworkDemo();
                 } else if (role === "tutor") {
                     renderTutorDemo();
                 }
@@ -263,34 +282,57 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    ${student.logs.slice().reverse().map((log, idx) => `
-                                        <tr style="border-bottom:1px solid rgba(142, 77, 255, 0.2); color:#E2D1FF;">
-                                            <td style="padding:12px 16px; font-size: 13px;">${student.logs.length - idx}</td>
-                                            <td style="padding:12px 16px; font-size: 13px; white-space:nowrap;">${log.date}</td>
-                                            <td style="padding:12px 16px; font-size: 13px;">${student.class.split(" ")[1] || "Toán"}</td>
-                                            <td style="padding:12px 16px; font-size: 13px; font-weight:500; color:#FFF;"><strong>${log.topic}</strong>. ${log.comment}</td>
-                                            <td style="padding:12px 16px; font-size: 13px;">
-                                                <span class="status-badge ${log.btvn === 'Đạt' ? 'badge-hoanthanh' : 'badge-thieu'}">${log.btvn === 'Đạt' ? 'Hoàn thành' : 'Thiếu'}</span>
-                                            </td>
-                                            <td style="padding:12px 16px; font-size: 13px; color:#A78BFA; font-weight:700;">${log.valDG !== null ? log.valDG.toFixed(1) : 'Không có'}</td>
-                                            <td style="padding:12px 16px; font-size: 13px; color:#FFD23F; font-weight:700;">${log.valDK !== null ? log.valDK.toFixed(1) : 'Không có'}</td>
-                                            <td style="padding:12px 16px; font-size: 13px;">
-                                                <span class="status-badge badge-dahoc">Đã học</span>
-                                            </td>
-                                        </tr>
-                                    `).join('')}
+                                    ${(function() {
+                                        const sortedLogs = student.logs.slice().reverse();
+                                        const limit = demoStudentLogsShowAll ? sortedLogs.length : 5;
+                                        const visibleLogs = sortedLogs.slice(0, limit);
+                                        let trHtml = visibleLogs.map((log, idx) => `
+                                            <tr style="border-bottom:1px solid rgba(142, 77, 255, 0.2); color:#E2D1FF;">
+                                                <td style="padding:12px 16px; font-size: 13px;">${student.logs.length - idx}</td>
+                                                <td style="padding:12px 16px; font-size: 13px; white-space:nowrap;">${log.date}</td>
+                                                <td style="padding:12px 16px; font-size: 13px;">${student.class.split(" ")[1] || "Toán"}</td>
+                                                <td style="padding:12px 16px; font-size: 13px; font-weight:500; color:#FFF;"><strong>${log.topic}</strong>. ${log.comment}</td>
+                                                <td style="padding:12px 16px; font-size: 13px;">
+                                                    <span class="status-badge ${log.btvn === 'Đạt' ? 'badge-hoanthanh' : 'badge-thieu'}">${log.btvn === 'Đạt' ? 'Hoàn thành' : 'Thiếu'}</span>
+                                                </td>
+                                                <td style="padding:12px 16px; font-size: 13px; color:#A78BFA; font-weight:700;">${log.valDG !== null ? log.valDG.toFixed(1) : 'Không có'}</td>
+                                                <td style="padding:12px 16px; font-size: 13px; color:#FFD23F; font-weight:700;">${log.valDK !== null ? log.valDK.toFixed(1) : 'Không có'}</td>
+                                                <td style="padding:12px 16px; font-size: 13px;">
+                                                    <span class="status-badge badge-dahoc">Đã học</span>
+                                                </td>
+                                            </tr>
+                                        `).join('');
+                                        if (sortedLogs.length > 5) {
+                                            const remaining = sortedLogs.length - 5;
+                                            trHtml += `
+                                                <tr>
+                                                    <td colspan="8" style="text-align:center; padding:10px;">
+                                                        <button onclick="toggleDemoStudentLogs(${!demoStudentLogsShowAll})" style="background:none; border:1px solid #4B5563; color:#FFD23F; padding:6px 20px; border-radius:8px; cursor:pointer; font-size:13px; outline:none;">
+                                                            <i class="fa-solid ${demoStudentLogsShowAll ? 'fa-chevron-up' : 'fa-chevron-down'}" style="margin-right:5px;"></i>
+                                                            ${demoStudentLogsShowAll ? 'Thu gọn' : 'Xem thêm ' + remaining + ' buổi học cũ hơn'}
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            `;
+                                        }
+                                        return trHtml;
+                                    })()}
                                 </tbody>
                             </table>
                         </div>
                     </div>
 
                     <div class="mobile-cards-view" style="width: 100%;">
-                        ${student.logs.slice().reverse().map((log, idx) => `
-                            <div class="accordion-item" style="border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 12px; margin-bottom: 12px; overflow: hidden; background: rgba(255, 255, 255, 0.01);">
-                                <div class="accordion-header" onclick="toggleDemoAccordion(${idx})" style="display:flex; justify-content:space-between; align-items:center; padding:14px 18px; cursor:pointer;">
-                                    <div class="accordion-header-title" style="display:flex; flex-direction:column; gap:4px; text-align:left;">
-                                        <span style="font-weight:600; color:#FFF;">Tuần ${student.logs.length - idx}</span>
-                                        <span class="accordion-header-date" style="font-size:11.5px; color:#A6ADCE;">Ngày: ${log.date}</span>
+                        ${(function() {
+                            const sortedLogs = student.logs.slice().reverse();
+                            const limit = demoStudentLogsShowAll ? sortedLogs.length : 5;
+                            const visibleLogs = sortedLogs.slice(0, limit);
+                            let cardHtml = visibleLogs.map((log, idx) => `
+                                <div class="accordion-item" style="border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 12px; margin-bottom: 12px; overflow: hidden; background: rgba(255, 255, 255, 0.01);">
+                                    <div class="accordion-header" onclick="toggleDemoAccordion(${idx})" style="display:flex; justify-content:space-between; align-items:center; padding:14px 18px; cursor:pointer;">
+                                        <div class="accordion-header-title" style="display:flex; flex-direction:column; gap:4px; text-align:left;">
+                                            <span style="font-weight:600; color:#FFF;">Tuần ${student.logs.length - idx}</span>
+                                            <span class="accordion-header-date" style="font-size:11.5px; color:#A6ADCE;">Ngày: ${log.date}</span>
                                     </div>
                                     <div class="accordion-header-status" style="display:flex; align-items:center; gap:8px;">
                                         <span class="status-badge badge-dahoc">Đã học</span>
@@ -305,7 +347,20 @@
                                     <div class="accordion-body-row" style="display:flex; justify-content:space-between; margin-bottom:8px; font-size:13px;"><span class="accordion-body-label" style="color:#A6ADCE;">Kiểm tra định kì</span><span class="accordion-body-val" style="font-weight:600; color:#FFD23F;">${log.valDK !== null ? log.valDK.toFixed(1) : 'Không có'}</span></div>
                                 </div>
                             </div>
-                        `).join('')}
+                            `).join('');
+                            if (sortedLogs.length > 5) {
+                                const remaining = sortedLogs.length - 5;
+                                cardHtml += `
+                                    <div style="text-align:center; padding:10px;">
+                                        <button onclick="toggleDemoStudentLogs(${!demoStudentLogsShowAll})" style="background:none; border:1px solid #4B5563; color:#FFD23F; padding:6px 20px; border-radius:8px; cursor:pointer; font-size:13px; width:100%; outline:none;">
+                                            <i class="fa-solid ${demoStudentLogsShowAll ? 'fa-chevron-up' : 'fa-chevron-down'}" style="margin-right:5px;"></i>
+                                            ${demoStudentLogsShowAll ? 'Thu gọn' : 'Xem thêm ' + remaining + ' buổi học cũ hơn'}
+                                        </button>
+                                    </div>
+                                `;
+                            }
+                            return cardHtml;
+                        })()}
                     </div>
                 </div>
 
@@ -326,6 +381,167 @@
         renderDemoChart(student.logs);
     }
  
+
+    // ===== GIAO DIEN NOP BAI TAP (Demo) =====
+    let demoHomeworkUploadFile = "";
+
+    function renderHomeworkDemo() {
+        var student = demoStudents[currentDemoStudentIndex];
+        var contentArea = document.getElementById("demoContentArea");
+
+        var uploadedText = demoHomeworkUploadFile
+            ? '<span style="color:#00d2ff; font-size:12px;"><i class="fa-solid fa-file-circle-check" style="margin-right:4px;"></i>' + demoHomeworkUploadFile + '</span>'
+            : '<span style="color:#6A6E8D; font-size:12px;">Keo tha hoac click chon file bai tap (JPG, PNG, PDF, Word)...</span>';
+
+        var sortedAssigned = (student.assignedHw || []).slice().reverse();
+        var visibleAssigned = sortedAssigned.slice(0, demoHomeworkShowAllAssigned ? sortedAssigned.length : 5);
+
+        var assignedDesktopRows = visibleAssigned.map(function(hw) {
+            return '<tr style="border-bottom:1px solid rgba(0,210,255,0.2); color:#E2D1FF;"><td style="padding:12px 16px; font-size:13px;">' + hw.date + '</td><td style="padding:12px 16px; font-size:13px; font-weight:500; color:#FFF;">' + hw.title + '</td><td style="padding:12px 16px; font-size:13px;"><a href="javascript:void(0)" style="color:#FFD23F; text-decoration:none;"><i class="fa-solid fa-file-pdf" style="color:#FF4D4D;"></i> ' + hw.file + '</a></td></tr>';
+        }).join('');
+        if (sortedAssigned.length > 5) {
+            var remA = sortedAssigned.length - 5;
+            var showAllA = !demoHomeworkShowAllAssigned;
+            assignedDesktopRows += '<tr><td colspan="3" style="text-align:center; padding:10px;"><button onclick="toggleDemoHomeworkAssigned(' + showAllA + ')" style="background:none; border:1px solid #4B5563; color:#00d2ff; padding:6px 20px; border-radius:8px; cursor:pointer; font-size:13px; outline:none;"><i class="fa-solid ' + (demoHomeworkShowAllAssigned ? 'fa-chevron-up' : 'fa-chevron-down') + '" style="margin-right:5px;"></i>' + (demoHomeworkShowAllAssigned ? 'Thu gon' : 'Xem them ' + remA + ' bai cu hon') + '</button></td></tr>';
+        }
+        if (sortedAssigned.length === 0) {
+            assignedDesktopRows = '<tr><td colspan="3" style="padding:20px; text-align:center; color:#A6ADCE;">Gia su chua giao bai tap nao.</td></tr>';
+        }
+
+        var assignedMobileCards = visibleAssigned.map(function(hw) {
+            return '<div style="border:1px solid rgba(0,210,255,0.15); border-radius:12px; margin-bottom:10px; padding:12px 16px; background:rgba(255,255,255,0.02);"><div style="font-weight:600; color:#FFF; font-size:13.5px; margin-bottom:5px;">' + hw.title + '</div><div style="font-size:11.5px; color:#A6ADCE; display:flex; justify-content:space-between; flex-wrap:wrap; gap:4px;"><span>Ngay giao: ' + hw.date + '</span><span><a href="javascript:void(0)" style="color:#FFD23F; text-decoration:none;">' + hw.file + '</a></span></div></div>';
+        }).join('');
+        if (sortedAssigned.length > 5) {
+            var remA2 = sortedAssigned.length - 5;
+            var showAllA2 = !demoHomeworkShowAllAssigned;
+            assignedMobileCards += '<div style="text-align:center; padding:10px;"><button onclick="toggleDemoHomeworkAssigned(' + showAllA2 + ')" style="background:none; border:1px solid #4B5563; color:#00d2ff; padding:6px 20px; border-radius:8px; cursor:pointer; font-size:13px; width:100%;">' + (demoHomeworkShowAllAssigned ? 'Thu gon' : 'Xem them ' + remA2 + ' bai cu hon') + '</button></div>';
+        }
+        if (sortedAssigned.length === 0) {
+            assignedMobileCards = '<div style="text-align:center; color:#A6ADCE; padding:20px; font-size:13px;">Gia su chua giao bai tap nao.</div>';
+        }
+
+        var sortedSubmitted = (student.submittedHw || []).slice().reverse();
+        var visibleSubmitted = sortedSubmitted.slice(0, demoHomeworkShowAllSubmitted ? sortedSubmitted.length : 5);
+
+        var submittedDesktopRows = visibleSubmitted.map(function(hw) {
+            return '<tr style="border-bottom:1px solid rgba(0,210,255,0.2); color:#E2D1FF;"><td style="padding:12px 16px; font-size:13px;">' + hw.time + '</td><td style="padding:12px 16px; font-size:13px; font-weight:500; color:#FFF;">' + hw.title + '</td><td style="padding:12px 16px; font-size:13px; color:#FFD23F;"><i class="fa-solid fa-file-image"></i> ' + hw.file + '</td></tr>';
+        }).join('');
+        if (sortedSubmitted.length > 5) {
+            var remS = sortedSubmitted.length - 5;
+            var showAllS = !demoHomeworkShowAllSubmitted;
+            submittedDesktopRows += '<tr><td colspan="3" style="text-align:center; padding:10px;"><button onclick="toggleDemoHomeworkSubmitted(' + showAllS + ')" style="background:none; border:1px solid #4B5563; color:#00d2ff; padding:6px 20px; border-radius:8px; cursor:pointer; font-size:13px;">' + (demoHomeworkShowAllSubmitted ? 'Thu gon' : 'Xem them ' + remS + ' bai cu hon') + '</button></td></tr>';
+        }
+        if (sortedSubmitted.length === 0) {
+            submittedDesktopRows = '<tr><td colspan="3" style="padding:20px; text-align:center; color:#A6ADCE;">Chua co bai nop nao.</td></tr>';
+        }
+
+        var submittedMobileCards = visibleSubmitted.map(function(hw) {
+            return '<div style="border:1px solid rgba(0,210,255,0.15); border-radius:12px; margin-bottom:10px; padding:12px 16px; background:rgba(255,255,255,0.02);"><div style="font-weight:600; color:#FFF; font-size:13.5px; margin-bottom:5px;">' + hw.title + '</div><div style="font-size:11.5px; color:#A6ADCE; display:flex; justify-content:space-between; flex-wrap:wrap; gap:4px;"><span>Nop luc: ' + hw.time + '</span><span style="color:#FFD23F;">' + hw.file + '</span></div></div>';
+        }).join('');
+        if (sortedSubmitted.length > 5) {
+            var remS2 = sortedSubmitted.length - 5;
+            var showAllS2 = !demoHomeworkShowAllSubmitted;
+            submittedMobileCards += '<div style="text-align:center; padding:10px;"><button onclick="toggleDemoHomeworkSubmitted(' + showAllS2 + ')" style="background:none; border:1px solid #4B5563; color:#00d2ff; padding:6px 20px; border-radius:8px; cursor:pointer; font-size:13px; width:100%;">' + (demoHomeworkShowAllSubmitted ? 'Thu gon' : 'Xem them ' + remS2 + ' bai cu hon') + '</button></div>';
+        }
+        if (sortedSubmitted.length === 0) {
+            submittedMobileCards = '<div style="text-align:center; color:#A6ADCE; padding:20px; font-size:13px;">Chua co bai nop nao.</div>';
+        }
+
+        contentArea.innerHTML = `
+            <div class="simulated-screen" style="background:#03081D; border:1px solid rgba(0,210,255,0.5); border-radius:20px; padding:30px; box-shadow:0 0 50px rgba(0,210,255,0.15);">
+                <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(255,255,255,0.05); padding-bottom:15px; margin-bottom:20px;">
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <i class="fa-solid fa-book-open-reader" style="color:#00d2ff; font-size:22px;"></i>
+                        <span style="font-weight:700; color:#FFF; font-size:14px;">Nop Bai Tap (Demo)</span>
+                    </div>
+                    <div style="background:rgba(0,210,255,0.15); color:#00d2ff; border:1px solid rgba(0,210,255,0.3); font-size:10px; font-weight:700; padding:2px 8px; border-radius:4px; text-transform:uppercase;"><i class="fa-solid fa-user-graduate"></i> Hoc sinh</div>
+                </div>
+                <h3 style="color:#00d2ff; font-size:18px; font-weight:800; margin:0 0 5px 0; text-align:center;">Xin chao, <span style="color:#FFF;">${student.name}</span></h3>
+                <p style="color:#A6ADCE; font-size:12px; text-align:center; margin:0 0 20px 0;">${student.class} - ${student.id}</p>
+
+                <div style="background:rgba(0,0,0,0.3); border:1px solid rgba(0,210,255,0.2); border-radius:16px; padding:20px; margin-bottom:20px;">
+                    <h4 style="color:#00d2ff; font-size:13px; font-weight:700; margin:0 0 14px 0; text-transform:uppercase;"><i class="fa-solid fa-clipboard-list" style="margin-right:6px;"></i>Thong tin bai tap</h4>
+                    <div class="desktop-table-view">
+                        <div style="width:100%; overflow-x:auto; border-radius:12px;">
+                            <table style="width:100%; border-collapse:collapse;">
+                                <thead><tr style="background-color:rgba(0,210,255,0.08); color:#FFF;">
+                                    <th style="padding:12px 16px; font-size:13px; font-weight:600; text-align:left;">Ngay giao</th>
+                                    <th style="padding:12px 16px; font-size:13px; font-weight:600; text-align:left;">Ten bai tap</th>
+                                    <th style="padding:12px 16px; font-size:13px; font-weight:600; text-align:left;">File dinh kem</th>
+                                </tr></thead>
+                                <tbody>${assignedDesktopRows}</tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="mobile-cards-view" style="width:100%;">${assignedMobileCards}</div>
+                </div>
+
+                <div style="background:rgba(0,0,0,0.3); border:1px solid rgba(0,210,255,0.2); border-radius:16px; padding:20px; margin-bottom:20px;">
+                    <h4 style="color:#00d2ff; font-size:13px; font-weight:700; margin:0 0 14px 0; text-transform:uppercase;"><i class="fa-solid fa-cloud-arrow-up" style="margin-right:6px;"></i>Nop bai tap</h4>
+                    <div onclick="selectDemoStudentHwFile()" style="padding:20px; border:2px dashed rgba(0,210,255,0.4); border-radius:12px; text-align:center; cursor:pointer; background:rgba(4,2,10,0.6); margin-bottom:15px;">
+                        <i class="fa-solid fa-file-arrow-up" style="font-size:24px; color:#00d2ff; margin-bottom:6px; display:block;"></i>
+                        <div id="demoStudentHwUploadText">${uploadedText}</div>
+                    </div>
+                    <button onclick="submitDemoStudentHw()" style="width:100%; padding:12px; background:linear-gradient(90deg,#00d2ff,#0080ff); border:none; color:#FFF; border-radius:10px; font-size:14px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; box-shadow:0 0 20px rgba(0,210,255,0.4);">
+                        <i class="fa-solid fa-paper-plane"></i> Nop bai tap
+                    </button>
+                    <div id="demoHwSubmitMsg" style="display:none; margin-top:10px; padding:10px; background:rgba(0,204,102,0.1); border:1px solid rgba(0,204,102,0.3); border-radius:8px; color:#00CC66; font-size:13px; text-align:center;">
+                        <i class="fa-solid fa-circle-check"></i> Bai tap da nop thanh cong! (Mo phong)
+                    </div>
+                </div>
+
+                <div style="background:rgba(0,0,0,0.3); border:1px solid rgba(0,210,255,0.2); border-radius:16px; padding:20px;">
+                    <h4 style="color:#00d2ff; font-size:13px; font-weight:700; margin:0 0 14px 0; text-transform:uppercase;"><i class="fa-solid fa-history" style="margin-right:6px;"></i>Lich su bai da nop</h4>
+                    <div class="desktop-table-view">
+                        <div style="width:100%; overflow-x:auto; border-radius:12px;">
+                            <table style="width:100%; border-collapse:collapse;">
+                                <thead><tr style="background-color:rgba(0,210,255,0.08); color:#FFF;">
+                                    <th style="padding:12px 16px; font-size:13px; font-weight:600; text-align:left;">Thoi gian nop</th>
+                                    <th style="padding:12px 16px; font-size:13px; font-weight:600; text-align:left;">Ten bai tap</th>
+                                    <th style="padding:12px 16px; font-size:13px; font-weight:600; text-align:left;">File da nop</th>
+                                </tr></thead>
+                                <tbody>${submittedDesktopRows}</tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="mobile-cards-view" style="width:100%;">${submittedMobileCards}</div>
+                </div>
+            </div>
+        `;
+    }
+
+    window.selectDemoStudentHwFile = function() {
+        var mockNames = ["bai_tap_nop.jpg", "homework_photo.png", "bai_lam.pdf", "on_tap_done.docx", "nop_bai.jpg"];
+        demoHomeworkUploadFile = mockNames[Math.floor(Math.random() * mockNames.length)];
+        var textEl = document.getElementById("demoStudentHwUploadText");
+        if (textEl) {
+            textEl.innerHTML = '<span style="color:#00d2ff; font-size:12px;"><i class="fa-solid fa-file-circle-check" style="margin-right:4px;"></i>' + demoHomeworkUploadFile + '</span>';
+        }
+    };
+
+    window.submitDemoStudentHw = function() {
+        if (!demoHomeworkUploadFile) {
+            alert("Vui long chon file bai tap truoc khi nop! (Mo phong)");
+            return;
+        }
+        var student = demoStudents[currentDemoStudentIndex];
+        var now = new Date();
+        var timeStr = String(now.getDate()).padStart(2,"0") + "/" + String(now.getMonth()+1).padStart(2,"0") + "/" + now.getFullYear() + " " + String(now.getHours()).padStart(2,"0") + ":" + String(now.getMinutes()).padStart(2,"0");
+        var lastTitle = student.assignedHw && student.assignedHw.length > 0 ? student.assignedHw[student.assignedHw.length - 1].title : "Bai tap tu luyen";
+        student.submittedHw.push({ time: timeStr, title: lastTitle, file: demoHomeworkUploadFile });
+        demoHomeworkUploadFile = "";
+        demoHomeworkShowAllSubmitted = false;
+        renderHomeworkDemo();
+        setTimeout(function() {
+            var msg = document.getElementById("demoHwSubmitMsg");
+            if (msg) {
+                msg.style.display = "block";
+                setTimeout(function() { msg.style.display = "none"; }, 3000);
+            }
+        }, 80);
+    };
+
+
     // 6. Render Giao diện Demo Gia sư (Khớp 100% bố cục trang tutor-dashboard.html)
     function renderTutorDemo() {
         const student = demoStudents[currentDemoStudentIndex];
@@ -521,38 +737,74 @@
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                ${student.assignedHw && student.assignedHw.length > 0 ? student.assignedHw.map((hw, index) => `
-                                                    <tr style="border-bottom:1px solid rgba(142, 77, 255, 0.2); color:#E2D1FF;">
-                                                        <td style="padding:12px 16px; font-size:13px; text-align:left;">${hw.date}</td>
-                                                        <td style="padding:12px 16px; font-size:13px; font-weight:500; color:#FFF; text-align:left;">${hw.title}</td>
-                                                        <td style="padding:12px 16px; font-size:13px; text-align:left;"><a href="javascript:void(0)" style="color:#FFD23F; text-decoration:none;"><i class="fa-solid fa-file-pdf" style="color:#FF4D4D;"></i> ${hw.file}</a></td>
-                                                        <td style="padding:12px 16px; text-align:center;"><button class="btn-icon-edit" onclick="deleteDemoAssignedHw(${index})" style="background:none; border:none; color:#FF4D4D; cursor:pointer;" title="Xóa bài tập"><i class="fa-solid fa-trash-can"></i></button></td>
-                                                    </tr>
-                                                `).join('') : `
-                                                    <tr>
-                                                        <td colspan="4" style="padding: 20px; text-align: center; color: #A6ADCE;"><i class="fa-solid fa-circle-info"></i> Chưa giao bài tập nào cho học sinh này!</td>
-                                                    </tr>
-                                                `}
+                                                ${(function() {
+                                                    const sortedList = (student.assignedHw || []).slice().reverse();
+                                                    const limit = demoTutorShowAllAssigned ? sortedList.length : 5;
+                                                    const visibleList = sortedList.slice(0, limit);
+                                                    let trHtml = visibleList.map(hw => {
+                                                        const originalIndex = student.assignedHw.indexOf(hw);
+                                                        return `
+                                                            <tr style="border-bottom:1px solid rgba(142, 77, 255, 0.2); color:#E2D1FF;">
+                                                                <td style="padding:12px 16px; font-size:13px; text-align:left;">${hw.date}</td>
+                                                                <td style="padding:12px 16px; font-size:13px; font-weight:500; color:#FFF; text-align:left;">${hw.title}</td>
+                                                                <td style="padding:12px 16px; font-size:13px; text-align:left;"><a href="javascript:void(0)" style="color:#FFD23F; text-decoration:none;"><i class="fa-solid fa-file-pdf" style="color:#FF4D4D;"></i> ${hw.file}</a></td>
+                                                                <td style="padding:12px 16px; text-align:center;"><button class="btn-icon-edit" onclick="deleteDemoAssignedHw(${originalIndex})" style="background:none; border:none; color:#FF4D4D; cursor:pointer;" title="Xóa bài tập"><i class="fa-solid fa-trash-can"></i></button></td>
+                                                            </tr>
+                                                        `;
+                                                    }).join('');
+                                                    if (sortedList.length > 5) {
+                                                        const remaining = sortedList.length - 5;
+                                                        trHtml += `
+                                                            <tr>
+                                                                <td colspan="4" style="text-align:center; padding:10px;">
+                                                                    <button onclick="toggleDemoTutorAssignedHw(${!demoTutorShowAllAssigned})" style="background:none; border:1px solid #4B5563; color:#8E4DFF; padding:6px 20px; border-radius:8px; cursor:pointer; font-size:13px; outline:none;">
+                                                                        <i class="fa-solid ${demoTutorShowAllAssigned ? 'fa-chevron-up' : 'fa-chevron-down'}" style="margin-right:5px;"></i>
+                                                                        ${demoTutorShowAllAssigned ? 'Thu gọn' : 'Xem thêm ' + remaining + ' bài cũ hơn'}
+                                                                    </button>
+                                                                </td>
+                                                            </tr>
+                                                        `;
+                                                    }
+                                                    return trHtml;
+                                                })()}
                                             </tbody>
                                         </table>
                                     </div>
                                 </div>
 
                                 <div class="mobile-cards-view" style="width: 100%;">
-                                    ${student.assignedHw && student.assignedHw.length > 0 ? student.assignedHw.map((hw, index) => `
-                                        <div class="accordion-item" style="border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 12px; margin-bottom: 12px; background: rgba(255, 255, 255, 0.02); padding: 12px 16px; text-align: left;">
-                                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-                                                <span style="font-weight:600; color:#FFF; font-size:13.5px;">${hw.title}</span>
-                                                <button onclick="deleteDemoAssignedHw(${index})" style="background:none; border:none; color:#FF4D4D; cursor:pointer;" title="Xóa bài tập"><i class="fa-solid fa-trash-can"></i></button>
-                                            </div>
-                                            <div style="font-size:11.5px; color:#A6ADCE; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:4px;">
-                                                <span>Ngày giao: ${hw.date}</span>
-                                                <span>File: <a href="javascript:void(0)" style="color:#FFD23F; text-decoration:none;"><i class="fa-solid fa-file-pdf" style="color:#FF4D4D;"></i> ${hw.file}</a></span>
-                                            </div>
-                                        </div>
-                                    `).join('') : `
-                                        <div style="text-align: center; color: #A6ADCE; padding: 20px; font-size: 13px;"><i class="fa-solid fa-circle-info"></i> Chưa giao bài tập nào cho học sinh này!</div>
-                                    `}
+                                    ${(function() {
+                                        const sortedList = (student.assignedHw || []).slice().reverse();
+                                        const limit = demoTutorShowAllAssigned ? sortedList.length : 5;
+                                        const visibleList = sortedList.slice(0, limit);
+                                        let cardHtml = visibleList.map(hw => {
+                                            const originalIndex = student.assignedHw.indexOf(hw);
+                                            return `
+                                                <div class="accordion-item" style="border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 12px; margin-bottom: 12px; background: rgba(255, 255, 255, 0.02); padding: 12px 16px; text-align: left;">
+                                                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                                                        <span style="font-weight:600; color:#FFF; font-size:13.5px;">${hw.title}</span>
+                                                        <button onclick="deleteDemoAssignedHw(${originalIndex})" style="background:none; border:none; color:#FF4D4D; cursor:pointer;" title="Xóa bài tập"><i class="fa-solid fa-trash-can"></i></button>
+                                                    </div>
+                                                    <div style="font-size:11.5px; color:#A6ADCE; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:4px;">
+                                                        <span>Ngày giao: ${hw.date}</span>
+                                                        <span>File: <a href="javascript:void(0)" style="color:#FFD23F; text-decoration:none;"><i class="fa-solid fa-file-pdf" style="color:#FF4D4D;"></i> ${hw.file}</a></span>
+                                                    </div>
+                                                </div>
+                                            `;
+                                        }).join('');
+                                        if (sortedList.length > 5) {
+                                            const remaining = sortedList.length - 5;
+                                            cardHtml += `
+                                                <div style="text-align:center; padding:10px;">
+                                                    <button onclick="toggleDemoTutorAssignedHw(${!demoTutorShowAllAssigned})" style="background:none; border:1px solid #4B5563; color:#8E4DFF; padding:6px 20px; border-radius:8px; cursor:pointer; font-size:13px; width:100%; outline:none;">
+                                                        <i class="fa-solid ${demoTutorShowAllAssigned ? 'fa-chevron-up' : 'fa-chevron-down'}" style="margin-right:5px;"></i>
+                                                        ${demoTutorShowAllAssigned ? 'Thu gọn' : 'Xem thêm ' + remaining + ' bài cũ hơn'}
+                                                    </button>
+                                                </div>
+                                            `;
+                                        }
+                                        return cardHtml;
+                                    })()}
                                 </div>
                             `}
                         ` : `
@@ -569,38 +821,68 @@
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            ${student.submittedHw && student.submittedHw.length > 0 ? student.submittedHw.map(hw => `
-                                                <tr style="border-bottom:1px solid rgba(142, 77, 255, 0.2); color:#E2D1FF;">
-                                                    <td style="padding:12px 16px; font-size:13px; text-align:left;">${hw.time}</td>
-                                                    <td style="padding:12px 16px; font-size:13px; font-weight:500; color:#FFF; text-align:left;">${hw.title}</td>
-                                                    <td style="padding:12px 16px; font-size:13px; color:#FFD23F; text-align:left;"><i class="fa-solid fa-file-image"></i> ${hw.file}</td>
-                                                    <td style="padding:12px 16px; text-align:center;"><button class="btn-icon-edit" style="background:none; border:none; color:#8E4DFF; cursor:pointer;"><i class="fa-solid fa-cloud-arrow-down"></i></button></td>
-                                                </tr>
-                                            `).join('') : `
-                                                <tr>
-                                                    <td colspan="4" style="padding: 20px; text-align: center; color: #A6ADCE;"><i class="fa-solid fa-circle-info"></i> Chưa có bài nộp nào từ học sinh này.</td>
-                                                </tr>
-                                            `}
+                                            ${(function() {
+                                                const sortedList = (student.submittedHw || []).slice().reverse();
+                                                const limit = demoTutorShowAllSubmitted ? sortedList.length : 5;
+                                                const visibleList = sortedList.slice(0, limit);
+                                                let trHtml = visibleList.map(hw => `
+                                                    <tr style="border-bottom:1px solid rgba(142, 77, 255, 0.2); color:#E2D1FF;">
+                                                        <td style="padding:12px 16px; font-size:13px; text-align:left;">${hw.time}</td>
+                                                        <td style="padding:12px 16px; font-size:13px; font-weight:500; color:#FFF; text-align:left;">${hw.title}</td>
+                                                        <td style="padding:12px 16px; font-size:13px; color:#FFD23F; text-align:left;"><i class="fa-solid fa-file-image"></i> ${hw.file}</td>
+                                                        <td style="padding:12px 16px; text-align:center;"><button class="btn-icon-edit" style="background:none; border:none; color:#8E4DFF; cursor:pointer;"><i class="fa-solid fa-cloud-arrow-down"></i></button></td>
+                                                    </tr>
+                                                `).join('');
+                                                if (sortedList.length > 5) {
+                                                    const remaining = sortedList.length - 5;
+                                                    trHtml += `
+                                                        <tr>
+                                                            <td colspan="4" style="text-align:center; padding:10px;">
+                                                                <button onclick="toggleDemoTutorSubmittedHw(${!demoTutorShowAllSubmitted})" style="background:none; border:1px solid #4B5563; color:#8E4DFF; padding:6px 20px; border-radius:8px; cursor:pointer; font-size:13px; outline:none;">
+                                                                    <i class="fa-solid ${demoTutorShowAllSubmitted ? 'fa-chevron-up' : 'fa-chevron-down'}" style="margin-right:5px;"></i>
+                                                                    ${demoTutorShowAllSubmitted ? 'Thu gọn' : 'Xem thêm ' + remaining + ' bài cũ hơn'}
+                                                                </button>
+                                                            </td>
+                                                        </tr>
+                                                    `;
+                                                }
+                                                return trHtml;
+                                            })()}
                                         </tbody>
                                     </table>
                                 </div>
                             </div>
 
                             <div class="mobile-cards-view" style="width: 100%;">
-                                ${student.submittedHw && student.submittedHw.length > 0 ? student.submittedHw.map(hw => `
-                                    <div class="accordion-item" style="border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 12px; margin-bottom: 12px; background: rgba(255, 255, 255, 0.02); padding: 12px 16px; text-align: left;">
-                                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-                                            <span style="font-weight:600; color:#FFF; font-size:13.5px;">${hw.title}</span>
-                                            <button style="background:none; border:none; color:#8E4DFF; cursor:pointer;"><i class="fa-solid fa-cloud-arrow-down"></i></button>
+                                ${(function() {
+                                    const sortedList = (student.submittedHw || []).slice().reverse();
+                                    const limit = demoTutorShowAllSubmitted ? sortedList.length : 5;
+                                    const visibleList = sortedList.slice(0, limit);
+                                    let cardHtml = visibleList.map(hw => `
+                                        <div class="accordion-item" style="border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 12px; margin-bottom: 12px; background: rgba(255, 255, 255, 0.02); padding: 12px 16px; text-align: left;">
+                                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                                                <span style="font-weight:600; color:#FFF; font-size:13.5px;">${hw.title}</span>
+                                                <button style="background:none; border:none; color:#8E4DFF; cursor:pointer;"><i class="fa-solid fa-cloud-arrow-down"></i></button>
+                                            </div>
+                                            <div style="font-size:11.5px; color:#A6ADCE; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:4px;">
+                                                <span>Nộp lúc: ${hw.time}</span>
+                                                <span style="color:#FFD23F;"><i class="fa-solid fa-file-image"></i> ${hw.file}</span>
+                                            </div>
                                         </div>
-                                        <div style="font-size:11.5px; color:#A6ADCE; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:4px;">
-                                            <span>Nộp lúc: ${hw.time}</span>
-                                            <span style="color:#FFD23F;"><i class="fa-solid fa-file-image"></i> ${hw.file}</span>
-                                        </div>
-                                    </div>
-                                `).join('') : `
-                                    <div style="text-align: center; color: #A6ADCE; padding: 20px; font-size: 13px;"><i class="fa-solid fa-circle-info"></i> Chưa có bài nộp nào từ học sinh này.</div>
-                                `}
+                                    `).join('');
+                                    if (sortedList.length > 5) {
+                                        const remaining = sortedList.length - 5;
+                                        cardHtml += `
+                                            <div style="text-align:center; padding:10px;">
+                                                <button onclick="toggleDemoTutorSubmittedHw(${!demoTutorShowAllSubmitted})" style="background:none; border:1px solid #4B5563; color:#8E4DFF; padding:6px 20px; border-radius:8px; cursor:pointer; font-size:13px; width:100%; outline:none;">
+                                                    <i class="fa-solid ${demoTutorShowAllSubmitted ? 'fa-chevron-up' : 'fa-chevron-down'}" style="margin-right:5px;"></i>
+                                                    ${demoTutorShowAllSubmitted ? 'Thu gọn' : 'Xem thêm ' + remaining + ' bài cũ hơn'}
+                                                </button>
+                                            </div>
+                                        `;
+                                    }
+                                    return cardHtml;
+                                })()}
                             </div>
                         `}
                     </div>
@@ -1082,4 +1364,38 @@
         const mm = String(today.getMonth() + 1).padStart(2, '0');
         return dd + '/' + mm;
     }
+
+    // ===== Các hàm toggle toàn cục cho nút Xem thêm / Thu gọn =====
+
+    // Toggle danh sách nhật ký buổi học (Giao diện Học sinh)
+    window.toggleDemoStudentLogs = function(showAll) {
+        demoStudentLogsShowAll = showAll;
+        renderStudentDemo();
+    };
+
+    // Toggle danh sách bài tập đã giao (Giao diện Gia sư - tab Giao bài)
+    window.toggleDemoTutorAssignedHw = function(showAll) {
+        demoTutorShowAllAssigned = showAll;
+        renderTutorDemo();
+    };
+
+    // Toggle danh sách bài nộp của học sinh (Giao diện Gia sư - tab Học sinh nộp bài)
+    window.toggleDemoTutorSubmittedHw = function(showAll) {
+        demoTutorShowAllSubmitted = showAll;
+        renderTutorDemo();
+    };
+
+    // Toggle danh sách bài tập được giao (Giao diện Nộp bài tập - phần Thông tin bài tập)
+    window.toggleDemoHomeworkAssigned = function(showAll) {
+        demoHomeworkShowAllAssigned = showAll;
+        renderHomeworkDemo();
+    };
+
+    // Toggle danh sách lịch sử bài đã nộp (Giao diện Nộp bài tập - phần Lịch sử nộp)
+    window.toggleDemoHomeworkSubmitted = function(showAll) {
+        demoHomeworkShowAllSubmitted = showAll;
+        renderHomeworkDemo();
+    };
+
 })();
+
