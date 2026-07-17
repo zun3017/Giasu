@@ -91,3 +91,13 @@
                 get: () => new GoogleScriptRunInstance()
             });
         }
+
+        // Chuẩn hóa số điện thoại ở phía client để so khớp chính xác
+        function normalizePhone(p) {
+            if (!p) return "";
+            var clean = String(p).replace(/\D/g, "");
+            if (clean.length > 1 && clean.charAt(0) === '0') {
+                clean = clean.substring(1);
+            }
+            return clean;
+        }
