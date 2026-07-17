@@ -1075,13 +1075,13 @@ function formatScheduleCell(val) {
                 
                 // 1. Desktop View (Table)
                 htmlLichSu += "<div class='desktop-table-view'>";
-                htmlLichSu += "<table><tr><th style='width: 40px; text-align: center;'><input type='checkbox' id='tutorSelectAllLessons' onchange='toggleSelectAllTutorLessons(this)' style='cursor: pointer; width: 16px; height: 16px;'></th><th>Tuần</th><th>Ngày dạy</th><th>Môn</th><th>Nội dung</th><th>Đánh giá BTVN</th><th>KT Đầu giờ</th><th>KT Định kì</th><th>Trạng thái</th><th style='width: 50px;'>Sửa</th></tr>";
+                htmlLichSu += "<table><tr><th style='width: 105px; text-align: center;' title='Tích chọn để đóng học phí hàng loạt cho tất cả các buổi học chưa đóng'><div style='display: flex; align-items: center; justify-content: center; gap: 6px; cursor: pointer;' onclick='var c=document.getElementById(\"tutorSelectAllLessons\"); if(c){c.checked=!c.checked;toggleSelectAllTutorLessons(c);}event.stopPropagation();'><input type='checkbox' id='tutorSelectAllLessons' onchange='toggleSelectAllTutorLessons(this)' onclick='event.stopPropagation();' style='cursor: pointer; width: 15px; height: 15px;' title='Tích chọn để đóng học phí cho tất cả các buổi'><span style='font-size: 12px; font-weight: bold; display: inline-flex; align-items: center; gap: 4px; user-select: none;'><i class='fa-solid fa-wallet' style='color:#10B981;'></i> Đóng tiền</span></div></th><th>Tuần</th><th>Ngày dạy</th><th>Môn</th><th>Nội dung</th><th>Đánh giá BTVN</th><th>KT Đầu giờ</th><th>KT Định kì</th><th>Trạng thái</th><th style='width: 50px;'>Sửa</th></tr>";
                 
                 // 2. Mobile View (Accordion list)
                 var htmlMobile = "<div class='mobile-cards-view'>";
                 htmlMobile += "  <div class='mobile-select-all-container' style='display: flex; align-items: center; gap: 10px; padding: 12px 16px; background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 12px; margin-bottom: 12px;'>";
-                htmlMobile += "      <input type='checkbox' id='tutorSelectAllLessonsMobile' onchange='toggleSelectAllTutorLessons(this)' style='cursor: pointer; width: 16px; height: 16px;'>";
-                htmlMobile += "      <label for='tutorSelectAllLessonsMobile' style='cursor: pointer; font-size: 13px; color: #A6ADCE; font-weight: bold; margin: 0; user-select: none;'>Chọn tất cả buổi học</label>";
+                htmlMobile += "      <input type='checkbox' id='tutorSelectAllLessonsMobile' onchange='toggleSelectAllTutorLessons(this)' style='cursor: pointer; width: 16px; height: 16px;' title='Tích chọn để đóng học phí cho tất cả các buổi'>";
+                htmlMobile += "      <label for='tutorSelectAllLessonsMobile' style='cursor: pointer; font-size: 13.5px; font-weight: bold; margin: 0; user-select: none; display: inline-flex; align-items: center; gap: 6px;'><i class='fa-solid fa-wallet' style='color:#10B981;'></i> Đóng học phí tất cả các buổi</label>";
                 htmlMobile += "  </div>";
 
                 logs.slice().reverse().forEach(function(item, idx) {
@@ -1096,8 +1096,9 @@ function formatScheduleCell(val) {
                     var mobileChkHtml = "";
                     if (isPresent || isDaBu) {
                         var isChecked = isPaid ? "checked" : "";
-                        chkHtml = '<input type="checkbox" class="tutor-lesson-chk" data-rowindex="' + item.rowIndex + '" data-tuan="' + (item.tuan || "") + '" onchange="checkTutorLessonCheckboxSelection(this)" style="cursor: pointer; width: 16px; height: 16px;" ' + isChecked + '>';
-                        mobileChkHtml = '<input type="checkbox" class="tutor-lesson-chk" data-rowindex="' + item.rowIndex + '" data-tuan="' + (item.tuan || "") + '" onclick="event.stopPropagation();" onchange="checkTutorLessonCheckboxSelection(this)" style="margin-right: 8px; width: 16px; height: 16px; cursor: pointer;" ' + isChecked + '>';
+                        var titleText = isPaid ? "Đã đóng học phí (Bấm để HỦY đóng tiền)" : "Chưa đóng học phí (Bấm để báo ĐÃ ĐÓNG TIỀN)";
+                        chkHtml = '<input type="checkbox" class="tutor-lesson-chk" data-rowindex="' + item.rowIndex + '" data-tuan="' + (item.tuan || "") + '" onchange="checkTutorLessonCheckboxSelection(this)" style="cursor: pointer; width: 16px; height: 16px;" title="' + titleText + '" ' + isChecked + '>';
+                        mobileChkHtml = '<input type="checkbox" class="tutor-lesson-chk" data-rowindex="' + item.rowIndex + '" data-tuan="' + (item.tuan || "") + '" onclick="event.stopPropagation();" onchange="checkTutorLessonCheckboxSelection(this)" style="margin-right: 8px; width: 16px; height: 16px; cursor: pointer;" title="' + titleText + '" ' + isChecked + '>';
                     } else {
                         chkHtml = '<span style="color: rgba(255,255,255,0.2); font-size: 12px;">-</span>';
                         mobileChkHtml = '<span style="color: rgba(255,255,255,0.2); font-size: 12px; margin-right: 8px;">-</span>';
