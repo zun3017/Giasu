@@ -983,7 +983,7 @@
                         </h3>
                         <div class="desktop-table-view">
                             <div class="table-wrapper" style="width: 100%; overflow-x: auto; border-radius: 12px;">
-                                <table style="width:100%; border-collapse:collapse; min-width: 980px;">
+                                <table style="width:100%; border-collapse:collapse;">
                                     <thead>
                                         <tr style="background-color: rgba(91, 46, 255, 0.1); color:#FFF;">
                                             <th style="padding:12px 16px; font-size:13px; font-weight:600; text-align: center; width:105px;" title="Tích chọn để đóng học phí hàng loạt cho tất cả các buổi học chưa đóng">

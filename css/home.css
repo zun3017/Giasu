@@ -678,3 +678,22 @@
         gap: 10px;
     }
 }
+
+/* Optimize simulated screen table to prevent horizontal scrollbars on desktop */
+.simulated-screen table {
+    width: 100% !important;
+    min-width: 100% !important;
+    table-layout: auto !important;
+}
+
+.simulated-screen th,
+.simulated-screen td {
+    padding: 10px 10px !important;
+    font-size: 13px !important;
+}
+
+/* Ensure the fifth column (Nội dung) occupies as much space as possible */
+.simulated-screen th:nth-child(5),
+.simulated-screen td:nth-child(5) {
+    width: auto !important;
+}
