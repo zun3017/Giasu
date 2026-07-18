@@ -591,7 +591,7 @@
                     <h3 style="color: #8E4DFF; margin: 0 0 15px 0; font-size: 18px; font-weight:700;"><i class="fa-regular fa-calendar-alt"></i> Thời khóa biểu tổng hợp</h3>
                     <div class="desktop-table-view">
                         <div class="table-wrapper" style="width: 100%; overflow-x: auto; border-radius: 12px;">
-                            <table style="width:100%; border-collapse:collapse; min-width: 1100px;">
+                            <table style="width:100%; border-collapse:collapse;">
                                 <thead>
                                     <tr style="background-color: rgba(91, 46, 255, 0.1); color:#FFF;">
                                         <th style="padding:12px 16px; font-size:13px; font-weight:600;">Học sinh</th>
@@ -983,7 +983,7 @@
                         </h3>
                         <div class="desktop-table-view">
                             <div class="table-wrapper" style="width: 100%; overflow-x: auto; border-radius: 12px;">
-                                <table style="width:100%; border-collapse:collapse; min-width: 1100px;">
+                                <table style="width:100%; border-collapse:collapse;">
                                     <thead>
                                         <tr style="background-color: rgba(91, 46, 255, 0.1); color:#FFF;">
                                             <th style="padding:12px 16px; font-size:13px; font-weight:600; text-align: center; width:105px;" title="Tích chọn để đóng học phí hàng loạt cho tất cả các buổi học chưa đóng">
@@ -992,14 +992,14 @@
                                                     <span style="font-size:12px; font-weight:bold; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-wallet" style="color:#10B981;"></i> Đóng tiền</span>
                                                 </div>
                                             </th>
-                                            <th style="padding:12px 16px; font-size:13px; font-weight:600; text-align: center; width: 60px;">Tuần</th>
-                                            <th style="padding:12px 16px; font-size:13px; font-weight:600; text-align: center; width: 80px;">Ngày dạy</th>
-                                            <th style="padding:12px 16px; font-size:13px; font-weight:600; text-align: center; width: 85px;">Môn</th>
-                                            <th style="padding:12px 16px; font-size:13px; font-weight:600; text-align: left; min-width: 350px;">Nội dung</th>
-                                            <th style="padding:12px 16px; font-size:13px; font-weight:600; text-align: center; width: 130px;">Đánh giá BTVN</th>
-                                            <th style="padding:12px 16px; font-size:13px; font-weight:600; text-align: center; width: 100px;">KT Đầu giờ</th>
-                                            <th style="padding:12px 16px; font-size:13px; font-weight:600; text-align: center; width: 100px;">KT Định kì</th>
-                                            <th style="padding:12px 16px; font-size:13px; font-weight:600; text-align: center; width: 100px;">Trạng thái</th>
+                                            <th style="padding:12px 16px; font-size:13px; font-weight:600; text-align: center; ">Tuần</th>
+                                            <th style="padding:12px 16px; font-size:13px; font-weight:600; text-align: center; ">Ngày dạy</th>
+                                            <th style="padding:12px 16px; font-size:13px; font-weight:600; text-align: center; ">Môn</th>
+                                            <th style="padding:12px 16px; font-size:13px; font-weight:600; text-align: left; ">Nội dung</th>
+                                            <th style="padding:12px 16px; font-size:13px; font-weight:600; text-align: center; ">Đánh giá BTVN</th>
+                                            <th style="padding:12px 16px; font-size:13px; font-weight:600; text-align: center; ">KT Đầu giờ</th>
+                                            <th style="padding:12px 16px; font-size:13px; font-weight:600; text-align: center; ">KT Định kì</th>
+                                            <th style="padding:12px 16px; font-size:13px; font-weight:600; text-align: center; ">Trạng thái</th>
                                             <th style="padding:12px 16px; font-size:13px; font-weight:600; text-align: center; width: 90px;">Thao tác</th>
                                         </tr>
                                     </thead>
