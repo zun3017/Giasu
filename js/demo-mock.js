@@ -568,6 +568,12 @@
         
         contentArea.innerHTML = `
             <div class="simulated-screen" style="background:#06091F; border:1px solid #FFD23F; border-radius:20px; padding:30px; box-shadow:0 0 50px rgba(255,210,63,0.15);">
+                <!-- Dòng chữ chạy thông báo từ Admin (Demo) -->
+                <div class="smooth-marquee-container" style="display: block; margin: -30px -30px 20px -30px; border-top-left-radius: 20px; border-top-right-radius: 20px; border-bottom: 1px solid rgba(255, 210, 63, 0.35); overflow: hidden;">
+                    <div class="smooth-marquee-wrapper">
+                        <div class="smooth-marquee-content"><i class="fa-solid fa-circle-exclamation" style="margin-right: 8px;"></i>Bản Demo Giả Lập Hệ Thống Gia Sư & Học Sinh Cực Kỳ Trực Quan!</div>
+                    </div>
+                </div>
                 <!-- Header -->
                 <div class="tutor-header" style="background: rgba(11, 8, 38, 0.95); border: 1px solid #FFD23F; border-radius: 20px; padding: 20px 30px; margin-bottom: 20px; box-shadow: 0 0 30px rgba(255, 210, 63, 0.15); display:flex; justify-content:space-between; align-items:center;">
                     <div>
@@ -994,7 +1000,7 @@
                                             <th style="padding:12px 16px; font-size:13px; font-weight:600; text-align: left;">KT Đầu giờ</th>
                                             <th style="padding:12px 16px; font-size:13px; font-weight:600; text-align: left;">KT Định kì</th>
                                             <th style="padding:12px 16px; font-size:13px; font-weight:600; text-align: left;">Trạng thái</th>
-                                            <th style="padding:12px 16px; font-size:13px; font-weight:600; text-align: center; width: 50px;">Sửa</th>
+                                            <th style="padding:12px 16px; font-size:13px; font-weight:600; text-align: center; width: 90px;">Thao tác</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -1003,7 +1009,7 @@
                                                 <td style="padding:12px 16px; text-align: center;"><input type="checkbox" checked style="cursor: pointer; width:15px; height:15px;"></td>
                                                 <td style="padding:12px 16px; font-size:13px;">${student.logs.length - idx}</td>
                                                 <td style="padding:12px 16px; font-size: 13px; white-space:nowrap;">${log.date}</td>
-                                                <td style="padding:12px 16px; font-size: 13px;">${student.class.split(" ")[1] || "Toán"}</td>
+                                                <td style="padding:12px 16px; font-size: 13px;">${student.class.split(" ")[2] || student.class.split(" ")[1] || "Toán"}</td>
                                                 <td style="padding:12px 16px; font-size: 13px; font-weight:500; color:#FFF;"><strong>${log.topic}</strong>. ${log.comment}</td>
                                                 <td style="padding:12px 16px; font-size: 13px;">
                                                     <span class="status-badge ${log.btvn === 'Đạt' ? 'badge-hoanthanh' : 'badge-thieu'}">${log.btvn === 'Đạt' ? 'Hoàn thành' : 'Thiếu'}</span>
@@ -1013,7 +1019,10 @@
                                                 <td style="padding:12px 16px; font-size: 13px;">
                                                     <span class="status-badge badge-dahoc">Đã học</span>
                                                 </td>
-                                                <td style="padding:12px 16px; text-align:center;"><button class="btn-icon-edit" style="background:none; border:none; color:#8E4DFF; cursor:pointer;"><i class="fa-solid fa-pen-to-square"></i></button></td>
+                                                <td style="padding:12px 16px; text-align:center; white-space: nowrap;">
+                                                    <button onclick="openDemoAddLessonModal(${student.logs.length - 1 - idx})" class="btn-icon-edit" style="background:none; border:none; color:#8E4DFF; cursor:pointer;" title="Sửa buổi học"><i class="fa-solid fa-pen-to-square"></i></button>
+                                                    <button onclick="duplicateDemoLesson(${student.logs.length - 1 - idx})" class="btn-icon-edit" style="background:none; border:none; color:#10B981; cursor:pointer; margin-left:6px;" title="Nhân bản buổi học"><i class="fa-solid fa-copy"></i></button>
+                                                </td>
                                             </tr>
                                         `).join('')}
                                     </tbody>
@@ -1048,7 +1057,7 @@
                                         <div class="accordion-body-row" style="display:flex; justify-content:space-between; margin-bottom:8px; font-size:13px;"><span class="accordion-body-label" style="color:#A6ADCE;">Kiểm tra đầu giờ</span><span class="accordion-body-val" style="font-weight:600; color:#A78BFA;">${log.valDG !== null ? log.valDG.toFixed(1) : 'Không có'}</span></div>
                                         <div class="accordion-body-row" style="display:flex; justify-content:space-between; margin-bottom:8px; font-size:13px;"><span class="accordion-body-label" style="color:#A6ADCE;">Kiểm tra định kì</span><span class="accordion-body-val" style="font-weight:600; color:#FFD23F;">${log.valDK !== null ? log.valDK.toFixed(1) : 'Không có'}</span></div>
                                         <div style="margin-top: 10px; text-align: right;">
-                                            <button class="action-btn-hw" style="border-color:#8E4DFF; color:#8E4DFF; cursor:pointer;" onclick="alert('Đây là tính năng giả lập không thay đổi dữ liệu thật!')"><i class="fa-solid fa-pen-to-square"></i> Chỉnh sửa</button>
+                                            <button class="action-btn-hw" style="border-color:#8E4DFF; color:#8E4DFF; cursor:pointer;" onclick="openDemoAddLessonModal(${student.logs.length - 1 - idx})"><i class="fa-solid fa-pen-to-square"></i> Chỉnh sửa</button>
                                         </div>
                                     </div>
                                 </div>
@@ -1109,10 +1118,11 @@
     };
 
     // 7. Định nghĩa các hàm toàn cục để đóng mở và xử lý Modal Thêm Buổi Học (Demo)
-    window.openDemoAddLessonModal = function() {
+    window.openDemoAddLessonModal = function(logIdx) {
         const student = demoStudents[currentDemoStudentIndex];
+        const isEdit = (logIdx !== undefined);
+        const log = isEdit ? student.logs[logIdx] : null;
         
-        // Tạo tệp overlay modal
         const modal = document.createElement("div");
         modal.id = "demoAddLessonModalOverlay";
         modal.className = "modal-overlay";
@@ -1127,32 +1137,41 @@
         modal.style.alignItems = "center";
         modal.style.zIndex = "10000";
         
+        const weekVal = isEdit ? (logIdx + 1) : (student.logs.length + 1);
+        const dateVal = isEdit ? log.date : getTodayFormatted();
+        const monVal = student.class.split(" ")[2] || student.class.split(" ")[1] || "Toán";
+        const btvnVal = isEdit ? (log.btvn === "Đạt" ? "Hoàn thành" : "Thiếu") : "Hoàn thành";
+        const valDGVal = isEdit ? (log.valDG !== null ? log.valDG : "Không có") : "8.0";
+        const valDKVal = isEdit ? (log.valDK !== null ? log.valDK : "Không có") : "8.5";
+        const commentVal = isEdit ? (log.topic + ". " + log.comment) : "Tập trung ôn luyện tốt lý thuyết lượng giác.";
+        
         modal.innerHTML = `
             <div class="modal-content" style="background:#0b0826; border:2px solid #8e4dff; border-radius:20px; max-width:600px; width:90%; padding:25px; box-shadow:0 0 50px rgba(91,46,255,0.4); font-family: 'Inter', sans-serif; position:relative; z-index:10001; box-sizing:border-box;">
                 <div class="modal-header" style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(255,255,255,0.05); padding-bottom:12px; margin-bottom:15px;">
-                    <h3 style="color:#FFD23F; margin:0; font-size:16px; font-weight:800;"><i class="fa-solid fa-calendar-plus"></i> Thêm nhật ký buổi học (Demo)</h3>
+                    <h3 style="color:#FFD23F; margin:0; font-size:16px; font-weight:800;"><i class="fa-solid fa-calendar-plus"></i> ${isEdit ? 'Sửa nhật ký buổi học (Demo)' : 'Thêm nhật ký buổi học (Demo)'}</h3>
                     <button onclick="closeDemoAddLessonModal()" class="modal-close" style="background:none; border:none; color:#FFF; font-size:22px; cursor:pointer;">&times;</button>
                 </div>
+                <input type="hidden" id="demoLesIdx" value="${isEdit ? logIdx : ''}">
                 <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px;">
                     <div style="display:flex; flex-direction:column; gap:4px;">
                         <label style="color:#A6ADCE; font-size:11.5px; font-weight:500;">Tuần dạy</label>
-                        <input type="text" id="demoLesTuan" placeholder="Ví dụ: 5" value="${student.logs.length + 1}" style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:8px; padding:8px 12px; color:#FFF; font-size:12.5px; outline:none;">
+                        <input type="text" id="demoLesTuan" placeholder="Ví dụ: 5" value="${weekVal}" style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:8px; padding:8px 12px; color:#FFF; font-size:12.5px; outline:none;">
                     </div>
                     <div style="display:flex; flex-direction:column; gap:4px;">
                         <label style="color:#A6ADCE; font-size:11.5px; font-weight:500;">Ngày học</label>
-                        <input type="text" id="demoLesNgay" placeholder="dd/mm/yyyy" value="${getTodayFormatted()}" style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:8px; padding:8px 12px; color:#FFF; font-size:12.5px; outline:none;">
+                        <input type="text" id="demoLesNgay" placeholder="dd/mm/yyyy" value="${dateVal}" style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:8px; padding:8px 12px; color:#FFF; font-size:12.5px; outline:none;">
                     </div>
                 </div>
                 <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px;">
                     <div style="display:flex; flex-direction:column; gap:4px;">
                         <label style="color:#A6ADCE; font-size:11.5px; font-weight:500;">Môn học</label>
                         <select id="demoLesMon" style="background:#04020a; border:1px solid rgba(255,255,255,0.08); border-radius:8px; padding:8px 12px; color:#FFF; font-size:12.5px; outline:none; height:37px;">
-                            <option value="Toán học">Toán học</option>
-                            <option value="Vật lý">Vật lý</option>
-                            <option value="Hóa học">Hóa học</option>
-                            <option value="Khoa học tự nhiên">Khoa học tự nhiên</option>
-                            <option value="Ngữ văn">Ngữ văn</option>
-                            <option value="Tiếng anh">Tiếng anh</option>
+                            <option value="Toán học" ${monVal.indexOf("Toán") !== -1 ? "selected" : ""}>Toán học</option>
+                            <option value="Vật lý" ${monVal.indexOf("Lý") !== -1 ? "selected" : ""}>Vật lý</option>
+                            <option value="Hóa học" ${monVal.indexOf("Hóa") !== -1 ? "selected" : ""}>Hóa học</option>
+                            <option value="Khoa học tự nhiên" ${monVal.indexOf("Tự nhiên") !== -1 ? "selected" : ""}>Khoa học tự nhiên</option>
+                            <option value="Ngữ văn" ${monVal.indexOf("Văn") !== -1 ? "selected" : ""}>Ngữ văn</option>
+                            <option value="Tiếng anh" ${monVal.indexOf("Anh") !== -1 ? "selected" : ""}>Tiếng anh</option>
                         </select>
                     </div>
                     <div style="display:flex; flex-direction:column; gap:4px;">
@@ -1167,29 +1186,29 @@
                 <div style="display:flex; flex-direction:column; gap:4px; margin-bottom:12px;">
                     <label style="color:#A6ADCE; font-size:11.5px; font-weight:500;">Đánh giá Bài tập về nhà</label>
                     <select id="demoLesBtvn" style="background:#04020a; border:1px solid rgba(255,255,255,0.08); border-radius:8px; padding:8px 12px; color:#FFF; font-size:12.5px; outline:none; height:37px; width:100%;">
-                        <option value="Hoàn thành">Hoàn thành</option>
-                        <option value="Thiếu">Thiếu</option>
-                        <option value="Không làm">Không làm</option>
-                        <option value="Phụ huynh nhớ nhắc nhở bé làm bài tập gia sư mới giao">Phụ huynh nhớ nhắc nhở bé làm bài tập gia sư mới giao</option>
+                        <option value="Hoàn thành" ${btvnVal === "Hoàn thành" ? "selected" : ""}>Hoàn thành</option>
+                        <option value="Thiếu" ${btvnVal === "Thiếu" ? "selected" : ""}>Thiếu</option>
+                        <option value="Không làm" ${btvnVal === "Không làm" ? "selected" : ""}>Không làm</option>
+                        <option value="Phụ huynh nhớ nhắc nhở bé làm bài tập gia sư mới giao" ${btvnVal.indexOf("Phụ huynh") !== -1 ? "selected" : ""}>Phụ huynh nhớ nhắc nhở bé làm bài tập gia sư mới giao</option>
                     </select>
                 </div>
                 <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px;">
                     <div style="display:flex; flex-direction:column; gap:4px;">
                         <label style="color:#A6ADCE; font-size:11.5px; font-weight:500;">Điểm kiểm tra đầu giờ</label>
-                        <input type="text" id="demoLesDiemDau" placeholder="Ví dụ: 8.5 hoặc Không có" value="8.0" style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:8px; padding:8px 12px; color:#FFF; font-size:12.5px; outline:none;">
+                        <input type="text" id="demoLesDiemDau" placeholder="Ví dụ: 8.5 hoặc Không có" value="${valDGVal}" style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:8px; padding:8px 12px; color:#FFF; font-size:12.5px; outline:none;">
                     </div>
                     <div style="display:flex; flex-direction:column; gap:4px;">
                         <label style="color:#A6ADCE; font-size:11.5px; font-weight:500;">Điểm kiểm tra định kì</label>
-                        <input type="text" id="demoLesDiemDinhKi" placeholder="Ví dụ: 9.0 hoặc Không có" value="8.5" style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:8px; padding:8px 12px; color:#FFF; font-size:12.5px; outline:none;">
+                        <input type="text" id="demoLesDiemDinhKi" placeholder="Ví dụ: 9.0 hoặc Không có" value="${valDKVal}" style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:8px; padding:8px 12px; color:#FFF; font-size:12.5px; outline:none;">
                     </div>
                 </div>
                 <div style="display:flex; flex-direction:column; gap:4px; margin-bottom:15px;">
                     <label style="color:#A6ADCE; font-size:11.5px; font-weight:500;">Nội dung bài học & Nhận xét</label>
-                    <textarea id="demoLesNoiDung" rows="2" placeholder="Nhập nội dung giảng dạy và nhận xét chi tiết..." style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:8px; padding:8px 12px; color:#FFF; font-size:12.5px; outline:none; resize:none; font-family:sans-serif;box-sizing:border-box;width:100%;">Tập trung ôn luyện tốt lý thuyết lượng giác.</textarea>
+                    <textarea id="demoLesNoiDung" rows="2" placeholder="Nhập nội dung giảng dạy và nhận xét chi tiết..." style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:8px; padding:8px 12px; color:#FFF; font-size:12.5px; outline:none; resize:none; font-family:sans-serif;box-sizing:border-box;width:100%;">${commentVal}</textarea>
                 </div>
                 <div style="display:flex; justify-content:flex-end; gap:8px; border-top:1px solid rgba(255,255,255,0.05); padding-top:12px;">
                     <button onclick="closeDemoAddLessonModal()" style="width:90px; padding:8px; border-radius:6px; font-weight:bold; font-size:12px; border:1px solid rgba(255,255,255,0.1); background:none; color:#FFF; cursor:pointer;">Đóng</button>
-                    <button onclick="saveDemoLessonLog()" style="width:110px; padding:8px; border-radius:6px; font-weight:bold; font-size:12px; border:none; background:linear-gradient(135deg, #8E4DFF 0%, #5B21B6 100%); color:#FFF; cursor:pointer;">Cập nhật</button>
+                    <button onclick="saveDemoLessonLog()" style="width:110px; padding:8px; border-radius:6px; font-weight:bold; font-size:12px; border:none; background:linear-gradient(135deg, #8E4DFF 0%, #5B21B6 100%); color:#FFF; cursor:pointer;">${isEdit ? 'Cập nhật' : 'Thêm mới'}</button>
                 </div>
             </div>
         `;
@@ -1202,33 +1221,59 @@
     };
 
     window.saveDemoLessonLog = function() {
+        const idxVal = document.getElementById("demoLesIdx").value;
+        const isEdit = (idxVal !== "");
+        const logIdx = isEdit ? parseInt(idxVal) : -1;
+        
         const dateInput = document.getElementById("demoLesNgay").value.trim() || getTodayFormatted();
-        const topicInput = document.getElementById("demoLesTrangThai").value + " - " + document.getElementById("demoLesMon").value;
+        const monSelect = document.getElementById("demoLesMon").value;
+        const statusSelect = document.getElementById("demoLesTrangThai").value;
         const btvnSelect = document.getElementById("demoLesBtvn").value;
-        const valDGInput = parseFloat(document.getElementById("demoLesDiemDau").value);
-        const valDKInput = parseFloat(document.getElementById("demoLesDiemDinhKi").value);
+        
+        var valDGInput = document.getElementById("demoLesDiemDau").value.trim();
+        var valDKInput = document.getElementById("demoLesDiemDinhKi").value.trim();
+        var dgNum = (valDGInput === "" || valDGInput.toLowerCase() === "không có") ? null : parseFloat(valDGInput);
+        var dkNum = (valDKInput === "" || valDKInput.toLowerCase() === "không có") ? null : parseFloat(valDKInput);
+        
         const commentText = document.getElementById("demoLesNoiDung").value.trim();
-
-        // Cập nhật cấu trúc logs của student
         const student = demoStudents[currentDemoStudentIndex];
-        student.logs.push({
+        
+        var topic = monSelect;
+        var comment = commentText;
+        if (commentText.includes(". ")) {
+            var parts = commentText.split(". ");
+            topic = parts[0].trim();
+            comment = parts.slice(1).join(". ").trim();
+        } else if (commentText.includes(".")) {
+            var parts = commentText.split(".");
+            topic = parts[0].trim();
+            comment = parts.slice(1).join(".").trim();
+        }
+        
+        var newLog = {
             date: dateInput,
-            topic: topicInput,
-            valDG: isNaN(valDGInput) ? null : valDGInput,
-            valDK: isNaN(valDKInput) ? null : valDKInput,
+            topic: topic,
+            valDG: isNaN(dgNum) ? null : dgNum,
+            valDK: isNaN(dkNum) ? null : dkNum,
             btvn: btvnSelect === 'Hoàn thành' ? 'Đạt' : 'Chưa đạt',
-            comment: commentText
-        });
+            comment: comment
+        };
 
-        // Tính toán lại điểm số
+        if (isEdit) {
+            student.logs[logIdx] = newLog;
+        } else {
+            student.logs.push(newLog);
+            student.buoiHoc += 1;
+        }
+
         let sum = 0;
         let count = 0;
         student.logs.forEach(log => {
-            if (log.valDK !== null) {
+            if (log.valDK !== null && !isNaN(log.valDK)) {
                 sum += log.valDK;
                 count++;
             }
-            if (log.valDG !== null) {
+            if (log.valDG !== null && !isNaN(log.valDG)) {
                 sum += log.valDG;
                 count++;
             }
@@ -1236,21 +1281,35 @@
         if (count > 0) {
             student.gpa = (sum / count).toFixed(1);
         }
-        student.buoiHoc += 1;
 
         closeDemoAddLessonModal();
-
-        // Render lại và tự động chuyển về Giao diện Học sinh để xem sự tiến bộ
         renderTutorDemo();
-        setTimeout(() => {
-            const studentTab = document.querySelector('.demo-tab-btn[data-role="student"]');
-            const tutorTab = document.querySelector('.demo-tab-btn[data-role="tutor"]');
-            if (tutorTab && studentTab) {
-                tutorTab.classList.remove("active");
-                studentTab.classList.add("active");
-                renderStudentDemo();
-            }
-        }, 1200);
+
+        if (!isEdit) {
+            setTimeout(() => {
+                const studentTab = document.querySelector('.demo-tab-btn[data-role="student"]');
+                const tutorTab = document.querySelector('.demo-tab-btn[data-role="tutor"]');
+                if (tutorTab && studentTab) {
+                    tutorTab.classList.remove("active");
+                    studentTab.classList.add("active");
+                    renderStudentDemo();
+                }
+            }, 800);
+        }
+    };
+
+    window.duplicateDemoLesson = function(logIdx) {
+        const student = demoStudents[currentDemoStudentIndex];
+        const log = student.logs[logIdx];
+        if (!log) return;
+        
+        const duplicated = Object.assign({}, log);
+        duplicated.date = getTodayFormatted(); 
+        student.logs.push(duplicated);
+        student.buoiHoc += 1;
+        
+        renderTutorDemo();
+        alert("Nhân bản thành công buổi học trong bản Demo!");
     };
 
     // 7. Các hàm điều khiển tab Bài tập trong giao diện Gia sư Demo
