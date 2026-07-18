@@ -567,9 +567,9 @@
         const contentArea = document.getElementById("demoContentArea");
         
         contentArea.innerHTML = `
-            <div class="simulated-screen" style="background:#06091F; border:1px solid #FFD23F; border-radius:20px; padding: 24px 20px; box-shadow:0 0 50px rgba(255,210,63,0.15);">
+            <div class="simulated-screen" style="background:#06091F; border:1px solid #FFD23F; border-radius:20px; padding: 18px 12px; box-shadow:0 0 50px rgba(255,210,63,0.15);">
                 <!-- Dòng chữ chạy thông báo từ Admin (Demo) -->
-                <div class="smooth-marquee-container" style="display: block; margin: -24px -20px 20px -20px; border-top-left-radius: 20px; border-top-right-radius: 20px; border-bottom: 1px solid rgba(255, 210, 63, 0.35); overflow: hidden;">
+                <div class="smooth-marquee-container" style="display: block; margin: -18px -12px 15px -12px; border-top-left-radius: 20px; border-top-right-radius: 20px; border-bottom: 1px solid rgba(255, 210, 63, 0.35); overflow: hidden;">
                     <div class="smooth-marquee-wrapper">
                         <div class="smooth-marquee-content"><i class="fa-solid fa-circle-exclamation" style="margin-right: 8px;"></i>Bản Demo Giả Lập Hệ Thống Gia Sư & Học Sinh Cực Kỳ Trực Quan!</div>
                     </div>

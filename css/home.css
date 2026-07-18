@@ -688,12 +688,24 @@
 
 .simulated-screen th,
 .simulated-screen td {
-    padding: 10px 10px !important;
-    font-size: 13px !important;
+    padding: 8px 6px !important;
+    font-size: 12.5px !important;
+}
+
+.simulated-screen th {
+    white-space: normal !important; /* Allow header text to wrap, reducing minimum required width */
+    vertical-align: middle !important;
 }
 
 /* Ensure the fifth column (Nội dung) occupies as much space as possible */
 .simulated-screen th:nth-child(5),
 .simulated-screen td:nth-child(5) {
     width: auto !important;
+}
+
+/* Reduce container padding on desktop to gain more horizontal space */
+@media (min-width: 1025px) {
+    .demo-container {
+        padding: 15px !important;
+    }
 }
