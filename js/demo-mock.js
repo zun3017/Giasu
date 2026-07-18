@@ -567,9 +567,9 @@
         const contentArea = document.getElementById("demoContentArea");
         
         contentArea.innerHTML = `
-            <div class="simulated-screen" style="background:#06091F; border:1px solid #FFD23F; border-radius:20px; padding:30px; box-shadow:0 0 50px rgba(255,210,63,0.15);">
+            <div class="simulated-screen" style="background:#06091F; border:1px solid #FFD23F; border-radius:20px; padding: 24px 20px; box-shadow:0 0 50px rgba(255,210,63,0.15);">
                 <!-- Dòng chữ chạy thông báo từ Admin (Demo) -->
-                <div class="smooth-marquee-container" style="display: block; margin: -30px -30px 20px -30px; border-top-left-radius: 20px; border-top-right-radius: 20px; border-bottom: 1px solid rgba(255, 210, 63, 0.35); overflow: hidden;">
+                <div class="smooth-marquee-container" style="display: block; margin: -24px -20px 20px -20px; border-top-left-radius: 20px; border-top-right-radius: 20px; border-bottom: 1px solid rgba(255, 210, 63, 0.35); overflow: hidden;">
                     <div class="smooth-marquee-wrapper">
                         <div class="smooth-marquee-content"><i class="fa-solid fa-circle-exclamation" style="margin-right: 8px;"></i>Bản Demo Giả Lập Hệ Thống Gia Sư & Học Sinh Cực Kỳ Trực Quan!</div>
                     </div>
@@ -983,7 +983,7 @@
                         </h3>
                         <div class="desktop-table-view">
                             <div class="table-wrapper" style="width: 100%; overflow-x: auto; border-radius: 12px;">
-                                <table style="width:100%; border-collapse:collapse;">
+                                <table style="width:100%; border-collapse:collapse; min-width: 980px;">
                                     <thead>
                                         <tr style="background-color: rgba(91, 46, 255, 0.1); color:#FFF;">
                                             <th style="padding:12px 16px; font-size:13px; font-weight:600; text-align: center; width:105px;" title="Tích chọn để đóng học phí hàng loạt cho tất cả các buổi học chưa đóng">
@@ -995,7 +995,7 @@
                                             <th style="padding:12px 16px; font-size:13px; font-weight:600; text-align: center; ">Tuần</th>
                                             <th style="padding:12px 16px; font-size:13px; font-weight:600; text-align: center; ">Ngày dạy</th>
                                             <th style="padding:12px 16px; font-size:13px; font-weight:600; text-align: center; ">Môn</th>
-                                            <th style="padding:12px 16px; font-size:13px; font-weight:600; text-align: left; ">Nội dung</th>
+                                            <th style="padding:12px 16px; font-size:13px; font-weight:600; text-align: left; min-width: 280px;">Nội dung</th>
                                             <th style="padding:12px 16px; font-size:13px; font-weight:600; text-align: center; ">Đánh giá BTVN</th>
                                             <th style="padding:12px 16px; font-size:13px; font-weight:600; text-align: center; ">KT Đầu giờ</th>
                                             <th style="padding:12px 16px; font-size:13px; font-weight:600; text-align: center; ">KT Định kì</th>

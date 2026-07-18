@@ -635,6 +635,13 @@
     -webkit-text-fill-color: transparent;
 }
 
+/* Make demo section wider on desktop */
+@media (min-width: 1025px) {
+    #sectionDemo {
+        max-width: 1420px;
+    }
+}
+
 /* Responsive style for interactive demo widget on mobile */
 @media (max-width: 768px) {
     #sectionDemo {
