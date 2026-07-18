@@ -992,14 +992,14 @@
                                                     <span style="font-size:12px; font-weight:bold; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-wallet" style="color:#10B981;"></i> Đóng tiền</span>
                                                 </div>
                                             </th>
-                                            <th style="padding:12px 16px; font-size:13px; font-weight:600; text-align: left;">Tuần</th>
-                                            <th style="padding:12px 16px; font-size:13px; font-weight:600; text-align: left;">Ngày dạy</th>
-                                            <th style="padding:12px 16px; font-size:13px; font-weight:600; text-align: left;">Môn</th>
+                                            <th style="padding:12px 16px; font-size:13px; font-weight:600; text-align: center; width: 60px;">Tuần</th>
+                                            <th style="padding:12px 16px; font-size:13px; font-weight:600; text-align: center; width: 80px;">Ngày dạy</th>
+                                            <th style="padding:12px 16px; font-size:13px; font-weight:600; text-align: center; width: 85px;">Môn</th>
                                             <th style="padding:12px 16px; font-size:13px; font-weight:600; text-align: left;">Nội dung</th>
-                                            <th style="padding:12px 16px; font-size:13px; font-weight:600; text-align: left;">Đánh giá BTVN</th>
-                                            <th style="padding:12px 16px; font-size:13px; font-weight:600; text-align: left;">KT Đầu giờ</th>
-                                            <th style="padding:12px 16px; font-size:13px; font-weight:600; text-align: left;">KT Định kì</th>
-                                            <th style="padding:12px 16px; font-size:13px; font-weight:600; text-align: left;">Trạng thái</th>
+                                            <th style="padding:12px 16px; font-size:13px; font-weight:600; text-align: center; width: 130px;">Đánh giá BTVN</th>
+                                            <th style="padding:12px 16px; font-size:13px; font-weight:600; text-align: center; width: 100px;">KT Đầu giờ</th>
+                                            <th style="padding:12px 16px; font-size:13px; font-weight:600; text-align: center; width: 100px;">KT Định kì</th>
+                                            <th style="padding:12px 16px; font-size:13px; font-weight:600; text-align: center; width: 100px;">Trạng thái</th>
                                             <th style="padding:12px 16px; font-size:13px; font-weight:600; text-align: center; width: 90px;">Thao tác</th>
                                         </tr>
                                     </thead>
@@ -1007,21 +1007,21 @@
                                         ${student.logs.slice().reverse().map((log, idx) => `
                                             <tr style="border-bottom:1px solid rgba(142, 77, 255, 0.2); color:#E2D1FF;">
                                                 <td style="padding:12px 16px; text-align: center;"><input type="checkbox" checked style="cursor: pointer; width:15px; height:15px;"></td>
-                                                <td style="padding:12px 16px; font-size:13px;">${student.logs.length - idx}</td>
-                                                <td style="padding:12px 16px; font-size: 13px; white-space:nowrap;">${log.date}</td>
-                                                <td style="padding:12px 16px; font-size: 13px;">${student.class.split(" ")[2] || student.class.split(" ")[1] || "Toán"}</td>
-                                                <td style="padding:12px 16px; font-size: 13px; font-weight:500; color:#FFF;"><strong>${log.topic}</strong>. ${log.comment}</td>
-                                                <td style="padding:12px 16px; font-size: 13px;">
+                                                <td style="padding:12px 16px; font-size:13px; text-align: center;">${student.logs.length - idx}</td>
+                                                <td style="padding:12px 16px; font-size: 13px; white-space:nowrap; text-align: center;">${log.date}</td>
+                                                <td style="padding:12px 16px; font-size: 13px; text-align: center;">${student.class.split(" ")[2] || student.class.split(" ")[1] || "Toán"}</td>
+                                                <td style="padding:12px 16px; font-size: 13px; font-weight:500; color:#FFF; text-align: left;"><strong>${log.topic}</strong>. ${log.comment}</td>
+                                                <td style="padding:12px 16px; font-size: 13px; text-align: center;">
                                                     <span class="status-badge ${log.btvn === 'Đạt' ? 'badge-hoanthanh' : 'badge-thieu'}">${log.btvn === 'Đạt' ? 'Hoàn thành' : 'Thiếu'}</span>
                                                 </td>
-                                                <td style="padding:12px 16px; font-size: 13px; color:#A78BFA; font-weight:700;">${log.valDG !== null ? log.valDG.toFixed(1) : 'Không có'}</td>
-                                                <td style="padding:12px 16px; font-size: 13px; color:#FFD23F; font-weight:700;">${log.valDK !== null ? log.valDK.toFixed(1) : 'Không có'}</td>
-                                                <td style="padding:12px 16px; font-size: 13px;">
+                                                <td style="padding:12px 16px; font-size: 13px; color:#A78BFA; font-weight:700; text-align: center;">${log.valDG !== null ? log.valDG.toFixed(1) : 'Không có'}</td>
+                                                <td style="padding:12px 16px; font-size: 13px; color:#FFD23F; font-weight:700; text-align: center;">${log.valDK !== null ? log.valDK.toFixed(1) : 'Không có'}</td>
+                                                <td style="padding:12px 16px; font-size: 13px; text-align: center;">
                                                     <span class="status-badge badge-dahoc">Đã học</span>
                                                 </td>
                                                 <td style="padding:12px 16px; text-align:center; white-space: nowrap;">
-                                                    <button onclick="openDemoAddLessonModal(${student.logs.length - 1 - idx})" class="btn-icon-edit" style="background:none; border:none; color:#8E4DFF; cursor:pointer;" title="Sửa buổi học"><i class="fa-solid fa-pen-to-square"></i></button>
-                                                    <button onclick="duplicateDemoLesson(${student.logs.length - 1 - idx})" class="btn-icon-edit" style="background:none; border:none; color:#10B981; cursor:pointer; margin-left:6px;" title="Nhân bản buổi học"><i class="fa-solid fa-copy"></i></button>
+                                                    <button onclick="openDemoAddLessonModal(${student.logs.length - 1 - idx})" class="btn-icon-edit" style="margin: 0; padding: 4px;" title="Sửa buổi học"><i class="fa-solid fa-pen-to-square"></i></button>
+                                                    <button onclick="duplicateDemoLesson(${student.logs.length - 1 - idx})" class="btn-icon-edit" style="margin: 0 0 0 8px; padding: 4px; color: #10B981;" title="Nhân bản buổi học"><i class="fa-solid fa-copy"></i></button>
                                                 </td>
                                             </tr>
                                         `).join('')}
