@@ -1703,7 +1703,20 @@
 
         @media (max-width: 768px) {
             .homework-shortcut-left {
-                display: none; /* Ẩn hoàn toàn vì đã chuyển thành summary card */
+                display: block !important;
+                left: 10px;
+                top: 90px;
+            }
+            .hw-btn-left {
+                width: 75px;
+                height: 75px;
+                font-size: 10px;
+                border-radius: 14px;
+                padding: 6px;
+                gap: 5px;
+            }
+            .hw-btn-left i {
+                font-size: 18px;
             }
         }
 
