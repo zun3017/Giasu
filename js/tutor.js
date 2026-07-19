@@ -190,7 +190,7 @@ function formatScheduleCell(val) {
             
             // Tải dữ liệu tab Giao bài tập
             switchTutorHwTab('assign');
-            switchTutorHwSubTab('list');
+            switchTutorHwSubTab('upload');
             
             // Clear file upload selection
             clearTutorSelectedFile();
@@ -1755,6 +1755,9 @@ function openAssignHwForm() {
     document.getElementById('assignHwTitle').value = "";
     var now = new Date();
     document.getElementById('assignHwReleaseDate').value = formatDateDDMMYYYY(now);
+    if (document.getElementById('assignHwLink')) {
+        document.getElementById('assignHwLink').value = "";
+    }
     clearTutorSelectedFile();
     
     document.getElementById('btnSubmitAssignedHw').innerHTML = "Giao bài";
@@ -1822,8 +1825,11 @@ function handleTutorHwFileSelect(event) {
 
 function clearTutorSelectedFile() {
     currentTutorHwFile = null;
-    var fileInput = document.getElementById('tutorHwFileInput');
-    if (fileInput) fileInput.value = "";
+    var inputs = ['tutorHwFileInput', 'tutorHwFileInputDesktop', 'tutorHwImageInputMobile', 'tutorHwDocInputMobile'];
+    inputs.forEach(function(id) {
+        var el = document.getElementById(id);
+        if (el) el.value = "";
+    });
     
     var fileBox = document.getElementById('tutorSelectedFileBox');
     if (fileBox) fileBox.style.display = 'none';
@@ -1841,6 +1847,7 @@ function submitAssignedHomework() {
     
     var title = document.getElementById('assignHwTitle').value.trim();
     var releaseDate = document.getElementById('assignHwReleaseDate').value.trim();
+    var externalLink = document.getElementById('assignHwLink') ? document.getElementById('assignHwLink').value.trim() : "";
     var maBaiTap = currentTutorStudent.maBaiTap || "";
     
     if (!title) {
@@ -1853,9 +1860,9 @@ function submitAssignedHomework() {
         return;
     }
     
-    // Nếu là giao bài mới (không sửa) thì bắt buộc chọn file
-    if (!isEditingAssignedHw && !currentTutorHwFile) {
-        showToast("Vui lòng chọn file bài tập giao!", "error");
+    // Nếu là giao bài mới (không sửa) thì bắt buộc chọn file hoặc nhập link ngoài
+    if (!isEditingAssignedHw && !currentTutorHwFile && !externalLink) {
+        showToast("Vui lòng đính kèm file hoặc nhập link bài tập!", "error");
         return;
     }
     
@@ -1912,7 +1919,7 @@ function submitAssignedHomework() {
                     submitBtn.disabled = false;
                     showToast("Lỗi: " + err.toString(), "error");
                 })
-                .editAssignedHomework(editingAssignedHwRowIndex, title, releaseDate, fileBase64, fileName, mimeType);
+                .editAssignedHomework(editingAssignedHwRowIndex, title, releaseDate, fileBase64, fileName, mimeType, externalLink);
         } else {
             // Tải bài mới lên
             google.script.run
@@ -1942,7 +1949,7 @@ function submitAssignedHomework() {
                     submitBtn.disabled = false;
                     showToast("Lỗi: " + err.toString(), "error");
                 })
-                .uploadAssignedHomework(tutorDataGlobal.tutorPhone, currentTutorStudent.name, title, releaseDate, fileBase64, fileName, mimeType, maBaiTap);
+                .uploadAssignedHomework(tutorDataGlobal.tutorPhone, currentTutorStudent.name, title, releaseDate, fileBase64, fileName, mimeType, maBaiTap, externalLink);
         }
     };
     
@@ -2023,8 +2030,19 @@ function renderAssignedHwList(list, showAll) {
     var mobileHtml = "";
     
     visibleList.forEach(function(item, idx) {
-        var fileLink = item.fileUrl ? '<a href="' + item.fileUrl + '" target="_blank" style="color:#8E4DFF; font-weight:600; text-decoration:none; display:inline-flex; align-items:center; gap:6px;"><i class="fa-solid fa-file-pdf"></i> Xem bài tập</a>' : '<span style="color:#A6ADCE;">Không có file</span>';
+        var fileLinkHtml = item.fileUrl ? '<a href="' + item.fileUrl + '" target="_blank" style="color:#8E4DFF; font-weight:600; text-decoration:none; display:inline-flex; align-items:center; gap:6px;"><i class="fa-solid fa-file-pdf"></i> Xem file</a>' : '';
+        var extLinkHtml = item.externalLink ? '<a href="' + item.externalLink + '" target="_blank" style="color:#10B981; font-weight:600; text-decoration:none; display:inline-flex; align-items:center; gap:6px;"><i class="fa-solid fa-link"></i> Mở link</a>' : '';
         
+        var attachments = [];
+        if (fileLinkHtml) attachments.push(fileLinkHtml);
+        if (extLinkHtml) attachments.push(extLinkHtml);
+        var attachmentsHtml = attachments.join('<br>') || '<span style="color:#A6ADCE;">Không có</span>';
+        
+        var attachmentsMobile = [];
+        if (fileLinkHtml) attachmentsMobile.push(fileLinkHtml);
+        if (extLinkHtml) attachmentsMobile.push(extLinkHtml);
+        var attachmentsMobileHtml = '<div style="display:flex; flex-direction:column; gap:4px; align-items:flex-end;">' + (attachmentsMobile.join('') || '<span style="color:#A6ADCE;">Không có</span>') + '</div>';
+
         var actionsHtml = 
             '<div style="display:flex; gap:8px; justify-content:center; align-items:center;">' +
                 '<button onclick="startEditAssignedHw(' + item.rowIndex + ', \'' + item.title.replace(/'/g, "\\'") + '\', \'' + item.releaseDate + '\')" class="action-btn-hw-icon action-btn-hw-edit" title="Chỉnh sửa"><i class="fa-solid fa-pen-to-square"></i></button>' +
@@ -2036,7 +2054,7 @@ function renderAssignedHwList(list, showAll) {
             '<tr>' +
                 '<td style="color:#A6ADCE;">' + item.releaseDate + '</td>' +
                 '<td style="color:#FFF; font-weight:500;">' + item.title + '</td>' +
-                '<td>' + fileLink + '</td>' +
+                '<td>' + attachmentsHtml + '</td>' +
                 '<td style="text-align: center; vertical-align: middle;">' + actionsHtml + '</td>' +
             '</tr>';
             
@@ -2053,7 +2071,7 @@ function renderAssignedHwList(list, showAll) {
         mobileHtml += "  </div>";
         mobileHtml += "  <div class='accordion-body' id='assign-hw-body-" + idx + "' style='display: none;'>";
         mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Ngày giao</span><span class='accordion-body-val'>" + item.releaseDate + "</span></div>";
-        mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Tài liệu</span><span class='accordion-body-val'>" + fileLink + "</span></div>";
+        mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Đính kèm</span><span class='accordion-body-val'>" + attachmentsMobileHtml + "</span></div>";
         mobileHtml += "    <div class='accordion-body-row' style='margin-top: 5px;'><span class='accordion-body-label'>Thao tác</span>";
         mobileHtml += "      <span class='accordion-body-val' style='display:inline-flex; gap:10px;'>";
         mobileHtml += "        <button onclick=\"startEditAssignedHw(" + item.rowIndex + ", '" + item.title.replace(/'/g, "\\'") + "', '" + item.releaseDate + "')\" class='action-btn-hw' style='border-color:#F59E0B; color:#F59E0B; cursor:pointer;'><i class='fa-solid fa-pen-to-square'></i> Sửa</button>";
@@ -2112,8 +2130,22 @@ var currentTutorEditHwFile = null;
 
 function startEditAssignedHw(rowIndex, title, releaseDate) {
     editingAssignedHwRowIndex = rowIndex;
+    
+    var currentLink = "";
+    if (assignedHwListGlobal) {
+        var foundHw = assignedHwListGlobal.find(function(item) {
+            return item.rowIndex === rowIndex;
+        });
+        if (foundHw && foundHw.externalLink) {
+            currentLink = foundHw.externalLink;
+        }
+    }
+    
     document.getElementById('editAssignHwTitle').value = title;
     document.getElementById('editAssignHwReleaseDate').value = releaseDate;
+    if (document.getElementById('editAssignHwLink')) {
+        document.getElementById('editAssignHwLink').value = currentLink;
+    }
     clearTutorEditSelectedFile();
     
     document.getElementById('editAssignedHwModal').style.display = 'flex';
@@ -2154,6 +2186,7 @@ function clearTutorEditSelectedFile() {
 function submitEditAssignedHomework() {
     var title = document.getElementById('editAssignHwTitle').value.trim();
     var releaseDate = document.getElementById('editAssignHwReleaseDate').value.trim();
+    var externalLink = document.getElementById('editAssignHwLink') ? document.getElementById('editAssignHwLink').value.trim() : "";
     
     if (!title) {
         showToast("Vui lòng nhập Tên bài tập!", "error");
@@ -2210,7 +2243,7 @@ function submitEditAssignedHomework() {
                 submitBtn.disabled = false;
                 showToast("Lỗi: " + err.toString(), "error");
             })
-            .editAssignedHomework(editingAssignedHwRowIndex, title, releaseDate, fileBase64, fileName, mimeType);
+            .editAssignedHomework(editingAssignedHwRowIndex, title, releaseDate, fileBase64, fileName, mimeType, externalLink);
     };
     
     if (currentTutorEditHwFile) {

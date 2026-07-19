@@ -83,7 +83,7 @@
     let currentDemoStudentIndex = 0;
     let demoChartInstance = null;
     let demoTutorHwTab = "assign"; // "assign" or "submit"
-    let demoTutorHwSubTab = "list"; // "list" or "upload"
+    let demoTutorHwSubTab = "upload"; // "list" or "upload"
     let demoSelectedFileName = ""; // Lưu tên file đính kèm giả lập khi giao bài tập
     
     // Trạng thái Xem thêm / Thu gọn của các danh sách demo
@@ -744,9 +744,30 @@
                                     </div>
                                     <div style="margin-bottom:15px;">
                                         <label style="color:#A6ADCE; font-size:11px; display:block; margin-bottom:4px;">Chọn file bài tập (Hình ảnh, Word, PDF...) *</label>
-                                        <div id="demoHwUploadBox" onclick="selectDemoHwFile()" style="padding: 20px; border: 2px dashed rgba(142, 77, 255, 0.4); border-radius: 12px; text-align: center; cursor: pointer; background: rgba(4,2,10,0.6); transition: 0.3s;">
+                                        
+                                        <!-- Desktop Version -->
+                                        <div id="demoHwUploadAreaDesktop" onclick="selectDemoHwFile()" style="padding: 20px; border: 2px dashed rgba(142, 77, 255, 0.4); border-radius: 12px; text-align: center; cursor: pointer; background: rgba(4,2,10,0.6); transition: 0.3s;">
                                             <i class="fa-solid fa-file-arrow-up" style="font-size: 20px; color: #8E4DFF; margin-bottom: 4px;"></i>
                                             <div id="demoHwUploadText" style="font-size: 11.5px; color: #E2D1FF;">${demoSelectedFileName ? `Đã chọn: ${demoSelectedFileName}` : 'Kéo thả hoặc click chọn file bài tập...'}</div>
+                                        </div>
+
+                                        <!-- Mobile Version -->
+                                        <div id="demoHwUploadAreaMobile" style="cursor: default; padding: 20px 15px; border: 2px dashed rgba(142, 77, 255, 0.4); border-radius: 12px; text-align: center; background: rgba(4,2,10,0.6);">
+                                            <i class="fa-solid fa-cloud-arrow-up" style="font-size: 24px; margin-bottom: 8px; color: #8E4DFF;"></i>
+                                            <div style="font-size: 12.5px; font-weight: 600; margin-bottom: 10px; color: #FFF;">Chọn hình ảnh hoặc tài liệu bài tập</div>
+                                            
+                                            <div style="display: flex; flex-direction: column; gap: 8px; width: 100%; max-width: 280px; margin: 0 auto;">
+                                                <button type="button" onclick="selectDemoHwPhoto()" class="modal-btn modal-btn-primary" style="background: linear-gradient(135deg, #8E4DFF 0%, #5B21B6 100%); border: none; font-size: 12.5px; padding: 8px 16px; border-radius: 20px; font-weight: bold; width: 100%; justify-content: center; gap: 6px; display: inline-flex; align-items: center; cursor: pointer; color: #FFF; font-family: 'Inter', sans-serif;">
+                                                    <i class="fa-solid fa-camera"></i> Chụp ảnh / Chọn Thư viện
+                                                </button>
+                                                <button type="button" onclick="selectDemoHwFile()" style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); color: #FFF; font-size: 11.5px; padding: 6px 16px; border-radius: 20px; font-weight: 600; width: 100%; justify-content: center; gap: 4px; cursor: pointer; transition: all 0.3s; display: inline-flex; align-items: center; font-family: 'Inter', sans-serif;">
+                                                    <i class="fa-solid fa-file-pdf"></i> Tải Tài liệu (PDF, Word...)
+                                                </button>
+                                            </div>
+                                            <!-- Selected status indicator on Mobile -->
+                                            <div id="demoHwUploadTextMobile" style="font-size: 11px; color: #10B981; margin-top: 10px; font-weight: bold; display: ${demoSelectedFileName ? 'block' : 'none'};">
+                                                Đã chọn: ${demoSelectedFileName}
+                                            </div>
                                         </div>
                                     </div>
                                     <div style="display: flex; gap: 10px; justify-content: flex-end;">
@@ -1316,7 +1337,7 @@
 
     window.switchDemoTutorHwTab = function(tabName) {
         demoTutorHwTab = tabName;
-        demoTutorHwSubTab = "list";
+        demoTutorHwSubTab = "upload";
         renderTutorDemo();
     };
 
@@ -1331,6 +1352,25 @@
         const boxText = document.getElementById("demoHwUploadText");
         if (boxText) {
             boxText.innerHTML = `<span style="color:#10B981; font-weight:bold;"><i class="fa-solid fa-file-pdf"></i> Đã chọn: ${demoSelectedFileName}</span>`;
+        }
+        const mobText = document.getElementById("demoHwUploadTextMobile");
+        if (mobText) {
+            mobText.innerText = "Đã chọn: " + demoSelectedFileName;
+            mobText.style.display = "block";
+        }
+    };
+
+    window.selectDemoHwPhoto = function() {
+        // Mô phỏng việc chọn ảnh chụp bài tập
+        demoSelectedFileName = "anh_chup_bai_tap_" + Math.floor(Math.random() * 10 + 1) + ".png";
+        const boxText = document.getElementById("demoHwUploadText");
+        if (boxText) {
+            boxText.innerHTML = `<span style="color:#10B981; font-weight:bold;"><i class="fa-solid fa-image"></i> Đã chọn: ${demoSelectedFileName}</span>`;
+        }
+        const mobText = document.getElementById("demoHwUploadTextMobile");
+        if (mobText) {
+            mobText.innerText = "Đã chọn: " + demoSelectedFileName;
+            mobText.style.display = "block";
         }
     };
 

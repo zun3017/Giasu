@@ -1945,3 +1945,18 @@
             }
         }
 
+        /* Hiển thị có điều kiện vùng nộp bài Desktop / Mobile của Gia sư */
+        @media (min-width: 769px) {
+            #tutorHwUploadAreaMobile { display: none !important; }
+            #tutorHwUploadAreaDesktop { display: block !important; }
+            #demoHwUploadAreaMobile { display: none !important; }
+            #demoHwUploadAreaDesktop { display: block !important; }
+        }
+        @media (max-width: 768px) {
+            #tutorHwUploadAreaMobile { display: block !important; }
+            #tutorHwUploadAreaDesktop { display: none !important; }
+            #demoHwUploadAreaMobile { display: block !important; }
+            #demoHwUploadAreaDesktop { display: none !important; }
+        }
+
+

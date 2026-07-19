@@ -93,12 +93,12 @@
                     <!-- Nội dung Tab 1: Giao bài tập -->
                     <div id="tabContentAssign" class="tutor-hw-tab-content">
                         <div style="display: flex; gap: 15px; margin-bottom: 20px; flex-wrap: wrap;">
-                            <button id="btnShowUploadForm" onclick="switchTutorHwSubTab('upload')" class="modal-btn modal-btn-secondary" style="width: auto;"><i class="fa-solid fa-cloud-arrow-up"></i> Tải bài tập lên</button>
-                            <button id="btnToggleViewAssignedHw" onclick="switchTutorHwSubTab('list')" class="modal-btn modal-btn-primary" style="width: auto; background: linear-gradient(135deg, #8E4DFF 0%, #5B21B6 100%);"><i class="fa-solid fa-list-check"></i> Xem bài tập đã tải</button>
+                            <button id="btnShowUploadForm" onclick="switchTutorHwSubTab('upload')" class="modal-btn modal-btn-primary" style="width: auto; background: linear-gradient(135deg, #8E4DFF 0%, #5B21B6 100%);"><i class="fa-solid fa-cloud-arrow-up"></i> Tải bài tập lên</button>
+                            <button id="btnToggleViewAssignedHw" onclick="switchTutorHwSubTab('list')" class="modal-btn modal-btn-secondary" style="width: auto;"><i class="fa-solid fa-list-check"></i> Xem bài tập đã tải</button>
                         </div>
 
                         <!-- Form Giao bài tập (mặc định ẩn) -->
-                        <div id="assignHwFormContainer" style="display: none; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.2); border-radius: 12px; padding: 15px; margin-bottom: 20px;">
+                        <div id="assignHwFormContainer" style="display: block; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.2); border-radius: 12px; padding: 15px; margin-bottom: 20px;">
                             <h4 style="color: #FFD23F; margin-bottom: 15px; font-size: 15px;"><i class="fa-solid fa-folder-plus"></i> Đăng tải bài tập mới</h4>
                             <div class="modal-grid-2">
                                 <div class="modal-form-group">
@@ -111,17 +111,45 @@
                                 </div>
                             </div>
                             <div class="modal-form-group" style="margin-top: 10px;">
-                                <label>Chọn file bài tập (Hình ảnh, Word, PDF...) *</label>
-                                <div class="upload-area" id="tutorHwUploadArea" onclick="document.getElementById('tutorHwFileInput').click()" style="padding: 20px; border-style: dashed; background: rgba(4, 2, 10, 0.6); border: 2px dashed rgba(142, 77, 255, 0.4); border-radius: 12px; text-align: center; cursor: pointer; transition: all 0.3s;">
+                                <label>Chọn file bài tập (Hình ảnh, Word, PDF...)</label>
+                                
+                                <!-- Upload Area cho Desktop -->
+                                <div class="upload-area" id="tutorHwUploadAreaDesktop" onclick="document.getElementById('tutorHwFileInputDesktop').click()" style="padding: 20px; border-style: dashed; background: rgba(4, 2, 10, 0.6); border: 2px dashed rgba(142, 77, 255, 0.4); border-radius: 12px; text-align: center; cursor: pointer; transition: all 0.3s;">
                                     <i class="fa-solid fa-file-arrow-up" style="font-size: 24px; color: #8E4DFF; margin-bottom: 6px;"></i>
                                     <div id="tutorHwUploadText" style="font-size: 12px; color: #E2D1FF;">Kéo thả hoặc click chọn file bài tập từ máy...</div>
-                                    <input type="file" id="tutorHwFileInput" style="display: none;" onchange="handleTutorHwFileSelect(event)">
+                                    <input type="file" id="tutorHwFileInputDesktop" style="display: none;" onchange="handleTutorHwFileSelect(event)">
                                 </div>
+
+                                <!-- Upload Area cho Mobile -->
+                                <div class="upload-area" id="tutorHwUploadAreaMobile" style="cursor: default; padding: 20px 15px; border-style: dashed; background: rgba(4, 2, 10, 0.6); border: 2px dashed rgba(142, 77, 255, 0.4); border-radius: 12px; text-align: center;">
+                                    <i class="fa-solid fa-cloud-arrow-up" style="font-size: 28px; margin-bottom: 10px; color: #8E4DFF;"></i>
+                                    <div style="font-size: 13px; font-weight: 600; margin-bottom: 12px; color: #FFF;">Chọn hình ảnh hoặc tài liệu bài tập</div>
+                                    
+                                    <div style="display: flex; flex-direction: column; gap: 10px; width: 100%; max-width: 280px; margin: 0 auto;">
+                                        <!-- Nút chọn ảnh từ thư viện hoặc chụp camera -->
+                                        <button type="button" onclick="document.getElementById('tutorHwImageInputMobile').click()" class="modal-btn modal-btn-primary" style="background: linear-gradient(135deg, #8E4DFF 0%, #5B21B6 100%); border: none; font-size: 13px; padding: 10px 16px; border-radius: 20px; font-weight: bold; width: 100%; justify-content: center; gap: 8px; display: inline-flex; align-items: center; cursor: pointer; color: #FFF; font-family: 'Inter', sans-serif;">
+                                            <i class="fa-solid fa-camera"></i> Chụp ảnh / Chọn Thư viện
+                                        </button>
+                                        <!-- Nút chọn tài liệu PDF/Word -->
+                                        <button type="button" onclick="document.getElementById('tutorHwDocInputMobile').click()" style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); color: #FFF; font-size: 12px; padding: 8px 16px; border-radius: 20px; font-weight: 600; width: 100%; justify-content: center; gap: 6px; cursor: pointer; transition: all 0.3s; display: inline-flex; align-items: center; font-family: 'Inter', sans-serif;">
+                                            <i class="fa-solid fa-file-pdf"></i> Tải Tài liệu (PDF, Word...)
+                                        </button>
+                                    </div>
+                                    
+                                    <!-- Inputs ẩn -->
+                                    <input type="file" id="tutorHwImageInputMobile" style="display: none;" accept="image/*" onchange="handleTutorHwFileSelect(event)">
+                                    <input type="file" id="tutorHwDocInputMobile" style="display: none;" accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" onchange="handleTutorHwFileSelect(event)">
+                                </div>
+
                                 <!-- Selected File Badge -->
                                 <div id="tutorSelectedFileBox" style="display: none; justify-content: space-between; align-items: center; background: rgba(142, 77, 255, 0.15); padding: 8px 12px; border-radius: 8px; margin-top: 10px; font-size: 12px;">
                                     <span id="tutorSelectedFileName" style="color: #FFF; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 80%;"></span>
                                     <button onclick="clearTutorSelectedFile()" style="background:none; border:none; color:#FF4D4D; cursor:pointer;"><i class="fa-solid fa-times"></i> Hủy</button>
                                 </div>
+                            </div>
+                            <div class="modal-form-group" style="margin-top: 10px;">
+                                <label>Link liên kết bài tập (Ví dụ: Google Forms, Quizizz... nếu có)</label>
+                                <input type="text" id="assignHwLink" placeholder="https://example.com/homework-link">
                             </div>
                             <!-- Progress Bar -->
                             <div class="progress-container" id="tutorHwProgressContainer" style="width: 100%; background: rgba(255,255,255,0.05); border-radius: 10px; height: 8px; margin-top: 15px; overflow: hidden; display: none;">
@@ -136,7 +164,7 @@
                         </div>
 
                         <!-- Danh sách bài tập đã giao (mở sẵn mặc định) -->
-                        <div id="assignedHwListContainer" style="display: block; overflow: hidden;">
+                        <div id="assignedHwListContainer" style="display: none; overflow: hidden;">
                             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 10px;">
                                 <h4 style="color:#FFF; font-size:14px;"><i class="fa-solid fa-list-ol"></i> Lịch sử bài tập đã giao</h4>
                                 <button onclick="openTutorHwTrashModal()" class="action-btn-hw btn-delete"><i class="fa-solid fa-trash-can"></i> Thùng rác bài tập</button>
@@ -147,7 +175,7 @@
                                         <tr>
                                             <th>Ngày giao</th>
                                             <th>Tên bài tập</th>
-                                            <th>File đính kèm</th>
+                                            <th>Đính kèm (File/Link)</th>
                                             <th style="text-align: center;">Thao tác</th>
                                         </tr>
                                     </thead>
@@ -507,6 +535,10 @@
                     <span id="tutorEditSelectedFileName" style="color: #FFF; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 80%;"></span>
                     <button onclick="clearTutorEditSelectedFile()" style="background:none; border:none; color:#FF4D4D; cursor:pointer;"><i class="fa-solid fa-times"></i> Hủy</button>
                 </div>
+            </div>
+            <div class="modal-form-group" style="margin-top: 10px;">
+                <label>Link liên kết bài tập (Ví dụ: Google Forms, Quizizz... nếu có)</label>
+                <input type="text" id="editAssignHwLink" placeholder="https://example.com/homework-link">
             </div>
             <!-- Progress Bar -->
             <div class="progress-container" id="tutorEditHwProgressContainer" style="width: 100%; background: rgba(255,255,255,0.05); border-radius: 10px; height: 8px; margin-top: 15px; overflow: hidden; display: none;">
