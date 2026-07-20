@@ -363,29 +363,34 @@
         }
         .btn-close-panel:hover { background: rgba(255,255,255,0.05); color: #FFF; }
 
-        /* Nút toggle bảng Sheets, nổi ở góc dưới trái */
-        .btn-sheet-toggle {
-            position: fixed;
-            bottom: 25px;
-            left: 25px;
-            z-index: 900;
-            background: rgba(255, 210, 63, 0.1);
+        .sheet-panel.open ~ .btn-sheet-toggle {
+            display: none !important;
+        }
+
+        .btn-sheet-toggle-header {
+            background: rgba(255, 210, 63, 0.15);
             border: 1px solid rgba(255, 210, 63, 0.4);
             color: #FFD23F;
             border-radius: 30px;
-            padding: 8px 16px;
-            font-size: 12px;
+            padding: 6px 12px;
+            font-size: 11px;
             font-weight: 700;
             cursor: pointer;
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 5px;
             transition: all 0.2s;
             font-family: 'Inter', sans-serif;
+            margin-right: 15px;
         }
-        .btn-sheet-toggle:hover {
-            background: rgba(255, 210, 63, 0.2);
-            transform: translateY(-2px);
+        .btn-sheet-toggle-header:hover {
+            background: rgba(255, 210, 63, 0.3);
+            transform: translateY(-1px);
+        }
+        @media (max-width: 576px) {
+            .btn-sheet-toggle-header {
+                display: none;
+            }
         }
 
         .sheet-wrapper {
@@ -1009,13 +1014,18 @@
 
     <!-- HEADER CỐ ĐỊNH -->
     <div class="container">
-        <div class="calendar-header">
+        <div class="calendar-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
             <div class="calendar-title-wrap">
                 <i class="fa-regular fa-calendar-check"></i>
                 <div>
                     <h2>Thời Khóa Biểu  & Lịch Dạy</h2>
                     <p class="calendar-subtitle">Lên lịch lặp lại (Hàng ngày/tuần) hoặc lịch học thử.</p>
                 </div>
+            </div>
+            <div>
+                <a href="index.html" class="modal-btn modal-btn-secondary" style="text-decoration: none; display: inline-flex; align-items: center; gap: 8px; padding: 10px 22px; border-radius: 20px; font-weight: bold; font-size: 13.5px; font-family: 'Inter', sans-serif; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15); color: #FFF; transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.12)'" onmouseout="this.style.background='rgba(255,255,255,0.06)'">
+                    <i class="fa-solid fa-arrow-left"></i> Quay lại Dashboard
+                </a>
             </div>
         </div>
     </div>
@@ -1029,6 +1039,9 @@
     <div class="sheet-panel" id="sheetPanel">
         <div class="sheet-panel-header">
             <div class="sheet-title">
+                <button class="btn-sheet-toggle-header" onclick="toggleSheetPanel()">
+                    <i class="fa-solid fa-xmark"></i> Đóng lịch tóm tắt
+                </button>
                 <i class="fa-solid fa-table-list"></i>  Dữ liệu thực tế của lịch học (cập nhật theo thời gian thực)
             </div>
             <button class="btn-close-panel" onclick="toggleSheetPanel()"><i class="fa-solid fa-chevron-down"></i></button>
@@ -2029,12 +2042,7 @@
         // Toggle bảng Sheets Simulator từ dưới lên
         function toggleSheetPanel() {
             let panel = document.getElementById('sheetPanel');
-            let btn = document.getElementById('sheetToggleBtn');
-            if (panel.classList.toggle('open')) {
-                btn.innerHTML = '<i class="fa-solid fa-xmark"></i> Đóng lịch tóm tắt';
-            } else {
-                btn.innerHTML = '<i class="fa-solid fa-table-list"></i> Xem lịch tóm tắt';
-            }
+            panel.classList.toggle('open');
         }
 
         function openAddEventModal() {
