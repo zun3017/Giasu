@@ -1193,6 +1193,12 @@
                     </select>
                 </div>
 
+                <div class="form-group" id="customStudentNameGroup" style="display: none;">
+                    <label>Tên học sinh mới (học thử)</label>
+                    <input type="text" class="form-control" id="eventCustomStudentName" placeholder="Nhập tên học sinh mới...">
+                </div>
+
+
                 <!-- LỰA CHỌN CHẾ ĐỘ LẶP (BỔ SUNG KHÔNG LẶP - CHỈ 1 LẦN) -->
                 <div class="form-group">
                     <label>Chế độ lặp lại (Recurrence)</label>
@@ -1909,7 +1915,13 @@
                 opt.innerText = row.studentName;
                 select.appendChild(opt);
             });
+            // Thêm tùy chọn Khác...
+            let optOther = document.createElement("option");
+            optOther.value = "other";
+            optOther.innerText = "Khác...";
+            select.appendChild(optOther);
         }
+
 
         // Đổ dữ liệu thật ra bảng mô phỏng ở cuối trang
         function renderSheetTable() {
@@ -1974,14 +1986,24 @@
             // Đăng ký sự kiện đổi học sinh -> tự chọn màu mặc định của học sinh đó
             document.getElementById("eventStudent").addEventListener("change", function() {
                 let val = this.value;
-                if (val !== "") {
+                let customGroup = document.getElementById("customStudentNameGroup");
+                if (val === "other") {
+                    customGroup.style.display = "block";
+                    document.getElementById("eventCustomStudentName").required = true;
+                    selectPresetColor('');
+                } else if (val !== "") {
+                    customGroup.style.display = "none";
+                    document.getElementById("eventCustomStudentName").required = false;
                     let studentColor = tutorScheduleSheetData[val].color || '#8E4DFF';
                     setColorScope('student');
                     selectPresetColor(studentColor);
                 } else {
+                    customGroup.style.display = "none";
+                    document.getElementById("eventCustomStudentName").required = false;
                     selectPresetColor('');
                 }
             });
+
             
             var calendarEl = document.getElementById('calendar');
             const initialViewType = 'timeGridWeek';
@@ -2526,6 +2548,11 @@
             document.getElementById("eventStudent").value = "";
             document.getElementById("eventStudent").disabled = false;
             
+            // Reset ô nhập tên học sinh khác
+            document.getElementById("customStudentNameGroup").style.display = "none";
+            document.getElementById("eventCustomStudentName").value = "";
+            document.getElementById("eventCustomStudentName").required = false;
+
             document.getElementById("eventRepeatMode").value = "none"; 
             document.getElementById("eventDayOfWeek").value = dayKey;
             document.getElementById("eventSpecificDate").value = dateStr;
@@ -2558,6 +2585,12 @@
             
             document.getElementById("eventStudent").value = props.studentIndex;
             document.getElementById("eventStudent").disabled = true;
+
+            // Ẩn ô nhập tên học sinh khác khi sửa lịch hiện tại
+            document.getElementById("customStudentNameGroup").style.display = "none";
+            document.getElementById("eventCustomStudentName").value = "";
+            document.getElementById("eventCustomStudentName").required = false;
+
             
             if (props.isOneTime) {
                 document.getElementById("eventRepeatMode").value = "none";
@@ -2613,10 +2646,42 @@
 
             let timeVal = startTime + " - " + endTime;
             
-            let targetStudentIdx = studentIdx === "" ? parseInt(document.getElementById("eventStudent").value) : parseInt(studentIdx);
+            let targetStudentIdx;
+            let studentSelectValue = document.getElementById("eventStudent").value;
+            
+            if (studentIdx === "") {
+                if (studentSelectValue === "other") {
+                    let customName = document.getElementById("eventCustomStudentName").value.trim();
+                    if (!customName) {
+                        alert("Vui lòng nhập tên học sinh mới!");
+                        return;
+                    }
+                    
+                    // Kiểm tra xem đã có học sinh này trong tutorScheduleSheetData chưa
+                    let existingIdx = tutorScheduleSheetData.findIndex(r => r.studentName.toLowerCase() === customName.toLowerCase());
+                    if (existingIdx !== -1) {
+                        targetStudentIdx = existingIdx;
+                    } else {
+                        // Thêm hàng giả lập mới
+                        let newRow = {
+                            studentName: customName,
+                            color: "#8E4DFF",
+                            mon: "", tue: "", wed: "", thu: "", fri: "", sat: "", sun: ""
+                        };
+                        tutorScheduleSheetData.push(newRow);
+                        targetStudentIdx = tutorScheduleSheetData.length - 1;
+                        loadStudentOptions();
+                    }
+                } else {
+                    targetStudentIdx = parseInt(studentSelectValue);
+                }
+            } else {
+                targetStudentIdx = parseInt(studentIdx);
+            }
+            
             if (isNaN(targetStudentIdx)) return;
-
             let row = tutorScheduleSheetData[targetStudentIdx];
+
 
             // Đọc màu sắc và scope được chọn
             let selectedColor = document.getElementById("eventColor").value;
