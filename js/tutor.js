@@ -936,17 +936,44 @@ function formatScheduleCell(val) {
         let _pendingTuitionUpdates = {};
         let _tuitionSyncTimer = null;
 
-        // === OPTIMISTIC UI FOR LESSON LOGS ===
         let _pendingLessonOperations = [];
         let _lessonOperationsTimer = null;
         let _tempRowIdCounter = 1;
+        let _tempIdToRealRowIndex = {};
+
 
         function queueLessonOperation(op) {
+            // 1. Nếu xóa một tempId và có hành động thêm tương ứng đang chờ trong queue, hủy bỏ cả hai (không cần gọi lên server)
+            if (op.type === 'delete' && typeof op.rowIndex === 'string' && op.rowIndex.startsWith('temp_')) {
+                let addOpIdx = _pendingLessonOperations.findIndex(p => p.type === 'add' && p.tempId === op.rowIndex);
+                if (addOpIdx !== -1) {
+                    _pendingLessonOperations.splice(addOpIdx, 1);
+                    if (_pendingLessonOperations.length === 0) {
+                        showSyncToast('success');
+                        clearTimeout(_lessonOperationsTimer);
+                    } else {
+                        clearTimeout(_lessonOperationsTimer);
+                        _lessonOperationsTimer = setTimeout(flushLessonOperations, 1500);
+                    }
+                    return;
+                }
+            }
+            
+            // 2. Nếu sửa một tempId đang chờ thêm, chập trực tiếp dữ liệu sửa vào hành động thêm
+            if (op.type === 'edit' && typeof op.rowIndex === 'string' && op.rowIndex.startsWith('temp_')) {
+                let addOp = _pendingLessonOperations.find(p => p.type === 'add' && p.tempId === op.rowIndex);
+                if (addOp) {
+                    addOp.data = { ...addOp.data, ...op.data };
+                    return;
+                }
+            }
+
             _pendingLessonOperations.push(op);
             showSyncToast('pending');
             clearTimeout(_lessonOperationsTimer);
             _lessonOperationsTimer = setTimeout(flushLessonOperations, 1500);
         }
+
 
         function flushLessonOperations() {
             if (_pendingLessonOperations.length === 0) return;
@@ -971,6 +998,7 @@ function formatScheduleCell(val) {
                             } else {
                                 // Tìm và cập nhật rowIndex thực tế từ phản hồi (nếu có trả về)
                                 if (res.rowIndex && currentTutorStudent && currentTutorStudent.logs) {
+                                    _tempIdToRealRowIndex[op.tempId] = res.rowIndex; // Lưu ánh xạ tempId -> rowIndex thực tế
                                     currentTutorStudent.logs.forEach(log => {
                                         if (log.rowIndex === op.tempId) {
                                             log.rowIndex = res.rowIndex;
@@ -1002,13 +1030,21 @@ function formatScheduleCell(val) {
                 else if (op.type === 'edit') {
                     let targetRowIndex = op.rowIndex;
                     if (typeof targetRowIndex === 'string' && targetRowIndex.startsWith('temp_')) {
-                        if (currentTutorStudent && currentTutorStudent.logs) {
+                        if (_tempIdToRealRowIndex[targetRowIndex]) {
+                            targetRowIndex = _tempIdToRealRowIndex[targetRowIndex];
+                        } else if (currentTutorStudent && currentTutorStudent.logs) {
                             let match = currentTutorStudent.logs.find(log => log.tempId === targetRowIndex || log.rowIndex === targetRowIndex);
                             if (match && typeof match.rowIndex === 'number') {
                                 targetRowIndex = match.rowIndex;
                             }
                         }
                     }
+
+                    if (typeof targetRowIndex === 'string' && targetRowIndex.startsWith('temp_')) {
+                        processNext();
+                        return;
+                    }
+
 
                     google.script.run
                         .withSuccessHandler(function(res) {
@@ -1040,9 +1076,16 @@ function formatScheduleCell(val) {
                 else if (op.type === 'delete') {
                     let targetRowIndex = op.rowIndex;
                     if (typeof targetRowIndex === 'string' && targetRowIndex.startsWith('temp_')) {
+                        if (_tempIdToRealRowIndex[targetRowIndex]) {
+                            targetRowIndex = _tempIdToRealRowIndex[targetRowIndex];
+                        }
+                    }
+
+                    if (typeof targetRowIndex === 'string' && targetRowIndex.startsWith('temp_')) {
                         processNext();
                         return;
                     }
+
 
                     google.script.run
                         .withSuccessHandler(function(res) {
