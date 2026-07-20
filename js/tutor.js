@@ -702,10 +702,42 @@ function formatScheduleCell(val) {
                 var lastLog = currentTutorStudent.logs[currentTutorStudent.logs.length - 1];
                 var lastWeekVal = parseInt(lastLog.tuan);
                 if (!isNaN(lastWeekVal)) {
-                    weekNum = lastWeekVal + 1;
+                    // Phân tích ngày của buổi học trước (DD/MM/YYYY)
+                    var parseDate = function(str) {
+                        if (!str) return null;
+                        var parts = str.split('/');
+                        if (parts.length !== 3) return null;
+                        return new Date(parts[2], parts[1] - 1, parts[0]);
+                    };
+                    // Lấy ngày Thứ Hai đầu tuần của 1 ngày bất kỳ
+                    var getMonday = function(d) {
+                        var day = d.getDay();
+                        var diff = d.getDate() - day + (day === 0 ? -6 : 1);
+                        var monday = new Date(d);
+                        monday.setDate(diff);
+                        monday.setHours(0, 0, 0, 0);
+                        return monday;
+                    };
+                    
+                    var lastLogDate = parseDate(lastLog.ngay);
+                    if (lastLogDate) {
+                        var lastMonday = getMonday(lastLogDate);
+                        var todayMonday = getMonday(today);
+                        
+                        if (lastMonday.getTime() === todayMonday.getTime()) {
+                            // Cùng một tuần: giữ nguyên số tuần của buổi trước
+                            weekNum = lastWeekVal;
+                        } else {
+                            // Khác tuần (sang tuần mới): tăng số tuần lên 1
+                            weekNum = lastWeekVal + 1;
+                        }
+                    } else {
+                        weekNum = lastWeekVal + 1;
+                    }
                 }
             }
             document.getElementById('lesTuan').value = weekNum;
+
 
             
             document.getElementById('lesNoiDung').value = "";
