@@ -434,6 +434,12 @@
             background: rgba(255, 210, 63, 0.2);
             transform: translateY(-2px);
         }
+        .sheet-panel.open ~ .btn-sheet-toggle {
+            opacity: 0;
+            pointer-events: none;
+            transform: scale(0.8);
+        }
+
 
         .sheet-wrapper {
             overflow-x: auto;
