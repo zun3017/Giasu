@@ -2262,11 +2262,17 @@ function renderAssignedHwList(list, showAll) {
         return;
     }
 
-    // Đảo ngược: bài giao mới nhất lên đầu
-    var sortedList = list.slice().reverse();
+    // Sắp xếp: bài giao mới nhất lên đầu (dựa vào rowIndex hoặc ngày giao)
+    var sortedList = list.slice().sort(function(a, b) {
+        if (a.rowIndex && b.rowIndex) {
+            return parseInt(b.rowIndex) - parseInt(a.rowIndex);
+        }
+        return parseDateTimeString(b.releaseDate) - parseDateTimeString(a.releaseDate);
+    });
     var totalCount = sortedList.length;
     var limit = showAll ? totalCount : ASSIGNED_HW_LIMIT;
     var visibleList = sortedList.slice(0, limit);
+
     
     tableBody.innerHTML = "";
     var mobileHtml = "";
@@ -2612,6 +2618,30 @@ function loadStudentSubmissions() {
 }
 
 // 13. Render bảng bài nộp học sinh với phân trang hiển thị
+// Hàm tiện ích parse ngày/giờ dạng DD/MM/YYYY HH:mm:ss hoặc các chuẩn khác về timestamp
+function parseDateTimeString(str) {
+    if (!str) return 0;
+    let d = new Date(str);
+    if (!isNaN(d.getTime())) return d.getTime();
+    
+    let parts = str.split(' ');
+    let dateParts = parts[0].split('/');
+    if (dateParts.length === 3) {
+        let day = parseInt(dateParts[0]);
+        let month = parseInt(dateParts[1]) - 1;
+        let year = parseInt(dateParts[2]);
+        let hour = 0, min = 0, sec = 0;
+        if (parts[1]) {
+            let timeParts = parts[1].split(':');
+            hour = parseInt(timeParts[0] || 0);
+            min = parseInt(timeParts[1] || 0);
+            sec = parseInt(timeParts[2] || 0);
+        }
+        return new Date(year, month, day, hour, min, sec).getTime();
+    }
+    return 0;
+}
+
 function renderStudentSubmissionsList() {
     var tableBody = document.getElementById('studentSubmissionsTableBody');
     var mobileContainer = document.getElementById('submittedHwMobile');
@@ -2626,10 +2656,13 @@ function renderStudentSubmissionsList() {
         return;
     }
 
-    // Đảo ngược: bài nộp mới nhất lên đầu
-    var sortedList = studentSubmissionsGlobal.slice().reverse();
+    // Sắp xếp: bài nộp mới nhất lên đầu
+    var sortedList = studentSubmissionsGlobal.slice().sort(function(a, b) {
+        return parseDateTimeString(b.timestamp) - parseDateTimeString(a.timestamp);
+    });
     var totalCount = sortedList.length;
     var showList = sortedList.slice(0, submissionsLimit);
+
 
     tableBody.innerHTML = "";
     var mobileHtml = "";
