@@ -1269,8 +1269,8 @@ function formatScheduleCell(val) {
                     htmlLichSu += "<td>" + (item.diemDinhKi || "") + "</td>";
                     htmlLichSu += "<td>" + getStatusBadge(item.trangThai) + "</td>";
                     htmlLichSu += "<td style='text-align: center; white-space: nowrap;'>" +
-                                  "  <button onclick='openEditLessonModal(" + item.rowIndex + ")' class='btn-icon-edit' title='Sửa buổi học' style='margin: 0; padding: 4px;'><i class='fa-solid fa-pen-to-square'></i></button>" +
-                                  "  <button onclick='duplicateLesson(" + item.rowIndex + ")' class='btn-icon-edit' title='Nhân bản buổi học' style='margin: 0 0 0 8px; padding: 4px; color: #10B981;'><i class='fa-solid fa-copy'></i></button>" +
+                                  "  <button onclick='openEditLessonModal(\"" + item.rowIndex + "\")' class='btn-icon-edit' title='Sửa buổi học' style='margin: 0; padding: 4px;'><i class='fa-solid fa-pen-to-square'></i></button>" +
+                                  "  <button onclick='duplicateLesson(\"" + item.rowIndex + "\")' class='btn-icon-edit' title='Nhân bản buổi học' style='margin: 0 0 0 8px; padding: 4px; color: #10B981;'><i class='fa-solid fa-copy'></i></button>" +
                                   "</td>";
                     htmlLichSu += "</tr>";
 
@@ -1297,11 +1297,12 @@ function formatScheduleCell(val) {
                     htmlMobile += "    <div class='accordion-body-row'><span class='accordion-body-label'>Kiểm tra đầu giờ</span><span class='accordion-body-val'>" + (item.diemDauGio || "") + "</span></div>";
                     htmlMobile += "    <div class='accordion-body-row'><span class='accordion-body-label'>Kiểm tra định kì</span><span class='accordion-body-val'>" + (item.diemDinhKi || "") + "</span></div>";
                     htmlMobile += "    <div class='accordion-body-row' style='justify-content: space-between; gap: 10px; border-top: 1px dashed rgba(255,255,255,0.05); padding-top: 10px; margin-top: 5px; width: 100%;'>";
-                    htmlMobile += "      <button onclick='duplicateLesson(" + item.rowIndex + ")' class='modal-btn modal-btn-primary' style='flex: 1; border-radius: 20px; font-size: 12px; background: linear-gradient(135deg, #8E4DFF 0%, #5B21B6 100%); border: none; color: #FFF; font-weight: bold; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 6px;'><i class='fa-solid fa-copy'></i> Nhân bản</button>";
-                    htmlMobile += "      <button onclick='openEditLessonModal(" + item.rowIndex + ")' class='modal-btn modal-btn-secondary' style='flex: 1; border-radius: 20px; font-size: 12px; display: inline-flex; align-items: center; justify-content: center; gap: 6px;'><i class='fa-solid fa-pen-to-square'></i> Sửa</button>";
+                    htmlMobile += "      <button onclick='duplicateLesson(\"" + item.rowIndex + "\")' class='modal-btn modal-btn-primary' style='flex: 1; border-radius: 20px; font-size: 12px; background: linear-gradient(135deg, #8E4DFF 0%, #5B21B6 100%); border: none; color: #FFF; font-weight: bold; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 6px;'><i class='fa-solid fa-copy'></i> Nhân bản</button>";
+                    htmlMobile += "      <button onclick='openEditLessonModal(\"" + item.rowIndex + "\")' class='modal-btn modal-btn-secondary' style='flex: 1; border-radius: 20px; font-size: 12px; display: inline-flex; align-items: center; justify-content: center; gap: 6px;'><i class='fa-solid fa-pen-to-square'></i> Sửa</button>";
                     htmlMobile += "    </div>";
                     htmlMobile += "  </div>";
                     htmlMobile += "</div>";
+
                 });
 
                 htmlLichSu += "</table></div>";
