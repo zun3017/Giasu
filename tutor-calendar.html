@@ -434,11 +434,7 @@
             background: rgba(255, 210, 63, 0.2);
             transform: translateY(-2px);
         }
-        .sheet-panel.open ~ .btn-sheet-toggle {
-            opacity: 0;
-            pointer-events: none;
-            transform: scale(0.8);
-        }
+
 
 
         .sheet-wrapper {
@@ -2534,10 +2530,17 @@
             let btn = document.getElementById('sheetToggleBtn');
             if (panel.classList.toggle('open')) {
                 btn.innerHTML = '<i class="fa-solid fa-xmark"></i> Đóng lịch tóm tắt';
+                // Đợi panel trượt lên một chút để lấy chiều cao chính xác
+                setTimeout(() => {
+                    let panelHeight = panel.offsetHeight;
+                    btn.style.bottom = (panelHeight + 15) + "px";
+                }, 50);
             } else {
                 btn.innerHTML = '<i class="fa-solid fa-table-list"></i> Xem lịch tóm tắt';
+                btn.style.bottom = "25px";
             }
         }
+
 
         function openAddEventModal() {
             let t = new Date();
