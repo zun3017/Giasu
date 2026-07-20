@@ -382,20 +382,44 @@
             transform: translateY(0);
         }
 
+        .sheet-panel.open ~ .btn-sheet-toggle {
+            display: none !important;
+        }
+
+        .btn-sheet-toggle-header {
+            background: rgba(255, 210, 63, 0.15);
+            border: 1px solid rgba(255, 210, 63, 0.4);
+            color: #FFD23F;
+            border-radius: 30px;
+            padding: 6px 12px;
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.2s;
+            font-family: 'Inter', sans-serif;
+            margin-right: 15px;
+        }
+        .btn-sheet-toggle-header:hover {
+            background: rgba(255, 210, 63, 0.3);
+            transform: translateY(-1px);
+        }
+        @media (max-width: 576px) {
+            .btn-sheet-toggle-header {
+                display: none;
+            }
+        }
+
+
+
         .sheet-panel-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 12px;
-            transition: padding-left 0.3s ease;
         }
-
-        @media (min-width: 768px) {
-            .sheet-panel.open .sheet-panel-header {
-                padding-left: 150px;
-            }
-        }
-
 
         .sheet-title {
             font-size: 13.5px;
@@ -1091,8 +1115,12 @@
     <div class="sheet-panel" id="sheetPanel">
         <div class="sheet-panel-header">
             <div class="sheet-title">
+                <button class="btn-sheet-toggle-header" onclick="toggleSheetPanel()">
+                    <i class="fa-solid fa-xmark"></i> Đóng lịch tóm tắt
+                </button>
                 <i class="fa-solid fa-table-list"></i> Dữ liệu thực tế của lịch học (cập nhật theo thời gian thực)
             </div>
+
             <button class="btn-close-panel" onclick="toggleSheetPanel()"><i class="fa-solid fa-chevron-down"></i></button>
         </div>
         <div class="sheet-wrapper">
@@ -2535,19 +2563,9 @@
         // Toggle bảng Sheets Simulator từ dưới lên
         function toggleSheetPanel() {
             let panel = document.getElementById('sheetPanel');
-            let btn = document.getElementById('sheetToggleBtn');
-            if (panel.classList.toggle('open')) {
-                btn.innerHTML = '<i class="fa-solid fa-xmark"></i> Đóng lịch tóm tắt';
-                // Đợi panel render xong chiều cao thực tế để định vị nút nằm gọn vào thanh header
-                setTimeout(() => {
-                    let panelHeight = panel.offsetHeight;
-                    btn.style.bottom = (panelHeight - 44) + "px";
-                }, 50);
-            } else {
-                btn.innerHTML = '<i class="fa-solid fa-table-list"></i> Xem lịch tóm tắt';
-                btn.style.bottom = "25px";
-            }
+            panel.classList.toggle('open');
         }
+
 
 
 
