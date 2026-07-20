@@ -590,9 +590,9 @@
                 <div class="schedule-section">
                     <h3 style="color: #8E4DFF; margin: 0 0 15px 0; font-size: 18px; font-weight:700;"><i class="fa-regular fa-calendar-alt"></i> Thời khóa biểu tổng hợp</h3>
                     <div style="margin-top: 15px; display: flex; justify-content: center; padding: 20px 0;">
-                        <button onclick="alert('Đây là bản Demo. Đăng nhập để truy cập tính năng thật!')" style="width: auto; padding: 12px 28px; background: linear-gradient(135deg, #8E4DFF 0%, #5B21B6 100%); font-weight: bold; border-radius: 25px; display: inline-flex; align-items: center; gap: 10px; box-shadow: 0 4px 15px rgba(142,77,255,0.25); border: none; color: #FFF; font-size: 14px; font-family: 'Inter', sans-serif; cursor: pointer;">
+                        <a href="demo-calendar.html" style="width: auto; padding: 12px 28px; background: linear-gradient(135deg, #8E4DFF 0%, #5B21B6 100%); font-weight: bold; border-radius: 25px; display: inline-flex; align-items: center; gap: 10px; box-shadow: 0 4px 15px rgba(142,77,255,0.25); border: none; color: #FFF; font-size: 14px; font-family: 'Inter', sans-serif; cursor: pointer; text-decoration: none;">
                             <i class="fa-solid fa-calendar-days"></i> Quản lý & Tạo thời khóa biểu
-                        </button>
+                        </a>
                     </div>
                 </div>
 
