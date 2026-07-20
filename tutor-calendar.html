@@ -380,19 +380,22 @@
 
         .sheet-panel.open {
             transform: translateY(0);
-            height: 55vh;
         }
-        .sheet-panel.open ~ .btn-sheet-toggle {
-            bottom: calc(55vh + 15px);
-        }
-
 
         .sheet-panel-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 12px;
+            transition: padding-left 0.3s ease;
         }
+
+        @media (min-width: 768px) {
+            .sheet-panel.open .sheet-panel-header {
+                padding-left: 150px;
+            }
+        }
+
 
         .sheet-title {
             font-size: 13.5px;
@@ -2533,13 +2536,19 @@
         function toggleSheetPanel() {
             let panel = document.getElementById('sheetPanel');
             let btn = document.getElementById('sheetToggleBtn');
-            btn.style.bottom = ""; // Reset inline style to let CSS take control
             if (panel.classList.toggle('open')) {
                 btn.innerHTML = '<i class="fa-solid fa-xmark"></i> Đóng lịch tóm tắt';
+                // Đợi panel render xong chiều cao thực tế để định vị nút nằm gọn vào thanh header
+                setTimeout(() => {
+                    let panelHeight = panel.offsetHeight;
+                    btn.style.bottom = (panelHeight - 44) + "px";
+                }, 50);
             } else {
                 btn.innerHTML = '<i class="fa-solid fa-table-list"></i> Xem lịch tóm tắt';
+                btn.style.bottom = "25px";
             }
         }
+
 
 
 
