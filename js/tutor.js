@@ -1424,12 +1424,13 @@ function formatScheduleCell(val) {
             var log = null;
             if (currentTutorStudent && currentTutorStudent.logs) {
                 for (var i = 0; i < currentTutorStudent.logs.length; i++) {
-                    if (currentTutorStudent.logs[i].rowIndex === rowIndex) {
+                    if (currentTutorStudent.logs[i].rowIndex == rowIndex || String(currentTutorStudent.logs[i].rowIndex) === String(rowIndex)) {
                         log = currentTutorStudent.logs[i];
                         break;
                     }
                 }
             }
+
             if (!log) {
                 showToast("Không tìm thấy thông tin buổi học.", "error");
                 return;
@@ -2752,12 +2753,13 @@ function duplicateLesson(rowIndex) {
     var log = null;
     if (currentTutorStudent && currentTutorStudent.logs) {
         for (var i = 0; i < currentTutorStudent.logs.length; i++) {
-            if (currentTutorStudent.logs[i].rowIndex === rowIndex) {
+            if (currentTutorStudent.logs[i].rowIndex == rowIndex || String(currentTutorStudent.logs[i].rowIndex) === String(rowIndex)) {
                 log = currentTutorStudent.logs[i];
                 break;
             }
         }
     }
+
     if (!log) {
         showToast("Không tìm thấy thông tin buổi học để nhân bản.", "error");
         return;
