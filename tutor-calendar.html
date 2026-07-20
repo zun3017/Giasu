@@ -2488,8 +2488,10 @@
             if (!activeFcEvent) return;
             const eventToEdit = activeFcEvent;
             closeDetailModalForce();
+            activeFcEvent = eventToEdit; // Khôi phục lại activeFcEvent để không bị null sau khi đóng popover
             openEditEventModal(eventToEdit);
         }
+
 
         function deleteFromDetail() {
             if (!activeFcEvent) return;
