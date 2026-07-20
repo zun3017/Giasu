@@ -697,9 +697,16 @@ function formatScheduleCell(val) {
             var yyyy = today.getFullYear();
             document.getElementById('lesNgay').value = dd + '/' + mm + '/' + yyyy;
             
-            var nextLessonIndex = (currentTutorStudent.logs ? currentTutorStudent.logs.length : 0) + 1;
-            var weekNum = Math.ceil(nextLessonIndex / 3); 
-            document.getElementById('lesTuan').value = (weekNum || 1);
+            var weekNum = 1;
+            if (currentTutorStudent.logs && currentTutorStudent.logs.length > 0) {
+                var lastLog = currentTutorStudent.logs[currentTutorStudent.logs.length - 1];
+                var lastWeekVal = parseInt(lastLog.tuan);
+                if (!isNaN(lastWeekVal)) {
+                    weekNum = lastWeekVal + 1;
+                }
+            }
+            document.getElementById('lesTuan').value = weekNum;
+
             
             document.getElementById('lesNoiDung').value = "";
             document.getElementById('lesDiemDau').value = "Không có";
