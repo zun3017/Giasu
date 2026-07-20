@@ -589,97 +589,10 @@
                 <!-- Thời khóa biểu tổng hợp -->
                 <div class="schedule-section">
                     <h3 style="color: #8E4DFF; margin: 0 0 15px 0; font-size: 18px; font-weight:700;"><i class="fa-regular fa-calendar-alt"></i> Thời khóa biểu tổng hợp</h3>
-                    <div class="desktop-table-view">
-                        <div class="table-wrapper" style="width: 100%; overflow-x: auto; border-radius: 12px;">
-                            <table style="width:100%; border-collapse:collapse;">
-                                <thead>
-                                    <tr style="background-color: rgba(91, 46, 255, 0.1); color:#FFF;">
-                                        <th style="padding:12px 16px; font-size:13px; font-weight:600;">Học sinh</th>
-                                        <th style="padding:12px 16px; font-size:13px; font-weight:600;">Thứ 2</th>
-                                        <th style="padding:12px 16px; font-size:13px; font-weight:600;">Thứ 3</th>
-                                        <th style="padding:12px 16px; font-size:13px; font-weight:600;">Thứ 4</th>
-                                        <th style="padding:12px 16px; font-size:13px; font-weight:600;">Thứ 5</th>
-                                        <th style="padding:12px 16px; font-size:13px; font-weight:600;">Thứ 6</th>
-                                        <th style="padding:12px 16px; font-size:13px; font-weight:600;">Thứ 7</th>
-                                        <th style="padding:12px 16px; font-size:13px; font-weight:600;">CN</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr style="border-bottom: 1px solid rgba(142, 77, 255, 0.2); color:#E2D1FF;">
-                                        <td style="padding:12px 16px; font-weight:bold; color:#FFD23F; font-size:13px;">Nguyễn Hoàng Nam</td>
-                                        <td style="padding:12px 16px; font-size:13px;">-</td>
-                                        <td style="padding:12px 16px; font-size:13px; color:#10B981; font-weight:500;">19:30 - 21:30</td>
-                                        <td style="padding:12px 16px; font-size:13px;">-</td>
-                                        <td style="padding:12px 16px; font-size:13px; color:#10B981; font-weight:500;">19:30 - 21:30</td>
-                                        <td style="padding:12px 16px; font-size:13px;">-</td>
-                                        <td style="padding:12px 16px; font-size:13px;">-</td>
-                                        <td style="padding:12px 16px; font-size:13px;">-</td>
-                                    </tr>
-                                    <tr style="border-bottom: 1px solid rgba(142, 77, 255, 0.2); color:#E2D1FF;">
-                                        <td style="padding:12px 16px; font-weight:bold; color:#FFD23F; font-size:13px;">Lê Minh Thư</td>
-                                        <td style="padding:12px 16px; font-size:13px;">-</td>
-                                        <td style="padding:12px 16px; font-size:13px;">-</td>
-                                        <td style="padding:12px 16px; font-size:13px; color:#10B981; font-weight:500;">18:00 - 20:00</td>
-                                        <td style="padding:12px 16px; font-size:13px;">-</td>
-                                        <td style="padding:12px 16px; font-size:13px; color:#10B981; font-weight:500;">18:00 - 20:00</td>
-                                        <td style="padding:12px 16px; font-size:13px;">-</td>
-                                        <td style="padding:12px 16px; font-size:13px;">-</td>
-                                    </tr>
-                                    <tr style="border-bottom: none; color:#E2D1FF;">
-                                        <td style="padding:12px 16px; font-weight:bold; color:#FFD23F; font-size:13px;">Phạm Hải Đăng</td>
-                                        <td style="padding:12px 16px; font-size:13px; color:#10B981; font-weight:500;">17:00 - 19:00</td>
-                                        <td style="padding:12px 16px; font-size:13px;">-</td>
-                                        <td style="padding:12px 16px; font-size:13px;">-</td>
-                                        <td style="padding:12px 16px; font-size:13px;">-</td>
-                                        <td style="padding:12px 16px; font-size:13px; color:#10B981; font-weight:500;">17:00 - 19:00</td>
-                                        <td style="padding:12px 16px; font-size:13px;">-</td>
-                                        <td style="padding:12px 16px; font-size:13px;">-</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-
-                    <div class="mobile-cards-view" style="width: 100%; margin-bottom: 20px;">
-                        <div class="accordion-item" style="border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 12px; margin-bottom: 12px; overflow: hidden; background: rgba(255, 255, 255, 0.01);">
-                            <div class="accordion-header" onclick="toggleDemoTutorScheduleAccordion(0)" style="display:flex; justify-content:space-between; align-items:center; padding:14px 18px; cursor:pointer;">
-                                <div class="accordion-header-title" style="display:flex; flex-direction:column; gap:4px; text-align:left;">
-                                    <span style="font-weight:600; color:#FFF;">Nguyễn Hoàng Nam</span>
-                                    <span class="accordion-header-date" style="font-size:11.5px; color:#A6ADCE;">Thứ 3, Thứ 5</span>
-                                </div>
-                                <div class="accordion-header-status"><i class="fa-solid fa-chevron-down" id="demo-tutor-sched-chevron-0" style="color:#A6ADCE; transition: transform 0.2s;"></i></div>
-                            </div>
-                            <div class="accordion-body" id="demo-tutor-sched-body-0" style="display:none; padding:15px; border-top:1px solid rgba(255,255,255,0.05); background:rgba(255,255,255,0.01); text-align:left;">
-                                <div class="accordion-body-row" style="display:flex; justify-content:space-between; margin-bottom:8px; font-size:13px;"><span class="accordion-body-label" style="color:#A6ADCE;">Thứ 3</span><span class="accordion-body-val" style="font-weight:600; color:#10B981;">19:30 - 21:30</span></div>
-                                <div class="accordion-body-row" style="display:flex; justify-content:space-between; margin-bottom:8px; font-size:13px;"><span class="accordion-body-label" style="color:#A6ADCE;">Thứ 5</span><span class="accordion-body-val" style="font-weight:600; color:#10B981;">19:30 - 21:30</span></div>
-                            </div>
-                        </div>
-                        <div class="accordion-item" style="border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 12px; margin-bottom: 12px; overflow: hidden; background: rgba(255, 255, 255, 0.01);">
-                            <div class="accordion-header" onclick="toggleDemoTutorScheduleAccordion(1)" style="display:flex; justify-content:space-between; align-items:center; padding:14px 18px; cursor:pointer;">
-                                <div class="accordion-header-title" style="display:flex; flex-direction:column; gap:4px; text-align:left;">
-                                    <span style="font-weight:600; color:#FFF;">Lê Minh Thư</span>
-                                    <span class="accordion-header-date" style="font-size:11.5px; color:#A6ADCE;">Thứ 4, Thứ 6</span>
-                                </div>
-                                <div class="accordion-header-status"><i class="fa-solid fa-chevron-down" id="demo-tutor-sched-chevron-1" style="color:#A6ADCE; transition: transform 0.2s;"></i></div>
-                            </div>
-                            <div class="accordion-body" id="demo-tutor-sched-body-1" style="display:none; padding:15px; border-top:1px solid rgba(255,255,255,0.05); background:rgba(255,255,255,0.01); text-align:left;">
-                                <div class="accordion-body-row" style="display:flex; justify-content:space-between; margin-bottom:8px; font-size:13px;"><span class="accordion-body-label" style="color:#A6ADCE;">Thứ 4</span><span class="accordion-body-val" style="font-weight:600; color:#10B981;">18:00 - 20:00</span></div>
-                                <div class="accordion-body-row" style="display:flex; justify-content:space-between; margin-bottom:8px; font-size:13px;"><span class="accordion-body-label" style="color:#A6ADCE;">Thứ 6</span><span class="accordion-body-val" style="font-weight:600; color:#10B981;">18:00 - 20:00</span></div>
-                            </div>
-                        </div>
-                        <div class="accordion-item" style="border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 12px; margin-bottom: 12px; overflow: hidden; background: rgba(255, 255, 255, 0.01);">
-                            <div class="accordion-header" onclick="toggleDemoTutorScheduleAccordion(2)" style="display:flex; justify-content:space-between; align-items:center; padding:14px 18px; cursor:pointer;">
-                                <div class="accordion-header-title" style="display:flex; flex-direction:column; gap:4px; text-align:left;">
-                                    <span style="font-weight:600; color:#FFF;">Phạm Hải Đăng</span>
-                                    <span class="accordion-header-date" style="font-size:11.5px; color:#A6ADCE;">Thứ 2, Thứ 6</span>
-                                </div>
-                                <div class="accordion-header-status"><i class="fa-solid fa-chevron-down" id="demo-tutor-sched-chevron-2" style="color:#A6ADCE; transition: transform 0.2s;"></i></div>
-                            </div>
-                            <div class="accordion-body" id="demo-tutor-sched-body-2" style="display:none; padding:15px; border-top:1px solid rgba(255,255,255,0.05); background:rgba(255,255,255,0.01); text-align:left;">
-                                <div class="accordion-body-row" style="display:flex; justify-content:space-between; margin-bottom:8px; font-size:13px;"><span class="accordion-body-label" style="color:#A6ADCE;">Thứ 2</span><span class="accordion-body-val" style="font-weight:600; color:#10B981;">17:00 - 19:00</span></div>
-                                <div class="accordion-body-row" style="display:flex; justify-content:space-between; margin-bottom:8px; font-size:13px;"><span class="accordion-body-label" style="color:#A6ADCE;">Thứ 6</span><span class="accordion-body-val" style="font-weight:600; color:#10B981;">17:00 - 19:00</span></div>
-                            </div>
-                        </div>
+                    <div style="margin-top: 15px; display: flex; justify-content: center; padding: 20px 0;">
+                        <button onclick="alert('Đây là bản Demo. Đăng nhập để truy cập tính năng thật!')" style="width: auto; padding: 12px 28px; background: linear-gradient(135deg, #8E4DFF 0%, #5B21B6 100%); font-weight: bold; border-radius: 25px; display: inline-flex; align-items: center; gap: 10px; box-shadow: 0 4px 15px rgba(142,77,255,0.25); border: none; color: #FFF; font-size: 14px; font-family: 'Inter', sans-serif; cursor: pointer;">
+                            <i class="fa-solid fa-calendar-days"></i> Quản lý & Tạo thời khóa biểu
+                        </button>
                     </div>
                 </div>
 
