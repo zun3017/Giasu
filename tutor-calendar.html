@@ -380,7 +380,12 @@
 
         .sheet-panel.open {
             transform: translateY(0);
+            height: 55vh;
         }
+        .sheet-panel.open ~ .btn-sheet-toggle {
+            bottom: calc(55vh + 15px);
+        }
+
 
         .sheet-panel-header {
             display: flex;
@@ -2528,18 +2533,14 @@
         function toggleSheetPanel() {
             let panel = document.getElementById('sheetPanel');
             let btn = document.getElementById('sheetToggleBtn');
+            btn.style.bottom = ""; // Reset inline style to let CSS take control
             if (panel.classList.toggle('open')) {
                 btn.innerHTML = '<i class="fa-solid fa-xmark"></i> Đóng lịch tóm tắt';
-                // Đợi panel trượt lên một chút để lấy chiều cao chính xác
-                setTimeout(() => {
-                    let panelHeight = panel.offsetHeight;
-                    btn.style.bottom = (panelHeight + 15) + "px";
-                }, 50);
             } else {
                 btn.innerHTML = '<i class="fa-solid fa-table-list"></i> Xem lịch tóm tắt';
-                btn.style.bottom = "25px";
             }
         }
+
 
 
         function openAddEventModal() {
