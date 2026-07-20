@@ -18,6 +18,45 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Global CSS -->
     <link rel="stylesheet" href="css/style.css?v=1.7.0">
+    <style>
+        /* --- SYNC TOAST --- */
+        .sync-toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 18px;
+            border-radius: 30px;
+            font-size: 13px;
+            font-weight: 600;
+            backdrop-filter: blur(12px);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+            animation: toastSlideIn 0.25s ease;
+            transition: opacity 0.3s ease;
+        }
+        @keyframes toastSlideIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        .sync-toast.pending {
+            background: rgba(30, 20, 70, 0.92);
+            border: 1px solid rgba(142, 77, 255, 0.5);
+            color: #C4B5FD;
+        }
+        .sync-toast.success {
+            background: rgba(16, 185, 129, 0.18);
+            border: 1px solid rgba(16, 185, 129, 0.5);
+            color: #6EE7B7;
+        }
+        .sync-toast.error {
+            background: rgba(239, 68, 68, 0.18);
+            border: 1px solid rgba(239, 68, 68, 0.5);
+            color: #FCA5A5;
+        }
+    </style>
 </head>
 <body>
     <div id="tutorDashboardBox">
@@ -38,13 +77,10 @@
 
         <div class="schedule-section">
             <h3><i class="fa-regular fa-calendar-alt"></i> Thời khóa biểu tổng hợp</h3>
-            <div class="table-wrapper desktop-table-view">
-                <table id="tutorScheduleTable">
-                    <tr><th>Học sinh</th><th>Thứ 2</th><th>Thứ 3</th><th>Thứ 4</th><th>Thứ 5</th><th>Thứ 6</th><th>Thứ 7</th><th>CN</th></tr>
-                </table>
-            </div>
-            <div id="tutorScheduleMobile" class="mobile-cards-view">
-                <!-- Rendered dynamically in tutor.js -->
+            <div style="margin-top: 15px; display: flex; justify-content: center; padding: 20px 0;">
+                <a href="tutor-calendar.html" class="modal-btn modal-btn-primary" style="width: auto; padding: 12px 28px; background: linear-gradient(135deg, #8E4DFF 0%, #5B21B6 100%); font-weight: bold; border-radius: 25px; display: inline-flex; align-items: center; gap: 10px; box-shadow: 0 4px 15px rgba(142,77,255,0.25); text-decoration: none; font-size: 14px; font-family: 'Inter', sans-serif;">
+                    <i class="fa-solid fa-calendar-days"></i> Quản lý & Tạo thời khóa biểu
+                </a>
             </div>
         </div>
 
@@ -825,6 +861,9 @@
 
     <!-- Toast container -->
     <div id="toastContainer" style="position: fixed; top: 20px; right: 20px; z-index: 1100; display: flex; flex-direction: column; gap: 10px; pointer-events: none;"></div>
+    
+    <!-- SYNC TOAST - Thông báo trạng thái đồng bộ -->
+    <div id="syncToast" class="sync-toast" style="display:none;"></div>
 
         <!-- Background decorations -->
     <div class="decor planet-left"></div>

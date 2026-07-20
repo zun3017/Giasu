@@ -560,12 +560,12 @@ function formatScheduleCell(val) {
             document.getElementById('addStudentPhone').value = "";
             document.getElementById('addStudentTuition').value = "";
             document.getElementById('addStudentMaBaiTap').value = "";
-            document.getElementById('addStudentThongBao').value = "";
             document.getElementById('addStudentModal').style.display = "flex";
         }
         function closeAddStudentModal() {
             document.getElementById('addStudentModal').style.display = "none";
         }
+
         function saveNewStudent() {
             var pName = document.getElementById('addParentName').value.trim();
             var sName = document.getElementById('addStudentName').value.trim();
@@ -651,42 +651,41 @@ function formatScheduleCell(val) {
         function saveQuickAnnouncement() {
             if (!currentTutorStudent) return;
             var text = document.getElementById('quickAnnouncementInput').value.trim();
-            var btn = document.getElementById('btnSaveQuickAnnouncement');
             var statusLabel = document.getElementById('announcementStatus');
             
-            btn.disabled = true;
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang gửi...';
-            statusLabel.style.display = 'none';
+            // 1. Cập nhật cục bộ ngay lập tức
+            currentTutorStudent.thongBao = text;
+            var globalIndex = tutorDataGlobal.students.findIndex(s => s.phone === currentTutorStudent.phone);
+            if (globalIndex !== -1) {
+                tutorDataGlobal.students[globalIndex].thongBao = text;
+            }
             
+            // 2. Hiển thị trạng thái thành công ngay
+            statusLabel.innerText = "Đã lưu thành công!";
+            statusLabel.style.display = 'inline';
+            setTimeout(function() {
+                statusLabel.style.display = 'none';
+            }, 3000);
+            showToast("Đã lưu thông báo nhanh!", "success");
+            
+            // 3. Sync ngầm lên backend
+            showSyncToast('pending');
             google.script.run
                 .withSuccessHandler(function(res) {
-                    btn.disabled = false;
-                    btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Gửi thông báo';
                     if (res && res.error) {
-                        showToast("Lỗi: " + res.error, "error");
+                        showSyncToast('error');
+                        showToast("Lỗi đồng bộ thông báo: " + res.error, "error");
                     } else {
-                        currentTutorStudent.thongBao = text;
-                        // Đồng bộ lại vào mảng global
-                        var globalIndex = tutorDataGlobal.students.findIndex(s => s.phone === currentTutorStudent.phone);
-                        if (globalIndex !== -1) {
-                            tutorDataGlobal.students[globalIndex].thongBao = text;
-                        }
-                        // Hiển thị trạng thái lưu thành công trong 3 giây
-                        statusLabel.innerText = "Đã lưu thành công!";
-                        statusLabel.style.display = 'inline';
-                        setTimeout(function() {
-                            statusLabel.style.display = 'none';
-                        }, 3000);
-                        showToast("Cập nhật thông báo thành công!", "success");
+                        showSyncToast('success');
                     }
                 })
                 .withFailureHandler(function(err) {
-                    btn.disabled = false;
-                    btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Gửi thông báo';
-                    showToast("Lỗi kết nối: " + err.toString(), "error");
+                    showSyncToast('error');
+                    console.error("Lỗi kết nối lưu thông báo:", err);
                 })
                 .capNhatThongBaoHocSinh(currentTutorStudent.phone, text);
         }
+
 
         // 4. Cửa sổ Thêm buổi học (Add Lesson) & Preview
         function openAddLessonModal() {
@@ -782,51 +781,54 @@ function formatScheduleCell(val) {
         function submitLessonLog() {
             if(!tempLessonData) return;
             
-            var btn = document.getElementById('btnSubmitLesson');
-            btn.disabled = true;
-            btn.innerText = "Đang đăng...";
+            // 1. Tạo dữ liệu buổi học mới cục bộ
+            let tempRowId = "temp_" + (_tempRowIdCounter++);
+            let newLog = {
+                rowIndex: tempRowId,
+                tempId: tempRowId,
+                tuan: tempLessonData.tuan,
+                ngay: tempLessonData.ngay,
+                mon: tempLessonData.mon,
+                noiDung: tempLessonData.noiDung,
+                btvn: tempLessonData.btvn,
+                diemDauGio: tempLessonData.diemDau,
+                diemDinhKi: tempLessonData.diemDinhKi,
+                trangThai: tempLessonData.trangThai,
+                tienDong: "" // Mới học chưa đóng tiền
+            };
             
-            google.script.run.withSuccessHandler(function(res) {
-                btn.disabled = false;
-                btn.innerText = "Xác nhận đăng";
-                
-                if(res.error) {
-                    showToast("Lỗi: " + res.error, "error");
-                } else {
-                    showToast("Đăng nhật ký buổi học thành công!", "success");
-                    closePreviewLessonModal();
-                    closeAddLessonModal();
-                    
-                    var studentPhone = currentTutorStudent.phone;
-                    google.script.run.withSuccessHandler(function(loginRes) {
-                        if(loginRes.role === 'tutor') {
-                            tutorDataGlobal = loginRes.data;
-                            var stIdx = -1;
-                            for(var i=0; i<tutorDataGlobal.students.length; i++) {
-                                if(tutorDataGlobal.students[i].phone === studentPhone) {
-                                    stIdx = i;
-                                    break;
-                                }
-                            }
-                            if(stIdx !== -1) {
-                                selectTutorStudent(stIdx);
-                            }
-                        }
-                    }).loginSystem(tutorDataGlobal.tutorPhone, document.getElementById('maPin').value.trim());
+            if (!currentTutorStudent.logs) currentTutorStudent.logs = [];
+            currentTutorStudent.logs.push(newLog);
+            
+            // 2. Render lại UI ngay lập tức
+            renderInvoice();
+            renderTutorChart(currentTutorStudent.logs);
+            renderTutorStudentHistory(currentTutorStudent.logs);
+            
+            // 3. Đóng các modal
+            closePreviewLessonModal();
+            closeAddLessonModal();
+            showToast("Đã thêm buổi học mới!", "success");
+            
+            // 4. Đẩy vào hàng đợi sync ngầm
+            queueLessonOperation({
+                type: 'add',
+                tempId: tempRowId,
+                data: {
+                    studentPhone: tempLessonData.studentPhone,
+                    studentName: tempLessonData.studentName,
+                    tuan: tempLessonData.tuan,
+                    ngay: tempLessonData.ngay,
+                    mon: tempLessonData.mon,
+                    noiDung: tempLessonData.noiDung,
+                    btvn: tempLessonData.btvn,
+                    diemDau: tempLessonData.diemDau,
+                    diemDinhKi: tempLessonData.diemDinhKi,
+                    trangThai: tempLessonData.trangThai
                 }
-            }).themBuoiHoc(
-                tempLessonData.studentPhone,
-                tempLessonData.studentName,
-                tempLessonData.tuan,
-                tempLessonData.ngay,
-                tempLessonData.mon,
-                tempLessonData.noiDung,
-                tempLessonData.btvn,
-                tempLessonData.diemDau,
-                tempLessonData.diemDinhKi,
-                tempLessonData.trangThai
-            );
+            });
         }
+
 
         // --- Custom in-app notification and confirmation dialogs ---
         function showToast(message, type = 'info') {
@@ -891,12 +893,215 @@ function formatScheduleCell(val) {
             };
         }
 
+        // === OPTIMISTIC UI FOR CHECKBOXES ===
+        let _pendingTuitionUpdates = {};
+        let _tuitionSyncTimer = null;
+
+        // === OPTIMISTIC UI FOR LESSON LOGS ===
+        let _pendingLessonOperations = [];
+        let _lessonOperationsTimer = null;
+        let _tempRowIdCounter = 1;
+
+        function queueLessonOperation(op) {
+            _pendingLessonOperations.push(op);
+            showSyncToast('pending');
+            clearTimeout(_lessonOperationsTimer);
+            _lessonOperationsTimer = setTimeout(flushLessonOperations, 1500);
+        }
+
+        function flushLessonOperations() {
+            if (_pendingLessonOperations.length === 0) return;
+            let ops = [..._pendingLessonOperations];
+            _pendingLessonOperations = [];
+
+            let processNext = () => {
+                if (ops.length === 0) {
+                    showSyncToast('success');
+                    refreshTutorStudentHistorySilent();
+                    return;
+                }
+                let op = ops.shift();
+
+                if (op.type === 'add') {
+                    google.script.run
+                        .withSuccessHandler(function(res) {
+                            if (res && res.error) {
+                                showSyncToast('error');
+                                showToast("Lỗi đồng bộ thêm buổi học: " + res.error, "error");
+                                refreshTutorStudentHistory();
+                            } else {
+                                // Tìm và cập nhật rowIndex thực tế từ phản hồi (nếu có trả về)
+                                if (res.rowIndex && currentTutorStudent && currentTutorStudent.logs) {
+                                    currentTutorStudent.logs.forEach(log => {
+                                        if (log.rowIndex === op.tempId) {
+                                            log.rowIndex = res.rowIndex;
+                                        }
+                                    });
+                                    renderTutorStudentHistory(currentTutorStudent.logs);
+                                }
+                                processNext();
+                            }
+                        })
+                        .withFailureHandler(function(err) {
+                            showSyncToast('error');
+                            showToast("Lỗi kết nối", "error");
+                            refreshTutorStudentHistory();
+                        })
+                        .themBuoiHoc(
+                            op.data.studentPhone,
+                            op.data.studentName,
+                            op.data.tuan,
+                            op.data.ngay,
+                            op.data.mon,
+                            op.data.noiDung,
+                            op.data.btvn,
+                            op.data.diemDau,
+                            op.data.diemDinhKi,
+                            op.data.trangThai
+                        );
+                } 
+                else if (op.type === 'edit') {
+                    let targetRowIndex = op.rowIndex;
+                    if (typeof targetRowIndex === 'string' && targetRowIndex.startsWith('temp_')) {
+                        if (currentTutorStudent && currentTutorStudent.logs) {
+                            let match = currentTutorStudent.logs.find(log => log.tempId === targetRowIndex || log.rowIndex === targetRowIndex);
+                            if (match && typeof match.rowIndex === 'number') {
+                                targetRowIndex = match.rowIndex;
+                            }
+                        }
+                    }
+
+                    google.script.run
+                        .withSuccessHandler(function(res) {
+                            if (res && res.error) {
+                                showSyncToast('error');
+                                showToast("Lỗi đồng bộ sửa buổi học: " + res.error, "error");
+                                refreshTutorStudentHistory();
+                            } else {
+                                processNext();
+                            }
+                        })
+                        .withFailureHandler(function(err) {
+                            showSyncToast('error');
+                            showToast("Lỗi kết nối", "error");
+                            refreshTutorStudentHistory();
+                        })
+                        .suaBuoiHoc(
+                            targetRowIndex,
+                            op.data.tuan,
+                            op.data.ngay,
+                            op.data.mon,
+                            op.data.noiDung,
+                            op.data.btvn,
+                            op.data.diemDau,
+                            op.data.diemDinhKi,
+                            op.data.trangThai
+                        );
+                }
+                else if (op.type === 'delete') {
+                    let targetRowIndex = op.rowIndex;
+                    if (typeof targetRowIndex === 'string' && targetRowIndex.startsWith('temp_')) {
+                        processNext();
+                        return;
+                    }
+
+                    google.script.run
+                        .withSuccessHandler(function(res) {
+                            if (res && res.error) {
+                                showSyncToast('error');
+                                showToast("Lỗi đồng bộ xóa buổi học: " + res.error, "error");
+                                refreshTutorStudentHistory();
+                            } else {
+                                processNext();
+                            }
+                        })
+                        .withFailureHandler(function(err) {
+                            showSyncToast('error');
+                            showToast("Lỗi kết nối", "error");
+                            refreshTutorStudentHistory();
+                        })
+                        .xoaBuoiHoc(targetRowIndex);
+                }
+            };
+
+            processNext();
+        }
+
+        function showSyncToast(state) {
+            let toast = document.getElementById('syncToast');
+            if (!toast) return;
+            toast.className = 'sync-toast ' + state;
+            if (state === 'pending') {
+                toast.innerHTML = '<i class="fa-solid fa-rotate fa-spin"></i> Đang đồng bộ...';
+                toast.style.display = 'flex';
+            } else if (state === 'success') {
+                toast.innerHTML = '<i class="fa-solid fa-circle-check"></i> Đã lưu';
+                toast.style.display = 'flex';
+                setTimeout(function() { toast.style.display = 'none'; }, 2000);
+            } else if (state === 'error') {
+                toast.innerHTML = '<i class="fa-solid fa-circle-xmark"></i> Lỗi đồng bộ!';
+                toast.style.display = 'flex';
+                setTimeout(function() { toast.style.display = 'none'; }, 4000);
+            }
+        }
+
+        function queueTuitionUpdate(rowIndex, state) {
+            _pendingTuitionUpdates[rowIndex] = state;
+            showSyncToast('pending');
+            clearTimeout(_tuitionSyncTimer);
+            _tuitionSyncTimer = setTimeout(flushTuitionUpdates, 1500);
+        }
+
+        function flushTuitionUpdates() {
+            let entries = Object.entries(_pendingTuitionUpdates);
+            if (entries.length === 0) return;
+            _pendingTuitionUpdates = {};
+
+            let payIndices = [];
+            let unpayIndices = [];
+            entries.forEach(([rowIndex, state]) => {
+                if (state) {
+                    payIndices.push(rowIndex);
+                } else {
+                    unpayIndices.push(rowIndex);
+                }
+            });
+
+            google.script.run
+                .withSuccessHandler(function(res) {
+                    if (res && res.error) {
+                        showSyncToast('error');
+                        showToast("Lỗi đồng bộ học phí: " + res.error, "error");
+                        refreshTutorStudentHistory();
+                    } else {
+                        showSyncToast('success');
+                        refreshTutorStudentHistorySilent();
+                    }
+                })
+                .withFailureHandler(function(err) {
+                    showSyncToast('error');
+                    showToast("Lỗi kết nối máy chủ Google", "error");
+                    refreshTutorStudentHistory();
+                })
+                .capNhatNhieuDongHocPhi(payIndices, unpayIndices);
+        }
+
+        function refreshTutorStudentHistorySilent() {
+            if (!currentTutorStudent) return;
+            google.script.run.withSuccessHandler(function(res) {
+                currentTutorStudent.logs = res.logs || [];
+                renderInvoice();
+                renderTutorChart(res.logs || []);
+                renderTutorStudentHistory(res.logs || []);
+            }).getStudentDetailsForTutor(currentTutorStudent.phone);
+        }
+
         function toggleSelectAllTutorLessons(masterChk) {
             if (!masterChk) return;
             var chks = document.querySelectorAll('.tutor-lesson-chk');
             
             if (masterChk.checked) {
-                masterChk.checked = false;
+                masterChk.checked = false; // Tạm bỏ check để chờ confirm
                 var targetRowIndices = [];
                 chks.forEach(function(c) {
                     if (!c.checked) {
@@ -916,29 +1121,16 @@ function formatScheduleCell(val) {
                     masterChk.checked = true;
                     chks.forEach(function(c) {
                         c.checked = true;
+                        syncCheckboxAndCheckAll(c);
+                        _pendingTuitionUpdates[c.getAttribute('data-rowindex')] = true;
                     });
                     
-                    showToast("Đang cập nhật đóng học phí hàng loạt...", "info");
-                    google.script.run
-                        .withSuccessHandler(function(res) {
-                            if (res.error) {
-                                showToast("Lỗi: " + res.error, "error");
-                                masterChk.checked = false;
-                                refreshTutorStudentHistory();
-                            } else {
-                                showToast("Đã đóng học phí thành công cho " + targetRowIndices.length + " buổi học!", "success");
-                                refreshTutorStudentHistory();
-                            }
-                        })
-                        .withFailureHandler(function(err) {
-                            showToast("Lỗi kết nối: " + err.toString(), "error");
-                            masterChk.checked = false;
-                            refreshTutorStudentHistory();
-                        })
-                        .capNhatNhieuDongHocPhi(targetRowIndices, []);
+                    showSyncToast('pending');
+                    clearTimeout(_tuitionSyncTimer);
+                    _tuitionSyncTimer = setTimeout(flushTuitionUpdates, 1500);
                 });
             } else {
-                masterChk.checked = true;
+                masterChk.checked = true; // Tạm giữ check để chờ confirm
                 var targetRowIndices = [];
                 chks.forEach(function(c) {
                     if (c.checked) {
@@ -958,26 +1150,13 @@ function formatScheduleCell(val) {
                     masterChk.checked = false;
                     chks.forEach(function(c) {
                         c.checked = false;
+                        syncCheckboxAndCheckAll(c);
+                        _pendingTuitionUpdates[c.getAttribute('data-rowindex')] = false;
                     });
                     
-                    showToast("Đang hủy đóng học phí hàng loạt...", "info");
-                    google.script.run
-                        .withSuccessHandler(function(res) {
-                            if (res.error) {
-                                showToast("Lỗi: " + res.error, "error");
-                                masterChk.checked = true;
-                                refreshTutorStudentHistory();
-                            } else {
-                                showToast("Đã hủy trạng thái đóng học phí thành công cho " + targetRowIndices.length + " buổi học!", "success");
-                                refreshTutorStudentHistory();
-                            }
-                        })
-                        .withFailureHandler(function(err) {
-                            showToast("Lỗi kết nối: " + err.toString(), "error");
-                            masterChk.checked = true;
-                            refreshTutorStudentHistory();
-                        })
-                        .capNhatNhieuDongHocPhi([], targetRowIndices);
+                    showSyncToast('pending');
+                    clearTimeout(_tuitionSyncTimer);
+                    _tuitionSyncTimer = setTimeout(flushTuitionUpdates, 1500);
                 });
             }
         }
@@ -987,56 +1166,18 @@ function formatScheduleCell(val) {
             var rIndex = chkEl.getAttribute('data-rowindex');
             
             if (chkEl.checked) {
-                // Đang từ bỏ tích chuyển thành tích chọn -> Xác nhận đóng học phí
-                chkEl.checked = false; // Tạm thời bỏ tích để chờ xác thực
-                showCustomConfirm("Xác nhận đóng học phí cho buổi học này? Trạng thái sẽ được cập nhật tức thì lên hệ thống.", function() {
+                chkEl.checked = false; // Tạm bỏ check chờ confirm
+                showCustomConfirm("Xác nhận đóng học phí cho buổi học này?", function() {
                     chkEl.checked = true;
                     syncCheckboxAndCheckAll(chkEl);
-                    
-                    showToast("Đang cập nhật đóng học phí...", "info");
-                    google.script.run
-                        .withSuccessHandler(function(res) {
-                            if (res.error) {
-                                showToast("Lỗi: " + res.error, "error");
-                                chkEl.checked = false;
-                                syncCheckboxAndCheckAll(chkEl);
-                            } else {
-                                showToast("Cập nhật đóng học phí thành công!", "success");
-                                refreshTutorStudentHistory();
-                            }
-                        })
-                        .withFailureHandler(function(err) {
-                            showToast("Lỗi kết nối: " + err.toString(), "error");
-                            chkEl.checked = false;
-                            syncCheckboxAndCheckAll(chkEl);
-                        })
-                        .capNhatNhieuDongHocPhi([rIndex], []);
+                    queueTuitionUpdate(rIndex, true);
                 });
             } else {
-                // Đang từ tích chọn chuyển thành bỏ tích -> Xác nhận hủy đóng học phí
-                chkEl.checked = true; // Tạm thời tích lại để chờ xác thực
+                chkEl.checked = true; // Tạm giữ check chờ confirm
                 showCustomConfirm("Bạn có chắc chắn muốn hủy trạng thái đã đóng học phí của buổi học này?", function() {
                     chkEl.checked = false;
                     syncCheckboxAndCheckAll(chkEl);
-                    
-                    showToast("Đang cập nhật hủy đóng học phí...", "info");
-                    google.script.run
-                        .withSuccessHandler(function(res) {
-                            if (res.error) {
-                                showToast("Lỗi: " + res.error, "error");
-                                chkEl.checked = true;
-                                syncCheckboxAndCheckAll(chkEl);
-                            } else {
-                                showToast("Hủy trạng thái đóng học phí thành công!", "success");
-                                refreshTutorStudentHistory();
-                            }
-                        })
-                        .withFailureHandler(function(err) {
-                            showToast("Lỗi kết nối: " + err.toString(), "error");
-                            chkEl.checked = true;
-                            syncCheckboxAndCheckAll(chkEl);
-                        })
-                        .capNhatNhieuDongHocPhi([], [rIndex]);
+                    queueTuitionUpdate(rIndex, false);
                 });
             }
         }
@@ -1318,30 +1459,50 @@ function formatScheduleCell(val) {
             }
             
             showCustomConfirm("Bạn có chắc chắn muốn cập nhật thông tin buổi học này?", function() {
-                var btn = document.getElementById('btnSaveEditedLesson');
-                btn.disabled = true;
-                btn.innerText = "Đang lưu...";
+                // 1. Cập nhật cục bộ
+                if (currentTutorStudent && currentTutorStudent.logs) {
+                    let log = currentTutorStudent.logs.find(l => l.rowIndex === rowIndex || (typeof l.rowIndex === 'number' && String(l.rowIndex) === String(rowIndex)) || l.tempId === rowIndex);
+                    if (log) {
+                        log.tuan = tuan;
+                        log.ngay = dateFormatted;
+                        log.mon = mon;
+                        log.trangThai = trangThai;
+                        log.btvn = btvn;
+                        log.diemDauGio = diemDau;
+                        log.diemDinhKi = diemDinhKi;
+                        log.noiDung = noiDung;
+                    }
+                }
                 
-                google.script.run
-                    .withSuccessHandler(function(res) {
-                        btn.disabled = false;
-                        btn.innerText = "Cập nhật";
-                        if(res.error) {
-                            showToast("Lỗi: " + res.error, "error");
-                        } else {
-                            showToast("Cập nhật nhật ký buổi học thành công!", "success");
-                            closeEditLessonModal();
-                            refreshTutorStudentHistory();
-                        }
-                    })
-                    .withFailureHandler(function(err) {
-                        btn.disabled = false;
-                        btn.innerText = "Cập nhật";
-                        showToast("Lỗi kết nối hoặc hệ thống: " + err.toString(), "error");
-                    })
-                    .suaBuoiHoc(rowIndex, tuan, dateFormatted, mon, noiDung, btvn, diemDau, diemDinhKi, trangThai);
+                // 2. Render lại UI ngay lập tức
+                renderInvoice();
+                if (currentTutorStudent && currentTutorStudent.logs) {
+                    renderTutorChart(currentTutorStudent.logs);
+                    renderTutorStudentHistory(currentTutorStudent.logs);
+                }
+                
+                // 3. Đóng modal
+                closeEditLessonModal();
+                showToast("Đã cập nhật thông tin buổi học!", "success");
+                
+                // 4. Đẩy vào hàng đợi sync ngầm
+                queueLessonOperation({
+                    type: 'edit',
+                    rowIndex: rowIndex,
+                    data: {
+                        tuan: tuan,
+                        ngay: dateFormatted,
+                        mon: mon,
+                        noiDung: noiDung,
+                        btvn: btvn,
+                        diemDau: diemDau,
+                        diemDinhKi: diemDinhKi,
+                        trangThai: trangThai
+                    }
+                });
             });
         }
+
 
         // --- Schedule handlers ---
         function openEditScheduleModal(studentName, mon, tue, wed, thu, fri, sat, sun) {
@@ -1584,37 +1745,34 @@ function formatScheduleCell(val) {
             if (!rowIndex) return;
 
             showCustomConfirm("Bạn có chắc chắn muốn xóa hoàn toàn buổi học này?", function() {
-                var btn = document.querySelector('[onclick="confirmDeleteLesson()"]');
-                var originalText = btn ? btn.innerText : "Xóa buổi học";
-                if(btn) {
-                    btn.disabled = true;
-                    btn.innerText = "Đang xóa...";
+                // 1. Cập nhật cục bộ: lọc bỏ dòng bị xóa
+                if (currentTutorStudent && currentTutorStudent.logs) {
+                    currentTutorStudent.logs = currentTutorStudent.logs.filter(l => 
+                        l.rowIndex !== rowIndex && 
+                        !(typeof l.rowIndex === 'number' && String(l.rowIndex) === String(rowIndex)) && 
+                        l.tempId !== rowIndex
+                    );
                 }
-
-                google.script.run
-                    .withSuccessHandler(function(res) {
-                        if(btn) {
-                            btn.disabled = false;
-                            btn.innerText = originalText;
-                        }
-                        if(res.error) {
-                            showToast("Lỗi: " + res.error, "error");
-                        } else {
-                            showToast("Xóa nhật ký buổi học thành công!", "success");
-                            closeEditLessonModal();
-                            refreshTutorStudentHistory();
-                        }
-                    })
-                    .withFailureHandler(function(err) {
-                        if(btn) {
-                            btn.disabled = false;
-                            btn.innerText = originalText;
-                        }
-                        showToast("Lỗi kết nối hoặc hệ thống: " + err.toString(), "error");
-                    })
-                    .xoaBuoiHoc(rowIndex);
+                
+                // 2. Render lại UI ngay lập tức
+                renderInvoice();
+                if (currentTutorStudent && currentTutorStudent.logs) {
+                    renderTutorChart(currentTutorStudent.logs);
+                    renderTutorStudentHistory(currentTutorStudent.logs);
+                }
+                
+                // 3. Đóng modal
+                closeEditLessonModal();
+                showToast("Đã xóa buổi học!", "success");
+                
+                // 4. Đẩy vào hàng đợi sync ngầm
+                queueLessonOperation({
+                    type: 'delete',
+                    rowIndex: rowIndex
+                });
             });
         }
+
 
         // --- Admin Dashboard JS Controllers ---
 
