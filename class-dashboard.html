@@ -1178,18 +1178,30 @@
             if (activeStudents && activeStudents.length > 0) {
                 activeStudents.forEach(function(st) {
                     var card = document.createElement("div");
-                    card.style.cssText = "background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 12px;";
+                    card.style.cssText = "background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 10px 14px; margin-bottom: 8px;";
                     card.innerHTML = 
-                        '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; flex-wrap:wrap; gap:8px;">' +
-                            '<strong style="color:#FFD23F; font-size:14px;">' + st.studentName + '</strong>' +
-                            '<select id="stAtt_' + st.studentId + '" class="form-control" style="width:auto; padding:4px 10px; font-size:12.5px; background:rgba(255,255,255,0.06); border-radius:8px; color:#10B981;">' +
-                                '<option value="Có mặt" style="background:#0D0826;">🟢 Có mặt</option>' +
-                                '<option value="Muộn" style="background:#0D0826;">🟠 Đi muộn</option>' +
-                                '<option value="Vắng" style="background:#0D0826;">🔴 Vắng</option>' +
-                            '</select>' +
+                        '<div onclick="toggleSingleStudentNote(\'' + st.studentId + '\')" style="display:flex; justify-content:space-between; align-items:center; cursor:pointer; user-select:none;">' +
+                            '<span style="color:#FFD23F; font-weight:700; font-size:14px; display:inline-flex; align-items:center; gap:8px;">' +
+                                '<i class="fa-solid fa-user-pen" style="color:#8E4DFF;"></i> ' + st.studentName +
+                            '</span>' +
+                            '<span style="display:inline-flex; align-items:center; gap:8px; font-size:12.5px; color:#A6ADCE;">' +
+                                '<span id="stSummary_' + st.studentId + '" style="color:#10B981; font-weight:600;">🟢 Có mặt</span>' +
+                                '<i id="stIcon_' + st.studentId + '" class="fa-solid fa-chevron-down" style="transition:transform 0.3s;"></i>' +
+                            '</span>' +
                         '</div>' +
-                        '<div>' +
-                            '<input type="text" id="stNote_' + st.studentId + '" class="form-control" placeholder="Nhập nhận xét riêng cho em ' + st.studentName + ' (phụ huynh bé sẽ thấy)..." style="background:rgba(255,255,255,0.04); font-size:13px; padding:8px 12px; border-radius:8px;">' +
+                        '<div id="stDetailContainer_' + st.studentId + '" style="display:none; margin-top:12px; padding-top:10px; border-top:1px dashed rgba(255,255,255,0.1);">' +
+                            '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; flex-wrap:wrap; gap:8px;">' +
+                                '<label style="color:#A6ADCE; font-size:12px; font-weight:700;">ĐIỂM DANH HỌC SINH:</label>' +
+                                '<select id="stAtt_' + st.studentId + '" onchange="updateStSummary(\'' + st.studentId + '\')" class="form-control" style="width:auto; padding:4px 12px; font-size:12.5px; background:rgba(255,255,255,0.06); border-radius:8px; color:#10B981; outline:none;">' +
+                                    '<option value="Có mặt" style="background:#0D0826;">🟢 Có mặt</option>' +
+                                    '<option value="Muộn" style="background:#0D0826;">🟠 Đi muộn</option>' +
+                                    '<option value="Vắng" style="background:#0D0826;">🔴 Vắng</option>' +
+                                '</select>' +
+                            '</div>' +
+                            '<div>' +
+                                '<label style="display:block; color:#A6ADCE; font-size:12px; font-weight:700; margin-bottom:6px;">NHẬN XÉT RIÊNG TỪ THẦY:</label>' +
+                                '<input type="text" id="stNote_' + st.studentId + '" class="form-control" placeholder="Nhập nhận xét riêng cho em ' + st.studentName + ' (phụ huynh bé sẽ thấy)..." style="background:rgba(255,255,255,0.04); font-size:13px; padding:10px 14px; border-radius:10px; width:100%; outline:none;">' +
+                            '</div>' +
                         '</div>';
                     listEl.appendChild(card);
                 });
@@ -1198,6 +1210,36 @@
             }
 
             openModal("addClassLessonModal");
+        }
+
+        function toggleSingleStudentNote(stId) {
+            var detail = document.getElementById("stDetailContainer_" + stId);
+            var icon = document.getElementById("stIcon_" + stId);
+            if (!detail) return;
+            if (detail.style.display === "none" || detail.style.display === "") {
+                detail.style.display = "block";
+                if (icon) icon.style.transform = "rotate(180deg)";
+            } else {
+                detail.style.display = "none";
+                if (icon) icon.style.transform = "rotate(0deg)";
+            }
+        }
+
+        function updateStSummary(stId) {
+            var attEl = document.getElementById("stAtt_" + stId);
+            var sumEl = document.getElementById("stSummary_" + stId);
+            if (!attEl || !sumEl) return;
+            var val = attEl.value;
+            if (val === "Có mặt") {
+                sumEl.style.color = "#10B981";
+                sumEl.innerText = "🟢 Có mặt";
+            } else if (val === "Muộn") {
+                sumEl.style.color = "#F97316";
+                sumEl.innerText = "🟠 Đi muộn";
+            } else {
+                sumEl.style.color = "#EF4444";
+                sumEl.innerText = "🔴 Vắng";
+            }
         }
 
         function toggleStudentNotesAccordion() {
