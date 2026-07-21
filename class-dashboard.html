@@ -881,7 +881,7 @@
     <div id="addClassLessonModal" class="modal-overlay">
         <div class="modal-card" style="max-width: 580px; width: 94%; padding: 25px; border-radius: 22px; background: #0D0826; border: 1px solid rgba(142, 77, 255, 0.35); box-shadow: 0 12px 50px rgba(0,0,0,0.85); max-height: 90vh; overflow-y: auto;">
             <div class="modal-header" style="margin-bottom: 22px; display: flex; justify-content: space-between; align-items: center;">
-                <h3 style="color: #FFD23F; font-size: 20px; font-weight: 800; display: flex; align-items: center; gap: 10px; margin: 0;">
+                <h3 id="addClassLessonModalTitle" style="color: #FFD23F; font-size: 20px; font-weight: 800; display: flex; align-items: center; gap: 10px; margin: 0;">
                     <i class="fa-solid fa-calendar-plus" style="color: #FFD23F;"></i> Thêm nhật ký buổi học
                 </h3>
                 <button class="btn-close-modal" onclick="closeModal('addClassLessonModal')" style="background: none; border: none; color: #A6ADCE; font-size: 20px; cursor: pointer;">&times;</button>
@@ -975,7 +975,7 @@
     <!-- Sync Toast Badge giống Dành cho Gia Sư -->
     <div id="syncToast" class="sync-toast" style="display:none;"></div>
 
-    <script src="js/api.js?v=1.7.6"></script>
+    <script src="js/api.js?v=1.7.7"></script>
     <script>
         var currentTutorData = null;
         var currentClasses = [];
@@ -1037,13 +1037,21 @@
             google.script.run
                 .withSuccessHandler(function(res) {
                     if (res && res.classes && Array.isArray(res.classes) && res.classes.length > 0) {
-                        currentClasses = res.classes;
+                        var merged = res.classes.slice();
+                        if (currentClasses && currentClasses.length > 0) {
+                            currentClasses.forEach(function(localCls) {
+                                if (!merged.some(function(mc) { return mc.classId === localCls.classId || mc.className === localCls.className; })) {
+                                    merged.push(localCls);
+                                }
+                            });
+                        }
+                        currentClasses = merged;
                         if (!currentTutorData) currentTutorData = {};
-                        currentTutorData.classes = res.classes;
+                        currentTutorData.classes = currentClasses;
                         sessionStorage.setItem("classTutorData", JSON.stringify(currentTutorData));
                         localStorage.setItem("classTutorData", JSON.stringify(currentTutorData));
                         
-                        var activeCls = res.activeClass || res.classes[0];
+                        var activeCls = res.activeClass || currentClasses[activeClassIndex] || currentClasses[0];
                         activeClassIndex = currentClasses.findIndex(function(c) { return c.classId === activeCls.classId; });
                         if (activeClassIndex < 0) activeClassIndex = 0;
 
@@ -1056,14 +1064,18 @@
                         activeClassHomework = res.homeworkList || [];
 
                         renderDashboardUI();
-                    } else if (!currentClasses || currentClasses.length === 0) {
+                    } else if (currentClasses && currentClasses.length > 0) {
+                        renderDashboardUI();
+                    } else {
                         currentClasses = [];
                         renderEmptyClassState();
                     }
                 })
                 .withFailureHandler(function(err) {
                     console.error("Lỗi tải dữ liệu tổng lớp học:", err);
-                    if (!currentClasses || currentClasses.length === 0) {
+                    if (currentClasses && currentClasses.length > 0) {
+                        renderDashboardUI();
+                    } else {
                         renderEmptyClassState();
                     }
                 })
@@ -1569,7 +1581,13 @@
             }
         }
 
-        function openAddClassLessonModal() {
+        var editingLessonLogId = null;
+
+        function openAddClassLessonLogModal() {
+            editingLessonLogId = null;
+            var titleEl = document.getElementById("addClassLessonModalTitle");
+            if (titleEl) titleEl.innerHTML = '<i class="fa-solid fa-calendar-plus" style="color: #FFD23F;"></i> Thêm nhật ký buổi học';
+
             var cls = currentClasses[activeClassIndex];
             if (!cls) {
                 alert("Vui lòng tạo hoặc chọn lớp học trước khi thêm buổi học!");
@@ -1582,7 +1600,7 @@
             var yyyy = today.getFullYear();
             var dateStr = dd + '/' + mm + '/' + yyyy;
 
-            document.getElementById("logWeekNum").value = "7";
+            document.getElementById("logWeekNum").value = "1";
             document.getElementById("logStudyDate").value = dateStr;
             document.getElementById("logSubject").value = cls.subject || "Toán học";
             document.getElementById("logStatus").value = "Có mặt";
@@ -1591,8 +1609,46 @@
             document.getElementById("logTermTest").value = "Không có";
             document.getElementById("logGeneralNote").value = "";
 
-            // Render Accordion list of students
+            renderModalStudentNotesInputs();
+            openModal("addClassLessonModal");
+        }
+
+        function openEditClassLessonLogModal(logId) {
+            var log = activeClassLessonLogs.find(function(l) { return l.logId === logId; });
+            if (!log) return;
+
+            editingLessonLogId = logId;
+            var titleEl = document.getElementById("addClassLessonModalTitle");
+            if (titleEl) titleEl.innerHTML = '<i class="fa-solid fa-pen-to-square" style="color: #FFD23F;"></i> Chỉnh sửa nhật ký buổi học';
+
+            document.getElementById("logWeekNum").value = log.weekNum || "1";
+            document.getElementById("logStudyDate").value = log.studyDate || "";
+            document.getElementById("logSubject").value = log.subject || "Toán học";
+            document.getElementById("logStatus").value = log.status || "Có mặt";
+            document.getElementById("logHwEval").value = log.hwEval || "Hoàn thành";
+            document.getElementById("logEntryTest").value = log.entryTest || "";
+            document.getElementById("logTermTest").value = log.termTest || "";
+            document.getElementById("logGeneralNote").value = log.generalNote || "";
+
+            renderModalStudentNotesInputs();
+
+            if (log.studentNotes && typeof log.studentNotes === 'object') {
+                Object.keys(log.studentNotes).forEach(function(stId) {
+                    var info = log.studentNotes[stId];
+                    var attEl = document.getElementById("stAtt_" + stId);
+                    var noteEl = document.getElementById("stNote_" + stId);
+                    if (attEl && info.attendance) attEl.value = info.attendance;
+                    if (noteEl && info.privateNote) noteEl.value = info.privateNote;
+                    updateStSummary(stId);
+                });
+            }
+
+            openModal("addClassLessonModal");
+        }
+
+        function renderModalStudentNotesInputs() {
             var listEl = document.getElementById("modalStudentNotesList");
+            if (!listEl) return;
             listEl.innerHTML = "";
 
             if (activeStudents && activeStudents.length > 0) {
@@ -1624,12 +1680,9 @@
                             '</div>' +
                         '</div>';
                     listEl.appendChild(card);
-                });
             } else {
                 listEl.innerHTML = '<div style="color:#A6ADCE; font-size:13px; font-style:italic;">Lớp này chưa có danh sách học sinh.</div>';
             }
-
-            openModal("addClassLessonModal");
         }
 
         function toggleSingleStudentNote(stId) {
@@ -1712,24 +1765,38 @@
 
             var studentNotesJson = JSON.stringify(studentNotesObj);
 
-            var newLog = {
-                logId: "LOG_" + new Date().getTime(),
-                classId: cls.classId,
-                className: cls.className,
-                weekNum: weekNum,
-                studyDate: studyDate,
-                subject: subject,
-                status: status,
-                hwEval: hwEval,
-                entryTest: entryTest,
-                termTest: termTest,
-                generalNote: generalNote,
-                studentNotes: studentNotesObj
-            };
-
-            // OPTIMISTIC UI: Thêm vào mảng & đóng modal trong 0.05s!
             if (!activeClassLessonLogs) activeClassLessonLogs = [];
-            activeClassLessonLogs.unshift(newLog);
+
+            if (editingLessonLogId) {
+                var targetLog = activeClassLessonLogs.find(function(l) { return l.logId === editingLessonLogId; });
+                if (targetLog) {
+                    targetLog.weekNum = weekNum;
+                    targetLog.studyDate = studyDate;
+                    targetLog.subject = subject;
+                    targetLog.status = status;
+                    targetLog.hwEval = hwEval;
+                    targetLog.entryTest = entryTest;
+                    targetLog.termTest = termTest;
+                    targetLog.generalNote = generalNote;
+                    targetLog.studentNotes = studentNotesObj;
+                }
+            } else {
+                var newLog = {
+                    logId: "LOG_" + new Date().getTime(),
+                    classId: cls.classId,
+                    className: cls.className,
+                    weekNum: weekNum,
+                    studyDate: studyDate,
+                    subject: subject,
+                    status: status,
+                    hwEval: hwEval,
+                    entryTest: entryTest,
+                    termTest: termTest,
+                    generalNote: generalNote,
+                    studentNotes: studentNotesObj
+                };
+                activeClassLessonLogs.unshift(newLog);
+            }
 
             closeModal("addClassLessonModal");
             renderClassLessonLogsTableUI();
@@ -1765,14 +1832,14 @@
                 var statusBadge = '';
                 var st = log.status || "Có mặt";
                 if (st === "Có mặt" || st === "Đã học") {
-                    statusBadge = '<span style="padding:4px 12px; background:rgba(16,185,129,0.15); border:1px solid rgba(16,185,129,0.4); color:#6EE7B7; border-radius:15px; font-weight:700; font-size:12px;">🟢 Có mặt</span>';
+                    statusBadge = '<span style="padding:4px 12px; background:rgba(16,185,129,0.15); border:1px solid rgba(16,185,129,0.4); color:#6EE7B7; border-radius:15px; font-weight:700; font-size:12px; white-space:nowrap; display:inline-flex; align-items:center; gap:4px;">🟢 Có mặt</span>';
                 } else if (st === "Đi muộn") {
-                    statusBadge = '<span style="padding:4px 12px; background:rgba(249,115,22,0.15); border:1px solid rgba(249,115,22,0.4); color:#FDBA74; border-radius:15px; font-weight:700; font-size:12px;">🟠 Đi muộn</span>';
+                    statusBadge = '<span style="padding:4px 12px; background:rgba(249,115,22,0.15); border:1px solid rgba(249,115,22,0.4); color:#FDBA74; border-radius:15px; font-weight:700; font-size:12px; white-space:nowrap; display:inline-flex; align-items:center; gap:4px;">🟠 Đi muộn</span>';
                 } else {
-                    statusBadge = '<span style="padding:4px 12px; background:rgba(239,68,68,0.15); border:1px solid rgba(239,68,68,0.4); color:#FCA5A5; border-radius:15px; font-weight:700; font-size:12px;">🔴 Cả lớp nghỉ</span>';
+                    statusBadge = '<span style="padding:4px 12px; background:rgba(239,68,68,0.15); border:1px solid rgba(239,68,68,0.4); color:#FCA5A5; border-radius:15px; font-weight:700; font-size:12px; white-space:nowrap; display:inline-flex; align-items:center; gap:4px;">🔴 Cả lớp nghỉ</span>';
                 }
 
-                var hwBadge = '<span style="padding:4px 12px; background:rgba(142,77,255,0.15); border:1px solid rgba(142,77,255,0.3); color:#E2D1FF; border-radius:15px; font-size:12.5px;">' + (log.hwEval || 'Bình thường') + '</span>';
+                var hwBadge = '<span style="padding:4px 12px; background:rgba(142,77,255,0.15); border:1px solid rgba(142,77,255,0.3); color:#E2D1FF; border-radius:15px; font-size:12.5px; white-space:nowrap;">' + (log.hwEval || 'Bình thường') + '</span>';
 
                 var noteDisplay = log.generalNote || '<i>(Chưa có nhận xét)</i>';
                 
@@ -1783,14 +1850,17 @@
 
                 return '<tr>' +
                     '<td style="text-align:center; color:#A6ADCE; font-weight:600;">' + (log.weekNum || '-') + '</td>' +
-                    '<td style="font-weight:700; color:#FFF;">' + (log.studyDate || '-') + '</td>' +
+                    '<td style="font-weight:700; color:#FFF; white-space:nowrap;">' + (log.studyDate || '-') + '</td>' +
                     '<td style="color:#C4B5FD; font-weight:600;">' + (log.subject || '-') + '</td>' +
                     '<td style="color:#FFF; line-height:1.5;">' + noteDisplay + '</td>' +
                     '<td>' + hwBadge + '</td>' +
                     '<td style="text-align:center; color:#FFF;">' + (log.entryTest || 'Không có') + '</td>' +
                     '<td style="text-align:center; color:#FFF;">' + (log.termTest || 'Không có') + '</td>' +
                     '<td style="text-align:center;">' + statusBadge + '</td>' +
-                    '<td style="text-align:center;"><button onclick="deleteClassLessonLog(\'' + log.logId + '\')" style="background:none; border:none; color:#EF4444; cursor:pointer; font-size:15px;" title="Xóa buổi học này"><i class="fa-solid fa-trash"></i></button></td>' +
+                    '<td style="text-align:center; display:flex; justify-content:center; align-items:center; gap:10px;">' +
+                        '<button onclick="openEditClassLessonLogModal(\'' + log.logId + '\')" style="background:rgba(142,77,255,0.15); border:1px solid rgba(142,77,255,0.3); color:#C4B5FD; cursor:pointer; padding:4px 8px; border-radius:12px; font-size:12px; display:inline-flex; align-items:center; gap:4px;" title="Sửa nhật ký buổi học này"><i class="fa-solid fa-pen-to-square"></i> Sửa</button>' +
+                        '<button onclick="deleteClassLessonLog(\'' + log.logId + '\')" style="background:none; border:none; color:#EF4444; cursor:pointer; font-size:15px;" title="Xóa buổi học này"><i class="fa-solid fa-trash"></i></button>' +
+                    '</td>' +
                 '</tr>';
             }).join('');
         }

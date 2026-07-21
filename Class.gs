@@ -65,19 +65,26 @@ function getClassList(tutorPhone) {
   
   var data = sheetClasses.getDataRange().getDisplayValues();
   for (var i = 1; i < data.length; i++) {
-    if (data[i].length >= 2 && data[i][0] && data[i][1]) {
-      var dbPhone = normalizePhone(data[i][2]);
-      // Nếu normPhone rỗng (chưa gửi SĐT) HOẶC SĐT khớp HOẶC SĐT trong bảng rỗng -> Luôn trả về lớp!
-      if (normPhone === "" || dbPhone === "" || dbPhone === normPhone) {
-        classes.push({
-          classId: data[i][0],
-          className: data[i][1],
-          tutorPhone: data[i][2],
-          subject: data[i][3] || "",
-          schedule: data[i][4] || "",
-          maxStudents: data[i][5] || "20",
-          feeType: (data[i].length > 6 && data[i][6]) ? data[i][6] : "per_session"
-        });
+    if (data[i] && data[i].length >= 2) {
+      var cId = data[i][0] ? String(data[i][0]).trim() : "";
+      var cName = data[i][1] ? String(data[i][1]).trim() : "";
+      
+      if (cName !== "" || cId !== "") {
+        if (!cId) cId = "LH_" + i;
+        if (!cName) cName = "Lớp " + i;
+        
+        var dbPhone = normalizePhone(data[i][2]);
+        if (normPhone === "" || dbPhone === "" || dbPhone === normPhone) {
+          classes.push({
+            classId: cId,
+            className: cName,
+            tutorPhone: data[i][2] || "",
+            subject: data[i][3] || "",
+            schedule: data[i][4] || "",
+            maxStudents: data[i][5] || "20",
+            feeType: (data[i].length > 6 && data[i][6]) ? data[i][6] : "per_session"
+          });
+        }
       }
     }
   }
