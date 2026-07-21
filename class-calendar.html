@@ -1,14 +1,22 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
+    <script>
+        window.onerror = function(message, source, lineno, colno, error) {
+            alert("JS Error: " + message + " at " + source + ":" + lineno + ":" + colno);
+            return false;
+        };
+    </script>
     <meta charset="UTF-8">
     <link rel="icon" type="image/png" href="https://i.postimg.cc/66rKbPmb/trinh-duyet.png">
     <meta name="viewport" content="width=1200, user-scalable=yes">
-    <title>Thời Khóa Biểu Lớp Học - Google Calendar Style</title>
+    <title>Thời khóa biểu Lớp học - Google Calendar Style</title>
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Apps Script API Client -->
+    <script src="js/api.js?v=1.6.8"></script>
     <!-- FullCalendar JS v6 -->
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
     
@@ -20,9 +28,10 @@
             font-family: 'Inter', sans-serif;
         }
 
+        /* === FULL-SCREEN LAYOUT NHƯ GOOGLE CALENDAR === */
         html, body {
             height: 100%;
-            overflow: hidden;
+            overflow: hidden; /* Tắt hoàn toàn thanh cuộn ngoài */
         }
 
         body {
@@ -32,6 +41,7 @@
             flex-direction: column;
         }
 
+        /* Header cố định, không co giãn */
         .container {
             flex-shrink: 0;
             width: 100%;
@@ -41,6 +51,7 @@
             backdrop-filter: blur(25px);
         }
 
+        /* Vùng lịch chiếm toàn bộ chiều cao còn lại */
         .calendar-wrapper {
             flex: 1;
             overflow: hidden;
@@ -52,10 +63,12 @@
             height: 100%;
         }
 
+        /* --- HEADER & TITLES --- */
         .calendar-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
+            margin-bottom: 0;
             flex-wrap: wrap;
             gap: 10px;
         }
@@ -74,39 +87,434 @@
 
         .calendar-title-wrap h2 {
             font-size: 19px;
-            color: #FFD23F;
             font-weight: 800;
+            background: linear-gradient(135deg, #FFF 0%, #E2D1FF 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
 
         .calendar-subtitle {
-            font-size: 13px;
+            font-size: 12.5px;
             color: #A6ADCE;
+            margin-top: 4px;
         }
 
-        .fab-add {
+        /* --- GOOGLE CALENDAR CUSTOM STYLING (DARK BLUE/PURPLE) --- */
+        #calendar {
+            background: rgba(12, 8, 39, 0.45);
+            border-radius: 16px;
+            border: 1px solid rgba(142, 77, 255, 0.2);
+            padding: 15px;
+            backdrop-filter: blur(10px);
+        }
+
+        /* Toolbar buttons */
+        .fc .fc-button-primary {
+            background: rgba(255, 255, 255, 0.05) !important;
+            border: 1px solid rgba(255, 255, 255, 0.45) !important;
+            color: #E2D1FF !important;
+            font-weight: 600 !important;
+            font-size: 13px !important;
+            text-transform: capitalize !important;
+            border-radius: 30px !important;
+            padding: 6px 16px !important;
+            transition: all 0.3s !important;
+        }
+
+        .fc .fc-button-primary:hover {
+            background: rgba(142, 77, 255, 0.2) !important;
+            border-color: #8E4DFF !important;
+            color: #FFF !important;
+        }
+
+        .fc .fc-button-active,
+        .fc .fc-button-primary:not(:disabled).fc-button-active {
+            background: linear-gradient(135deg, #8E4DFF 0%, #5B21B6 100%) !important;
+            border-color: #8E4DFF !important;
+            color: #FFFFFF !important;   /* Chữ trắng, rõ ràng trên nền tím */
+            box-shadow: 0 4px 12px rgba(142, 77, 255, 0.4) !important;
+        }
+
+        .fc .fc-toolbar-title {
+            font-size: 16px !important;
+            font-weight: 800 !important;
+            color: #FFF !important;
+            text-transform: capitalize !important;
+        }
+
+        /* Table header cells */
+        .fc th {
+            border: 1px solid rgba(255, 255, 255, 0.15) !important;
+            background: rgba(142, 77, 255, 0.07) !important;
+            padding: 8px 0 !important;
+        }
+
+        .fc-col-header-cell-cushion {
+            color: #E2D1FF !important;
+            font-size: 13px !important;
+            font-weight: 700 !important;
+            text-decoration: none !important;
+        }
+
+        .fc-timegrid-slot {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.12) !important; /* Đường kẻ ngang giờ */
+            border-right: 1px solid rgba(255, 255, 255, 0.12) !important;  /* Đường kẻ dọc ngăn cột */
+            height: 24px !important;
+        }
+
+        .fc-timegrid-slot-label {
+            vertical-align: top !important; /* Căn ở đỉnh ô để khớp vị trí dòng kẻ ngang */
+        }
+
+        .fc-timegrid-slot-label-cushion {
+            color: #A6ADCE !important;
+            font-size: 11px !important;
+            font-weight: 500 !important;
+            display: inline-block !important;
+            transform: translateY(-50%) !important; /* Nhấc chữ lên giữa dòng kẻ */
+            background: #0F0A30 !important; /* Trùng màu nền xám tối/tím vũ trụ của calendar để che bớt đường kẻ phía dưới */
+            padding: 0 4px !important;
+            position: relative !important;
+            z-index: 5 !important;
+        }
+
+        .fc-timegrid-axis-frame {
+            color: #A6ADCE !important;
+        }
+
+        .fc-theme-standard td, .fc-theme-standard th {
+            border: 1px solid rgba(255, 255, 255, 0.15) !important; /* Đường viền ô lưới rõ trên nền đen */
+        }
+
+        /* Gỡ bỏ màu highlight vàng/đục của cột hôm nay để giữ nền vũ trụ trong suốt */
+        .fc-theme-standard td.fc-day-today {
+            background-color: transparent !important;
+        }
+
+        /* Làm nổi bật tiêu đề cột của ngày hôm nay bằng màu tím sáng giống nút Lịch Tuần */
+        .fc th.fc-day-today {
+            background: linear-gradient(135deg, #8E4DFF 0%, #5B21B6 100%) !important;
+        }
+        .fc th.fc-day-today .fc-col-header-cell-cushion {
+            color: #FFFFFF !important;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Đường chỉ giờ hiện tại (Now Indicator) màu đỏ giống Google Calendar */
+        .fc .fc-timegrid-now-indicator-line {
+            border-color: #EA4335 !important;
+            border-width: 2px !important;
+        }
+        .fc .fc-timegrid-now-indicator-arrow {
+            border-left-color: #EA4335 !important;
+        }
+
+        /* --- SỰ KIỆN LỊCH (EVENTS) --- */
+        .fc-v-event {
+            background: rgba(142, 77, 255, 0.15) !important;
+            border: 1px solid rgba(142, 77, 255, 0.4) !important;
+            border-left: 4px solid #8E4DFF !important;
+            border-radius: 8px !important;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2) !important;
+            padding: 3px 6px !important;
+            cursor: pointer !important;
+            transition: transform 0.2s, box-shadow 0.2s !important;
+        }
+
+        .fc-v-event:hover {
+            transform: scale(1.02) !important;
+            box-shadow: 0 6px 15px rgba(142, 77, 255, 0.3) !important;
+        }
+
+        .fc-event-main-frame {
+            padding: 2px 4px !important;
+        }
+
+        .fc-event-time {
+            font-size: 10.5px !important;
+            font-weight: 700 !important;
+            color: #E2D1FF !important;
+            margin-bottom: 2px !important;
+        }
+
+        .fc-event-title {
+            font-size: 11.5px !important;
+            font-weight: 700 !important;
+            color: #FFF !important;
+            white-space: normal !important; /* Cho phép xuống dòng tự động */
+            word-break: break-word !important; /* Tự động ngắt từ dài */
+        }
+
+
+
+        /* --- BẢNG MÀU CHO MODAL --- */
+        .color-picker-section {
+            margin-top: 4px;
+        }
+        .color-scope-tabs {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 10px;
+        }
+        .color-scope-btn {
+            flex: 1;
+            padding: 5px 0;
+            font-size: 11.5px;
+            font-weight: 600;
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 8px;
+            background: transparent;
+            color: #8892B0;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: 'Inter', sans-serif;
+        }
+        .color-scope-btn.active {
+            background: rgba(142, 77, 255, 0.2);
+            border-color: rgba(142, 77, 255, 0.6);
+            color: #E2D1FF;
+        }
+        .color-swatches {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-items: center;
+        }
+        .color-swatch {
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: transform 0.15s, border-color 0.15s;
+            position: relative;
+        }
+        .color-swatch:hover { transform: scale(1.18); }
+        .color-swatch.selected {
+            border-color: #FFF;
+            transform: scale(1.15);
+            box-shadow: 0 0 0 2px rgba(255,255,255,0.3);
+        }
+        .color-swatch.selected::after {
+            content: '✓';
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            color: #FFF;
+            font-weight: 800;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.5);
+        }
+        .color-preview-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 11px;
+            color: #8892B0;
+            margin-top: 7px;
+        }
+        .color-preview-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+
+        /* --- SYNC TOAST --- */
+        .sync-toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 18px;
+            border-radius: 30px;
+            font-size: 13px;
+            font-weight: 600;
+            backdrop-filter: blur(12px);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+            animation: toastSlideIn 0.25s ease;
+            transition: opacity 0.3s ease;
+        }
+        @keyframes toastSlideIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        .sync-toast.pending {
+            background: rgba(30, 20, 70, 0.92);
+            border: 1px solid rgba(142, 77, 255, 0.5);
+            color: #C4B5FD;
+        }
+        .sync-toast.success {
+            background: rgba(16, 185, 129, 0.18);
+            border: 1px solid rgba(16, 185, 129, 0.5);
+            color: #6EE7B7;
+        }
+        .sync-toast.error {
+            background: rgba(239, 68, 68, 0.18);
+            border: 1px solid rgba(239, 68, 68, 0.5);
+            color: #FCA5A5;
+        }
+
+        /* --- SPREADSHEET SIMULATOR TABLE (BẢNG MÔ PHỎNG SHEETS CỦA BẠN) --- */
+        /* --- BẢNG SHEETS SIMULATOR - NỔI LÊN TỪ DƯỚI (SLIDE-UP PANEL) --- */
+        .sheet-panel {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 800;
+            background: rgba(11, 8, 38, 0.97);
+            border-top: 2px solid rgba(142, 77, 255, 0.5);
+            border-radius: 20px 20px 0 0;
+            padding: 16px 20px 20px;
+            box-shadow: 0 -8px 40px rgba(91, 46, 255, 0.3);
+            transform: translateY(100%);
+            transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+            max-height: 55vh;
+            overflow-y: auto;
+        }
+
+        .sheet-panel.open {
+            transform: translateY(0);
+        }
+
+        .sheet-panel.open ~ .btn-sheet-toggle {
+            display: none !important;
+        }
+
+        .btn-sheet-toggle-header {
+            background: rgba(255, 210, 63, 0.15);
+            border: 1px solid rgba(255, 210, 63, 0.4);
+            color: #FFD23F;
+            border-radius: 30px;
+            padding: 6px 12px;
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.2s;
+            font-family: 'Inter', sans-serif;
+            margin-right: 15px;
+        }
+        .btn-sheet-toggle-header:hover {
+            background: rgba(255, 210, 63, 0.3);
+            transform: translateY(-1px);
+        }
+        @media (max-width: 576px) {
+            .btn-sheet-toggle-header {
+                display: none;
+            }
+        }
+
+
+
+        .sheet-panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .sheet-title {
+            font-size: 13.5px;
+            font-weight: 700;
+            color: #FFD23F;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-close-panel {
+            background: transparent;
+            border: 1px solid rgba(255,255,255,0.1);
+            color: #A6ADCE;
+            border-radius: 50%;
+            width: 28px; height: 28px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: 0.2s;
+        }
+        .btn-close-panel:hover { background: rgba(255,255,255,0.05); color: #FFF; }
+
+        /* Nút toggle bảng Sheets, nổi ở góc dưới trái */
+        .btn-sheet-toggle {
             position: fixed;
             bottom: 25px;
-            right: 25px;
-            width: 56px;
-            height: 56px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #8E4DFF, #5B2EFF);
-            color: #FFF;
-            border: none;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 22px;
-            box-shadow: 0 4px 20px rgba(91, 46, 255, 0.5);
-            cursor: pointer;
+            left: 25px;
             z-index: 900;
+            background: rgba(255, 210, 63, 0.1);
+            border: 1px solid rgba(255, 210, 63, 0.4);
+            color: #FFD23F;
+            border-radius: 30px;
+            padding: 8px 16px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+            font-family: 'Inter', sans-serif;
+        }
+        .btn-sheet-toggle:hover {
+            background: rgba(255, 210, 63, 0.2);
+            transform: translateY(-2px);
         }
 
-        /* Modal Overlay */
+
+
+        .sheet-wrapper {
+            overflow-x: auto;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            background: rgba(4, 2, 10, 0.3);
+        }
+
+        .sheet-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 11px;
+            text-align: center;
+        }
+
+        .sheet-table th, .sheet-table td {
+            padding: 8px 10px;
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            white-space: nowrap;
+        }
+
+        .sheet-table th {
+            background: rgba(142, 77, 255, 0.12);
+            color: #E2D1FF;
+            font-weight: 600;
+        }
+
+        .sheet-table td.cell-active {
+            color: #E2D1FF;
+            font-weight: 500;
+        }
+
+        .sheet-table td.cell-empty {
+            color: #4a4d6b;
+            font-style: italic;
+        }
+        
+        .sheet-table td.cell-onetime {
+            color: #FFD23F;
+            font-weight: 600;
+        }
+
+        /* --- MODAL HỘP THOẠI (GOOGLE CALENDAR STYLE MODAL) --- */
         .modal-overlay {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.75);
+            background: rgba(0, 0, 0, 0.7);
             backdrop-filter: blur(8px);
             z-index: 1000;
             display: none;
@@ -121,199 +529,2396 @@
             box-shadow: 0 0 40px rgba(142, 77, 255, 0.4);
             border-radius: 20px;
             width: 100%;
-            max-width: 520px;
+            max-width: 440px;
             padding: 24px;
+            position: relative;
+            transform: scale(0.9);
+            transition: all 0.3s;
         }
 
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal-overlay.active .calendar-modal {
+            transform: scale(1);
+        }
+
+        /* === HỘP THOẠI CHỈNH SỬA SỰ KIỆN LẶP LẠI (GOOGLE CALENDAR STYLE) === */
+        .recurrence-dialog-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.65);
+            backdrop-filter: blur(6px);
+            z-index: 2000;
+            display: none;
+            justify-content: center;
+            align-items: center;
+        }
+        .recurrence-dialog-overlay.active { display: flex; }
+
+        .recurrence-dialog {
+            background: rgba(18, 13, 55, 0.98);
+            border: 1px solid rgba(142, 77, 255, 0.5);
+            box-shadow: 0 8px 40px rgba(91, 46, 255, 0.35);
+            border-radius: 16px;
+            padding: 24px 28px;
+            width: 100%;
+            max-width: 360px;
+            transform: scale(0.92);
+            transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .recurrence-dialog-overlay.active .recurrence-dialog { transform: scale(1); }
+
+        .recurrence-dialog h4 {
+            font-size: 15px;
+            font-weight: 700;
+            color: #E2D1FF;
+            margin-bottom: 6px;
+        }
+        .recurrence-dialog p {
+            font-size: 12px;
+            color: #8892B0;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+
+        .recurrence-options { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
+
+        .recurrence-option {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 12px;
+            padding: 13px 15px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .recurrence-option:hover {
+            background: rgba(142,77,255,0.12);
+            border-color: rgba(142,77,255,0.4);
+        }
+        .recurrence-option.selected {
+            background: rgba(142,77,255,0.15);
+            border-color: #8E4DFF;
+        }
+        .recurrence-option input[type="radio"] { display: none; }
+        .recurrence-radio-dot {
+            width: 18px; height: 18px; flex-shrink: 0;
+            border-radius: 50%;
+            border: 2px solid rgba(255,255,255,0.3);
+            display: flex; align-items: center; justify-content: center;
+            margin-top: 1px;
+            transition: 0.2s;
+        }
+        .recurrence-option.selected .recurrence-radio-dot {
+            border-color: #8E4DFF;
+            background: #8E4DFF;
+        }
+        .recurrence-option.selected .recurrence-radio-dot::after {
+            content: '';
+            width: 7px; height: 7px;
+            background: #FFF;
+            border-radius: 50%;
+        }
+        .recurrence-option-text strong {
+            font-size: 13px;
+            color: #E2D1FF;
+            font-weight: 600;
+        }
+        .recurrence-option-text span {
+            display: block;
+            font-size: 11px;
+            color: #6B7280;
+            margin-top: 2px;
+        }
+
+        .recurrence-dialog-footer {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+        .btn-rec-cancel {
+            background: transparent;
+            border: 1px solid rgba(255,255,255,0.15);
+            color: #A6ADCE;
+            border-radius: 30px;
+            padding: 8px 18px;
+            font-size: 13px;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            transition: 0.2s;
+        }
+        .btn-rec-cancel:hover { border-color: rgba(255,255,255,0.35); color: #FFF; }
+        .btn-rec-ok {
+            background: linear-gradient(135deg, #8E4DFF, #5B21B6);
+            border: none;
+            color: #FFF;
+            border-radius: 30px;
+            padding: 8px 22px;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            transition: 0.2s;
+        }
+        .btn-rec-ok:hover { opacity: 0.88; }
+
+        .popover-backdrop {
+            display: none;
+        }
+        .bottom-sheet-handle {
+            display: none;
+        }
+
+        /* --- FLOATING POPOVER CHI TIẾT SỰ KIỆN (KHÔNG CHE CONTENT) --- */
+        #eventDetailPopover {
+            position: fixed;
+            z-index: 3000;
+            width: 300px;
+            background: rgba(15, 11, 46, 0.98);
+            border: 1px solid rgba(142, 77, 255, 0.45);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(142,77,255,0.08);
+            border-radius: 14px;
+            padding: 12px 16px 18px 16px;
+            display: none;
+            animation: popoverIn 0.18s cubic-bezier(0.34, 1.56, 0.64, 1);
+            transform-origin: top left;
+        }
+        #eventDetailPopover.visible { display: block; }
+
+        @keyframes popoverIn {
+            from { opacity: 0; transform: scale(0.88); }
+            to   { opacity: 1; transform: scale(1); }
+        }
+
+        .detail-header-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+            padding-bottom: 8px;
+        }
+        .detail-actions-left {
+            display: flex;
+            gap: 4px;
+        }
+        .btn-detail-action {
+            background: transparent;
+            border: none;
+            color: #A6ADCE;
+            font-size: 14px;
+            cursor: pointer;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+        .btn-detail-action:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: #FFF;
+        }
+        .detail-content {
+            display: flex;
+            flex-direction: column;
+            gap: 13px;
+            margin-top: 6px;
+        }
+        .detail-title-wrap {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .detail-color-dot {
+            width: 11px;
+            height: 11px;
+            border-radius: 50%;
+            background-color: #8E4DFF;
+            flex-shrink: 0;
+            box-shadow: 0 0 7px rgba(142, 77, 255, 0.6);
+        }
+        #detailTitle {
+            font-size: 15px;
+            font-weight: 700;
+            color: #FFF;
+        }
+        .detail-info-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            color: #E2D1FF;
+            font-size: 12.5px;
+            line-height: 1.45;
+        }
+        .detail-info-item i {
+            font-size: 13px;
+            color: #A6ADCE;
+            margin-top: 2px;
+            width: 14px;
+            text-align: center;
+        }
+        .detail-recurrence-info {
+            font-size: 11px;
+            color: #8892B0;
+            margin-top: 2px;
+        }
+
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-header h3 {
+            font-size: 16px;
+            font-weight: 800;
+            color: #FFD23F;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-close {
+            background: transparent;
+            border: none;
+            color: #A6ADCE;
+            font-size: 18px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .btn-close:hover { color: #FFF; }
+
         .form-group {
-            margin-bottom: 14px;
+            margin-bottom: 16px;
         }
 
         .form-group label {
             display: block;
-            margin-bottom: 6px;
+            font-size: 11px;
+            font-weight: 700;
             color: #A6ADCE;
-            font-size: 13px;
+            text-transform: uppercase;
+            margin-bottom: 6px;
+            letter-spacing: 0.5px;
         }
 
         .form-control {
             width: 100%;
-            padding: 10px 14px;
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.1);
+            background: rgba(4, 2, 10, 0.6);
+            border: 1px solid rgba(142, 77, 255, 0.3);
             border-radius: 10px;
+            padding: 10px 14px;
             color: #FFF;
-            font-size: 14px;
+            font-size: 13.5px;
+            outline: none;
+            transition: all 0.3s;
+        }
+
+        .form-control:focus {
+            border-color: #8E4DFF;
+            box-shadow: 0 0 10px rgba(142, 77, 255, 0.2);
+        }
+
+        .row-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        /* Checkbox grid for Custom Recurrence */
+        .day-checkbox-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            margin-top: 6px;
+        }
+
+        .day-checkbox-item {
+            position: relative;
+        }
+
+        .day-checkbox-item input {
+            position: absolute;
+            opacity: 0;
+            width: 0; height: 0;
+        }
+
+        .day-checkbox-label {
+            display: block;
+            text-align: center;
+            padding: 8px 4px;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 8px;
+            font-size: 11px;
+            font-weight: 600;
+            color: #A6ADCE;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .day-checkbox-item input:checked + .day-checkbox-label {
+            background: rgba(142, 77, 255, 0.25);
+            border-color: #8E4DFF;
+            color: #FFF;
+            box-shadow: 0 0 10px rgba(142, 77, 255, 0.2);
+        }
+
+        /* Actions Footer Buttons */
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 25px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            padding-top: 15px;
+        }
+
+        .btn {
+            padding: 9px 18px;
+            border-radius: 20px;
+            font-size: 12.5px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.3s;
+            border: none;
+        }
+
+        .btn-cancel {
+            background: transparent;
+            color: #A6ADCE;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .btn-cancel:hover { background: rgba(255, 255, 255, 0.03); color: #FFF; }
+
+        .btn-delete {
+            background: rgba(239, 68, 68, 0.1);
+            color: #EF4444;
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            margin-right: auto;
+        }
+        .btn-delete:hover { background: #EF4444; color: #FFF; }
+
+        .btn-save {
+            background: linear-gradient(135deg, #8E4DFF 0%, #5B21B6 100%);
+            color: #FFF;
+            box-shadow: 0 4px 15px rgba(142, 77, 255, 0.3);
+        }
+        .btn-save:hover {
+            box-shadow: 0 6px 20px rgba(142, 77, 255, 0.5);
+            transform: translateY(-1px);
+        }
+
+        /* --- FLOATING ACTION BUTTON (GOOGLE CAL FAB STYLE) ON MOBILE --- */
+        .fab-add {
+            position: fixed;
+            bottom: 25px;
+            right: 25px;
+            width: 56px;
+            height: 56px;
+            border-radius: 28px;
+            background: linear-gradient(135deg, #8E4DFF 0%, #5B21B6 100%);
+            color: #FFF;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            font-size: 22px;
+            box-shadow: 0 4px 20px rgba(91, 46, 255, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            cursor: pointer;
+            z-index: 900;
+            transition: all 0.3s;
+        }
+
+        .fab-add:hover {
+            transform: scale(1.08) rotate(90deg);
+        }
+
+        /* --- RESPONSIVE MOBILE OPTIMIZATIONS --- */
+        @media (max-width: 768px) {
+            body { padding: 0 !important; }
+            .container { 
+                padding: 10px 15px !important; 
+                border-radius: 0 !important; 
+                border-bottom: 1px solid rgba(142, 77, 255, 0.15) !important;
+            }
+            .calendar-header { margin-bottom: 0px; }
+            .calendar-subtitle { display: none; } /* Ẩn subtitle trên mobile để tiết kiệm diện tích */
+            .calendar-wrapper { padding: 0 4px 4px 4px !important; }
+            
+            .fab-add { display: flex; }
+
+            .fc .fc-toolbar {
+                display: flex !important;
+                flex-direction: column !important;
+                gap: 8px !important;
+                align-items: stretch !important;
+            }
+            .fc .fc-toolbar-title {
+                text-align: center !important;
+                font-size: 14px !important;
+            }
+            .fc .fc-button-group {
+                width: 100% !important;
+                display: flex !important;
+            }
+            .fc .fc-button {
+                flex: 1 !important;
+                padding: 4px 8px !important;
+                font-size: 11.5px !important;
+            }
+            .fc .fc-today-button {
+                width: 100% !important;
+            }
+
+            .fc-timegrid-slot {
+                height: 28px !important; /* Compact trên mobile */
+            }
+
+            /* Thu hẹp cột chứa giờ bên trái trục dọc */
+            .fc-timegrid-axis, .fc-timegrid-slot-label {
+                width: 44px !important;
+            }
+            .fc-timegrid-slot-label-cushion {
+                font-size: 9px !important;
+                padding: 0 2px !important;
+            }
+
+            /* Cỡ chữ sự kiện nhỏ hơn và padding ít hơn trên mobile */
+            .fc-v-event {
+                padding: 1px 3px !important;
+            }
+            .fc-event-time {
+                font-size: 9px !important;
+            }
+            .fc-event-title {
+                font-size: 10px !important;
+            }
+
+            /* Hộp thoại (Modal Overlay) Full-screen trên Mobile */
+            .modal-overlay {
+                padding: 0 !important;
+                align-items: flex-end !important;
+            }
+
+            .calendar-modal {
+                max-width: 100% !important;
+                height: 100% !important;
+                border-radius: 0 !important;
+                border: none !important;
+                overflow-y: auto !important;
+                display: flex !important;
+                flex-direction: column !important;
+                transform: translateY(100%) !important;
+                transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1) !important;
+                padding: 24px 20px 40px 20px !important;
+            }
+
+            .modal-overlay.active .calendar-modal {
+                transform: translateY(0) !important;
+            }
+
+            /* Tinh chỉnh day-checkbox-grid 3 cột trên mobile */
+            .day-checkbox-grid {
+                grid-template-columns: repeat(3, 1fr) !important;
+                gap: 6px !important;
+            }
+
+            /* Popover Backdrop của Bottom Sheet */
+            .popover-backdrop {
+                display: block;
+                position: fixed;
+                top: 0; left: 0; right: 0; bottom: 0;
+                background: rgba(0, 0, 0, 0.55);
+                backdrop-filter: blur(2px);
+                z-index: 2999;
+                opacity: 0;
+                pointer-events: none;
+                transition: opacity 0.25s ease;
+            }
+            .popover-backdrop.visible {
+                opacity: 1;
+                pointer-events: auto;
+            }
+
+            /* Bottom Sheet cho Chi tiết Ca Học trên Mobile */
+            #eventDetailPopover {
+                position: fixed !important;
+                left: 0 !important;
+                right: 0 !important;
+                bottom: 0 !important;
+                top: auto !important;
+                width: 100% !important;
+                max-width: 100% !important;
+                border-radius: 24px 24px 0 0 !important;
+                border: none !important;
+                border-top: 1px solid rgba(142, 77, 255, 0.2) !important;
+                box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.6) !important;
+                padding: 12px 20px 30px 20px !important;
+                transform: translateY(100%) !important;
+                transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+                z-index: 3000 !important;
+                margin: 0 !important;
+            }
+
+            #eventDetailPopover.visible {
+                transform: translateY(0) !important;
+                display: block !important;
+            }
+
+            .bottom-sheet-handle {
+                display: block;
+                width: 40px;
+                height: 4px;
+                background: rgba(255, 255, 255, 0.25);
+                border-radius: 2px;
+                margin: 0 auto 12px auto;
+            }
         }
     </style>
 </head>
 <body>
-    <!-- HEADER -->
+
+    <!-- HEADER CỐ ĐỊNH -->
     <div class="container">
-        <div class="calendar-header">
+        <div class="calendar-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
             <div class="calendar-title-wrap">
                 <i class="fa-regular fa-calendar-check"></i>
                 <div>
-                    <h2>Thời Khóa Biểu Theo Lớp Học</h2>
-                    <p class="calendar-subtitle">Lịch giảng dạy định kỳ của các Lớp (Toán 10A1, Lý 11...)</p>
+                    <h2>Thời Khóa Biểu & Lịch Dạy</h2>
+                    <p class="calendar-subtitle">Lên lịch lặp lại (Hàng ngày/tuần) hoặc lịch học thử .</p>
                 </div>
             </div>
             <div>
-                <a href="class-dashboard.html" style="text-decoration: none; display: inline-flex; align-items: center; gap: 8px; padding: 10px 22px; border-radius: 20px; font-weight: bold; font-size: 13.5px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15); color: #FFF;">
-                    <i class="fa-solid fa-arrow-left"></i> Quay lại Dashboard Lớp
+                <a href="class-dashboard.html" class="modal-btn modal-btn-secondary" style="text-decoration: none; display: inline-flex; align-items: center; gap: 8px; padding: 10px 22px; border-radius: 20px; font-weight: bold; font-size: 13.5px; font-family: 'Inter', sans-serif; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15); color: #FFF; transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.12)'" onmouseout="this.style.background='rgba(255,255,255,0.06)'">
+                    <i class="fa-solid fa-arrow-left"></i> Quay lại Dashboard
                 </a>
             </div>
         </div>
     </div>
 
-    <!-- CALENDAR -->
+    <!-- VÙNG LỊCH CHIẾM TOÀN BỘ PHẦN CÒN LẠI -->
     <div class="calendar-wrapper">
         <div id="calendar"></div>
     </div>
 
-    <!-- FAB Add Button -->
-    <button class="fab-add" onclick="openAddClassEventModal()"><i class="fa-solid fa-plus"></i></button>
+    <!-- BẢNG SHEETS SIMULATOR - PANEL NỔI LÊN TỪ DƯỚI -->
+    <div class="sheet-panel" id="sheetPanel">
+        <div class="sheet-panel-header">
+            <div class="sheet-title">
+                <button class="btn-sheet-toggle-header" onclick="toggleSheetPanel()">
+                    <i class="fa-solid fa-xmark"></i> Đóng lịch tóm tắt
+                </button>
+                <i class="fa-solid fa-table-list"></i> Dữ liệu thực tế của lịch học (cập nhật theo thời gian thực)
+            </div>
 
-    <!-- Modal Thêm/Sửa Ca Dạy Theo Lớp -->
-    <div id="classEventModal" class="modal-overlay">
-        <div class="calendar-modal">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px;">
-                <h3 id="modalTitleText" style="color: #FFD23F; font-size: 19px; margin: 0;"><i class="fa-solid fa-circle-plus" style="color: #10B981; margin-right: 8px;"></i>Thêm Ca Dạy Lớp</h3>
-                <button onclick="closeClassEventModal()" style="background: none; border: none; color: #A6ADCE; font-size: 20px; cursor: pointer;"><i class="fa-solid fa-xmark"></i></button>
+            <button class="btn-close-panel" onclick="toggleSheetPanel()"><i class="fa-solid fa-chevron-down"></i></button>
+        </div>
+        <div class="sheet-wrapper">
+            <table class="sheet-table">
+                <thead>
+                    <tr>
+                        <th style="text-align: left; width: 140px;">Tên Học Sinh</th>
+                        <th>Thứ Hai</th>
+                        <th>Thứ Ba</th>
+                        <th>Thứ Tư</th>
+                        <th>Thứ Năm</th>
+                        <th>Thứ Sáu</th>
+                        <th>Thứ Bảy</th>
+                        <th>Chủ Nhật</th>
+                    </tr>
+                </thead>
+                <tbody id="sheetDataTableBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Nút FAB tròn nổi góc dưới phải -->
+    <button class="fab-add" onclick="openAddEventModal()"><i class="fa-solid fa-plus"></i></button>
+
+    <!-- Nút toggle bảng Sheets, góc dưới trái -->
+    <button class="btn-sheet-toggle" id="sheetToggleBtn" onclick="toggleSheetPanel()">
+        <i class="fa-solid fa-table-list"></i> Xem lịch tóm tắt
+    </button>
+
+    <!-- HỘP THOẠI XÁC NHẬN KHI CHỈNH SỬA SỰ KIỆN LẶP LẠI -->
+    <div class="recurrence-dialog-overlay" id="recurrenceDialogOverlay">
+        <div class="recurrence-dialog">
+            <h4 id="recurrenceDialogTitle"><i class="fa-solid fa-rotate" style="color:#8E4DFF;margin-right:8px;"></i>Chỉnh sửa sự kiện lặp lại</h4>
+            <p id="recurrenceDialogDesc">Sự kiện này lặp lại hàng tuần. Bạn muốn thay đổi:</p>
+            <div class="recurrence-options">
+                <div class="recurrence-option selected" id="recOptThis" onclick="selectRecOption('this')">
+                    <div class="recurrence-radio-dot"></div>
+                    <div class="recurrence-option-text">
+                        <strong id="recOptThisTitle">Chỉ sự kiện này</strong>
+                        <span id="recOptThisDesc">Chỉ thay đổi ca học tuần này, các tuần khác giữ nguyên lịch cũ.</span>
+                    </div>
+                </div>
+                <div class="recurrence-option" id="recOptAll" onclick="selectRecOption('all')">
+                    <div class="recurrence-radio-dot"></div>
+                    <div class="recurrence-option-text">
+                        <strong id="recOptAllTitle">Tất cả các tuần</strong>
+                        <span id="recOptAllDesc">Cập nhật lịch cố định — áp dụng cho mọi tuần từ đây trở đi.</span>
+                    </div>
+                </div>
+            </div>
+            <div class="recurrence-dialog-footer">
+                <button class="btn-rec-cancel" onclick="cancelRecurrenceChange()">Huỷ</button>
+                <button class="btn-rec-ok" onclick="confirmRecurrenceChange()">Xác nhận</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- FLOATING POPOVER CHI TIẾT CA HỌC (NỔI BÊN CẠNH SỰ KIỆN) -->
+    <div id="popoverBackdrop" class="popover-backdrop" onclick="closeDetailModalForce()"></div>
+    <div id="eventDetailPopover">
+        <div class="bottom-sheet-handle"></div>
+        <div class="detail-header-actions">
+            <div class="detail-actions-left">
+                <button class="btn-detail-action" id="btnDetailEdit" onclick="editFromDetail()" title="Sửa ca học"><i class="fa-solid fa-pen"></i></button>
+                <button class="btn-detail-action" id="btnDetailDelete" onclick="deleteFromDetail()" title="Xóa ca học"><i class="fa-solid fa-trash-can"></i></button>
+            </div>
+            <button class="btn-close" onclick="closeDetailModalForce()"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        
+        <div class="detail-content">
+            <div class="detail-title-wrap">
+                <span class="detail-color-dot" id="detailColorDot"></span>
+                <h3 id="detailTitle">Tên Học Sinh</h3>
+            </div>
+            <div class="detail-info-item">
+                <i class="fa-regular fa-clock"></i>
+                <div>
+                    <div id="detailDateTime">Ngày giờ hiển thị</div>
+                    <div id="detailRecurrence" class="detail-recurrence-info">Tần suất lặp</div>
+                </div>
+            </div>
+            <div class="detail-info-item" id="detailNotesContainer">
+                <i class="fa-regular fa-note-sticky"></i>
+                <div id="detailNotes">Ghi chú ca học</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Form Thêm/Sửa sự kiện (Google Calendar Style) -->
+    <div class="modal-overlay" id="eventModalOverlay" onclick="closeEventModal(event)">
+        <div class="calendar-modal" id="calendarModal">
+            <div class="modal-header">
+                <h3 id="modalTitleText"><i class="fa-solid fa-circle-info"></i> Thiết lập ca dạy</h3>
+                <button class="btn-close" onclick="closeModalForce()"><i class="fa-solid fa-xmark"></i></button>
             </div>
             
-            <form onsubmit="saveClassEvent(event)">
+            <form id="eventForm" onsubmit="saveEvent(event)">
+                <!-- ID/Index Ẩn -->
+                 <input type="hidden" id="eventStudentIndex">
+                 <input type="hidden" id="eventSubIndex">
+                 <input type="hidden" id="eventOldDay"> 
+
                 <div class="form-group">
-                    <label>Tên Lớp Học</label>
-                    <input type="text" id="eventClassName" class="form-control" placeholder="Nhập tên lớp (ví dụ: Lớp Toán 10A1)..." required>
-                </div>
-                <div class="form-group" style="display: flex; gap: 10px;">
-                    <div style="flex: 1;">
-                        <label>Giờ bắt đầu</label>
-                        <input type="time" id="eventStartTime" class="form-control" value="18:00" required>
-                    </div>
-                    <div style="flex: 1;">
-                        <label>Giờ kết thúc</label>
-                        <input type="time" id="eventEndTime" class="form-control" value="20:00" required>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label>Lặp lại hàng tuần vào thứ</label>
-                    <select id="eventDayOfWeek" class="form-control" style="background: #0D0A26; color: #FFF;">
-                        <option value="1">Thứ Hai</option>
-                        <option value="2">Thứ Ba</option>
-                        <option value="3">Thứ Tư</option>
-                        <option value="4">Thứ Năm</option>
-                        <option value="5">Thứ Sáu</option>
-                        <option value="6">Thứ Bảy</option>
-                        <option value="0">Chủ Nhật</option>
+                    <label>Lớp học</label>
+                    <select class="form-control" id="eventStudent" required>
+                        <option value="">Chọn lớp học...</option>
+                        <!-- Danh sách lớp học sẽ được load động -->
                     </select>
                 </div>
-                <div class="form-group">
-                    <label>Ghi chú ca dạy</label>
-                    <input type="text" id="eventNotes" class="form-control" placeholder="Ghi chú bài dạy hoặc phòng học...">
+
+                <div class="form-group" id="customStudentNameGroup" style="display: none;">
+                    <label>Tên lớp học mới (học thử)</label>
+                    <input type="text" class="form-control" id="eventCustomStudentName" placeholder="Nhập tên lớp học mới...">
                 </div>
 
-                <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
-                    <button type="button" onclick="closeClassEventModal()" style="padding: 10px 20px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15); border-radius: 12px; color: #FFF; font-weight: 600; cursor: pointer;">Hủy</button>
-                    <button type="submit" style="padding: 10px 24px; background: linear-gradient(135deg, #8E4DFF, #5B2EFF); border: none; border-radius: 12px; color: #FFF; font-weight: bold; cursor: pointer;">Lưu Ca Dạy</button>
+
+                <!-- LỰA CHỌN CHẾ ĐỘ LẶP (BỔ SUNG KHÔNG LẶP - CHỈ 1 LẦN) -->
+                <div class="form-group">
+                    <label>Chế độ lặp lại (Recurrence)</label>
+                    <select class="form-control" id="eventRepeatMode" onchange="toggleRepeatUI()" required>
+                        <option value="none">Không lặp </option>
+                        <option value="weekly">Lặp hàng tuần (Vào ngày cụ thể)</option>
+                        <option value="daily">Lặp hàng ngày (Tất cả các ngày thứ 2 - CN)</option>
+                        <option value="custom">Tùy chỉnh lặp (Chọn nhiều ngày...)</option>
+                    </select>
+                </div>
+
+                <!-- HIỂN THỊ CHỌN THỨ KHI LẶP HÀNG TUẦN -->
+                <div class="form-group" id="daySelectGroup" style="display: none;">
+                    <label>Chọn ngày dạy trong tuần</label>
+                    <select class="form-control" id="eventDayOfWeek">
+                        <option value="mon">Thứ Hai</option>
+                        <option value="tue">Thứ Ba</option>
+                        <option value="wed">Thứ Tư</option>
+                        <option value="thu">Thứ Năm</option>
+                        <option value="fri">Thứ Sáu</option>
+                        <option value="sat">Thứ Bảy</option>
+                        <option value="sun">Chủ Nhật</option>
+                    </select>
+                </div>
+
+                <!-- HIỂN THỊ CHỌN NGÀY CỤ THỂ KHI CHỌN "KHÔNG LẶP" (DIỄN RA 1 LẦN) -->
+                <div class="form-group" id="specificDateGroup">
+                    <label>Ngày diễn ra (Chỉ học 1 lần)</label>
+                    <input type="date" class="form-control" id="eventSpecificDate">
+                </div>
+
+                <!-- HIỂN THỊ CHECKBOX KHI CHỌN "CUSTOM" -->
+                <div class="form-group" id="dayCheckboxGroup" style="display: none;">
+                    <label>Lặp lại vào các ngày</label>
+                    <div class="day-checkbox-grid">
+                        <div class="day-checkbox-item">
+                            <input type="checkbox" id="checkMon" value="mon">
+                            <label class="day-checkbox-label" for="checkMon">Thứ 2</label>
+                        </div>
+                        <div class="day-checkbox-item">
+                            <input type="checkbox" id="checkTue" value="tue">
+                            <label class="day-checkbox-label" for="checkTue">Thứ 3</label>
+                        </div>
+                        <div class="day-checkbox-item">
+                            <input type="checkbox" id="checkWed" value="wed">
+                            <label class="day-checkbox-label" for="checkWed">Thứ 4</label>
+                        </div>
+                        <div class="day-checkbox-item">
+                            <input type="checkbox" id="checkThu" value="thu">
+                            <label class="day-checkbox-label" for="checkThu">Thứ 5</label>
+                        </div>
+                        <div class="day-checkbox-item">
+                            <input type="checkbox" id="checkFri" value="fri">
+                            <label class="day-checkbox-label" for="checkFri">Thứ 6</label>
+                        </div>
+                        <div class="day-checkbox-item">
+                            <input type="checkbox" id="checkSat" value="sat">
+                            <label class="day-checkbox-label" for="checkSat">Thứ 7</label>
+                        </div>
+                        <div class="day-checkbox-item">
+                            <input type="checkbox" id="checkSun" value="sun">
+                            <label class="day-checkbox-label" for="checkSun">Chủ Nhật</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row-grid">
+                    <div class="form-group">
+                        <label>Giờ học (Bắt đầu)</label>
+                        <input type="time" class="form-control" id="eventStartTime" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Giờ học (Kết thúc)</label>
+                        <input type="time" class="form-control" id="eventEndTime" required>
+                    </div>
+                </div>
+
+                <!-- Trường Ghi chú tùy chọn -->
+                <div class="form-group">
+                    <label>Ghi chú môn học/nội dung (Tùy chọn)</label>
+                    <input type="text" class="form-control" id="eventNotes" placeholder="Ví dụ: Toán ôn thi, Lý nâng cao...">
+                </div>
+
+                <!-- Màu sắc -->
+                <div class="form-group color-picker-section">
+                    <label>Màu sắc</label>
+                    <div class="color-scope-tabs">
+                        <button type="button" class="color-scope-btn active" id="colorScopeStudentBtn" onclick="setColorScope('student')">🎨 Màu lớp học (toàn bộ)</button>
+                        <button type="button" class="color-scope-btn" id="colorScopeSessionBtn" onclick="setColorScope('session')">✨ Buổi này</button>
+                    </div>
+                    <div class="color-swatches" id="colorSwatches"></div>
+                    <div class="color-preview-badge" id="colorPreviewBadge">
+                        <span class="color-preview-dot" id="colorPreviewDot"></span>
+                        <span id="colorPreviewText">Chọn màu bên trên</span>
+                    </div>
+                    <input type="hidden" id="eventColor" value="">
+                    <input type="hidden" id="colorScope" value="student">
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-delete" id="btnDeleteEvent" onclick="deleteEvent()" style="display: none;">Xóa lịch</button>
+                    <button type="button" class="btn btn-cancel" onclick="closeModalForce()">Hủy</button>
+                    <button type="submit" class="btn btn-save">Lưu lại</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <script src="js/api.js?v=1.6.8"></script>
-    <script>
-        var calendar = null;
-        var classEvents = [];
-        var currentTutorPhone = sessionStorage.getItem('userPhone') || localStorage.getItem('userPhone') || '';
+    <!-- SYNC TOAST - Thông báo trạng thái đồng bộ -->
+    <div id="syncToast" class="sync-toast" style="display:none;"></div>
 
+    <!-- HỘP THOẠI XÁC NHẬN (CONFIRM) WEB-BASED TỰ CUSTOM -->
+    <div class="modal-overlay" id="customConfirmModal" style="display: none; z-index: 4000;">
+        <div class="calendar-modal" style="max-width: 420px; padding: 25px; text-align: center; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+            <div style="font-size: 40px; color: #FFD23F; margin-bottom: 15px;"><i class="fa-solid fa-circle-question"></i></div>
+            <h3 style="margin-bottom: 12px; color: #FFF; font-size: 17px; font-weight: bold;">Xác nhận thao tác</h3>
+            <p id="confirmMessageText" style="color: #A6ADCE; font-size: 13.5px; line-height: 1.6; margin-bottom: 25px;"></p>
+            <div style="display: flex; gap: 12px; justify-content: center;">
+                <button type="button" class="modal-btn modal-btn-secondary" id="btnConfirmCancelWeb" style="padding: 10px 22px; border-radius: 20px; font-weight: bold; font-size: 13px; font-family: 'Inter', sans-serif; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15); color: #FFF; transition: background 0.2s; cursor: pointer;" onmouseover="this.style.background='rgba(255,255,255,0.12)'" onmouseout="this.style.background='rgba(255,255,255,0.06)'">Hủy bỏ</button>
+                <button type="button" class="modal-btn modal-btn-primary" id="btnConfirmOkWeb" style="padding: 10px 22px; border-radius: 20px; font-weight: bold; font-size: 13px; font-family: 'Inter', sans-serif; background: linear-gradient(135deg, #EF4444 0%, #B91C1C 100%); border: none; color: #FFF; box-shadow: 0 4px 15px rgba(239, 68, 68, 0.25); cursor: pointer; transition: opacity 0.2s;" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">Đồng ý</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- HỘP THOẠI THÔNG BÁO (ALERT) WEB-BASED TỰ CUSTOM -->
+    <div class="modal-overlay" id="customAlertModal" style="display: none; z-index: 4000;">
+        <div class="calendar-modal" style="max-width: 400px; padding: 25px; text-align: center; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+            <div style="font-size: 40px; color: #8E4DFF; margin-bottom: 15px;" id="alertIcon"><i class="fa-solid fa-circle-info"></i></div>
+            <h3 style="margin-bottom: 12px; color: #FFF; font-size: 17px; font-weight: bold;">Thông báo</h3>
+            <p id="alertMessageText" style="color: #A6ADCE; font-size: 13.5px; line-height: 1.6; margin-bottom: 25px;"></p>
+            <div style="display: flex; justify-content: center;">
+                <button type="button" class="modal-btn modal-btn-primary" id="btnAlertOkWeb" style="padding: 10px 24px; border-radius: 20px; font-weight: bold; font-size: 13px; font-family: 'Inter', sans-serif; background: linear-gradient(135deg, #8E4DFF 0%, #5B21B6 100%); border: none; color: #FFF; box-shadow: 0 4px 15px rgba(142,77,255,0.25); min-width: 100px; cursor: pointer; transition: opacity 0.2s;" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">Đã hiểu</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let calendar = null;
+
+        const userPhone = sessionStorage.getItem('userPhone');
+        const dashDataStr = sessionStorage.getItem('dashboardData');
+        let tutorDataGlobal = dashDataStr ? JSON.parse(dashDataStr) : null;
+        const isDemoMode = !userPhone;
+
+        // Dữ liệu mô phỏng theo cấu trúc sheet Lịch học của bạn.
+        let tutorScheduleSheetData = [
+            {
+                studentName: "Nguyễn Văn A",
+                color: localStorage.getItem('student_color_Nguyễn Văn A') || "#4D9EFF",
+                mon: "08:00 - 10:00 (Sáng - Toán) | 14:00 - 16:00 (Chiều - Lý)",
+                tue: "",
+                wed: "15:00 - 17:00",
+                thu: "",
+                fri: "",
+                sat: "",
+                sun: ""
+            },
+            {
+                studentName: "Trần Thị B",
+                color: localStorage.getItem('student_color_Trần Thị B') || "#FF6B9D",
+                mon: "",
+                tue: "17:30 - 19:30",
+                wed: "",
+                thu: "17:30 - 19:30 (Vật lý)",
+                fri: "",
+                sat: "",
+                sun: ""
+            },
+            {
+                studentName: "Lê Hoàng C",
+                color: localStorage.getItem('student_color_Lê Hoàng C') || "#4DFFC3",
+                mon: "",
+                tue: "",
+                wed: "",
+                thu: "",
+                fri: "09:00 - 11:00",
+                sat: "",
+                sun: ""
+            }
+        ];
+
+        // Nếu ở chế độ thật, sẽ fetch lịch từ Sheets thông qua Apps Script
+        function loadTutorScheduleFromBackend(onSuccess) {
+            if (isDemoMode) {
+                if (onSuccess) onSuccess();
+                return;
+            }
+            
+            // Gọi backend getTutorSchedule
+            google.script.run
+                .withSuccessHandler(function(schedule) {
+                    var schedMap = {};
+                    if(schedule && schedule.length > 0) {
+                        schedule.forEach(function(s) {
+                            if (s && s.studentName) {
+                                schedMap[s.studentName.trim()] = s;
+                            }
+                        });
+                    }
+                    
+                    // Xây dựng lại mảng tutorScheduleSheetData từ danh sách Lớp học
+                    tutorScheduleSheetData = [];
+                    google.script.run.withSuccessHandler(function(classList) {
+                        var listToUse = (classList && Array.isArray(classList) && classList.length > 0) ? classList : [];
+                        listToUse.forEach(function(cls, idx) {
+                            var cName = (cls.className || cls.name || "").trim();
+                            if (!cName) return;
+                            var s = schedMap[cName] || { mon: "", tue: "", wed: "", thu: "", fri: "", sat: "", sun: "" };
+                            let savedColor = localStorage.getItem('class_color_' + cName) || PRESET_COLORS[idx % PRESET_COLORS.length];
+                            
+                            tutorScheduleSheetData.push({
+                                studentName: cName,
+                                className: cName,
+                                color: savedColor,
+                                mon: s.mon || '',
+                                tue: s.tue || '',
+                                wed: s.wed || '',
+                                thu: s.thu || '',
+                                fri: s.fri || '',
+                                sat: s.sat || '',
+                                sun: s.sun || ''
+                            });
+                        });
+                        loadStudentOptions();
+                        renderSheetTable();
+                        if (onSuccess) onSuccess();
+                    }).getClassList(userPhone);
+                    return;
+                    
+                    // Nạp lại dropdown và bảng Sheets giả lập
+                    loadStudentOptions();
+                    renderSheetTable();
+                    
+                    if (onSuccess) onSuccess();
+                })
+                .withFailureHandler(function(err) {
+                    console.error("Lỗi lấy thời khóa biểu từ Sheets:", err);
+                    if (onSuccess) onSuccess();
+                })
+                .getClassSchedule(userPhone);
+        }
+
+        // Đồng bộ dữ liệu sửa đổi lên Google Sheets
+        function saveScheduleToBackend(studentName, onDone) {
+            if (isDemoMode) {
+                if (onDone) onDone(true);
+                return;
+            }
+            
+            let studentRow = tutorScheduleSheetData.find(row => row.studentName === studentName);
+            if (!studentRow) {
+                if (onDone) onDone(true);
+                return;
+            }
+            
+            google.script.run
+                .withSuccessHandler(function(res) {
+                    if (res && res.error) {
+                        console.error("Lỗi lưu Sheets:", res.error);
+                        if (onDone) onDone(false);
+                    } else {
+                        if (onDone) onDone(true);
+                    }
+                })
+                .withFailureHandler(function(err) {
+                    console.error("Lỗi kết nối:", err);
+                    if (onDone) onDone(false);
+                })
+                .saveClassScheduleItem(
+                    userPhone,
+                    studentName,
+                    studentRow.mon || '',
+                    studentRow.tue || '',
+                    studentRow.wed || '',
+                    studentRow.thu || '',
+                    studentRow.fri || '',
+                    studentRow.sat || '',
+                    studentRow.sun || ''
+                );
+        }
+
+        // === OPTIMISTIC UI + DEBOUNCED SAVE ===
+        let _syncDebounceTimer = null;
+        let _pendingSyncNames  = new Set();
+
+        /**
+         * Tạo object event cho FullCalendar từ slot data đã parse.
+         * studentIdx, dayKey, subIdx: chỉ mục để tra cứu
+         * Trả về object FC hoặc null nếu không parse được.
+         */
+        function buildFCEventObj(studentIdx, dayKey, subIdx) {
+            let row = tutorScheduleSheetData[studentIdx];
+            if (!row) return null;
+            let cellVal = row[dayKey];
+            if (!cellVal || !cellVal.trim()) return null;
+            let slots = cellVal.split('|').map(s => s.trim()).filter(s => s !== '');
+            let slotVal = slots[subIdx];
+            if (!slotVal) return null;
+
+            // Parse màu session
+            let sessionColor = '';
+            let colorTagRegex = /^\[C:(#[0-9A-Fa-f]{6})\]/;
+            let colorTagMatch = slotVal.match(colorTagRegex);
+            if (colorTagMatch) {
+                sessionColor = colorTagMatch[1];
+                slotVal = slotVal.replace(colorTagRegex, '').trim();
+            }
+
+            // SKIP marker
+            let skipDates = [];
+            let rawVal = slotVal;
+            if (rawVal.includes(' SKIP ')) {
+                let parts = rawVal.split(' SKIP ');
+                rawVal = parts[0];
+                skipDates = parts[1].split(',').map(s => s.trim());
+            }
+
+            let datePrefixRegex  = /^(\d{2})\/(\d{2})\/(\d{4}):\s*/;
+            let rescheduleRegex  = /^RESCHEDULE (\d{2})\/(\d{2})\/(\d{4}):\s*/;
+            let dateMatch    = rawVal.match(datePrefixRegex);
+            let reschedMatch = rawVal.match(rescheduleRegex);
+
+            let isOneTime = false, isReschedule = false, oneTimeDateStr = '', cleanTimeStr = rawVal;
+            if (reschedMatch) {
+                isReschedule   = true;
+                oneTimeDateStr = reschedMatch[1] + '/' + reschedMatch[2] + '/' + reschedMatch[3];
+                cleanTimeStr   = rawVal.replace(rescheduleRegex, '');
+            } else if (dateMatch) {
+                isOneTime      = true;
+                oneTimeDateStr = dateMatch[1] + '/' + dateMatch[2] + '/' + dateMatch[3];
+                cleanTimeStr   = rawVal.replace(datePrefixRegex, '');
+            }
+
+            let timeRegex = /(\d{1,2}):(\d{2})\s*-\s*(\d{1,2}):(\d{2})/;
+            let match = cleanTimeStr.match(timeRegex);
+            if (!match) return null;
+
+            let startHour = match[1], startMin = match[2], endHour = match[3], endMin = match[4];
+            let notes = cleanTimeStr.replace(timeRegex, '').trim().replace(/[\(\)]/g, '').trim();
+
+            // Tính ngày
+            let viewStart = calendar.view ? calendar.view.currentStart : new Date();
+            let startOfWeek = getStartOfWeek(viewStart);
+            let dateStr = '';
+
+            if (isOneTime || isReschedule) {
+                let dateParts = oneTimeDateStr.split('/');
+                dateStr = dateParts[2] + '-' + dateParts[1] + '-' + dateParts[0];
+                let evDate  = new Date(dateStr);
+                let weekEnd = new Date(startOfWeek);
+                weekEnd.setDate(startOfWeek.getDate() + 7);
+                if (evDate < startOfWeek || evDate >= weekEnd) return null;
+            } else {
+                const dayMap2 = { "mon":1,"tue":2,"wed":3,"thu":4,"fri":5,"sat":6,"sun":0 };
+                let dayOffset = dayMap2[dayKey] - 1;
+                if (dayMap2[dayKey] === 0) dayOffset = 6;
+                let eventDate = new Date(startOfWeek);
+                eventDate.setDate(startOfWeek.getDate() + dayOffset);
+                let ey = eventDate.getFullYear();
+                let em = (eventDate.getMonth() + 1).toString().padStart(2, '0');
+                let ed = eventDate.getDate().toString().padStart(2, '0');
+                dateStr = ey + '-' + em + '-' + ed;
+                let skipCheck = ed + '/' + em + '/' + ey;
+                if (skipDates.includes(skipCheck)) return null;
+            }
+
+            let studentDefaultColor = row.color || '#8E4DFF';
+            let eventColor  = sessionColor || studentDefaultColor;
+            let bgColor     = eventColor + '4D';
+            let bdColor     = eventColor + '99';
+            let eventType   = isReschedule ? 'rs' : (isOneTime ? 'ot' : 'rp');
+
+            return {
+                id: studentIdx + '_' + dayKey + '_' + eventType + '_' + subIdx,
+                title: row.studentName + (notes ? (' (' + notes + ')') : '') + (isOneTime ? ' [1 Lần]' : ''),
+                start: dateStr + 'T' + startHour.padStart(2,'0') + ':' + startMin,
+                end:   dateStr + 'T' + endHour.padStart(2,'0')   + ':' + endMin,
+                backgroundColor: bgColor,
+                borderColor: bdColor,
+                textColor: '#FFFFFF',
+                classNames: [isOneTime ? 'event-status-onetime' : 'event-status-recurring'],
+                extendedProps: {
+                    studentIndex: studentIdx,
+                    subIndex: subIdx,
+                    studentName: row.studentName,
+                    dayKey: dayKey,
+                    startTime: startHour.padStart(2,'0') + ':' + startMin,
+                    endTime:   endHour.padStart(2,'0')   + ':' + endMin,
+                    notes: notes,
+                    isOneTime: isOneTime,
+                    isReschedule: isReschedule,
+                    oneTimeDateStr: oneTimeDateStr,
+                    date: dateStr,
+                    eventColor: eventColor,
+                    sessionColor: sessionColor,
+                    studentColor: studentDefaultColor
+                }
+            };
+        }
+
+        /**
+         * saveAndRefetch: cập nhật UI ngay lập tức bằng direct FC API
+         * mode: 'add' | 'remove' | 'replace' | 'full'
+         *   - 'add'    : thêm mới event vào calendar (dùng khi tạo mới)
+         *   - 'remove' : xóa event đang active khỏi calendar (dùng khi xóa)
+         *   - 'replace': xóa event cũ + thêm event mới (dùng khi sửa)
+         *   - 'full'   : fallback refetch toàn bộ (dùng cho drag/resize sau confirm)
+         * newEventSpec: { studentIdx, dayKey, subIdx } để build event mới (cho 'add'/'replace')
+         * oldFcEvent: fcEvent cần xóa (cho 'remove'/'replace')
+         */
+        function saveAndRefetch(studentName, andThen, mode, newEventSpec, oldFcEvent) {
+            mode = mode || 'full';
+
+            // --- Cập nhật calendar UI ngay lập tức ---
+            if (mode === 'remove' && oldFcEvent) {
+                try { oldFcEvent.remove(); } catch(e) {}
+
+            } else if (mode === 'add' && newEventSpec) {
+                let evObj = buildFCEventObj(newEventSpec.studentIdx, newEventSpec.dayKey, newEventSpec.subIdx);
+                if (evObj) calendar.addEvent(evObj);
+
+            } else if (mode === 'replace') {
+                if (oldFcEvent) try { oldFcEvent.remove(); } catch(e) {}
+                if (newEventSpec) {
+                    let evObj = buildFCEventObj(newEventSpec.studentIdx, newEventSpec.dayKey, newEventSpec.subIdx);
+                    if (evObj) calendar.addEvent(evObj);
+                }
+
+            } else {
+                // 'full': fallback toàn bộ (chỉ dùng cho drop/resize/delete sau dialog)
+                // Chỉ regenerate từ local memory - KHÔNG gọi backend
+                let currentStart = calendar.view ? calendar.view.currentStart : new Date();
+                let newEvents = generateEventsForCurrentWeek(currentStart);
+                // Xóa tất cả events hiện tại rồi thêm lại từ memory
+                calendar.getEvents().forEach(e => e.remove());
+                newEvents.forEach(e => calendar.addEvent(e));
+            }
+
+            renderSheetTable();
+            if (andThen) andThen();
+
+            // --- Debounce sync lên Sheets ---
+            if (!isDemoMode) {
+                _pendingSyncNames.add(studentName);
+                showSyncToast('pending');
+                clearTimeout(_syncDebounceTimer);
+                _syncDebounceTimer = setTimeout(function() {
+                    flushPendingSync();
+                }, 1500);
+            }
+        }
+
+        // Gời API lên Sheets cho tất cả lớp học đang còn pending
+        function flushPendingSync() {
+            if (_pendingSyncNames.size === 0) return;
+            let names = Array.from(_pendingSyncNames);
+            _pendingSyncNames.clear();
+
+            let remaining = names.length;
+            let hasError = false;
+
+            names.forEach(function(name) {
+                saveScheduleToBackend(name, function(success) {
+                    if (!success) hasError = true;
+                    remaining--;
+                    if (remaining === 0) {
+                        showSyncToast(hasError ? 'error' : 'success');
+                    }
+                });
+            });
+        }
+
+        // Toast indicator "Đang đồng bộ..."
+        function showSyncToast(state) {
+            let toast = document.getElementById('syncToast');
+            if (!toast) return;
+            toast.className = 'sync-toast ' + state;
+            if (state === 'pending') {
+                toast.innerHTML = '<i class="fa-solid fa-rotate fa-spin"></i> Đang đồng bộ...';
+                toast.style.display = 'flex';
+            } else if (state === 'success') {
+                toast.innerHTML = '<i class="fa-solid fa-circle-check"></i> Đã lưu';
+                toast.style.display = 'flex';
+                setTimeout(function() { toast.style.display = 'none'; }, 2000);
+            } else if (state === 'error') {
+                toast.innerHTML = '<i class="fa-solid fa-circle-xmark"></i> Lỗi đồng bộ!';
+                toast.style.display = 'flex';
+                setTimeout(function() { toast.style.display = 'none'; }, 4000);
+            }
+        }
+
+        function showWebConfirm(message, onConfirm) {
+            document.getElementById('confirmMessageText').innerHTML = message;
+            let modal = document.getElementById('customConfirmModal');
+            modal.style.display = 'flex';
+            modal.classList.add('active');
+            
+            document.getElementById('btnConfirmCancelWeb').onclick = function() {
+                modal.style.display = 'none';
+                modal.classList.remove('active');
+            };
+            
+            document.getElementById('btnConfirmOkWeb').onclick = function() {
+                modal.style.display = 'none';
+                modal.classList.remove('active');
+                if (onConfirm) onConfirm();
+            };
+        }
+
+        function showWebAlert(message, type = 'info') {
+            document.getElementById('alertMessageText').innerHTML = message;
+            let iconEl = document.getElementById('alertIcon');
+            if (type === 'error') {
+                iconEl.innerHTML = '<i class="fa-solid fa-circle-xmark" style="color: #EF4444;"></i>';
+            } else if (type === 'success') {
+                iconEl.innerHTML = '<i class="fa-solid fa-circle-check" style="color: #10B981;"></i>';
+            } else {
+                iconEl.innerHTML = '<i class="fa-solid fa-circle-info" style="color: #8E4DFF;"></i>';
+            }
+            
+            let modal = document.getElementById('customAlertModal');
+            modal.style.display = 'flex';
+            modal.classList.add('active');
+            
+            document.getElementById('btnAlertOkWeb').onclick = function() {
+                modal.style.display = 'none';
+                modal.classList.remove('active');
+            };
+        }
+
+        if (isDemoMode) {
+            // Thêm dữ liệu lịch học "Một lần - Không lặp" cho lớp học A vào ngày thứ 3 tuần này (ví dụ 21/07/2026) làm mẫu
+            let today = new Date();
+            let currentDayOfWeek = today.getDay();
+            let diffToTue = 2 - currentDayOfWeek; // 2 đại diện cho Thứ 3
+            let sampleTue = new Date(today);
+            sampleTue.setDate(today.getDate() + diffToTue);
+            
+            let sampleTueDateStr = sampleTue.getDate().toString().padStart(2, '0') + "/" + 
+                                   (sampleTue.getMonth() + 1).toString().padStart(2, '0') + "/" + 
+                                   sampleTue.getFullYear();
+            
+            tutorScheduleSheetData[0].tue = sampleTueDateStr + ": 10:00 - 12:00 (Học thử một lần)";
+        }
+
+        const dayMap = {
+            "mon": 1, "tue": 2, "wed": 3, "thu": 4, "fri": 5, "sat": 6, "sun": 0
+        };
+        const revDayMap = {
+            1: "mon", 2: "tue", 3: "wed", 4: "thu", 5: "fri", 6: "sat", 0: "sun"
+        };
+        const allDayKeys = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"];
+
+        function getStartOfWeek(d) {
+            let date = new Date(d);
+            let day = date.getDay();
+            let diff = date.getDate() - day + (day === 0 ? -6 : 1);
+            return new Date(date.setDate(diff));
+        }
+
+        // Tạo sự kiện đưa vào FullCalendar
+        function generateEventsForCurrentWeek(viewStart) {
+            let startOfWeek = getStartOfWeek(viewStart);
+            let events = [];
+
+            tutorScheduleSheetData.forEach((row, studentIdx) => {
+                allDayKeys.forEach(dayKey => {
+                    let cellVal = row[dayKey];
+                    if (!cellVal || cellVal.trim() === '') return;
+
+                    // Hỗ trợ nhiều ca học trong ngày (phân tách bởi ký tự '|')
+                    let subSlots = cellVal.split('|').map(s => s.trim()).filter(s => s !== '');
+                    subSlots.forEach((slotVal, subIdx) => {
+                        // === Xử lý các kiểu entry ===
+                        // 0. Màu sắc riêng của buổi học này: [C:#RRGGBB]
+                        let sessionColor = '';
+                        let colorTagRegex = /^\[C:(#[0-9A-Fa-f]{6})\]/;
+                        let colorTagMatch = slotVal.match(colorTagRegex);
+                        if (colorTagMatch) {
+                            sessionColor = colorTagMatch[1];
+                            slotVal = slotVal.replace(colorTagRegex, '').trim();
+                        }
+
+                        // 1. SKIP marker: "HH:MM - HH:MM SKIP DD/MM/YYYY,..."  → lịch cố định nhưng bỏ qua ngày cụ thể
+                        let skipDates = [];
+                        let rawVal = slotVal;
+                        if (rawVal.includes(' SKIP ')) {
+                            let parts = rawVal.split(' SKIP ');
+                            rawVal = parts[0];
+                            skipDates = parts[1].split(',').map(s => s.trim());
+                        }
+
+                        // 2. Kiểm tra tiền tố: ngày cụ thể DD/MM/YYYY (sự kiện 1 lần)
+                        let datePrefixRegex = /^(\d{2})\/(\d{2})\/(\d{4}):\s*/;
+                        let rescheduleRegex = /^RESCHEDULE (\d{2})\/(\d{2})\/(\d{4}):\s*/;
+
+                        let dateMatch     = rawVal.match(datePrefixRegex);
+                        let reschedMatch  = rawVal.match(rescheduleRegex);
+
+                        let isOneTime   = false;
+                        let isReschedule = false;
+                        let oneTimeDateStr = '';
+                        let cleanTimeStr = rawVal;
+
+                        if (reschedMatch) {
+                            // "Dời tuần này" — hiển bình thường, không tag
+                            isReschedule = true;
+                            oneTimeDateStr = reschedMatch[1] + '/' + reschedMatch[2] + '/' + reschedMatch[3];
+                            cleanTimeStr = rawVal.replace(rescheduleRegex, '');
+                        } else if (dateMatch) {
+                            isOneTime = true;
+                            oneTimeDateStr = dateMatch[1] + '/' + dateMatch[2] + '/' + dateMatch[3];
+                            cleanTimeStr = rawVal.replace(datePrefixRegex, '');
+                        }
+
+                        let timeRegex = /(\d{1,2}):(\d{2})\s*-\s*(\d{1,2}):(\d{2})/;
+                        let match = cleanTimeStr.match(timeRegex);
+                        if (!match) return;
+
+                        let startHour = match[1];
+                        let startMin  = match[2];
+                        let endHour   = match[3];
+                        let endMin    = match[4];
+
+                        let notes = cleanTimeStr.replace(timeRegex, '').trim().replace(/[\(\)]/g, '').trim();
+
+                        // Xác định ngày cụ thể
+                        let dateStr = '';
+
+                        if (isOneTime || isReschedule) {
+                            let dateParts = oneTimeDateStr.split('/');
+                            dateStr = dateParts[2] + '-' + dateParts[1] + '-' + dateParts[0];
+                            let evDate  = new Date(dateStr);
+                            let weekEnd = new Date(startOfWeek);
+                            weekEnd.setDate(startOfWeek.getDate() + 7);
+                            if (evDate < startOfWeek || evDate >= weekEnd) return;
+                        } else {
+                            // Lịch lặp lại: tính ngày trong tuần
+                            let dayOffset = dayMap[dayKey] - 1;
+                            if (dayMap[dayKey] === 0) dayOffset = 6;
+                            let eventDate = new Date(startOfWeek);
+                            eventDate.setDate(startOfWeek.getDate() + dayOffset);
+
+                            let ey = eventDate.getFullYear();
+                            let em = (eventDate.getMonth() + 1).toString().padStart(2, '0');
+                            let ed = eventDate.getDate().toString().padStart(2, '0');
+                            dateStr = ey + '-' + em + '-' + ed;
+
+                            // Kiểm tra SKIP: nếu ngày này bị dời thì bỏ qua
+                            let skipCheck = ed + '/' + em + '/' + ey;
+                            if (skipDates.includes(skipCheck)) return;
+                        }
+
+                        // Tìm cột gốc có lịch lặp lại (có SKIP chứa ngày này) — chỉ dùng cho RESCHEDULE
+                        let originalRecurringKey = null;
+                        if (isReschedule) {
+                            for (let dk of allDayKeys) {
+                                if (dk === dayKey) continue;
+                                let dkVal = row[dk] || '';
+                                if (!dkVal.match(/^(\d{2}\/|RESCHEDULE)/) && dkVal.includes(' SKIP ')) {
+                                    let skipPart = dkVal.split(' SKIP ')[1];
+                                    if (skipPart.split(',').map(s => s.trim()).includes(oneTimeDateStr)) {
+                                        originalRecurringKey = dk;
+                                        break;
+                                    }
+                                }
+                            }
+                        }  // end if (isReschedule)
+
+                        let eventType = isReschedule ? 'rs' : (isOneTime ? 'ot' : 'rp');
+
+                        let studentDefaultColor = row.color || '#8E4DFF';
+                        let eventColor = sessionColor || studentDefaultColor;
+                        // Tính màu nền và viền
+                        let bgColor   = eventColor + '4D';  // 4D = ~30% opacity hex
+                        let bdColor   = eventColor + '99';  // 99 = ~60% opacity
+                        
+                        events.push({
+                            id: studentIdx + '_' + dayKey + '_' + eventType + '_' + subIdx,
+                            title: row.studentName
+                                + (notes ? (' (' + notes + ')') : '')
+                                + (isOneTime ? ' [1 Lần]' : ''),
+                            start: dateStr + 'T' + startHour.padStart(2, '0') + ':' + startMin,
+                            end:   dateStr + 'T' + endHour.padStart(2, '0')   + ':' + endMin,
+                            backgroundColor: bgColor,
+                            borderColor: bdColor,
+                            textColor: '#FFFFFF',
+                            classNames: [isOneTime ? 'event-status-onetime' : 'event-status-recurring'],
+                            extendedProps: {
+                                studentIndex: studentIdx,
+                                subIndex: subIdx,
+                                studentName: row.studentName,
+                                dayKey: dayKey,
+                                startTime: startHour.padStart(2, '0') + ':' + startMin,
+                                endTime:   endHour.padStart(2, '0')   + ':' + endMin,
+                                notes: notes,
+                                isOneTime: isOneTime,
+                                isReschedule: isReschedule,
+                                originalRecurringKey: originalRecurringKey,
+                                oneTimeDateStr: oneTimeDateStr,
+                                date: dateStr,
+                                eventColor: eventColor,      // màu đang áp dụng cho event này
+                                sessionColor: sessionColor,  // màu override của buổi này (rỗng = dung màu lớp học)
+                                studentColor: studentDefaultColor // màu mặc định của lớp học
+                            }
+                        });
+                    });
+                });
+            });
+
+            return events;
+        }
+
+        function loadStudentOptions() {
+            let select = document.getElementById("eventStudent");
+            select.innerHTML = '<option value="">Chọn lớp học...</option>';
+            tutorScheduleSheetData.forEach((row, idx) => {
+                let opt = document.createElement("option");
+                opt.value = idx;
+                opt.innerText = row.studentName;
+                select.appendChild(opt);
+            });
+            // Thêm tùy chọn Khác...
+            let optOther = document.createElement("option");
+            optOther.value = "other";
+            optOther.innerText = "Khác...";
+            select.appendChild(optOther);
+        }
+
+
+        // Đổ dữ liệu thật ra bảng mô phỏng ở cuối trang
+        function renderSheetTable() {
+            let tbody = document.getElementById("sheetDataTableBody");
+            if (!tbody) return;
+            tbody.innerHTML = "";
+            tutorScheduleSheetData.forEach(row => {
+                let tr = document.createElement("tr");
+                
+                // Tên lớp học
+                let html = `<td style="font-weight: 700; color: #FFF; text-align: left; background: rgba(255,255,255,0.01);">${row.studentName}</td>`;
+                
+                // 7 Thứ trong tuần
+                allDayKeys.forEach(dayKey => {
+                    let val = row[dayKey];
+                    if (!val || val.trim() === "") {
+                        html += `<td class="cell-empty">-</td>`;
+                    } else if (val.includes("/")) {
+                        html += `<td class="cell-onetime" title="${val}">${val}</td>`;
+                    } else {
+                        html += `<td class="cell-active" title="${val}">${val}</td>`;
+                    }
+                });
+                
+                tr.innerHTML = html;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // Hiện/Ẩn các ô chọn ngày học theo Chế độ lặp
+        function toggleRepeatUI() {
+            let mode = document.getElementById("eventRepeatMode").value;
+            let daySelect = document.getElementById("daySelectGroup");
+            let specificDate = document.getElementById("specificDateGroup");
+            let dayCheckbox = document.getElementById("dayCheckboxGroup");
+
+            if (mode === "none") {
+                daySelect.style.display = "none";
+                specificDate.style.display = "block";
+                dayCheckbox.style.display = "none";
+            } else if (mode === "weekly") {
+                daySelect.style.display = "block";
+                specificDate.style.display = "none";
+                dayCheckbox.style.display = "none";
+            } else if (mode === "daily") {
+                daySelect.style.display = "none";
+                specificDate.style.display = "none";
+                dayCheckbox.style.display = "none";
+            } else if (mode === "custom") {
+                daySelect.style.display = "none";
+                specificDate.style.display = "none";
+                dayCheckbox.style.display = "block";
+            }
+        }
+
+        // Khởi tạo lịch
         document.addEventListener('DOMContentLoaded', function() {
+            loadTutorScheduleFromBackend(function() {
+                initColorPickerSwatches();
+            });
+
+            // Đăng ký sự kiện đổi lớp học -> tự chọn màu mặc định của lớp học đó
+            document.getElementById("eventStudent").addEventListener("change", function() {
+                let val = this.value;
+                let customGroup = document.getElementById("customStudentNameGroup");
+                if (val === "other") {
+                    customGroup.style.display = "block";
+                    document.getElementById("eventCustomStudentName").required = true;
+                    selectPresetColor('');
+                } else if (val !== "") {
+                    customGroup.style.display = "none";
+                    document.getElementById("eventCustomStudentName").required = false;
+                    let studentColor = tutorScheduleSheetData[val].color || '#8E4DFF';
+                    setColorScope('student');
+                    selectPresetColor(studentColor);
+                } else {
+                    customGroup.style.display = "none";
+                    document.getElementById("eventCustomStudentName").required = false;
+                    selectPresetColor('');
+                }
+            });
+
+            
             var calendarEl = document.getElementById('calendar');
+            const initialViewType = 'timeGridWeek';
+
             calendar = new FullCalendar.Calendar(calendarEl, {
-                initialView: 'timeGridWeek',
+                initialView: initialViewType,
                 locale: 'vi',
-                firstDay: 1,
+                firstDay: 1, // Bắt đầu tuần từ Thứ Hai
+                height: '100%', // Chiếm 100% .calendar-wrapper - chỉ 1 thanh cuộn bên trong
+                timeZone: 'local',
+                slotMinTime: "00:00:00",
+                slotMaxTime: "24:00:00",
+                slotDuration: '00:30:00',   // Chia ô 30 phút - đúng chuẩn Google Calendar
+                scrollTime: '07:00:00',      // Tự động cuộn xuống 7 giờ sáng khi mở lịch
+                allDaySlot: false,
+                editable: true,
+                selectable: true,
+                selectMirror: true,          // Hiển thị khối sự kiện ảo xem trước khi kéo thả chọn vùng thời gian
+                selectLongPressDelay: 350,   // Nhấn giữ 350ms trên điện thoại rồi kéo để chọn vùng thời gian
+                eventLongPressDelay: 350,    // Nhấn giữ 350ms trên điện thoại để bắt đầu kéo thả di chuyển sự kiện
+                nowIndicator: true, // Kích hoạt đường chỉ giờ hiện tại màu đỏ giống Google Calendar
+                eventDidMount: function(info) {
+                    let props = info.event.extendedProps;
+                    let evColor = props.eventColor;
+                    if (evColor) {
+                        info.el.style.setProperty('border-left', '4px solid ' + evColor, 'important');
+                        
+                        // Kỹ thuật che dòng kẻ: Sử dụng nền phụ đè lên (solid #0F0A30) làm lớp dưới cùng 
+                        // và phủ lớp màu của ca học có độ trong suốt 30% (#4D) ở trên.
+                        // Việc này giúp thẻ có màu bán trong suốt đẹp như cũ nhưng hoàn toàn che đi các dòng kẻ lưới bên dưới!
+                        let solidBg = '#0F0A30'; 
+                        info.el.style.setProperty('background', 'linear-gradient(0deg, ' + evColor + '4D, ' + evColor + '4D), ' + solidBg, 'important');
+                        info.el.style.setProperty('border-color', evColor + '99', 'important');
+
+                        // Màu chữ mặc định là trắng sáng trên nền tối
+                        let textC = '#FFFFFF';
+                        info.el.style.setProperty('color', textC, 'important');
+
+                        let titleEl = info.el.querySelector('.fc-event-title');
+                        if (titleEl) titleEl.style.setProperty('color', textC, 'important');
+                        let timeEl = info.el.querySelector('.fc-event-time');
+                        if (timeEl) timeEl.style.setProperty('color', textC, 'important');
+                    }
+                },
                 headerToolbar: {
                     left: 'prev,next today',
                     center: 'title',
-                    right: 'dayGridMonth,timeGridWeek,timeGridDay'
+                    right: 'timeGridWeek,timeGridDay' // Bỏ Danh Sách - chỉ giữ Lịch Tuần và Lịch Ngày
                 },
                 buttonText: {
                     today: 'Hôm nay',
-                    month: 'Tháng',
-                    week: 'Tuần',
-                    day: 'Ngày'
+                    week: 'Lịch tuần',
+                    day: 'Lịch ngày',
+                    list: 'Danh sách'
                 },
-                slotMinTime: '06:00:00',
-                slotMaxTime: '22:30:00',
-                events: classEvents,
-                eventClick: function(info) {
-                    if (confirm("Bạn có muốn xóa ca dạy lớp '" + info.event.title + "' không?")) {
-                        var eventId = info.event.id;
-                        info.event.remove();
-                        if (currentTutorPhone && eventId) {
-                            google.script.run.deleteClassScheduleEvent(eventId);
-                        }
+                events: function(info, successCallback, failureCallback) {
+                    if (isDemoMode) {
+                        let events = generateEventsForCurrentWeek(info.start);
+                        successCallback(events);
+                    } else {
+                        loadTutorScheduleFromBackend(function() {
+                            let events = generateEventsForCurrentWeek(info.start);
+                            successCallback(events);
+                        });
                     }
+                },
+
+                eventClick: function(info) {
+                    showEventDetail(info.event, info);
+                },
+
+                select: function(info) {
+                    // Dùng local Date getters - tránh lỗi múi giờ UTC+7
+                    let start = info.start;
+                    let end = info.end;
+                    let dayKey = revDayMap[start.getDay()];
+                    
+                    let dd = start.getDate().toString().padStart(2, '0');
+                    let mm = (start.getMonth() + 1).toString().padStart(2, '0');
+                    let yyyy = start.getFullYear();
+                    let dateStr = yyyy + "-" + mm + "-" + dd;
+                    
+                    let startT = start.getHours().toString().padStart(2,'0') + ':' + start.getMinutes().toString().padStart(2,'0');
+                    let endT   = end.getHours().toString().padStart(2,'0')   + ':' + end.getMinutes().toString().padStart(2,'0');
+                    openCreateEventModal(dayKey, dateStr, startT, endT);
+                },
+
+                eventDrop: function(info) {
+                    let start = info.event.start;
+                    let end   = info.event.end;
+                    const props = info.event.extendedProps;
+
+                    let newDayKey = revDayMap[start.getDay()];
+                    let newStart  = start.getHours().toString().padStart(2,'0') + ':' + start.getMinutes().toString().padStart(2,'0');
+                    let newEnd    = end.getHours().toString().padStart(2,'0')   + ':' + end.getMinutes().toString().padStart(2,'0');
+
+                    if (!props.isOneTime) {
+                        // Sự kiện lặp lại hàng tuần → hỏi người dùng
+                        info.revert(); // Hoàn tác vị trí trước khi hiển thị dialog
+                        pendingChange = {
+                            type: 'drop',
+                            props: props,
+                            newDayKey: newDayKey,
+                            newStart: newStart,
+                            newEnd: newEnd,
+                            start: start
+                        };
+                        showRecurrenceDialog('Muốn di chuyển ca dạy của <b>' + props.studentName + '</b> sang ' + newDayKey.toUpperCase() + '?');
+                        return;
+                    }
+
+                    // Sự kiện 1 lần: cập nhật trực tiếp
+                    applyDrop(props, newDayKey, newStart, newEnd, start, true);
+                },
+
+                eventResize: function(info) {
+                    let end    = info.event.end;
+                    let newEnd = end.getHours().toString().padStart(2,'0') + ':' + end.getMinutes().toString().padStart(2,'0');
+                    const props = info.event.extendedProps;
+
+                    if (!props.isOneTime) {
+                        info.revert();
+                        pendingChange = {
+                            type: 'resize',
+                            props: props,
+                            newEnd: newEnd
+                        };
+                        showRecurrenceDialog('Muốn đổi giờ kết thúc ca dạy của <b>' + props.studentName + '</b> thành ' + newEnd + '?');
+                        return;
+                    }
+
+                    applyResize(props, newEnd);
                 }
             });
-            calendar.render();
 
-            loadRealClassSchedule();
+            calendar.render();
         });
 
-        function loadRealClassSchedule() {
-            if (!currentTutorPhone) return;
-            google.script.run.withSuccessHandler(function(events) {
-                if (events && Array.isArray(events)) {
-                    calendar.removeAllEvents();
-                    events.forEach(function(ev) {
-                        calendar.addEvent(ev);
-                    });
-                }
-            }).getClassScheduleEvents(currentTutorPhone);
-        }
+        // --- ĐIỀU KHIỂN FORM HỘP THOẠI MODAL ---
 
-        function openAddClassEventModal() {
-            document.getElementById('classEventModal').style.display = 'flex';
-        }
+        // === XỬ LÝ SỰ KIỆN LẶP LẠI - RECURRENCE DIALOG ===
+        let pendingChange = null;
+        let recurrenceChoice = 'this'; // 'this' | 'all'
 
-        function closeClassEventModal() {
-            document.getElementById('classEventModal').style.display = 'none';
-        }
-
-        function saveClassEvent(e) {
-            e.preventDefault();
-            var name = document.getElementById('eventClassName').value.trim();
-            var startTime = document.getElementById('eventStartTime').value;
-            var endTime = document.getElementById('eventEndTime').value;
-            var day = parseInt(document.getElementById('eventDayOfWeek').value);
-
-            if (!name) return;
-            var eventTitle = '[' + name + ']';
-
-            closeClassEventModal();
-            document.getElementById('eventClassName').value = '';
-
-            if (currentTutorPhone) {
-                google.script.run.withSuccessHandler(function(res) {
-                    if (res && res.event) {
-                        calendar.addEvent(res.event);
-                    } else {
-                        loadRealClassSchedule();
-                    }
-                }).addClassScheduleEvent(currentTutorPhone, eventTitle, [day], startTime, endTime, '#8E4DFF');
+                function showRecurrenceDialog(descHtml, isDelete = false) {
+            document.getElementById('recurrenceDialogDesc').innerHTML = descHtml;
+            
+            if (isDelete) {
+                document.getElementById('recurrenceDialogTitle').innerHTML = '<i class="fa-solid fa-trash-can" style="color:#EF4444;margin-right:8px;"></i>Xóa ca dạy lặp lại';
+                document.getElementById('recOptThisTitle').innerText = 'Chỉ ca học tuần này';
+                document.getElementById('recOptThisDesc').innerText = 'Chỉ xoá ca học tuần này, các tuần khác giữ nguyên lịch.';
+                document.getElementById('recOptAllTitle').innerText = 'Tất cả các tuần';
+                document.getElementById('recOptAllDesc').innerText = 'Xoá hoàn toàn lịch cố định này ở tất cả các tuần.';
             } else {
-                calendar.addEvent({
-                    id: 'ev_' + new Date().getTime(),
-                    title: eventTitle,
-                    daysOfWeek: [day],
-                    startTime: startTime,
-                    endTime: endTime,
-                    backgroundColor: '#8E4DFF',
-                    borderColor: '#8E4DFF'
+                document.getElementById('recurrenceDialogTitle').innerHTML = '<i class="fa-solid fa-rotate" style="color:#8E4DFF;margin-right:8px;"></i>Chỉnh sửa sự kiện lặp lại';
+                document.getElementById('recOptThisTitle').innerText = 'Chỉ sự kiện này';
+                document.getElementById('recOptThisDesc').innerText = 'Chỉ thay đổi ca học tuần này, các tuần khác giữ nguyên lịch cũ.';
+                document.getElementById('recOptAllTitle').innerText = 'Tất cả các tuần';
+                document.getElementById('recOptAllDesc').innerText = 'Cập nhật lịch cố định — áp dụng cho mọi tuần từ đây trở đi.';
+            }
+            
+            selectRecOption('this'); // Mặc định chọn "Chỉ tuần này"
+            document.getElementById('recurrenceDialogOverlay').classList.add('active');
+        }
+
+        function selectRecOption(choice) {
+            recurrenceChoice = choice;
+            document.getElementById('recOptThis').classList.toggle('selected', choice === 'this');
+            document.getElementById('recOptAll').classList.toggle('selected',  choice === 'all');
+        }
+
+        function cancelRecurrenceChange() {
+            document.getElementById('recurrenceDialogOverlay').classList.remove('active');
+            pendingChange = null;
+        }
+
+        function confirmRecurrenceChange() {
+            document.getElementById('recurrenceDialogOverlay').classList.remove('active');
+            if (!pendingChange) return;
+
+            if (pendingChange.type === 'drop') {
+                let { props, newDayKey, newStart, newEnd, start } = pendingChange;
+                applyDrop(props, newDayKey, newStart, newEnd, start, recurrenceChoice === 'this');
+            } else if (pendingChange.type === 'resize') {
+                let { props, newEnd } = pendingChange;
+                applyResize(props, newEnd, recurrenceChoice === 'this');
+            } else if (pendingChange.type === 'delete') {
+                let { props, start } = pendingChange;
+                applyDelete(props, start, recurrenceChoice === 'this');
+            }
+            pendingChange = null;
+        }
+
+        // Áp dụng di chuyển (drop) - hỗ trợ multi-slot
+        function applyDrop(props, newDayKey, newStart, newEnd, start, isThisOnly) {
+            let row = tutorScheduleSheetData[props.studentIndex];
+            let oldDayKey = props.dayKey;
+
+            // === Xử LÝ SỰ KIỆN "ĐỜI DỜI" (RESCHEDULE) ===
+            if (props.isReschedule) {
+                let rescDate = props.oneTimeDateStr;
+                let origKey  = props.originalRecurringKey;
+
+                // 1. Xóa entry RESCHEDULE cũ (slot này trong ô)
+                let oldSlots = (row[oldDayKey] || '').split('|').map(s => s.trim());
+                oldSlots.splice(props.subIndex, 1);
+                row[oldDayKey] = oldSlots.filter(s => s !== '').join(' | ');
+
+                // 2. Gỡ SKIP khỏi cột lịch gốc
+                function removeSkip(dk, date) {
+                    if (!dk || !row[dk]) return;
+                    let raw = row[dk];
+                    if (!raw.includes(' SKIP ')) return;
+                    let [base, skipsPart] = raw.split(' SKIP ');
+                    let newSkips = skipsPart.split(',').map(s => s.trim()).filter(s => s !== date);
+                    row[dk] = newSkips.length > 0 ? base + ' SKIP ' + newSkips.join(',') : base;
+                }
+                removeSkip(origKey, rescDate);
+
+                if (isThisOnly) {
+                    if (newDayKey === origKey) {
+                        // Dời về đúng ngày gốc → SKIP đã gỡ, lịch gốc tự hiển lại bình thường ✓
+                    } else {
+                        // Dời sang ngày khác tuần này:
+                        // Re-add SKIP vào cột gốc
+                        if (origKey && row[origKey]) {
+                            let raw = row[origKey];
+                            let base_r = raw.includes(' SKIP ') ? raw.split(' SKIP ')[0] : raw;
+                            let existSkips_r = raw.includes(' SKIP ') ? raw.split(' SKIP ')[1] : '';
+                            let skipList_r = existSkips_r ? existSkips_r.split(',').map(s => s.trim()) : [];
+                            if (!skipList_r.includes(rescDate)) skipList_r.push(rescDate);
+                            row[origKey] = base_r + ' SKIP ' + skipList_r.join(',');
+                        }
+                        // Tính ngày của newDayKey trong cùng tuần với rescDate
+                        let [resDd, resMm, resYyyy] = rescDate.split('/');
+                        let rescDateObj = new Date(resYyyy + '-' + resMm + '-' + resDd);
+                        let origDayNumJS = rescDateObj.getDay();
+                        let newDayNumJS  = dayMap[newDayKey];
+                        let newDateObj_rs = new Date(rescDateObj);
+                        newDateObj_rs.setDate(rescDateObj.getDate() + (newDayNumJS - origDayNumJS));
+                        let nDd   = newDateObj_rs.getDate().toString().padStart(2,'0');
+                        let nMm   = (newDateObj_rs.getMonth()+1).toString().padStart(2,'0');
+                        let nYyyy = newDateObj_rs.getFullYear();
+                        let newDateStr_rs = nDd + '/' + nMm + '/' + nYyyy;
+                        let timeVal_rs = 'RESCHEDULE ' + newDateStr_rs + ': ' + newStart + ' - ' + newEnd;
+                        if (props.notes) timeVal_rs += ' (' + props.notes + ')';
+                        let existNew_rs = row[newDayKey] || '';
+                        row[newDayKey] = existNew_rs.trim() === '' ? timeVal_rs : existNew_rs + ' | ' + timeVal_rs;
+                    }
+                } else {
+                    // 'Tất cả các tuần': cập nhật lịch cố định
+                    let timeVal_all = newStart + ' - ' + newEnd;
+                    if (props.notes) timeVal_all += ' (' + props.notes + ')';
+                    let existNew_all = row[newDayKey] || '';
+                    row[newDayKey] = existNew_all.trim() === '' ? timeVal_all : existNew_all + ' | ' + timeVal_all;
+                }
+                saveAndRefetch(row.studentName);
+                return;
+            }
+
+            // === Xử LÝ SỰ KIỆN THƯỜNG (lặp lại hoặc 1 lần thực sự) ===
+            let newDd   = start.getDate().toString().padStart(2, '0');
+            let newMm   = (start.getMonth() + 1).toString().padStart(2, '0');
+            let newYyyy = start.getFullYear();
+            let newDateStr = newDd + '/' + newMm + '/' + newYyyy;
+
+            let oldDayNum = dayMap[oldDayKey];
+            let newDayNum = start.getDay();
+            let oldDate = new Date(start);
+            oldDate.setDate(start.getDate() + (oldDayNum - newDayNum));
+            let skipDd   = oldDate.getDate().toString().padStart(2, '0');
+            let skipMm   = (oldDate.getMonth() + 1).toString().padStart(2, '0');
+            let skipYyyy = oldDate.getFullYear();
+            let skipDate = skipDd + '/' + skipMm + '/' + skipYyyy;
+
+            let colorPrefix = props.sessionColor ? ('[C:' + props.sessionColor + '] ') : '';
+
+            let timeVal;
+            if (props.isOneTime) {
+                timeVal = colorPrefix + newDateStr + ': ' + newStart + ' - ' + newEnd;
+                if (props.notes) timeVal += ' (' + props.notes + ')';
+                // Xóa slot cũ khỏi ô cũ
+                let oldSlots = (row[oldDayKey] || '').split('|').map(s => s.trim());
+                oldSlots.splice(props.subIndex, 1);
+                row[oldDayKey] = oldSlots.filter(s => s !== '').join(' | ');
+                // Append slot mới vào ô mới
+                let existing = row[newDayKey] || '';
+                row[newDayKey] = existing.trim() === '' ? timeVal : existing + ' | ' + timeVal;
+
+            } else if (isThisOnly) {
+                // "'Chỉ tuần này"
+                //   1) Thêm SKIP vào slot cũ trong ô cũ
+                let oldSlots = (row[oldDayKey] || '').split('|').map(s => s.trim());
+                let slotRaw  = oldSlots[props.subIndex] || '';
+                let baseSlot = slotRaw.includes(' SKIP ') ? slotRaw.split(' SKIP ')[0] : slotRaw;
+                let existSkips = slotRaw.includes(' SKIP ') ? slotRaw.split(' SKIP ')[1] : '';
+                let skipList = existSkips ? existSkips.split(',').map(s => s.trim()) : [];
+                if (!skipList.includes(skipDate)) skipList.push(skipDate);
+                oldSlots[props.subIndex] = baseSlot + ' SKIP ' + skipList.join(',');
+                row[oldDayKey] = oldSlots.join(' | ');
+
+                //   2) Ghi entry RESCHEDULE vào ngày mới
+                timeVal = colorPrefix + 'RESCHEDULE ' + newDateStr + ': ' + newStart + ' - ' + newEnd;
+                if (props.notes) timeVal += ' (' + props.notes + ')';
+                let existNew = row[newDayKey] || '';
+                row[newDayKey] = existNew.trim() === '' ? timeVal : existNew + ' | ' + timeVal;
+
+            } else {
+                // "Tất cả các tuần": cập nhật slot trong ô cũ
+                timeVal = newStart + ' - ' + newEnd;
+                if (props.notes) timeVal += ' (' + props.notes + ')';
+                if (oldDayKey === newDayKey) {
+                    // Cùng ô: chỉ cập nhật slot đó
+                    let slots = (row[oldDayKey] || '').split('|').map(s => s.trim());
+                    slots[props.subIndex] = timeVal;
+                    row[oldDayKey] = slots.join(' | ');
+                } else {
+                    // Khác ô: xóa slot cũ, append vào ô mới
+                    let oldSlots = (row[oldDayKey] || '').split('|').map(s => s.trim());
+                    oldSlots.splice(props.subIndex, 1);
+                    row[oldDayKey] = oldSlots.filter(s => s !== '').join(' | ');
+                    let existNew = row[newDayKey] || '';
+                    row[newDayKey] = existNew.trim() === '' ? timeVal : existNew + ' | ' + timeVal;
+                }
+            }
+            saveAndRefetch(row.studentName);
+        }
+
+        // Áp dụng đổi giờ kết thúc (resize)
+        function applyResize(props, newEnd, isThisOnly) {
+            let row    = tutorScheduleSheetData[props.studentIndex];
+            let dayKey = props.dayKey;
+            let timeVal;
+            if (isThisOnly) {
+                showWebAlert('Lưu ý: Thay đổi giờ kết thúc cho "Chỉ tuần này" chưa được hỗ trợ. Sẽ được cập nhật tất cả các tuần.');
+                isThisOnly = false;
+            }
+            if (props.isOneTime) {
+                timeVal = props.oneTimeDateStr + ': ' + props.startTime + ' - ' + newEnd;
+            } else {
+                timeVal = props.startTime + ' - ' + newEnd;
+            }
+            if (props.notes) timeVal += ' (' + props.notes + ')';
+            // Cập nhật đúng slot theo subIndex trong ô multi-slot
+            let slots = (row[dayKey] || '').split('|').map(s => s.trim());
+            slots[props.subIndex] = timeVal;
+            row[dayKey] = slots.filter(s => s !== '').join(' | ');
+            saveAndRefetch(row.studentName);
+        }
+
+        // Áp dụng xoá ca dạy
+        function applyDelete(props, start, isThisOnly) {
+            let row = tutorScheduleSheetData[props.studentIndex];
+            let oldDayKey = props.dayKey;
+
+            if (isThisOnly) {
+                // Thêm SKIP chỉ cho slot này trong ngày này
+                let dd   = start.getDate().toString().padStart(2, '0');
+                let mm   = (start.getMonth() + 1).toString().padStart(2, '0');
+                let yyyy = start.getFullYear();
+                let skipDate = dd + '/' + mm + '/' + yyyy;
+
+                let slots = (row[oldDayKey] || '').split('|').map(s => s.trim());
+                let slotRaw = slots[props.subIndex] || '';
+                let baseSlot = slotRaw.includes(' SKIP ') ? slotRaw.split(' SKIP ')[0] : slotRaw;
+                let existSkips = slotRaw.includes(' SKIP ') ? slotRaw.split(' SKIP ')[1] : '';
+                let skipList = existSkips ? existSkips.split(',').map(s => s.trim()) : [];
+                if (!skipList.includes(skipDate)) skipList.push(skipDate);
+                slots[props.subIndex] = baseSlot + ' SKIP ' + skipList.join(',');
+                row[oldDayKey] = slots.join(' | ');
+            } else {
+                // Xóa toàn bộ: chỉ xóa slot này, giữ lại các slot khác
+                let slots = (row[oldDayKey] || '').split('|').map(s => s.trim());
+                slots.splice(props.subIndex, 1);
+                row[oldDayKey] = slots.filter(s => s !== '').join(' | ');
+            }
+            saveAndRefetch(row.studentName);
+        }
+
+        // === ĐIỀU KHIỂN FLOATING POPOVER CHI TIẾT SỰ KIỆN ===
+        let activeFcEvent = null;
+
+        function showEventDetail(fcEvent, jsEvent) {
+            activeFcEvent = fcEvent;
+            const props = fcEvent.extendedProps;
+
+            // --- Điền nội dung ---
+            document.getElementById("detailTitle").innerText = props.studentName;
+
+            const colorDot = document.getElementById("detailColorDot");
+            let dotColor = props.eventColor || (props.isOneTime ? "#FFD23F" : "#8E4DFF");
+            colorDot.style.backgroundColor = dotColor;
+            colorDot.style.boxShadow = "0 0 7px " + dotColor + "aa";
+
+            let dateObj = new Date(props.date);
+            let daysOfWeekVi = ["Chủ Nhật","Thứ Hai","Thứ Ba","Thứ Tư","Thứ Năm","Thứ Sáu","Thứ Bảy"];
+            let dayName  = daysOfWeekVi[dateObj.getDay()];
+            let dayNum   = dateObj.getDate();
+            let monthNum = dateObj.getMonth() + 1;
+            document.getElementById("detailDateTime").innerText =
+                dayName + ", " + dayNum + " tháng " + monthNum + " · " + props.startTime + " – " + props.endTime;
+
+            let cellVal = tutorScheduleSheetData[props.studentIndex][props.dayKey] || "";
+            let recurrenceText;
+            if (props.isOneTime) {
+                recurrenceText = cellVal.startsWith("RESCHEDULE") ? "Được dời sang tuần này" : "Diễn ra một lần";
+            } else {
+                recurrenceText = "Hàng tuần vào " + dayName.toLowerCase();
+                if (cellVal.includes(" SKIP ")) recurrenceText += " (Có tuần được dời)";
+            }
+            document.getElementById("detailRecurrence").innerText = recurrenceText;
+
+            const notesContainer = document.getElementById("detailNotesContainer");
+            if (props.notes && props.notes.trim() !== "") {
+                document.getElementById("detailNotes").innerText = props.notes;
+                notesContainer.style.display = "flex";
+            } else {
+                notesContainer.style.display = "none";
+            }
+
+            // --- Định vị popover bên cạnh sự kiện được click ---
+            const pop = document.getElementById("eventDetailPopover");
+            const backdrop = document.getElementById("popoverBackdrop");
+            pop.classList.remove("visible");          // reset animation
+            if (backdrop) backdrop.classList.remove("visible");
+
+            if (window.innerWidth < 768) {
+                // Trên mobile, không định vị toạ độ pixel (CSS bottom sheet xử lý bằng fixed bottom)
+                pop.classList.add("visible");
+                if (backdrop) backdrop.classList.add("visible");
+            } else {
+                pop.style.left = "-9999px";
+                pop.style.top  = "-9999px";
+                pop.classList.add("visible");             // show để đo kích thước
+
+                const popW = pop.offsetWidth  || 310;
+                const popH = pop.offsetHeight || 200;
+                const margin = 10;
+                const vw = window.innerWidth;
+                const vh = window.innerHeight;
+
+                // Lấy rect của phần tử sự kiện được click
+                const elRect = jsEvent.el.getBoundingClientRect();
+
+                // Ưu tiên hiện bên phải, nếu không đủ thì hiện bên trái
+                let left, top;
+                if (elRect.right + margin + popW <= vw) {
+                    left = elRect.right + margin;     // bên phải sự kiện
+                } else {
+                    left = elRect.left - margin - popW; // bên trái sự kiện
+                }
+
+                // Canh theo đỉnh của sự kiện, giữ trong màn hình theo chiều dọc
+                top = elRect.top;
+                if (top + popH > vh - margin) top = vh - popH - margin;
+                if (top < margin) top = margin;
+
+                pop.style.left = left + "px";
+                pop.style.top  = top  + "px";
+            }
+        }
+
+        // Đóng khi click ra ngoài popover
+        document.addEventListener("click", function(e) {
+            const pop = document.getElementById("eventDetailPopover");
+            if (pop.classList.contains("visible") && !pop.contains(e.target)) {
+                // Kiểm tra không phải đang click vào sự kiện calendar (để tránh đóng ngay lập tức)
+                if (!e.target.closest(".fc-event")) {
+                    closeDetailModalForce();
+                }
+            }
+        });
+
+        function closeDetailModalForce() {
+            document.getElementById("eventDetailPopover").classList.remove("visible");
+            const backdrop = document.getElementById("popoverBackdrop");
+            if (backdrop) backdrop.classList.remove("visible");
+            activeFcEvent = null;
+        }
+
+        function editFromDetail() {
+            if (!activeFcEvent) return;
+            const eventToEdit = activeFcEvent;
+            closeDetailModalForce();
+            activeFcEvent = eventToEdit; // Khôi phục lại activeFcEvent để không bị null sau khi đóng popover
+            openEditEventModal(eventToEdit);
+        }
+
+
+        function deleteFromDetail() {
+            if (!activeFcEvent) return;
+            const props = activeFcEvent.extendedProps;
+            let studentIdx = props.studentIndex;
+            let oldDayKey  = props.dayKey;
+            let _fcEvent = activeFcEvent; // lưu tham chiếu trước khi đóng popover
+
+            if (props.isOneTime) {
+                showWebConfirm("Bạn có chắc chắn muốn xóa ca học một lần này của <b>" + props.studentName + "</b> không?", function() {
+                    let existing = tutorScheduleSheetData[studentIdx][oldDayKey] || "";
+                    let slots = existing.split("|").map(s => s.trim());
+                    slots.splice(props.subIndex, 1);
+                    tutorScheduleSheetData[studentIdx][oldDayKey] = slots.filter(s => s !== "").join(" | ");
+                    saveAndRefetch(props.studentName, function() {
+                        closeDetailModalForce();
+                    }, 'remove', null, _fcEvent);
                 });
+            } else {
+                closeDetailModalForce();
+                pendingChange = {
+                    type: 'delete',
+                    props: props,
+                    start: new Date(props.date)
+                };
+                showRecurrenceDialog('Bạn muốn xóa ca dạy lặp lại của <b>' + props.studentName + '</b> vào ' + oldDayKey.toUpperCase() + '?', true);
+            }
+        }
+
+
+        // Toggle bảng Sheets Simulator từ dưới lên
+        function toggleSheetPanel() {
+            let panel = document.getElementById('sheetPanel');
+            panel.classList.toggle('open');
+        }
+
+
+
+
+
+        function openAddEventModal() {
+            let t = new Date();
+            let todayStr = t.getFullYear() + '-' + (t.getMonth()+1).toString().padStart(2,'0') + '-' + t.getDate().toString().padStart(2,'0');
+            openCreateEventModal("mon", todayStr, "14:00", "16:00");
+        }
+
+        // Tạo mới ca dạy
+        function openCreateEventModal(dayKey, dateStr, startTime, endTime) {
+            document.getElementById("modalTitleText").innerHTML = '<i class="fa-solid fa-circle-plus" style="color: #10B981;"></i> Thêm lịch học';
+            
+            document.getElementById("eventStudentIndex").value = "";
+            document.getElementById("eventSubIndex").value = "";
+            document.getElementById("eventOldDay").value = "";
+            
+            document.getElementById("eventStudent").value = "";
+            document.getElementById("eventStudent").disabled = false;
+            
+            // Reset ô nhập tên lớp học khác
+            document.getElementById("customStudentNameGroup").style.display = "none";
+            document.getElementById("eventCustomStudentName").value = "";
+            document.getElementById("eventCustomStudentName").required = false;
+
+            document.getElementById("eventRepeatMode").value = "none"; 
+            document.getElementById("eventDayOfWeek").value = dayKey;
+            document.getElementById("eventSpecificDate").value = dateStr;
+            
+            allDayKeys.forEach(key => {
+                document.getElementById("check" + key.charAt(0).toUpperCase() + key.slice(1)).checked = false;
+            });
+
+            document.getElementById("eventStartTime").value = startTime;
+            document.getElementById("eventEndTime").value = endTime;
+            document.getElementById("eventNotes").value = "";
+
+            // Reset color picker
+            setColorScope('student');
+            selectPresetColor('');
+
+            toggleRepeatUI();
+            document.getElementById("btnDeleteEvent").style.display = "none";
+            document.getElementById("eventModalOverlay").classList.add("active");
+        }
+
+        // Sửa ca dạy
+        function openEditEventModal(fcEvent) {
+            const props = fcEvent.extendedProps;
+            document.getElementById("modalTitleText").innerHTML = '<i class="fa-solid fa-pen-to-square" style="color: #FFD23F;"></i> Sửa lịch dạy';
+            
+            document.getElementById("eventStudentIndex").value = props.studentIndex;
+            document.getElementById("eventSubIndex").value = (props.subIndex !== undefined ? props.subIndex : "");
+            document.getElementById("eventOldDay").value = props.dayKey;
+            
+            document.getElementById("eventStudent").value = props.studentIndex;
+            document.getElementById("eventStudent").disabled = true;
+
+            // Ẩn ô nhập tên lớp học khác khi sửa lịch hiện tại
+            document.getElementById("customStudentNameGroup").style.display = "none";
+            document.getElementById("eventCustomStudentName").value = "";
+            document.getElementById("eventCustomStudentName").required = false;
+
+            
+            if (props.isOneTime) {
+                document.getElementById("eventRepeatMode").value = "none";
+                let parts = props.oneTimeDateStr.split("/");
+                document.getElementById("eventSpecificDate").value = parts[2] + "-" + parts[1] + "-" + parts[0];
+            } else {
+                document.getElementById("eventRepeatMode").value = "weekly";
+                document.getElementById("eventDayOfWeek").value = props.dayKey;
+            }
+            
+            allDayKeys.forEach(key => {
+                document.getElementById("check" + key.charAt(0).toUpperCase() + key.slice(1)).checked = (key === props.dayKey);
+            });
+
+            document.getElementById("eventStartTime").value = props.startTime;
+            document.getElementById("eventEndTime").value = props.endTime;
+            document.getElementById("eventNotes").value = props.notes;
+
+            // Set color picker theo cấu hình của event
+            if (props.sessionColor) {
+                setColorScope('session');
+                selectPresetColor(props.sessionColor);
+            } else {
+                setColorScope('student');
+                selectPresetColor(props.studentColor || '#8E4DFF');
+            }
+
+            toggleRepeatUI();
+            document.getElementById("btnDeleteEvent").style.display = "block";
+            document.getElementById("eventModalOverlay").classList.add("active");
+        }
+
+        function closeEventModal(e) {
+            if (e.target.id === "eventModalOverlay") closeModalForce();
+        }
+
+        function closeModalForce() {
+            document.getElementById("eventModalOverlay").classList.remove("active");
+        }
+
+        // Lưu dữ liệu vào thời khóa biểu (Đẩy về cấu trúc Google Sheets)
+        function saveEvent(e) {
+            e.preventDefault();
+
+            let studentIdx = document.getElementById("eventStudentIndex").value;
+            let subIdxStr  = document.getElementById("eventSubIndex").value;
+            let oldDayKey = document.getElementById("eventOldDay").value;
+            
+            let repeatMode = document.getElementById("eventRepeatMode").value;
+            let startTime = document.getElementById("eventStartTime").value;
+            let endTime = document.getElementById("eventEndTime").value;
+            let notes = document.getElementById("eventNotes").value.trim();
+
+            let timeVal = startTime + " - " + endTime;
+            
+            let targetStudentIdx;
+            let studentSelectValue = document.getElementById("eventStudent").value;
+            
+            if (studentIdx === "") {
+                if (studentSelectValue === "other") {
+                    let customName = document.getElementById("eventCustomStudentName").value.trim();
+                    if (!customName) {
+                        alert("Vui lòng nhập tên lớp học mới!");
+                        return;
+                    }
+                    
+                    // Kiểm tra xem đã có lớp học này trong tutorScheduleSheetData chưa
+                    let existingIdx = tutorScheduleSheetData.findIndex(r => r.studentName.toLowerCase() === customName.toLowerCase());
+                    if (existingIdx !== -1) {
+                        targetStudentIdx = existingIdx;
+                    } else {
+                        // Thêm hàng giả lập mới
+                        let newRow = {
+                            studentName: customName,
+                            color: "#8E4DFF",
+                            mon: "", tue: "", wed: "", thu: "", fri: "", sat: "", sun: ""
+                        };
+                        tutorScheduleSheetData.push(newRow);
+                        targetStudentIdx = tutorScheduleSheetData.length - 1;
+                        loadStudentOptions();
+                    }
+                } else {
+                    targetStudentIdx = parseInt(studentSelectValue);
+                }
+            } else {
+                targetStudentIdx = parseInt(studentIdx);
+            }
+            
+            if (isNaN(targetStudentIdx)) return;
+            let row = tutorScheduleSheetData[targetStudentIdx];
+
+
+            // Đọc màu sắc và scope được chọn
+            let selectedColor = document.getElementById("eventColor").value;
+            let scope = document.getElementById("colorScope").value;
+
+            if (scope === "student" && selectedColor) {
+                row.color = selectedColor;
+                localStorage.setItem('student_color_' + row.studentName, selectedColor);
+            }
+
+            let colorPrefix = (scope === "session" && selectedColor) ? ("[C:" + selectedColor + "] ") : "";
+
+            // === Hàm helper: cập nhật 1 slot cụ thể trong ô multi-slot ===
+            function updateSlotInCell(dayKey, newSlotVal) {
+                let existing = row[dayKey] || "";
+                if (subIdxStr === "" || studentIdx === "") {
+                    // TẠO MỚI: append vào cuối (cách bởi ' | ')
+                    if (existing.trim() === "") {
+                        row[dayKey] = newSlotVal;
+                    } else {
+                        row[dayKey] = existing + " | " + newSlotVal;
+                    }
+                } else {
+                    // SỬA: thay đúng slot theo subIndex
+                    let subIdx = parseInt(subIdxStr);
+                    let slots = existing.split("|").map(s => s.trim());
+                    slots[subIdx] = newSlotVal;
+                    row[dayKey] = slots.filter(s => s !== "").join(" | ");
+                }
+            }
+
+            if (repeatMode === "none") {
+                let specDate = document.getElementById("eventSpecificDate").value; 
+                if (specDate) {
+                    let dParts = specDate.split("-");
+                    let datePrefix = dParts[2] + "/" + dParts[1] + "/" + dParts[0] + ": ";
+                    
+                    let finalVal = colorPrefix + datePrefix + timeVal;
+                    if (notes !== "") finalVal += " (" + notes + ")";
+
+                    let tempDate = new Date(specDate);
+                    let targetDayKey = revDayMap[tempDate.getDay()];
+
+                    // Nếu đổi ngày (khác ô), xóa slot cũ khỏi ô cũ
+                    if (studentIdx !== "" && oldDayKey !== "" && oldDayKey !== targetDayKey) {
+                        let oldSlots = (row[oldDayKey] || "").split("|").map(s => s.trim());
+                        if (subIdxStr !== "") oldSlots.splice(parseInt(subIdxStr), 1);
+                        row[oldDayKey] = oldSlots.filter(s => s !== "").join(" | ");
+                    }
+                    updateSlotInCell(targetDayKey, finalVal);
+                }
+            }
+            else if (repeatMode === "weekly") {
+                // Lặp hàng tuần
+                let finalVal = colorPrefix + timeVal;
+                if (notes !== "") finalVal += " (" + notes + ")";
+                let dayKey = document.getElementById("eventDayOfWeek").value;
+                // Nếu đổi sang ngày khác, xóa slot cũ khỏi ô cũ
+                if (studentIdx !== "" && oldDayKey !== "" && oldDayKey !== dayKey) {
+                    let oldSlots = (row[oldDayKey] || "").split("|").map(s => s.trim());
+                    if (subIdxStr !== "") oldSlots.splice(parseInt(subIdxStr), 1);
+                    row[oldDayKey] = oldSlots.filter(s => s !== "").join(" | ");
+                }
+                updateSlotInCell(dayKey, finalVal);
+            } 
+            else if (repeatMode === "daily") {
+                // Lặp hàng ngày: ghi đè toàn bộ các ngày
+                let finalVal = colorPrefix + timeVal;
+                if (notes !== "") finalVal += " (" + notes + ")";
+                allDayKeys.forEach(key => { row[key] = finalVal; });
+            } 
+            else if (repeatMode === "custom") {
+                // Tùy chỉnh
+                let finalVal = colorPrefix + timeVal;
+                if (notes !== "") finalVal += " (" + notes + ")";
+                allDayKeys.forEach(key => {
+                    let isChecked = document.getElementById("check" + key.charAt(0).toUpperCase() + key.slice(1)).checked;
+                    if (isChecked) {
+                        updateSlotInCell(key, finalVal);
+                    } else if (key === oldDayKey && subIdxStr !== "") {
+                        // Xóa slot cũ khỏi ngày không được chọn
+                        let oldSlots = (row[key] || "").split("|").map(s => s.trim());
+                        oldSlots.splice(parseInt(subIdxStr), 1);
+                        row[key] = oldSlots.filter(s => s !== "").join(" | ");
+                    }
+                });
+            }
+
+            // Xác định mode và target day key sau khi cập nhật data
+            let isNewEvent = (studentIdx === "");
+            let finalTargetKey = oldDayKey; // fallback
+            if (repeatMode === "none") {
+                let specDate2 = document.getElementById("eventSpecificDate").value;
+                if (specDate2) finalTargetKey = revDayMap[new Date(specDate2).getDay()];
+            } else if (repeatMode === "weekly") {
+                finalTargetKey = document.getElementById("eventDayOfWeek").value;
+            }
+
+            // Đếm số slot mới (subIdx sẽ là index cuối sau khi append)
+            let newSubIdx = subIdxStr === "" ? (row[finalTargetKey] || "").split("|").filter(s => s.trim() !== "").length - 1
+                                             : parseInt(subIdxStr);
+
+            let _oldFcEvent = isNewEvent ? null : activeFcEvent;
+            let _mode = isNewEvent ? 'add' : 'replace';
+            if (repeatMode === 'daily' || repeatMode === 'custom') _mode = 'full'; // thêm nhiều ngày
+
+            saveAndRefetch(row.studentName, function() {
+                closeModalForce();
+            }, _mode, { studentIdx: targetStudentIdx, dayKey: finalTargetKey, subIdx: newSubIdx }, _oldFcEvent);
+        }
+
+        // Xóa ca học cố định (hỗ trợ multi-slot)
+        function deleteEvent() {
+            let studentIdx = parseInt(document.getElementById("eventStudentIndex").value);
+            let subIdxStr  = document.getElementById("eventSubIndex").value;
+            let oldDayKey = document.getElementById("eventOldDay").value;
+            let _fcEvent = activeFcEvent; // lưu tham chiếu trước khi đóng modal
+
+            if (!isNaN(studentIdx) && oldDayKey !== "") {
+                let sName = tutorScheduleSheetData[studentIdx].studentName;
+                showWebConfirm("Bạn có chắc chắn muốn xóa ca học này của <b>" + sName + "</b> không?", function() {
+                    let existing = tutorScheduleSheetData[studentIdx][oldDayKey] || "";
+                    if (subIdxStr !== "") {
+                        let slots = existing.split("|").map(s => s.trim());
+                        slots.splice(parseInt(subIdxStr), 1);
+                        tutorScheduleSheetData[studentIdx][oldDayKey] = slots.filter(s => s !== "").join(" | ");
+                    } else {
+                        tutorScheduleSheetData[studentIdx][oldDayKey] = "";
+                    }
+                    saveAndRefetch(sName, function() {
+                        closeModalForce();
+                    }, 'remove', null, _fcEvent);
+                });
+            }
+        }
+
+        // --- CHƯƠNG TRÌNH CUSTOM MÀU SẮC CHO LỚP HỌC/BUỔI HỌC ---
+        const PRESET_COLORS = [
+            '#8E4DFF', '#4D9EFF', '#00D2FC', '#4DFFC3', '#4CAF50', '#AEEA00', 
+            '#FFD23F', '#FF9100', '#FF6B9D', '#FF4D4D', '#90A4AE', '#D1C4E9'
+        ];
+
+        function initColorPickerSwatches() {
+            let container = document.getElementById("colorSwatches");
+            if (!container) return;
+            container.innerHTML = "";
+            PRESET_COLORS.forEach(color => {
+                let swatch = document.createElement("div");
+                swatch.className = "color-swatch";
+                swatch.style.backgroundColor = color;
+                swatch.dataset.color = color;
+                swatch.onclick = function() {
+                    selectPresetColor(color);
+                };
+                container.appendChild(swatch);
+            });
+        }
+
+        function selectPresetColor(color) {
+            document.getElementById("eventColor").value = color;
+            document.querySelectorAll(".color-swatch").forEach(s => {
+                s.classList.toggle("selected", s.dataset.color === color);
+            });
+            
+            let dot = document.getElementById("colorPreviewDot");
+            let text = document.getElementById("colorPreviewText");
+            if (color) {
+                dot.style.backgroundColor = color;
+                dot.style.display = "inline-block";
+                
+                let scope = document.getElementById("colorScope").value;
+                let studentSelect = document.getElementById("eventStudent");
+                let studentName = studentSelect.options[studentSelect.selectedIndex]?.text || "Lớp học";
+                if (scope === "student") {
+                    text.innerText = "Áp dụng làm màu mặc định cho lớp học: " + studentName;
+                } else {
+                    text.innerText = "Chỉ áp dụng màu cho riêng buổi học này";
+                }
+            } else {
+                dot.style.display = "none";
+                text.innerText = "Chọn màu bên trên";
+            }
+        }
+
+        function setColorScope(scope) {
+            document.getElementById("colorScope").value = scope;
+            document.getElementById("colorScopeStudentBtn").classList.toggle("active", scope === "student");
+            document.getElementById("colorScopeSessionBtn").classList.toggle("active", scope === "session");
+            
+            let color = document.getElementById("eventColor").value;
+            if (color) {
+                selectPresetColor(color);
             }
         }
     </script>
