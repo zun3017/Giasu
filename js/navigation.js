@@ -121,17 +121,15 @@
                 return;
             }
             
-            if (ketQua.role === 'student') {
-                if (role === 'tutor') {
-                    loiHienThi.innerHTML = "Số điện thoại này thuộc tài khoản Học sinh / Phụ huynh.<br>Vui lòng chọn mục <b>'Dành cho PH / HS'</b> ở thanh menu để đăng nhập.";
-                    loiHienThi.style.display = "block";
-                    return;
-                }
-                
-                if (ketQua.multipleStudents && ketQua.childrenList) {
-                    hienThiTheChonCon(ketQua.childrenList, phone);
-                    return;
-                }
+            if (role === 'tutor' && ketQua.role === 'student') {
+                loiHienThi.innerHTML = "Số điện thoại này không có quyền truy cập Cổng Gia sư (hoặc Mã PIN không đúng)!<br>Nếu bạn là Phụ huynh/Học sinh, vui lòng chọn mục <b>'Dành cho PH / HS'</b>.";
+                loiHienThi.style.display = "block";
+                return;
+            }
+
+            if (ketQua.role === 'student' && ketQua.multipleStudents && ketQua.childrenList) {
+                hienThiTheChonCon(ketQua.childrenList, phone);
+                return;
             }
 
             if (ketQua.role === 'student' && ketQua.data && ketQua.data.timThay) {
