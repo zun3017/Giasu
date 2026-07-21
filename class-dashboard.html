@@ -322,8 +322,17 @@
             </div>
         </div>
 
-        <!-- Class Info Banner -->
-        <div class="card-box" id="classInfoBox">
+        <!-- Thông báo nhắc nhở khi chưa bấm chọn Lớp học -->
+        <div id="noClassSelectedNotice" class="card-box" style="text-align: center; padding: 40px 20px; background: rgba(142, 77, 255, 0.05); border: 1px dashed rgba(142, 77, 255, 0.3); border-radius: 20px; margin-top: 20px;">
+            <i class="fa-solid fa-hand-pointer" style="font-size: 36px; color: #FFD23F; margin-bottom: 15px;"></i>
+            <h3 style="color: #FFF; font-size: 18px; font-weight: 700; margin-bottom: 8px;">Vui lòng chọn một Lớp học từ danh sách phía trên</h3>
+            <p style="color: #A6ADCE; font-size: 14px; margin: 0;">Bấm vào tên nút Lớp học ở thanh danh sách bên trên để mở thông báo, bài tập, lịch sử học tập và danh sách học sinh của lớp đó!</p>
+        </div>
+
+        <!-- Khung Nội Dung Chi Tiết Lớp Học (Mặc định ẩn cho đến khi bấm nút tên lớp) -->
+        <div id="classDetailsContainer" style="display: none;">
+            <!-- Class Info Banner -->
+            <div class="card-box" id="classInfoBox">
             <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 15px;">
                 <h3 style="color: #FFF; font-size: 20px; font-weight: 800; margin: 0; display: flex; align-items: center; gap: 10px;">
                     Lớp hiện tại: <span id="activeClassName" style="color: #FFD23F;">Chưa có lớp học</span>
@@ -528,8 +537,8 @@
                         <!-- Render động danh sách học sinh -->
                     </tbody>
                 </table>
-            </div>
         </div>
+        <!-- End classDetailsContainer -->
 
     </div>
 
@@ -774,19 +783,17 @@
                                 currentClasses = classes;
                                 currentTutorData.classes = classes;
                                 sessionStorage.setItem("classTutorData", JSON.stringify(currentTutorData));
-                                selectClass(0);
+                                renderEmptyClassState();
                             } else {
                                 currentClasses = [];
-                                renderClassNavRow();
                                 renderEmptyClassState();
                             }
                         }).getClassList(phone);
                     } else if (currentTutorData.classes && currentTutorData.classes.length > 0) {
                         currentClasses = currentTutorData.classes;
-                        selectClass(0);
+                        renderEmptyClassState();
                     } else {
                         currentClasses = [];
-                        renderClassNavRow();
                         renderEmptyClassState();
                     }
                 } catch(e) {
@@ -810,7 +817,13 @@
         }
 
         function renderEmptyClassState() {
-            document.getElementById("activeClassName").innerText = "Chưa có lớp học";
+            activeClassIndex = -1;
+            var details = document.getElementById("classDetailsContainer");
+            var notice = document.getElementById("noClassSelectedNotice");
+            if (details) details.style.display = "none";
+            if (notice) notice.style.display = "block";
+
+            document.getElementById("activeClassName").innerText = "Chưa chọn lớp";
             document.getElementById("activeClassSubject").innerText = "-";
             document.getElementById("activeClassSchedule").innerText = "-";
             document.getElementById("activeClassRosterCount").innerHTML = '<i class="fa-solid fa-user-group" style="margin-right: 6px;"></i>Sĩ số: 0/0';
