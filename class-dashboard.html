@@ -487,32 +487,37 @@
                     currentTutorData = JSON.parse(saved);
                     document.getElementById("tutorNameDisplay").innerText = "Xin chào, " + (currentTutorData.tutorName || "Giáo viên Lớp học") + " 👋";
                     if (currentTutorData.classes && currentTutorData.classes.length > 0) {
+                    if (currentTutorData && currentTutorData.classes) {
                         currentClasses = currentTutorData.classes;
+                    } else {
+                        currentClasses = [];
+                    }
+                    if (currentClasses.length > 0) {
                         renderClassNavRow();
                         selectClass(0);
                     } else {
-                        // Khởi tạo danh sách mẫu nếu chưa có lớp
-                        currentClasses = [
-                            { classId: "LH01", className: "Lớp Toán 10A1", subject: "Toán học", schedule: "Thứ 2 & Thứ 5 (18:00 - 20:00)", maxStudents: "20" },
-                            { classId: "LH02", className: "Lớp Toán 10A2", subject: "Toán học", schedule: "Thứ 3 & Thứ 6 (18:00 - 20:00)", maxStudents: "20" }
-                        ];
                         renderClassNavRow();
-                        selectClass(0);
+                        renderEmptyClassState();
                     }
                 } catch(e) {
                     console.error("Lỗi parse data giáo viên:", e);
                 }
             } else {
-                // Mock fallback cho trải nghiệm dùng thử
-                currentTutorData = { tutorName: "Giáo viên Lớp học (Demo)", tutorPhone: "0900000000" };
-                currentClasses = [
-                    { classId: "LH01", className: "Lớp Toán 10A1", subject: "Toán học", schedule: "Thứ 2 & Thứ 5 (18:00 - 20:00)", maxStudents: "20" },
-                    { classId: "LH02", className: "Lớp Lý 11", subject: "Vật lý", schedule: "Thứ 3 & Thứ 7 (19:30 - 21:30)", maxStudents: "20" }
-                ];
+                currentTutorData = { tutorName: "Giáo viên Lớp học", tutorPhone: "" };
+                currentClasses = [];
                 renderClassNavRow();
-                selectClass(0);
+                renderEmptyClassState();
             }
         });
+
+        function renderEmptyClassState() {
+            document.getElementById("activeClassName").innerText = "Chưa có lớp học";
+            document.getElementById("activeClassSubject").innerText = "-";
+            document.getElementById("activeClassSchedule").innerText = "-";
+            document.getElementById("activeClassRosterCount").innerHTML = '<i class="fa-solid fa-user-group" style="margin-right: 6px;"></i>Sĩ số: 0/0';
+            document.getElementById("studentRosterTbody").innerHTML = '<tr><td colspan="5" style="text-align:center; color:#A6ADCE; padding: 25px;">Chưa có lớp học nào. Vui lòng bấm nút <b>"+ Thêm lớp học"</b> bên dưới để tạo lớp học đầu tiên!</td></tr>';
+            document.getElementById("batchEvalTbody").innerHTML = '<tr><td colspan="6" style="text-align:center; color:#A6ADCE; padding: 25px;">Chưa có lớp học nào. Vui lòng tạo lớp học trước khi đánh giá!</td></tr>';
+        }
 
         function renderClassNavRow() {
             var row = document.getElementById("classNavRow");
@@ -534,16 +539,21 @@
             row.appendChild(addBtn);
 
             // Nút Xóa Lớp
-            var delBtn = document.createElement("button");
-            delBtn.className = "btn-delete-class";
-            delBtn.title = "Xóa lớp học hiện tại";
-            delBtn.innerHTML = '<i class="fa-solid fa-trash-can"></i>';
-            delBtn.onclick = function() { confirmDeleteCurrentClass(); };
-            row.appendChild(delBtn);
+            if (currentClasses.length > 0) {
+                var delBtn = document.createElement("button");
+                delBtn.className = "btn-delete-class";
+                delBtn.title = "Xóa lớp học hiện tại";
+                delBtn.innerHTML = '<i class="fa-solid fa-trash-can"></i>';
+                delBtn.onclick = function() { confirmDeleteCurrentClass(); };
+                row.appendChild(delBtn);
+            }
         }
 
         function selectClass(idx) {
-            if (idx < 0 || idx >= currentClasses.length) return;
+            if (idx < 0 || idx >= currentClasses.length) {
+                renderEmptyClassState();
+                return;
+            }
             activeClassIndex = idx;
             var cls = currentClasses[idx];
 
@@ -557,7 +567,10 @@
 
         function loadStudentsForActiveClass() {
             var cls = currentClasses[activeClassIndex];
-            if (!cls) return;
+            if (!cls) {
+                renderEmptyClassState();
+                return;
+            }
 
             // Hiển thị loading nhẹ
             document.getElementById("studentRosterTbody").innerHTML = '<tr><td colspan="5" style="text-align:center; color:#A6ADCE; padding: 20px;"><i class="fa-solid fa-circle-notch fa-spin"></i> Đang tải học sinh...</td></tr>';
@@ -567,12 +580,7 @@
                 if (list && Array.isArray(list)) {
                     activeStudents = list;
                 } else {
-                    // Fallback học sinh mẫu nếu chưa có dữ liệu backend
-                    activeStudents = [
-                        { studentId: "HS01", studentName: "Nguyễn Hoàng Nam", parentPhone: "0912345678", joinDate: "15/01/2026" },
-                        { studentId: "HS02", studentName: "Lê Minh Thư", parentPhone: "0987654321", joinDate: "15/01/2026" },
-                        { studentId: "HS03", studentName: "Phạm Hải Đăng", parentPhone: "0901122334", joinDate: "18/01/2026" }
-                    ];
+                    activeStudents = [];
                 }
                 renderRosterAndEvalGrid();
             }).getClassStudents(cls.classId);
