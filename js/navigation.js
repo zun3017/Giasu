@@ -131,6 +131,12 @@
                 sessionStorage.setItem('userPhone', phone);
                 sessionStorage.setItem('userPin', '');
                 sessionStorage.setItem('dashboardData', JSON.stringify(ketQua.data));
+
+                localStorage.setItem('userRole', 'student');
+                localStorage.setItem('userPhone', phone);
+                localStorage.setItem('selectedStudentName', ketQua.data.tenHocSinh || '');
+                localStorage.setItem('dashboardData', JSON.stringify(ketQua.data));
+
                 if (isSinglePageApp()) {
                     var mainScr = document.getElementById('mainScreen');
                     if (mainScr) mainScr.style.display = 'none';
