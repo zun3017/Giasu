@@ -51,19 +51,21 @@ function getOrCreateClassEvaluationSheet(ss, className) {
 // Lấy danh sách Lớp học của Giáo viên theo SĐT
 function getClassList(tutorPhone) {
   var ss = getClassSpreadsheet();
-  var normPhone = normalizePhone(tutorPhone);
   var sheetClasses = ss.getSheetByName('Danh sách lớp học');
   
-  var classes = [];
   if (!sheetClasses) {
     // Khởi tạo sheet Danh sách lớp học nếu chưa có
     sheetClasses = ss.insertSheet('Danh sách lớp học');
     sheetClasses.appendRow(["Mã lớp", "Tên lớp", "SĐT Gia sư", "Môn học", "Lịch học cố định", "Sĩ số tối đa", "Loại học phí"]);
     sheetClasses.getRange(1, 1, 1, 7).setFontWeight("bold").setBackground("#5B2EFF").setFontColor("#FFFFFF");
-    return classes;
+    return [];
   }
   
+  var normPhone = normalizePhone(tutorPhone);
   var data = sheetClasses.getDataRange().getDisplayValues();
+  var allClasses = [];
+  var matchedClasses = [];
+
   for (var i = 1; i < data.length; i++) {
     if (data[i] && data[i].length >= 2) {
       var cId = data[i][0] ? String(data[i][0]).trim() : "";
@@ -73,22 +75,28 @@ function getClassList(tutorPhone) {
         if (!cId) cId = "LH_" + i;
         if (!cName) cName = "Lớp " + i;
         
+        var clsObj = {
+          classId: cId,
+          className: cName,
+          tutorPhone: data[i][2] || "",
+          subject: data[i][3] || "",
+          schedule: data[i][4] || "",
+          maxStudents: data[i][5] || "20",
+          feeType: (data[i].length > 6 && data[i][6]) ? data[i][6] : "per_session"
+        };
+        
+        allClasses.push(clsObj);
+        
         var dbPhone = normalizePhone(data[i][2]);
         if (normPhone === "" || dbPhone === "" || dbPhone === normPhone) {
-          classes.push({
-            classId: cId,
-            className: cName,
-            tutorPhone: data[i][2] || "",
-            subject: data[i][3] || "",
-            schedule: data[i][4] || "",
-            maxStudents: data[i][5] || "20",
-            feeType: (data[i].length > 6 && data[i][6]) ? data[i][6] : "per_session"
-          });
+          matchedClasses.push(clsObj);
         }
       }
     }
   }
-  return classes;
+  
+  // Nếu tìm theo SĐT có lớp thì lấy matchedClasses, nếu lệch SĐT thì trả về toàn bộ allClasses có trong sheet!
+  return (matchedClasses.length > 0) ? matchedClasses : allClasses;
 }
 
 // Lấy toàn bộ dữ liệu tổng cho Phân hệ Lớp Học trong 1 chuyến gọi server duy nhất (1s)
