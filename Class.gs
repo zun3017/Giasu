@@ -3,14 +3,76 @@
 const CLASS_SPREADSHEET_ID = '1g4M-WjXxCf-rx9aVNBcKrs6dgXsAlZGVupQP8P3xgyc';
 
 function getClassSpreadsheet() {
+  var ss = null;
   if (typeof CLASS_SPREADSHEET_ID !== 'undefined' && CLASS_SPREADSHEET_ID.trim() !== '') {
     try {
-      return SpreadsheetApp.openById(CLASS_SPREADSHEET_ID.trim());
+      ss = SpreadsheetApp.openById(CLASS_SPREADSHEET_ID.trim());
     } catch (e) {
       Logger.log("Lỗi mở Class Spreadsheet, dùng mặc định: " + e.toString());
     }
   }
-  return SpreadsheetApp.getActiveSpreadsheet();
+  if (!ss) ss = SpreadsheetApp.getActiveSpreadsheet();
+  initClassSpreadsheetSchema(ss);
+  return ss;
+}
+
+// Hàm tự động khởi tạo 6 trang tính chuẩn màu cho Google Sheet Lớp học nhóm nếu chưa có
+function initClassSpreadsheetSchema(ss) {
+  if (!ss) return;
+
+  // 1. Sheet 'Danh sách lớp học'
+  var sClasses = ss.getSheetByName('Danh sách lớp học');
+  if (!sClasses) {
+    sClasses = ss.insertSheet('Danh sách lớp học');
+    sClasses.appendRow(["Mã lớp", "Tên lớp", "SĐT / Mã Giáo viên", "Môn học", "Lịch học cố định", "Sĩ số tối đa", "Loại học phí", "Mã PIN Giáo viên"]);
+    sClasses.getRange(1, 1, 1, 8).setFontWeight("bold").setBackground("#5B2EFF").setFontColor("#FFFFFF");
+    sClasses.setFrozenRows(1);
+  }
+
+  // 2. Sheet 'Học sinh lớp học'
+  var sStudents = ss.getSheetByName('Học sinh lớp học');
+  if (!sStudents) {
+    sStudents = ss.insertSheet('Học sinh lớp học');
+    sStudents.appendRow(["Mã học sinh", "Tên học sinh", "SĐT Phụ huynh", "Mã lớp", "Tên lớp", "Ngày nhập học", "Trạng thái", "Ghi chú", "Ngày xóa"]);
+    sStudents.getRange(1, 1, 1, 9).setFontWeight("bold").setBackground("#8E4DFF").setFontColor("#FFFFFF");
+    sStudents.setFrozenRows(1);
+  }
+
+  // 3. Sheet 'Nhật ký buổi học'
+  var sLogs = ss.getSheetByName('Nhật ký buổi học');
+  if (!sLogs) {
+    sLogs = ss.insertSheet('Nhật ký buổi học');
+    sLogs.appendRow(["Mã nhật ký", "Mã lớp", "Tên lớp", "Tuần số", "Ngày học", "Môn học", "Trạng thái cả lớp", "Đánh giá BTVN", "Bài kiểm tra đầu giờ", "Bài kiểm tra định kỳ", "Nhận xét chung buổi học", "Nhận xét riêng từng học sinh (JSON)"]);
+    sLogs.getRange(1, 1, 1, 12).setFontWeight("bold").setBackground("#10B981").setFontColor("#FFFFFF");
+    sLogs.setFrozenRows(1);
+  }
+
+  // 4. Sheet 'Bài tập lớp học'
+  var sHw = ss.getSheetByName('Bài tập lớp học');
+  if (!sHw) {
+    sHw = ss.insertSheet('Bài tập lớp học');
+    sHw.appendRow(["Mã bài tập", "Mã lớp", "Tên lớp", "Tên bài tập", "Môn học", "Nội dung / Link bài tập", "Hạn nộp", "Ngày giao"]);
+    sHw.getRange(1, 1, 1, 8).setFontWeight("bold").setBackground("#F59E0B").setFontColor("#FFFFFF");
+    sHw.setFrozenRows(1);
+  }
+
+  // 5. Sheet 'Học sinh nộp bài lớp học'
+  var sSubmissions = ss.getSheetByName('Học sinh nộp bài lớp học');
+  if (!sSubmissions) {
+    sSubmissions = ss.insertSheet('Học sinh nộp bài lớp học');
+    sSubmissions.appendRow(["Mã nộp bài", "Mã bài tập", "Mã lớp", "Mã học sinh", "Tên học sinh", "SĐT Phụ huynh", "Link bài nộp", "Trạng thái chấm", "Điểm số", "Nhận xét Giáo viên", "Thời gian nộp"]);
+    sSubmissions.getRange(1, 1, 1, 11).setFontWeight("bold").setBackground("#3B82F6").setFontColor("#FFFFFF");
+    sSubmissions.setFrozenRows(1);
+  }
+
+  // 6. Sheet 'Ý kiến Phụ huynh lớp học'
+  var sFeedback = ss.getSheetByName('Ý kiến Phụ huynh lớp học');
+  if (!sFeedback) {
+    sFeedback = ss.insertSheet('Ý kiến Phụ huynh lớp học');
+    sFeedback.appendRow(["Mã ý kiến", "Mã lớp", "SĐT Phụ huynh", "Tên học sinh", "Nội dung đóng góp", "Thời gian gửi"]);
+    sFeedback.getRange(1, 1, 1, 6).setFontWeight("bold").setBackground("#EC4899").setFontColor("#FFFFFF");
+    sFeedback.setFrozenRows(1);
+  }
 }
 
 function getOrCreateClassEvaluationSheet(ss, className) {
@@ -46,6 +108,45 @@ function getOrCreateClassEvaluationSheet(ss, className) {
     }
   }
   return sheet;
+}
+
+// Hàm đăng nhập dành cho Giáo viên Lớp học nhóm (Cô lập hoàn toàn trên Sheet 2)
+function loginClassSystem(phone, pin) {
+  var ss = getClassSpreadsheet(); // Tự động đảm bảo kết nối Sheet 2 Lớp học nhóm
+  var normPhone = normalizePhone(phone || "");
+  if (!normPhone) {
+    return { success: false, error: "Vui lòng nhập số điện thoại hợp lệ." };
+  }
+
+  var classes = getClassList(phone, "");
+  
+  // Tùy chọn kiểm tra PIN nếu giáo viên cài mã PIN trên Sheet 2
+  var sheetClasses = ss.getSheetByName('Danh sách lớp học');
+  if (sheetClasses) {
+    var data = sheetClasses.getDataRange().getDisplayValues();
+    for (var i = 1; i < data.length; i++) {
+      var dbPhone = normalizePhone(data[i][2] || "");
+      if (dbPhone === normPhone) {
+        var dbPin = (data[i].length > 7) ? String(data[i][7] || "").trim() : "";
+        if (dbPin !== "" && pin && String(pin).trim() !== dbPin) {
+          return { success: false, error: "Mã PIN bảo mật không chính xác!" };
+        }
+      }
+    }
+  }
+
+  var teacherName = "Giáo viên Lớp học";
+  if (classes && classes.length > 0) {
+    teacherName = "Giáo viên (" + (classes[0].subject || "Lớp học") + ")";
+  }
+
+  return {
+    success: true,
+    role: "class_tutor",
+    tutorPhone: phone,
+    tutorName: teacherName,
+    classes: classes
+  };
 }
 
 // Lấy danh sách Lớp học của Giáo viên theo SĐT hoặc Mã Giáo Viên
