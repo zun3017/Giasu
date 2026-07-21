@@ -389,8 +389,8 @@
                 <div class="section-title" style="margin: 0;">
                     <i class="fa-solid fa-users-gear"></i> Danh sách thành viên lớp học
                 </div>
-                <button onclick="openAddStudentModal()" style="padding: 9px 18px; background: rgba(142,77,255,0.15); border: 1px solid #8E4DFF; border-radius: 20px; color: #FFF; font-weight: 600; font-size: 13.5px; cursor: pointer; display: flex; align-items: center; gap: 6px;">
-                    <i class="fa-solid fa-user-plus"></i> Thêm học sinh
+                <button onclick="openAddStudentModal()" style="padding: 9px 20px; background: linear-gradient(135deg, #8E4DFF 0%, #5B21B6 100%); border: none; border-radius: 20px; color: #FFF; font-weight: 700; font-size: 13.5px; cursor: pointer; display: flex; align-items: center; gap: 6px; box-shadow: 0 4px 15px rgba(142,77,255,0.3);">
+                    <i class="fa-solid fa-user-plus"></i> + Thêm học sinh mới
                 </button>
             </div>
 
@@ -399,9 +399,11 @@
                     <thead>
                         <tr>
                             <th>Mã HS</th>
-                            <th>Họ và Tên</th>
-                            <th>SĐT Phụ huynh</th>
-                            <th>Ngày tham gia</th>
+                            <th>Họ và Tên HS</th>
+                            <th>Tên Phụ Huynh</th>
+                            <th>SĐT Phụ Huynh</th>
+                            <th>Mã Bài Tập</th>
+                            <th>Học Phí/Buổi</th>
                             <th style="text-align: center;">Thao tác</th>
                         </tr>
                     </thead>
@@ -464,24 +466,45 @@
         </div>
     </div>
 
-    <!-- MODAL 3: Thêm Học Sinh Vào Lớp -->
+    <!-- MODAL 3: Thêm Học Sinh Mới (Chuẩn 100% theo giao diện yêu cầu) -->
     <div id="addStudentModal" class="modal-overlay">
-        <div class="modal-card">
-            <div class="modal-header">
-                <h3><i class="fa-solid fa-user-plus" style="margin-right: 8px;"></i>Thêm Học Sinh Vào Lớp</h3>
-                <button class="btn-close-modal" onclick="closeModal('addStudentModal')"><i class="fa-solid fa-xmark"></i></button>
+        <div class="modal-card" style="max-width: 460px; width: 92%; padding: 25px; border-radius: 20px; background: #0D0826; border: 1px solid rgba(142, 77, 255, 0.3); box-shadow: 0 10px 40px rgba(0,0,0,0.8);">
+            <div class="modal-header" style="margin-bottom: 22px; display: flex; justify-content: space-between; align-items: center;">
+                <h3 style="color: #FFD23F; font-size: 20px; font-weight: 800; display: flex; align-items: center; gap: 10px; margin: 0;">
+                    <i class="fa-solid fa-user-plus" style="color: #FFD23F;"></i> Thêm học sinh mới
+                </h3>
+                <button class="btn-close-modal" onclick="closeModal('addStudentModal')" style="background: none; border: none; color: #A6ADCE; font-size: 20px; cursor: pointer;">&times;</button>
             </div>
-            <div class="form-group">
-                <label>Họ và tên học sinh</label>
-                <input type="text" id="newStudentName" class="form-control" placeholder="Nhập tên học sinh...">
+            
+            <div class="form-group" style="margin-bottom: 16px;">
+                <label style="display: block; color: #A6ADCE; font-size: 11.5px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 6px;">HỌ VÀ TÊN PHỤ HUYNH</label>
+                <input type="text" id="newStudentParentName" class="form-control" placeholder="Ví dụ: Nguyễn Văn A" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 13px 16px; color: #FFF; font-size: 14px; width: 100%; outline: none;">
             </div>
-            <div class="form-group">
-                <label>Số điện thoại phụ huynh</label>
-                <input type="text" id="newStudentParentPhone" class="form-control" placeholder="Nhập số điện thoại phụ huynh...">
+
+            <div class="form-group" style="margin-bottom: 16px;">
+                <label style="display: block; color: #A6ADCE; font-size: 11.5px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 6px;">HỌ VÀ TÊN HỌC SINH</label>
+                <input type="text" id="newStudentName" class="form-control" placeholder="Ví dụ: Nguyễn Văn B" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 13px 16px; color: #FFF; font-size: 14px; width: 100%; outline: none;">
             </div>
-            <button onclick="saveNewStudent()" style="width: 100%; padding: 13px; background: linear-gradient(135deg, #8E4DFF, #5B2EFF); border: none; border-radius: 12px; color: #FFF; font-weight: bold; font-size: 15px; cursor: pointer; margin-top: 10px;">
-                Thêm Vào Lớp <i class="fa-solid fa-plus" style="margin-left: 6px;"></i>
-            </button>
+
+            <div class="form-group" style="margin-bottom: 16px;">
+                <label style="display: block; color: #A6ADCE; font-size: 11.5px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 6px;">SỐ ĐIỆN THOẠI CỦA PHỤ HUYNH</label>
+                <input type="text" id="newStudentParentPhone" class="form-control" placeholder="SĐT phụ huynh làm mã tra cứu" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 13px 16px; color: #FFF; font-size: 14px; width: 100%; outline: none;">
+            </div>
+
+            <div class="form-group" style="margin-bottom: 16px;">
+                <label style="display: block; color: #A6ADCE; font-size: 11.5px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 6px;">HỌC PHÍ / BUỔI (VNĐ)</label>
+                <input type="number" id="newStudentFee" class="form-control" placeholder="Ví dụ: 200000" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 13px 16px; color: #FFF; font-size: 14px; width: 100%; outline: none;">
+            </div>
+
+            <div class="form-group" style="margin-bottom: 20px;">
+                <label style="display: block; color: #A6ADCE; font-size: 11.5px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 6px;">MÃ BÀI TẬP *</label>
+                <input type="text" id="newStudentHomeworkCode" class="form-control" placeholder="Mã để đăng nhập nộp bài (Ví dụ: BT101)" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 13px 16px; color: #FFF; font-size: 14px; width: 100%; outline: none;">
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 25px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.06);">
+                <button type="button" onclick="closeModal('addStudentModal')" style="padding: 10px 24px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15); border-radius: 20px; color: #FFF; font-weight: 600; cursor: pointer; font-size: 14px;">Hủy</button>
+                <button type="button" onclick="saveNewStudent()" style="padding: 10px 28px; background: linear-gradient(135deg, #8E4DFF 0%, #5B21B6 100%); border: none; border-radius: 20px; color: #FFF; font-weight: 700; cursor: pointer; font-size: 14px; box-shadow: 0 4px 15px rgba(142,77,255,0.4);">Thêm mới</button>
+            </div>
         </div>
     </div>
 
@@ -688,14 +711,16 @@
             // Render Roster
             var rosterTbody = document.getElementById("studentRosterTbody");
             if (activeStudents.length === 0) {
-                rosterTbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:#A6ADCE; padding: 20px;">Lớp này chưa có học sinh nào. Hãy nhấn nút "Thêm học sinh" bên trên!</td></tr>';
+                rosterTbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color:#A6ADCE; padding: 20px;">Lớp này chưa có học sinh nào. Hãy nhấn nút "+ Thêm học sinh mới" bên trên!</td></tr>';
             } else {
                 rosterTbody.innerHTML = activeStudents.map(function(st) {
                     return '<tr>' +
                         '<td style="color:#A6ADCE; font-weight:600;">' + st.studentId + '</td>' +
                         '<td style="font-weight:700; color:#FFD23F;">' + st.studentName + '</td>' +
+                        '<td>' + (st.parentName || '-') + '</td>' +
                         '<td>' + (st.parentPhone || '-') + '</td>' +
-                        '<td style="color:#A6ADCE;">' + (st.joinDate || '-') + '</td>' +
+                        '<td style="color:#8E4DFF; font-weight:700;">' + (st.homeworkCode || '-') + '</td>' +
+                        '<td style="color:#10B981; font-weight:600;">' + (st.fee ? (parseInt(st.fee).toLocaleString('vi-VN') + ' đ') : '-') + '</td>' +
                         '<td style="text-align:center;"><button onclick="removeStudent(\'' + st.studentId + '\')" style="background:none; border:none; color:#EF4444; cursor:pointer;" title="Xóa học sinh"><i class="fa-solid fa-trash"></i></button></td>' +
                     '</tr>';
                 }).join('');
@@ -849,12 +874,18 @@
 
         function saveNewStudent() {
             var cls = currentClasses[activeClassIndex];
-            if (!cls) return;
+            if (!cls) {
+                alert("Vui lòng tạo hoặc chọn lớp học trước khi thêm học sinh!");
+                return;
+            }
 
+            var parentName = document.getElementById("newStudentParentName").value.trim();
             var name = document.getElementById("newStudentName").value.trim();
             var parentPhone = document.getElementById("newStudentParentPhone").value.trim();
+            var fee = document.getElementById("newStudentFee").value.trim();
+            var homeworkCode = document.getElementById("newStudentHomeworkCode").value.trim();
 
-            if (!name) { alert("Vui lòng nhập tên học sinh!"); return; }
+            if (!name) { alert("Vui lòng nhập họ và tên học sinh!"); return; }
 
             google.script.run.withSuccessHandler(function(res) {
                 var stId = (res && res.studentId) ? res.studentId : ("HS_LH_" + new Date().getTime().toString().slice(-6));
@@ -863,13 +894,19 @@
                     studentName: name,
                     classId: cls.classId,
                     parentPhone: parentPhone,
+                    parentName: parentName,
+                    fee: fee,
+                    homeworkCode: homeworkCode,
                     joinDate: new Date().toLocaleDateString('vi-VN')
                 });
                 closeModal("addStudentModal");
+                document.getElementById("newStudentParentName").value = "";
                 document.getElementById("newStudentName").value = "";
                 document.getElementById("newStudentParentPhone").value = "";
+                document.getElementById("newStudentFee").value = "";
+                document.getElementById("newStudentHomeworkCode").value = "";
                 renderRosterAndEvalGrid();
-            }).addClassStudent(cls.classId, name, parentPhone);
+            }).addClassStudent(cls.classId, name, parentPhone, parentName, fee, homeworkCode);
         }
 
         function removeStudent(studentId) {
