@@ -225,10 +225,8 @@
     <script src="js/api.js?v=1.6.8"></script>
     <script>
         var calendar = null;
-        var classEvents = [
-            { id: '1', title: '[Lớp Toán 10A1] Ca tối', daysOfWeek: [1, 4], startTime: '18:00', endTime: '20:00', backgroundColor: '#8E4DFF', borderColor: '#8E4DFF' },
-            { id: '2', title: '[Lớp Lý 11] Ca chiều', daysOfWeek: [2, 5], startTime: '17:30', endTime: '19:30', backgroundColor: '#10B981', borderColor: '#10B981' }
-        ];
+        var classEvents = [];
+        var currentTutorPhone = sessionStorage.getItem('userPhone') || localStorage.getItem('userPhone') || '';
 
         document.addEventListener('DOMContentLoaded', function() {
             var calendarEl = document.getElementById('calendar');
@@ -252,12 +250,30 @@
                 events: classEvents,
                 eventClick: function(info) {
                     if (confirm("Bạn có muốn xóa ca dạy lớp '" + info.event.title + "' không?")) {
+                        var eventId = info.event.id;
                         info.event.remove();
+                        if (currentTutorPhone && eventId) {
+                            google.script.run.deleteClassScheduleEvent(eventId);
+                        }
                     }
                 }
             });
             calendar.render();
+
+            loadRealClassSchedule();
         });
+
+        function loadRealClassSchedule() {
+            if (!currentTutorPhone) return;
+            google.script.run.withSuccessHandler(function(events) {
+                if (events && Array.isArray(events)) {
+                    calendar.removeAllEvents();
+                    events.forEach(function(ev) {
+                        calendar.addEvent(ev);
+                    });
+                }
+            }).getClassScheduleEvents(currentTutorPhone);
+        }
 
         function openAddClassEventModal() {
             document.getElementById('classEventModal').style.display = 'flex';
@@ -275,19 +291,30 @@
             var day = parseInt(document.getElementById('eventDayOfWeek').value);
 
             if (!name) return;
-
-            calendar.addEvent({
-                id: 'ev_' + new Date().getTime(),
-                title: '[' + name + ']',
-                daysOfWeek: [day],
-                startTime: startTime,
-                endTime: endTime,
-                backgroundColor: '#8E4DFF',
-                borderColor: '#8E4DFF'
-            });
+            var eventTitle = '[' + name + ']';
 
             closeClassEventModal();
             document.getElementById('eventClassName').value = '';
+
+            if (currentTutorPhone) {
+                google.script.run.withSuccessHandler(function(res) {
+                    if (res && res.event) {
+                        calendar.addEvent(res.event);
+                    } else {
+                        loadRealClassSchedule();
+                    }
+                }).addClassScheduleEvent(currentTutorPhone, eventTitle, [day], startTime, endTime, '#8E4DFF');
+            } else {
+                calendar.addEvent({
+                    id: 'ev_' + new Date().getTime(),
+                    title: eventTitle,
+                    daysOfWeek: [day],
+                    startTime: startTime,
+                    endTime: endTime,
+                    backgroundColor: '#8E4DFF',
+                    borderColor: '#8E4DFF'
+                });
+            }
         }
     </script>
 </body>
