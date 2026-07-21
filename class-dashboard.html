@@ -939,13 +939,15 @@
         </div>
     </div>
 
-    <script src="js/api.js?v=1.7.2"></script>
+    <script src="js/api.js?v=1.7.3"></script>
     <script>
         var currentTutorData = null;
         var currentClasses = [];
         var activeClassIndex = 0;
         var activeStudents = [];
         var activeClassLessonLogs = [];
+
+        var activeClassHomework = [];
 
         document.addEventListener("DOMContentLoaded", function() {
 
@@ -962,22 +964,8 @@
 
                     var phone = currentTutorData.tutorPhone || sessionStorage.getItem("userPhone") || localStorage.getItem("userPhone") || "";
                     if (phone) {
-                        google.script.run.withSuccessHandler(function(classes) {
-                            if (classes && Array.isArray(classes) && classes.length > 0) {
-                                currentClasses = classes;
-                                currentTutorData.classes = classes;
-                                sessionStorage.setItem("classTutorData", JSON.stringify(currentTutorData));
-                                selectClass(0);
-                            } else {
-                                currentClasses = [];
-                                renderEmptyClassState();
-                            }
-                        }).getClassList(phone);
-                    } else if (currentTutorData.classes && currentTutorData.classes.length > 0) {
-                        currentClasses = currentTutorData.classes;
-                        selectClass(0);
+                        loadClassDashboardData(phone, null);
                     } else {
-                        currentClasses = [];
                         renderEmptyClassState();
                     }
                 } catch(e) {
@@ -991,6 +979,62 @@
                 renderEmptyClassState();
             }
         });
+
+        function loadClassDashboardData(phone, requestedClassId) {
+            google.script.run
+                .withSuccessHandler(function(res) {
+                    if (res && res.classes && Array.isArray(res.classes) && res.classes.length > 0) {
+                        currentClasses = res.classes;
+                        currentTutorData.classes = res.classes;
+                        sessionStorage.setItem("classTutorData", JSON.stringify(currentTutorData));
+                        
+                        var activeCls = res.activeClass || res.classes[0];
+                        activeClassIndex = currentClasses.findIndex(function(c) { return c.classId === activeCls.classId; });
+                        if (activeClassIndex < 0) activeClassIndex = 0;
+
+                        activeStudents = res.students || [];
+                        activeClassLessonLogs = res.lessonLogs || [];
+                        
+                        var inputEl = document.getElementById("classQuickAnnouncementInput");
+                        if (inputEl) inputEl.value = res.announcement || "";
+
+                        activeClassHomework = res.homeworkList || [];
+
+                        renderDashboardUI();
+                    } else {
+                        currentClasses = [];
+                        renderEmptyClassState();
+                    }
+                })
+                .withFailureHandler(function(err) {
+                    console.error("Lỗi tải dữ liệu tổng lớp học:", err);
+                    renderEmptyClassState();
+                })
+                .getClassDashboardData(phone, requestedClassId);
+        }
+
+        function renderDashboardUI() {
+            var cls = currentClasses[activeClassIndex];
+            if (!cls) {
+                renderEmptyClassState();
+                return;
+            }
+            var container = document.getElementById("classDetailsContainer");
+            if (container) {
+                container.style.display = "block";
+                var notice = document.getElementById("noClassSelectedNotice");
+                if (notice) notice.style.display = "none";
+            }
+
+            document.getElementById("activeClassName").innerText = cls.className;
+            document.getElementById("activeClassSubject").innerText = cls.subject || "Chưa cập nhật";
+            document.getElementById("activeClassSchedule").innerText = cls.schedule || "Chưa cập nhật";
+
+            renderClassNavRow();
+            renderRosterAndEvalGrid();
+            renderClassLessonLogsTableUI();
+            renderClassHomeworkListUI();
+        }
 
         function openTutorAccountModal() {
             var nameEl = document.getElementById("accTutorName");
@@ -1085,23 +1129,12 @@
             closeClassInvoice(); // Đóng hóa đơn đang xem của lớp cũ
             var cls = currentClasses[idx];
 
-            var container = document.getElementById("classDetailsContainer");
-            if (container) {
-                container.style.display = "block";
-                container.style.animation = 'none';
-                container.offsetHeight; /* trigger reflow */
-                container.style.animation = 'fadeIn 0.3s ease-in-out';
+            var phone = (currentTutorData && currentTutorData.tutorPhone) ? currentTutorData.tutorPhone : "";
+            if (phone) {
+                loadClassDashboardData(phone, cls.classId);
+            } else {
+                renderDashboardUI();
             }
-
-            document.getElementById("activeClassName").innerText = cls.className;
-            document.getElementById("activeClassSubject").innerText = cls.subject || "Chưa cập nhật";
-            document.getElementById("activeClassSchedule").innerText = cls.schedule || "Chưa cập nhật";
-
-            renderClassNavRow();
-            loadStudentsForActiveClass();
-            loadClassLessonHistory();
-            loadClassAnnouncement();
-            loadClassHomeworkList();
         }
 
         function loadStudentsForActiveClass() {
@@ -1559,10 +1592,30 @@
 
             var studentNotesJson = JSON.stringify(studentNotesObj);
 
-            google.script.run.withSuccessHandler(function(res) {
-                closeModal("addClassLessonModal");
-                loadClassLessonHistory();
-            }).saveClassLessonLog(
+            var newLog = {
+                logId: "LOG_" + new Date().getTime(),
+                classId: cls.classId,
+                className: cls.className,
+                weekNum: weekNum,
+                studyDate: studyDate,
+                subject: subject,
+                status: status,
+                hwEval: hwEval,
+                entryTest: entryTest,
+                termTest: termTest,
+                generalNote: generalNote,
+                studentNotes: studentNotesObj
+            };
+
+            // OPTIMISTIC UI: Thêm vào mảng & đóng modal trong 0.05s!
+            if (!activeClassLessonLogs) activeClassLessonLogs = [];
+            activeClassLessonLogs.unshift(newLog);
+
+            closeModal("addClassLessonModal");
+            renderClassLessonLogsTableUI();
+
+            // Gửi ngầm bên dưới
+            google.script.run.saveClassLessonLog(
                 cls.classId,
                 cls.className,
                 weekNum,
@@ -1577,65 +1630,63 @@
             );
         }
 
-        function loadClassLessonHistory() {
+        function renderClassLessonLogsTableUI() {
             var cls = currentClasses[activeClassIndex];
             var tbody = document.getElementById("classLessonLogsTbody");
             if (!cls || !tbody) return;
 
-            tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; color:#A6ADCE; padding:20px;"><i class="fa-solid fa-circle-notch fa-spin"></i> Đang tải lịch sử học tập...</td></tr>';
+            if (!activeClassLessonLogs || !Array.isArray(activeClassLessonLogs) || activeClassLessonLogs.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; color:#A6ADCE; padding:25px;">Chưa có nhật ký buổi học nào. Vui lòng bấm nút <b>"+ Thêm buổi học"</b> góc trên để tạo!</td></tr>';
+                return;
+            }
 
-            google.script.run.withSuccessHandler(function(logs) {
-                activeClassLessonLogs = logs || [];
-                if (!logs || !Array.isArray(logs) || logs.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; color:#A6ADCE; padding:25px;">Chưa có nhật ký buổi học nào. Vui lòng bấm nút <b>"+ Thêm buổi học"</b> góc trên để tạo!</td></tr>';
-                    return;
+            tbody.innerHTML = activeClassLessonLogs.map(function(log) {
+                var statusBadge = '';
+                var st = log.status || "Có mặt";
+                if (st === "Có mặt" || st === "Đã học") {
+                    statusBadge = '<span style="padding:4px 12px; background:rgba(16,185,129,0.15); border:1px solid rgba(16,185,129,0.4); color:#6EE7B7; border-radius:15px; font-weight:700; font-size:12px;">🟢 Có mặt</span>';
+                } else if (st === "Đi muộn") {
+                    statusBadge = '<span style="padding:4px 12px; background:rgba(249,115,22,0.15); border:1px solid rgba(249,115,22,0.4); color:#FDBA74; border-radius:15px; font-weight:700; font-size:12px;">🟠 Đi muộn</span>';
+                } else {
+                    statusBadge = '<span style="padding:4px 12px; background:rgba(239,68,68,0.15); border:1px solid rgba(239,68,68,0.4); color:#FCA5A5; border-radius:15px; font-weight:700; font-size:12px;">🔴 Cả lớp nghỉ</span>';
                 }
 
-                tbody.innerHTML = logs.map(function(log) {
-                    var statusBadge = '';
-                    var st = log.status || "Có mặt";
-                    if (st === "Có mặt" || st === "Đã học") {
-                        statusBadge = '<span style="padding:4px 12px; background:rgba(16,185,129,0.15); border:1px solid rgba(16,185,129,0.4); color:#6EE7B7; border-radius:15px; font-weight:700; font-size:12px;">🟢 Có mặt</span>';
-                    } else if (st === "Đi muộn") {
-                        statusBadge = '<span style="padding:4px 12px; background:rgba(249,115,22,0.15); border:1px solid rgba(249,115,22,0.4); color:#FDBA74; border-radius:15px; font-weight:700; font-size:12px;">🟠 Đi muộn</span>';
-                    } else {
-                        statusBadge = '<span style="padding:4px 12px; background:rgba(239,68,68,0.15); border:1px solid rgba(239,68,68,0.4); color:#FCA5A5; border-radius:15px; font-weight:700; font-size:12px;">🔴 Cả lớp nghỉ</span>';
-                    }
+                var hwBadge = '<span style="padding:4px 12px; background:rgba(142,77,255,0.15); border:1px solid rgba(142,77,255,0.3); color:#E2D1FF; border-radius:15px; font-size:12.5px;">' + (log.hwEval || 'Bình thường') + '</span>';
 
-                    var hwBadge = '<span style="padding:4px 12px; background:rgba(142,77,255,0.15); border:1px solid rgba(142,77,255,0.3); color:#E2D1FF; border-radius:15px; font-size:12.5px;">' + log.hwEval + '</span>';
+                var noteDisplay = log.generalNote || '<i>(Chưa có nhận xét)</i>';
+                
+                var pNoteCount = (log.studentNotes && typeof log.studentNotes === 'object') ? Object.keys(log.studentNotes).length : 0;
+                if (pNoteCount > 0) {
+                    noteDisplay += '<div style="margin-top:6px; font-size:12px; color:#FFD23F;"><i class="fa-solid fa-user-pen"></i> Có ' + pNoteCount + ' học sinh có nhận xét riêng từ Thầy</div>';
+                }
 
-                    var noteDisplay = log.generalNote || '<i>(Chưa có nhận xét)</i>';
-                    
-                    var pNoteCount = (log.studentNotes && typeof log.studentNotes === 'object') ? Object.keys(log.studentNotes).length : 0;
-                    if (pNoteCount > 0) {
-                        noteDisplay += '<div style="margin-top:6px; font-size:12px; color:#FFD23F;"><i class="fa-solid fa-user-pen"></i> Có ' + pNoteCount + ' học sinh có nhận xét riêng từ Thầy</div>';
-                    }
-
-                    return '<tr>' +
-                        '<td style="text-align:center; color:#A6ADCE; font-weight:600;">' + (log.weekNum || '-') + '</td>' +
-                        '<td style="font-weight:700; color:#FFF;">' + (log.studyDate || '-') + '</td>' +
-                        '<td style="color:#C4B5FD; font-weight:600;">' + (log.subject || '-') + '</td>' +
-                        '<td style="color:#FFF; line-height:1.5;">' + noteDisplay + '</td>' +
-                        '<td>' + hwBadge + '</td>' +
-                        '<td style="text-align:center; color:#FFF;">' + (log.entryTest || 'Không có') + '</td>' +
-                        '<td style="text-align:center; color:#FFF;">' + (log.termTest || 'Không có') + '</td>' +
-                        '<td style="text-align:center;">' + statusBadge + '</td>' +
-                        '<td style="text-align:center;"><button onclick="deleteClassLessonLog(\'' + log.logId + '\')" style="background:none; border:none; color:#EF4444; cursor:pointer; font-size:15px;" title="Xóa buổi học này"><i class="fa-solid fa-trash"></i></button></td>' +
-                    '</tr>';
-                }).join('');
-            }).getClassLessonLogs(cls.classId, cls.className);
+                return '<tr>' +
+                    '<td style="text-align:center; color:#A6ADCE; font-weight:600;">' + (log.weekNum || '-') + '</td>' +
+                    '<td style="font-weight:700; color:#FFF;">' + (log.studyDate || '-') + '</td>' +
+                    '<td style="color:#C4B5FD; font-weight:600;">' + (log.subject || '-') + '</td>' +
+                    '<td style="color:#FFF; line-height:1.5;">' + noteDisplay + '</td>' +
+                    '<td>' + hwBadge + '</td>' +
+                    '<td style="text-align:center; color:#FFF;">' + (log.entryTest || 'Không có') + '</td>' +
+                    '<td style="text-align:center; color:#FFF;">' + (log.termTest || 'Không có') + '</td>' +
+                    '<td style="text-align:center;">' + statusBadge + '</td>' +
+                    '<td style="text-align:center;"><button onclick="deleteClassLessonLog(\'' + log.logId + '\')" style="background:none; border:none; color:#EF4444; cursor:pointer; font-size:15px;" title="Xóa buổi học này"><i class="fa-solid fa-trash"></i></button></td>' +
+                '</tr>';
+            }).join('');
         }
 
         function deleteClassLessonLog(logId) {
             if (confirm("Bạn có chắc chắn muốn xóa nhật ký buổi học này không?")) {
-                google.script.run.withSuccessHandler(function() {
-                    loadClassLessonHistory();
-                }).deleteClassLessonLog(logId);
+                // OPTIMISTIC UI: Xóa khỏi mảng và vẽ lại UI trong 0.05s!
+                activeClassLessonLogs = activeClassLessonLogs.filter(function(log) { return log.logId !== logId; });
+                renderClassLessonLogsTableUI();
+
+                // Gửi ngầm bên dưới
+                google.script.run.deleteClassLessonLog(logId);
             }
         }
 
         function refreshClassHistory() {
-            loadClassLessonHistory();
+            renderClassLessonLogsTableUI();
         }
 
         // === QUICK ANNOUNCEMENT HANDLERS ===
@@ -2019,54 +2070,76 @@
                 btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang giao bài...';
             }
 
+            var tempHwId = "HW_LH_" + new Date().getTime();
+            var newHw = {
+                hwId: tempHwId,
+                classId: cls.classId,
+                className: cls.className,
+                title: title,
+                releaseDate: releaseDate || new Date().toLocaleDateString('vi-VN'),
+                fileUrl: "",
+                fileName: selectedClassHwFile ? selectedClassHwFile.fileName : "",
+                link: link
+            };
+
+            // OPTIMISTIC UI: Thêm bài tập mới vào UI ngay 0.05s!
+            if (!activeClassHomework) activeClassHomework = [];
+            activeClassHomework.unshift(newHw);
+
+            resetClassHwForm();
+            switchClassHwSubTab("list");
+            renderClassHomeworkListUI();
+
             google.script.run.withSuccessHandler(function(res) {
                 if (btn) {
                     btn.disabled = false;
                     btn.innerHTML = "Giao bài";
                 }
-                resetClassHwForm();
-                switchClassHwSubTab("list");
+                if (res && res.hwId) {
+                    newHw.hwId = res.hwId;
+                    newHw.fileUrl = res.fileUrl || "";
+                    renderClassHomeworkListUI();
+                }
             }).saveClassHomework(cls.classId, cls.className, title, releaseDate, selectedClassHwFile, link);
         }
 
-        function loadClassHomeworkList() {
+        function renderClassHomeworkListUI() {
             var cls = currentClasses[activeClassIndex];
             var tbody = document.getElementById("classHwTableBody");
             if (!cls || !tbody) return;
 
-            tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:#A6ADCE; padding:20px;"><i class="fa-solid fa-circle-notch fa-spin"></i> Đang tải bài tập đã giao...</td></tr>';
+            if (!activeClassHomework || !Array.isArray(activeClassHomework) || activeClassHomework.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:#A6ADCE; padding:20px;">Lớp này chưa có bài tập nào được giao.</td></tr>';
+                return;
+            }
 
-            google.script.run.withSuccessHandler(function(list) {
-                if (!list || !Array.isArray(list) || list.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:#A6ADCE; padding:20px;">Lớp này chưa có bài tập nào được giao.</td></tr>';
-                    return;
+            tbody.innerHTML = activeClassHomework.map(function(hw) {
+                var attachStr = "";
+                if (hw.fileUrl) {
+                    attachStr += '<a href="' + hw.fileUrl + '" target="_blank" style="color:#8E4DFF; font-weight:700; text-decoration:none; margin-right:10px;"><i class="fa-solid fa-paperclip"></i> ' + (hw.fileName || "Tải file") + '</a>';
                 }
+                if (hw.link) {
+                    attachStr += '<a href="' + hw.link + '" target="_blank" style="color:#10B981; font-weight:700; text-decoration:none;"><i class="fa-solid fa-link"></i> Xem link</a>';
+                }
+                if (!attachStr) attachStr = '<span style="color:#A6ADCE;">Không có</span>';
 
-                tbody.innerHTML = list.map(function(hw) {
-                    var attachStr = "";
-                    if (hw.fileUrl) {
-                        attachStr += '<a href="' + hw.fileUrl + '" target="_blank" style="color:#8E4DFF; font-weight:700; text-decoration:none; margin-right:10px;"><i class="fa-solid fa-paperclip"></i> ' + (hw.fileName || "Tải file") + '</a>';
-                    }
-                    if (hw.link) {
-                        attachStr += '<a href="' + hw.link + '" target="_blank" style="color:#10B981; font-weight:700; text-decoration:none;"><i class="fa-solid fa-link"></i> Xem link</a>';
-                    }
-                    if (!attachStr) attachStr = '<span style="color:#A6ADCE;">Không có</span>';
-
-                    return '<tr>' +
-                        '<td style="color:#A6ADCE; font-weight:600;">' + (hw.releaseDate || '-') + '</td>' +
-                        '<td style="font-weight:700; color:#FFD23F;">' + hw.title + '</td>' +
-                        '<td>' + attachStr + '</td>' +
-                        '<td style="text-align:center;"><button onclick="deleteClassHomework(\'' + hw.hwId + '\')" style="background:none; border:none; color:#EF4444; cursor:pointer; font-size:15px;" title="Xóa bài tập"><i class="fa-solid fa-trash"></i></button></td>' +
-                    '</tr>';
-                }).join('');
-            }).getClassHomeworkList(cls.classId, cls.className);
+                return '<tr>' +
+                    '<td style="color:#A6ADCE; font-weight:600;">' + (hw.releaseDate || '-') + '</td>' +
+                    '<td style="font-weight:700; color:#FFD23F;">' + hw.title + '</td>' +
+                    '<td>' + attachStr + '</td>' +
+                    '<td style="text-align:center;"><button onclick="deleteClassHomework(\'' + hw.hwId + '\')" style="background:none; border:none; color:#EF4444; cursor:pointer; font-size:15px;" title="Xóa bài tập"><i class="fa-solid fa-trash"></i></button></td>' +
+                '</tr>';
+            }).join('');
         }
 
         function deleteClassHomework(hwId) {
             if (confirm("Bạn có chắc chắn muốn xóa bài tập này?")) {
-                google.script.run.withSuccessHandler(function() {
-                    loadClassHomeworkList();
-                }).deleteClassHomework(hwId);
+                // OPTIMISTIC UI: Xóa khỏi mảng và render lại UI ngay 0.05s!
+                activeClassHomework = activeClassHomework.filter(function(hw) { return hw.hwId !== hwId; });
+                renderClassHomeworkListUI();
+
+                // Gửi ngầm bên dưới
+                google.script.run.deleteClassHomework(hwId);
             }
         }
 

@@ -83,6 +83,51 @@ function getClassList(tutorPhone) {
   return classes;
 }
 
+// Lấy toàn bộ dữ liệu tổng cho Phân hệ Lớp Học trong 1 chuyến gọi server duy nhất (1s)
+function getClassDashboardData(tutorPhone, requestedClassId) {
+  var classes = getClassList(tutorPhone);
+  
+  if (!classes || classes.length === 0) {
+    return {
+      success: true,
+      classes: [],
+      activeClass: null,
+      students: [],
+      lessonLogs: [],
+      announcement: "",
+      homeworkList: []
+    };
+  }
+  
+  var activeClass = null;
+  if (requestedClassId) {
+    for (var i = 0; i < classes.length; i++) {
+      if (classes[i].classId === requestedClassId) {
+        activeClass = classes[i];
+        break;
+      }
+    }
+  }
+  if (!activeClass) {
+    activeClass = classes[0];
+  }
+  
+  var students = getClassStudents(activeClass.classId);
+  var lessonLogs = getClassLessonLogs(activeClass.classId, activeClass.className);
+  var announcement = getClassAnnouncement(activeClass.classId);
+  var homeworkList = getClassHomeworkList(activeClass.classId, activeClass.className);
+  
+  return {
+    success: true,
+    classes: classes,
+    activeClass: activeClass,
+    students: students || [],
+    lessonLogs: lessonLogs || [],
+    announcement: announcement || "",
+    homeworkList: homeworkList || []
+  };
+}
+
 // Tạo Lớp học mới
 function createClass(tutorPhone, className, subject, schedule, feeType) {
   var ss = getClassSpreadsheet();
