@@ -121,9 +121,17 @@
                 return;
             }
             
-            if (ketQua.role === 'student' && ketQua.multipleStudents && ketQua.childrenList) {
-                hienThiTheChonCon(ketQua.childrenList, phone);
-                return;
+            if (ketQua.role === 'student') {
+                if (role === 'tutor') {
+                    loiHienThi.innerHTML = "Số điện thoại này thuộc tài khoản Học sinh / Phụ huynh.<br>Vui lòng chọn mục <b>'Dành cho PH / HS'</b> ở thanh menu để đăng nhập.";
+                    loiHienThi.style.display = "block";
+                    return;
+                }
+                
+                if (ketQua.multipleStudents && ketQua.childrenList) {
+                    hienThiTheChonCon(ketQua.childrenList, phone);
+                    return;
+                }
             }
 
             if (ketQua.role === 'student' && ketQua.data && ketQua.data.timThay) {

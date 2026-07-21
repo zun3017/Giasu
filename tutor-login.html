@@ -70,6 +70,25 @@
                 <p id="tutorThongBaoLoi" class="error-msg"></p>
                 <p id="tutorLoadingText" class="loading-text"><i class="fa-solid fa-circle-notch fa-spin"></i> Đang xác thực thông tin...</p>
             </div>
+
+            <!-- Modal Chọn Con khi 1 SĐT có nhiều con -->
+            <div id="childSelectorModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.75); backdrop-filter: blur(8px); z-index: 9999; justify-content: center; align-items: center; padding: 20px;">
+                <div style="background: rgba(15, 11, 46, 0.98); border: 1px solid #8E4DFF; box-shadow: 0 0 40px rgba(142, 77, 255, 0.4); border-radius: 24px; padding: 30px 25px; max-width: 440px; width: 100%; text-align: center; color: #FFF;">
+                    <div style="width: 60px; height: 60px; border-radius: 50%; background: rgba(142,77,255,0.15); border: 1px solid rgba(142,77,255,0.3); display: flex; align-items: center; justify-content: center; margin: 0 auto 15px auto; font-size: 26px; color: #FFD23F;">
+                        <i class="fa-solid fa-users"></i>
+                    </div>
+                    <h3 style="font-size: 20px; font-weight: 800; color: #FFD23F; margin-bottom: 8px;">Vui lòng chọn học sinh</h3>
+                    <p style="font-size: 13.5px; color: #A6ADCE; margin-bottom: 22px; line-height: 1.5;">Số điện thoại này đăng ký cho nhiều con. Hãy chọn tên học sinh bạn muốn xem kết quả học tập:</p>
+                    
+                    <div id="childrenBtnContainer" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px;">
+                        <!-- Thẻ các nút tên con sẽ được render động từ JS -->
+                    </div>
+
+                    <button onclick="document.getElementById('childSelectorModal').style.display='none'" style="background: transparent; border: 1px solid rgba(255,255,255,0.2); color: #A6ADCE; border-radius: 12px; padding: 10px 20px; font-size: 13px; font-weight: 600; cursor: pointer; transition: 0.2s;">
+                        Hủy bỏ
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
     
@@ -89,6 +108,6 @@
     <div class="star twinkle-2" style="top: 85%; left: 30%; width: 2px; height: 2px;"></div>
 
     <script src="js/api.js?v=1.8.2"></script>
-    <script src="js/navigation.js?v=1.6.4"></script>
+    <script src="js/navigation.js?v=1.6.5"></script>
 </body>
 </html>
