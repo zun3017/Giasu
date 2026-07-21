@@ -397,12 +397,15 @@
             </div>
 
             <!-- Tab Buttons -->
-            <div style="display: flex; gap: 12px; margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 12px;">
+            <div style="display: flex; gap: 12px; margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 12px; flex-wrap: wrap;">
                 <button id="classHwTabAssignBtn" onclick="switchClassHwTab('assign')" style="padding: 9px 20px; background: rgba(142,77,255,0.2); border: 1px solid #8E4DFF; border-radius: 20px; color: #FFF; font-weight: 700; font-size: 13.5px; cursor: pointer; display: flex; align-items: center; gap: 8px;">
                     <i class="fa-solid fa-pen-ruler" style="color: #FFD23F;"></i> Giao bài tập
                 </button>
                 <button id="classHwTabSubmitBtn" onclick="switchClassHwTab('submit')" style="padding: 9px 20px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; color: #A6ADCE; font-weight: 600; font-size: 13.5px; cursor: pointer; display: flex; align-items: center; gap: 8px;">
                     <i class="fa-solid fa-graduation-cap"></i> Học sinh nộp bài
+                </button>
+                <button id="classHwTabFeedbackBtn" onclick="switchClassHwTab('feedback')" style="padding: 9px 20px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; color: #A6ADCE; font-weight: 600; font-size: 13.5px; cursor: pointer; display: flex; align-items: center; gap: 8px;">
+                    <i class="fa-regular fa-comment-dots" style="color: #38BDF8;"></i> Ý kiến Phụ huynh
                 </button>
             </div>
 
@@ -495,6 +498,19 @@
                             <tr><td colspan="5" style="text-align:center; color:#A6ADCE; padding: 25px;">Chưa có học sinh nào nộp bài tập.</td></tr>
                         </tbody>
                     </table>
+                </div>
+            </div>
+
+            <!-- Tab 3: Ý kiến Phụ huynh -->
+            <div id="classHwTabContentFeedback" style="display: none;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <h4 style="color: #38BDF8; font-size: 15px; font-weight: 800; margin: 0; display: flex; align-items: center; gap: 8px;">
+                        <i class="fa-regular fa-comment-dots"></i> Danh sách ý kiến đóng góp từ Phụ huynh
+                    </h4>
+                    <button onclick="loadClassParentFeedback()" style="padding: 6px 14px; background: rgba(56, 189, 248, 0.15); border: 1px solid #38BDF8; border-radius: 12px; color: #38BDF8; font-size: 12.5px; font-weight: bold; cursor: pointer;"><i class="fa-solid fa-rotate"></i> Tải lại</button>
+                </div>
+                <div id="classParentFeedbackContainer" style="background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 20px; min-height: 150px;">
+                    <div style="text-align: center; color: #A6ADCE; padding: 30px;"><i class="fa-solid fa-circle-notch fa-spin"></i> Đang tải ý kiến phụ huynh...</div>
                 </div>
             </div>
         </div>
@@ -976,7 +992,7 @@
     <!-- Sync Toast Badge giống Dành cho Gia Sư -->
     <div id="syncToast" class="sync-toast" style="display:none;"></div>
 
-    <script src="js/api.js?v=1.7.9"></script>
+    <script src="js/api.js?v=1.8.0"></script>
     <script>
         var currentTutorData = null;
         var currentClasses = [];
@@ -1930,32 +1946,61 @@
         function switchClassHwTab(tab) {
             var assignBtn = document.getElementById("classHwTabAssignBtn");
             var submitBtn = document.getElementById("classHwTabSubmitBtn");
+            var feedbackBtn = document.getElementById("classHwTabFeedbackBtn");
+            
             var assignContent = document.getElementById("classHwTabContentAssign");
             var submitContent = document.getElementById("classHwTabContentSubmit");
+            var feedbackContent = document.getElementById("classHwTabContentFeedback");
+
+            if (assignBtn) { assignBtn.style.background = "rgba(255,255,255,0.04)"; assignBtn.style.borderColor = "rgba(255,255,255,0.1)"; assignBtn.style.color = "#A6ADCE"; }
+            if (submitBtn) { submitBtn.style.background = "rgba(255,255,255,0.04)"; submitBtn.style.borderColor = "rgba(255,255,255,0.1)"; submitBtn.style.color = "#A6ADCE"; }
+            if (feedbackBtn) { feedbackBtn.style.background = "rgba(255,255,255,0.04)"; feedbackBtn.style.borderColor = "rgba(255,255,255,0.1)"; feedbackBtn.style.color = "#A6ADCE"; }
+
+            if (assignContent) assignContent.style.display = "none";
+            if (submitContent) submitContent.style.display = "none";
+            if (feedbackContent) feedbackContent.style.display = "none";
 
             if (tab === "assign") {
-                assignBtn.style.background = "rgba(142,77,255,0.2)";
-                assignBtn.style.borderColor = "#8E4DFF";
-                assignBtn.style.color = "#FFF";
-                submitBtn.style.background = "rgba(255,255,255,0.04)";
-                submitBtn.style.borderColor = "rgba(255,255,255,0.1)";
-                submitBtn.style.color = "#A6ADCE";
-
-                assignContent.style.display = "block";
-                submitContent.style.display = "none";
-            } else {
-                submitBtn.style.background = "rgba(142,77,255,0.2)";
-                submitBtn.style.borderColor = "#8E4DFF";
-                submitBtn.style.color = "#FFF";
-                assignBtn.style.background = "rgba(255,255,255,0.04)";
-                assignBtn.style.borderColor = "rgba(255,255,255,0.1)";
-                assignBtn.style.color = "#A6ADCE";
-
-                submitContent.style.display = "block";
-                assignContent.style.display = "none";
-                
-                loadClassSubmissions(); // Tải danh sách bài nộp
+                if (assignBtn) { assignBtn.style.background = "rgba(142,77,255,0.2)"; assignBtn.style.borderColor = "#8E4DFF"; assignBtn.style.color = "#FFF"; }
+                if (assignContent) assignContent.style.display = "block";
+            } else if (tab === "submit") {
+                if (submitBtn) { submitBtn.style.background = "rgba(142,77,255,0.2)"; submitBtn.style.borderColor = "#8E4DFF"; submitBtn.style.color = "#FFF"; }
+                if (submitContent) submitContent.style.display = "block";
+                loadClassSubmissions();
+            } else if (tab === "feedback") {
+                if (feedbackBtn) { feedbackBtn.style.background = "rgba(56,189,248,0.2)"; feedbackBtn.style.borderColor = "#38BDF8"; feedbackBtn.style.color = "#FFF"; }
+                if (feedbackContent) feedbackContent.style.display = "block";
+                loadClassParentFeedback();
             }
+        }
+
+        function loadClassParentFeedback() {
+            var container = document.getElementById("classParentFeedbackContainer");
+            if (container) container.innerHTML = '<div style="text-align: center; color: #A6ADCE; padding: 30px;"><i class="fa-solid fa-circle-notch fa-spin"></i> Đang tải ý kiến phụ huynh...</div>';
+            
+            var phone = currentTutorData ? (currentTutorData.tutorPhone || "") : "";
+            var code = currentTutorData ? (currentTutorData.tutorCode || "") : "";
+            
+            google.script.run.withSuccessHandler(function(feedbacks) {
+                if (!feedbacks || !Array.isArray(feedbacks) || feedbacks.length === 0) {
+                    if (container) container.innerHTML = '<div style="text-align: center; color: #10B981; padding: 30px; font-weight: bold;"><i class="fa-solid fa-circle-check" style="font-size: 28px; display: block; margin-bottom: 8px;"></i> Chưa có ý kiến đóng góp mới từ Phụ huynh.</div>';
+                    return;
+                }
+                
+                var html = feedbacks.map(function(fb) {
+                    return '<div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; padding: 15px 18px; margin-bottom: 12px;">' +
+                        '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 8px;">' +
+                            '<span style="font-weight: 800; color: #FFD23F; font-size: 14px;"><i class="fa-solid fa-user-tie" style="color:#38BDF8;"></i> Phụ huynh em: ' + fb.studentName + ' (' + fb.studentPhone + ')</span>' +
+                            '<span style="font-size: 12px; color: #A6ADCE;"><i class="fa-regular fa-clock"></i> ' + fb.timestamp + '</span>' +
+                        '</div>' +
+                        '<div style="color: #FFF; font-size: 13.5px; line-height: 1.6; background: rgba(0,0,0,0.2); padding: 10px 14px; border-radius: 10px; border-left: 3px solid #38BDF8;">' + fb.content + '</div>' +
+                    '</div>';
+                }).join('');
+                
+                if (container) container.innerHTML = html;
+            }).withFailureHandler(function(err) {
+                if (container) container.innerHTML = '<div style="color:#EF4444; padding:20px; text-align:center;">Lỗi tải phản hồi: ' + err.toString() + '</div>';
+            }).getClassTutorFeedback(phone, code);
         }
 
         // Tải danh sách bài nộp của lớp học nhóm

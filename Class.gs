@@ -1405,3 +1405,47 @@ function cleanupOldClassTrash(ss) {
 
   SpreadsheetApp.flush();
 }
+
+// Lấy ý kiến phản hồi của phụ huynh dành cho giáo viên Lớp học
+function getClassTutorFeedback(tutorPhone, tutorCode) {
+  var ss = getClassSpreadsheet();
+  var sheetFeedback = ss.getSheetByName('Ý kiến phụ huynh');
+  var feedbacks = [];
+  if (!sheetFeedback) return feedbacks;
+  
+  var classes = getClassList(tutorPhone, tutorCode);
+  var classIds = classes.map(function(c) { return c.classId; });
+  
+  var studentPhones = [];
+  var sheetStudents = ss.getSheetByName('Học sinh lớp học');
+  if (sheetStudents) {
+    var dataS = sheetStudents.getDataRange().getDisplayValues();
+    for (var i = 1; i < dataS.length; i++) {
+      if (dataS[i].length >= 4 && classIds.indexOf(dataS[i][2]) !== -1) {
+        var sPhone = normalizePhone(dataS[i][3]);
+        var sCode = String(dataS[i][0]).trim().toLowerCase();
+        if (sPhone) studentPhones.push(sPhone);
+        if (sCode) studentPhones.push(sCode);
+      }
+    }
+  }
+
+  var dataFB = sheetFeedback.getDataRange().getDisplayValues();
+  for (var j = dataFB.length - 1; j >= 1; j--) {
+    if (dataFB[j].length >= 4 && dataFB[j][0] !== "") {
+      var fbPhone = normalizePhone(dataFB[j][1]);
+      var fbCode = String(dataFB[j][1]).trim().toLowerCase();
+      
+      if (studentPhones.indexOf(fbPhone) !== -1 || studentPhones.indexOf(fbCode) !== -1 || studentPhones.length === 0) {
+        feedbacks.push({
+          timestamp: dataFB[j][0],
+          studentPhone: dataFB[j][1],
+          studentName: dataFB[j][2],
+          content: dataFB[j][3]
+        });
+      }
+    }
+  }
+
+  return feedbacks;
+}
