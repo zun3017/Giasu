@@ -472,6 +472,16 @@ var pinVerifyAction = "deleteStudent";
                  
                  var lastActiveDisplay = t.lastActive ? t.lastActive : "<i style='color:#6c757d;'>Chưa hoạt động</i>";
                  
+                 var accType = t.accountType || "Cả hai";
+                 var accTypeBadge = "";
+                 if (accType === "Giáo viên Lớp học") {
+                     accTypeBadge = "<span style='background:rgba(16,185,129,0.15); color:#10B981; border:1px solid rgba(16,185,129,0.3); padding:3px 8px; border-radius:12px; font-size:11px; font-weight:bold;'><i class='fa-solid fa-users'></i> Lớp học</span>";
+                 } else if (accType === "Gia sư (1-1)") {
+                     accTypeBadge = "<span style='background:rgba(142,77,255,0.15); color:#C084FC; border:1px solid rgba(142,77,255,0.3); padding:3px 8px; border-radius:12px; font-size:11px; font-weight:bold;'><i class='fa-solid fa-chalkboard-user'></i> Gia sư 1-1</span>";
+                 } else {
+                     accTypeBadge = "<span style='background:rgba(255,210,63,0.15); color:#FFD23F; border:1px solid rgba(255,210,63,0.3); padding:3px 8px; border-radius:12px; font-size:11px; font-weight:bold;'><i class='fa-solid fa-border-all'></i> Cả hai</span>";
+                 }
+
                  // Desktop row
                  var tr = document.createElement('tr');
                  if (isCurrentlyDeactivated) {
@@ -483,6 +493,7 @@ var pinVerifyAction = "deleteStudent";
                  tr.innerHTML = "<td><b>" + t.name + "</b></td>" +
                                 "<td>" + t.phone + "</td>" +
                                 "<td><code style='letter-spacing:2px; font-weight:bold; color:#FFD23F;'>" + t.pin + "</code></td>" +
+                                "<td>" + accTypeBadge + "</td>" +
                                 "<td>" + (t.createdDate || "-") + "</td>" +
                                 "<td><b style='" + (isDue ? "color:#FF8080;" : "") + "'>" + (t.nextBillingDate || "-") + "</b></td>" +
                                 "<td style='text-align:center;'><b>" + sCount + "</b></td>" +
@@ -661,11 +672,12 @@ var pinVerifyAction = "deleteStudent";
 
         // Admin Edit Tutor Modal
         function openAdminAddTutorModal() {
-            document.getElementById('adminTutorModalTitle').innerHTML = '<i class="fa-solid fa-chalkboard-user"></i> Thêm Gia Sư Mới';
+            document.getElementById('adminTutorModalTitle').innerHTML = '<i class="fa-solid fa-chalkboard-user"></i> Thêm Gia Sư / Giáo Viên Mới';
             document.getElementById('adminTutorOldPhone').value = "";
             document.getElementById('adminTutorName').value = "";
             document.getElementById('adminTutorPhone').value = "";
             document.getElementById('adminTutorPin').value = "";
+            if (document.getElementById('adminTutorAccountType')) document.getElementById('adminTutorAccountType').value = "Cả hai";
             document.getElementById('adminTutorQrUrl').value = "";
             document.getElementById('adminTutorCreatedDate').value = "";
             document.getElementById('adminTutorNextBillingDate').value = "";
@@ -678,11 +690,12 @@ var pinVerifyAction = "deleteStudent";
             var tutor = adminDataGlobal.tutors.find(t => t.phone === phone);
             if (!tutor) return;
             
-            document.getElementById('adminTutorModalTitle').innerHTML = '<i class="fa-solid fa-chalkboard-user"></i> Sửa Thông Tin Gia Sư';
+            document.getElementById('adminTutorModalTitle').innerHTML = '<i class="fa-solid fa-chalkboard-user"></i> Sửa Thông Tin Gia Sư / Giáo Viên';
             document.getElementById('adminTutorOldPhone').value = tutor.phone;
             document.getElementById('adminTutorName').value = tutor.name;
             document.getElementById('adminTutorPhone').value = tutor.phone;
             document.getElementById('adminTutorPin').value = tutor.pin;
+            if (document.getElementById('adminTutorAccountType')) document.getElementById('adminTutorAccountType').value = tutor.accountType || "Cả hai";
             document.getElementById('adminTutorQrUrl').value = tutor.qrUrl || "";
             document.getElementById('adminTutorCreatedDate').value = tutor.createdDate || "";
             document.getElementById('adminTutorNextBillingDate').value = tutor.nextBillingDate || "";
@@ -717,6 +730,7 @@ var pinVerifyAction = "deleteStudent";
             var name = document.getElementById('adminTutorName').value.trim();
             var phone = document.getElementById('adminTutorPhone').value.trim();
             var pin = document.getElementById('adminTutorPin').value.trim();
+            var accountType = document.getElementById('adminTutorAccountType') ? document.getElementById('adminTutorAccountType').value : "Cả hai";
             var qrUrl = document.getElementById('adminTutorQrUrl').value.trim();
             var createdDate = document.getElementById('adminTutorCreatedDate').value.trim();
             var nextBillingDate = document.getElementById('adminTutorNextBillingDate').value.trim();
@@ -737,7 +751,7 @@ var pinVerifyAction = "deleteStudent";
                     if(res.error) {
                         showToast("Lỗi: " + res.error, "error");
                     } else {
-                        showToast("Lưu thông tin gia sư thành công!", "success");
+                        showToast("Lưu thông tin thành công!", "success");
                         closeAdminEditTutorModal();
                         refreshAdminDashboard();
                     }
@@ -747,7 +761,7 @@ var pinVerifyAction = "deleteStudent";
                     btn.innerText = "Lưu lại";
                     showToast("Lỗi kết nối: " + err.toString(), "error");
                 })
-                .adminLuuGiaSur(oldPhone, name, phone, pin, qrUrl, createdDate, nextBillingDate);
+                .adminLuuGiaSu(oldPhone, name, phone, pin, qrUrl, createdDate, nextBillingDate, accountType);
         }
 
         // Xóa/Khôi phục & Thùng rác Gia sư JS Controllers

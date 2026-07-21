@@ -144,9 +144,10 @@
                 <table class="history-table" id="adminTutorsTable">
                     <thead>
                         <tr>
-                            <th>Tên Gia Sư</th>
+                            <th>Tên Gia Sư / Giáo Viên</th>
                             <th>Số Điện Thoại</th>
                             <th>Mã PIN</th>
+                            <th>Loại Tài Khoản</th>
                             <th>Ngày Đăng Ký</th>
                             <th>Ngày Hạn Kế</th>
                             <th>Số HS</th>
@@ -243,6 +244,14 @@
                 <div class="modal-form-group">
                     <label>Mã PIN đăng nhập (mặc định)</label>
                     <input type="text" id="adminTutorPin" placeholder="Ví dụ: 123456">
+                </div>
+                <div class="modal-form-group">
+                    <label>Phân loại tài khoản (Quyền truy cập)</label>
+                    <select id="adminTutorAccountType" style="padding: 10px; border-radius: 8px; font-family: Inter; outline: none; border: 1px solid rgba(255,255,255,0.15); background: rgba(15, 11, 46, 0.9); color: #FFF; width: 100%; cursor: pointer;">
+                        <option value="Giáo viên Lớp học">🟢 Giáo viên Lớp học</option>
+                        <option value="Gia sư (1-1)">🟣 Gia sư dạy kèm (1-1)</option>
+                        <option value="Cả hai" selected>🟡 Cả hai (Cho phép cả 2)</option>
+                    </select>
                 </div>
                 <div class="modal-form-group">
                     <label>Ảnh mã QR chuyển khoản (Link)</label>
