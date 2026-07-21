@@ -509,7 +509,7 @@
                     <i class="fa-solid fa-users-gear"></i> Danh sách thành viên lớp học
                 </div>
                 <button onclick="openAddStudentModal()" style="padding: 9px 20px; background: linear-gradient(135deg, #8E4DFF 0%, #5B21B6 100%); border: none; border-radius: 20px; color: #FFF; font-weight: 700; font-size: 13.5px; cursor: pointer; display: flex; align-items: center; gap: 6px; box-shadow: 0 4px 15px rgba(142,77,255,0.3);">
-                    <i class="fa-solid fa-user-plus"></i> + Thêm học sinh mới
+                    <i class="fa-solid fa-user-plus"></i>  Thêm học sinh mới
                 </button>
             </div>
 
@@ -752,12 +752,6 @@
         var activeStudents = [];
 
         document.addEventListener("DOMContentLoaded", function() {
-            // Đặt mặc định ngày hôm nay cho ô chọn ngày
-            var evalDateEl = document.getElementById("evalStudyDate");
-            if (evalDateEl) {
-                var today = new Date().toISOString().split('T')[0];
-                evalDateEl.value = today;
-            }
 
             // Đọc dữ liệu giáo viên từ sessionStorage hoặc localStorage
             var saved = sessionStorage.getItem("classTutorData") || sessionStorage.getItem("userTutorData") || localStorage.getItem("classTutorData") || localStorage.getItem("userTutorData");
@@ -958,78 +952,6 @@
                 }).join('');
             }
 
-            // Render Batch Evaluation Grid (Chuyên cần mặc định là "Có mặt")
-            var evalTbody = document.getElementById("batchEvalTbody");
-            if (activeStudents.length === 0) {
-                evalTbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:#A6ADCE; padding: 20px;">Chưa có học sinh để đánh giá.</td></tr>';
-            } else {
-                evalTbody.innerHTML = activeStudents.map(function(st, idx) {
-                    return '<tr data-studentid="' + st.studentId + '" data-studentname="' + st.studentName + '">' +
-                        '<td style="font-weight:700; color:#FFF;">' + st.studentName + '</td>' +
-                        '<td>' +
-                            '<select class="select-attendance" id="att_' + idx + '">' +
-                                '<option value="Có mặt" selected>🟢 Có mặt (Mặc định)</option>' +
-                                '<option value="Vắng (Có phép)">🟡 Vắng (Có phép)</option>' +
-                                '<option value="Vắng (Không phép)">🔴 Vắng (Không phép)</option>' +
-                                '<option value="Muộn">🟠 Đi muộn</option>' +
-                            '</select>' +
-                        '</td>' +
-                        '<td style="text-align:center;"><input type="number" step="0.5" min="0" max="10" class="input-score" id="hw_' + idx + '" placeholder="10"></td>' +
-                        '<td style="text-align:center;"><input type="number" step="0.5" min="0" max="10" class="input-score" id="test_' + idx + '" placeholder="10"></td>' +
-                        '<td style="text-align:center;">' +
-                            '<select class="select-attendance" id="star_' + idx + '" style="color:#FFD23F;">' +
-                                '<option value="5">★★★★★ (5/5)</option>' +
-                                '<option value="4">★★★★☆ (4/5)</option>' +
-                                '<option value="3">★★★☆☆ (3/5)</option>' +
-                                '<option value="2">★★☆☆☆ (2/5)</option>' +
-                                '<option value="1">★☆☆☆☆ (1/5)</option>' +
-                            '</select>' +
-                        '</td>' +
-                        '<td><input type="text" class="input-private-note" id="pnote_' + idx + '" placeholder="Nhận xét riêng (nếu có)..."></td>' +
-                    '</tr>';
-                }).join('');
-            }
-        }
-
-        // Lưu Đánh Giá Buổi Học Cả Lớp
-        function saveBatchEvaluation() {
-            var cls = currentClasses[activeClassIndex];
-            if (!cls) return;
-
-            var studyDate = document.getElementById("evalStudyDate").value;
-            var globalNotes = document.getElementById("evalGlobalNote").value.trim();
-
-            if (activeStudents.length === 0) {
-                alert("Lớp hiện tại chưa có học sinh để lưu đánh giá.");
-                return;
-            }
-
-            var evalRows = [];
-            activeStudents.forEach(function(st, idx) {
-                var att = document.getElementById("att_" + idx).value;
-                var hw = document.getElementById("hw_" + idx).value.trim();
-                var test = document.getElementById("test_" + idx).value.trim();
-                var star = document.getElementById("star_" + idx).value;
-                var pnote = document.getElementById("pnote_" + idx).value.trim();
-
-                evalRows.push({
-                    studentId: st.studentId,
-                    studentName: st.studentName,
-                    attendance: att,
-                    homeworkScore: hw,
-                    testScore: test,
-                    stars: star,
-                    privateNotes: pnote
-                });
-            });
-
-            google.script.run.withSuccessHandler(function(res) {
-                if (res && res.success) {
-                    alert("Đã lưu đánh giá buổi học cho " + res.count + " học sinh vào sheet '" + cls.className + "' thành công!");
-                } else {
-                    alert("Đã ghi nhận đánh giá hoàn thành!");
-                }
-            }).saveClassBatchEvaluation(cls.classId, cls.className, studyDate, globalNotes, evalRows);
         }
 
         // Modal Helpers
