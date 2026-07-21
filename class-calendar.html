@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/png" href="https://i.postimg.cc/66rKbPmb/trinh-duyet.png">
+    <meta name="viewport" content="width=1200, user-scalable=yes">
+    <title>Thời Khóa Biểu Lớp Học - Google Calendar Style</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- FullCalendar JS v6 -->
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        html, body {
+            height: 100%;
+            overflow: hidden;
+        }
+
+        body {
+            background: radial-gradient(circle at 50% 30%, #150F3B 0%, #08051A 100%) no-repeat fixed;
+            color: #FFF;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .container {
+            flex-shrink: 0;
+            width: 100%;
+            background: rgba(11, 8, 38, 0.85);
+            border-bottom: 1px solid rgba(142, 77, 255, 0.2);
+            padding: 12px 25px;
+            backdrop-filter: blur(25px);
+        }
+
+        .calendar-wrapper {
+            flex: 1;
+            overflow: hidden;
+            background: transparent;
+            padding: 0 10px 10px 10px;
+        }
+
+        .calendar-wrapper #calendar {
+            height: 100%;
+        }
+
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .calendar-title-wrap {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .calendar-title-wrap i {
+            font-size: 24px;
+            color: #8E4DFF;
+            text-shadow: 0 0 10px rgba(142, 77, 255, 0.5);
+        }
+
+        .calendar-title-wrap h2 {
+            font-size: 19px;
+            color: #FFD23F;
+            font-weight: 800;
+        }
+
+        .calendar-subtitle {
+            font-size: 13px;
+            color: #A6ADCE;
+        }
+
+        .fab-add {
+            position: fixed;
+            bottom: 25px;
+            right: 25px;
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #8E4DFF, #5B2EFF);
+            color: #FFF;
+            border: none;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 22px;
+            box-shadow: 0 4px 20px rgba(91, 46, 255, 0.5);
+            cursor: pointer;
+            z-index: 900;
+        }
+
+        /* Modal Overlay */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(8px);
+            z-index: 1000;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            padding: 15px;
+        }
+
+        .calendar-modal {
+            background: rgba(15, 11, 46, 0.98);
+            border: 1px solid #8E4DFF;
+            box-shadow: 0 0 40px rgba(142, 77, 255, 0.4);
+            border-radius: 20px;
+            width: 100%;
+            max-width: 520px;
+            padding: 24px;
+        }
+
+        .form-group {
+            margin-bottom: 14px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            color: #A6ADCE;
+            font-size: 13px;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 10px 14px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 10px;
+            color: #FFF;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <!-- HEADER -->
+    <div class="container">
+        <div class="calendar-header">
+            <div class="calendar-title-wrap">
+                <i class="fa-regular fa-calendar-check"></i>
+                <div>
+                    <h2>Thời Khóa Biểu Theo Lớp Học</h2>
+                    <p class="calendar-subtitle">Lịch giảng dạy định kỳ của các Lớp (Toán 10A1, Lý 11...)</p>
+                </div>
+            </div>
+            <div>
+                <a href="class-dashboard.html" style="text-decoration: none; display: inline-flex; align-items: center; gap: 8px; padding: 10px 22px; border-radius: 20px; font-weight: bold; font-size: 13.5px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15); color: #FFF;">
+                    <i class="fa-solid fa-arrow-left"></i> Quay lại Dashboard Lớp
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- CALENDAR -->
+    <div class="calendar-wrapper">
+        <div id="calendar"></div>
+    </div>
+
+    <!-- FAB Add Button -->
+    <button class="fab-add" onclick="openAddClassEventModal()"><i class="fa-solid fa-plus"></i></button>
+
+    <!-- Modal Thêm/Sửa Ca Dạy Theo Lớp -->
+    <div id="classEventModal" class="modal-overlay">
+        <div class="calendar-modal">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px;">
+                <h3 id="modalTitleText" style="color: #FFD23F; font-size: 19px; margin: 0;"><i class="fa-solid fa-circle-plus" style="color: #10B981; margin-right: 8px;"></i>Thêm Ca Dạy Lớp</h3>
+                <button onclick="closeClassEventModal()" style="background: none; border: none; color: #A6ADCE; font-size: 20px; cursor: pointer;"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            
+            <form onsubmit="saveClassEvent(event)">
+                <div class="form-group">
+                    <label>Tên Lớp Học</label>
+                    <input type="text" id="eventClassName" class="form-control" placeholder="Nhập tên lớp (ví dụ: Lớp Toán 10A1)..." required>
+                </div>
+                <div class="form-group" style="display: flex; gap: 10px;">
+                    <div style="flex: 1;">
+                        <label>Giờ bắt đầu</label>
+                        <input type="time" id="eventStartTime" class="form-control" value="18:00" required>
+                    </div>
+                    <div style="flex: 1;">
+                        <label>Giờ kết thúc</label>
+                        <input type="time" id="eventEndTime" class="form-control" value="20:00" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Lặp lại hàng tuần vào thứ</label>
+                    <select id="eventDayOfWeek" class="form-control" style="background: #0D0A26; color: #FFF;">
+                        <option value="1">Thứ Hai</option>
+                        <option value="2">Thứ Ba</option>
+                        <option value="3">Thứ Tư</option>
+                        <option value="4">Thứ Năm</option>
+                        <option value="5">Thứ Sáu</option>
+                        <option value="6">Thứ Bảy</option>
+                        <option value="0">Chủ Nhật</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Ghi chú ca dạy</label>
+                    <input type="text" id="eventNotes" class="form-control" placeholder="Ghi chú bài dạy hoặc phòng học...">
+                </div>
+
+                <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
+                    <button type="button" onclick="closeClassEventModal()" style="padding: 10px 20px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15); border-radius: 12px; color: #FFF; font-weight: 600; cursor: pointer;">Hủy</button>
+                    <button type="submit" style="padding: 10px 24px; background: linear-gradient(135deg, #8E4DFF, #5B2EFF); border: none; border-radius: 12px; color: #FFF; font-weight: bold; cursor: pointer;">Lưu Ca Dạy</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="js/api.js?v=1.6.8"></script>
+    <script>
+        var calendar = null;
+        var classEvents = [
+            { id: '1', title: '[Lớp Toán 10A1] Ca tối', daysOfWeek: [1, 4], startTime: '18:00', endTime: '20:00', backgroundColor: '#8E4DFF', borderColor: '#8E4DFF' },
+            { id: '2', title: '[Lớp Lý 11] Ca chiều', daysOfWeek: [2, 5], startTime: '17:30', endTime: '19:30', backgroundColor: '#10B981', borderColor: '#10B981' }
+        ];
+
+        document.addEventListener('DOMContentLoaded', function() {
+            var calendarEl = document.getElementById('calendar');
+            calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'timeGridWeek',
+                locale: 'vi',
+                firstDay: 1,
+                headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'dayGridMonth,timeGridWeek,timeGridDay'
+                },
+                buttonText: {
+                    today: 'Hôm nay',
+                    month: 'Tháng',
+                    week: 'Tuần',
+                    day: 'Ngày'
+                },
+                slotMinTime: '06:00:00',
+                slotMaxTime: '22:30:00',
+                events: classEvents,
+                eventClick: function(info) {
+                    if (confirm("Bạn có muốn xóa ca dạy lớp '" + info.event.title + "' không?")) {
+                        info.event.remove();
+                    }
+                }
+            });
+            calendar.render();
+        });
+
+        function openAddClassEventModal() {
+            document.getElementById('classEventModal').style.display = 'flex';
+        }
+
+        function closeClassEventModal() {
+            document.getElementById('classEventModal').style.display = 'none';
+        }
+
+        function saveClassEvent(e) {
+            e.preventDefault();
+            var name = document.getElementById('eventClassName').value.trim();
+            var startTime = document.getElementById('eventStartTime').value;
+            var endTime = document.getElementById('eventEndTime').value;
+            var day = parseInt(document.getElementById('eventDayOfWeek').value);
+
+            if (!name) return;
+
+            calendar.addEvent({
+                id: 'ev_' + new Date().getTime(),
+                title: '[' + name + ']',
+                daysOfWeek: [day],
+                startTime: startTime,
+                endTime: endTime,
+                backgroundColor: '#8E4DFF',
+                borderColor: '#8E4DFF'
+            });
+
+            closeClassEventModal();
+            document.getElementById('eventClassName').value = '';
+        }
+    </script>
+</body>
+</html>

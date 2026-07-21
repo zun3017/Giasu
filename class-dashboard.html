@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <link rel="icon" type="image/png" href="https://i.postimg.cc/66rKbPmb/trinh-duyet.png">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Quản Lý Lớp Học</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Global & Home CSS -->
+    <link rel="stylesheet" href="css/style.css?v=1.7.0">
+    <link rel="stylesheet" href="css/home.css?v=1.0.0">
+
+    <style>
+        body {
+            background: radial-gradient(circle at 50% 30%, #150F3B 0%, #08051A 100%) no-repeat fixed;
+            color: #FFF;
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            padding-bottom: 60px;
+        }
+
+        .dashboard-container {
+            max-width: 1200px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+
+        .tutor-header-card {
+            background: rgba(11, 8, 38, 0.85);
+            border: 1px solid rgba(142, 77, 255, 0.3);
+            border-radius: 24px;
+            padding: 24px 30px;
+            margin-bottom: 25px;
+            box-shadow: 0 0 35px rgba(142, 77, 255, 0.15);
+            backdrop-filter: blur(20px);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .card-box {
+            background: rgba(11, 8, 38, 0.75);
+            border: 1px solid rgba(142, 77, 255, 0.2);
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 25px;
+            backdrop-filter: blur(15px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .section-title {
+            color: #8E4DFF;
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 18px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* Nav row for Class selector buttons */
+        .class-nav-row {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: center;
+            margin-top: 25px;
+        }
+
+        .class-btn {
+            padding: 12px 24px;
+            border-radius: 30px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255,255,255,0.12);
+            color: #FFF;
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .class-btn.active {
+            background: linear-gradient(135deg, #8E4DFF, #5B2EFF);
+            box-shadow: 0 0 20px rgba(142, 77, 255, 0.5);
+            border-color: #8E4DFF;
+        }
+
+        .class-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn-add-class {
+            padding: 12px 24px;
+            border-radius: 30px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            border: 1px stroke #10B981;
+            background: rgba(16, 185, 129, 0.15);
+            color: #10B981;
+            border: 1px solid rgba(16, 185, 129, 0.4);
+            transition: all 0.3s;
+        }
+
+        .btn-add-class:hover {
+            background: rgba(16, 185, 129, 0.25);
+            transform: translateY(-2px);
+        }
+
+        .btn-delete-class {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: rgba(239, 68, 68, 0.15);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #EF4444;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+
+        .btn-delete-class:hover {
+            background: rgba(239, 68, 68, 0.3);
+            transform: scale(1.08);
+        }
+
+        /* Batch Evaluation Table */
+        .batch-eval-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+
+        .batch-eval-table th, .batch-eval-table td {
+            padding: 12px 14px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            text-align: left;
+        }
+
+        .batch-eval-table th {
+            background: rgba(142, 77, 255, 0.15);
+            color: #E2D1FF;
+            font-weight: 600;
+        }
+
+        .input-score {
+            width: 70px;
+            padding: 8px 10px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 8px;
+            color: #FFF;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .select-attendance {
+            padding: 8px 12px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 8px;
+            color: #10B981;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .select-attendance option {
+            background: #0D0A26;
+            color: #FFF;
+        }
+
+        .input-private-note {
+            width: 100%;
+            padding: 8px 12px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 8px;
+            color: #FFF;
+            font-size: 13px;
+        }
+
+        /* Modal Overlay */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(8px);
+            z-index: 999;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .modal-card {
+            background: rgba(15, 11, 46, 0.98);
+            border: 1px solid #8E4DFF;
+            box-shadow: 0 0 40px rgba(142, 77, 255, 0.4);
+            border-radius: 24px;
+            width: 100%;
+            max-width: 500px;
+            padding: 28px;
+            position: relative;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-header h3 {
+            color: #FFD23F;
+            font-size: 20px;
+            font-weight: 800;
+            margin: 0;
+        }
+
+        .btn-close-modal {
+            background: none;
+            border: none;
+            color: #A6ADCE;
+            font-size: 20px;
+            cursor: pointer;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+            text-align: left;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            color: #A6ADCE;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 16px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 10px;
+            color: #FFF;
+            font-size: 14px;
+            outline: none;
+        }
+
+        .form-control:focus {
+            border-color: #8E4DFF;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <div class="header" style="background: rgba(11, 8, 38, 0.85); border-bottom: 1px solid rgba(142, 77, 255, 0.2); backdrop-filter: blur(25px);">
+        <div class="nav-container" style="max-width: 1200px; margin: 0 auto; padding: 12px 20px; display: flex; justify-content: space-between; align-items: center;">
+            <a href="index.html" style="text-decoration: none; display: flex; align-items: center; gap: 12px;">
+                <img src="https://i.postimg.cc/66rKbPmb/trinh-duyet.png" alt="Logo" style="height: 40px;">
+                <div>
+                    <h1 style="color: #FFF; font-size: 18px; font-weight: 800; margin: 0;">Tra cứu học tập</h1>
+                    <p style="color: #A6ADCE; font-size: 12px; margin: 0;">Học tập thông minh</p>
+                </div>
+            </a>
+            <div style="display: flex; gap: 10px;">
+                <a href="index.html" class="nav-btn" style="padding: 8px 16px; border-radius: 20px; color: #FFF; text-decoration: none; font-size: 13px; background: rgba(255,255,255,0.05);"><i class="fa-solid fa-house"></i> Trang chủ</a>
+                <a href="class-login.html" class="nav-btn active" style="padding: 8px 16px; border-radius: 20px; color: #FFF; text-decoration: none; font-size: 13px; background: linear-gradient(135deg, #8E4DFF, #5B2EFF);"><i class="fa-solid fa-users-rectangle"></i> Dành cho Lớp học</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="dashboard-container">
+        <!-- Tutor Header -->
+        <div class="tutor-header-card">
+            <div>
+                <h2 id="tutorNameDisplay" style="color: #FFD23F; font-size: 22px; font-weight: 800; margin: 0;">Xin chào, Giáo viên Lớp học 👋</h2>
+                <p style="color: #A6ADCE; font-size: 14px; margin-top: 4px; margin-bottom: 0;">Tổng quan quản lý và đánh giá học sinh theo lớp</p>
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <a href="class-calendar.html" style="padding: 10px 20px; background: linear-gradient(135deg, #8E4DFF 0%, #5B21B6 100%); border-radius: 20px; color: #FFF; font-weight: 700; text-decoration: none; font-size: 13.5px; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 15px rgba(142,77,255,0.3);">
+                    <i class="fa-solid fa-calendar-days"></i> Thời khóa biểu Lớp
+                </a>
+                <button onclick="logoutClass()" style="padding: 10px 18px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15); border-radius: 20px; color: #FFF; font-size: 13.5px; font-weight: 600; cursor: pointer;">
+                    <i class="fa-solid fa-arrow-right-from-bracket"></i> Đăng xuất
+                </button>
+            </div>
+        </div>
+
+        <!-- Class Info Banner -->
+        <div class="card-box" id="classInfoBox">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 15px;">
+                <h3 style="color: #FFF; font-size: 20px; font-weight: 800; margin: 0; display: flex; align-items: center; gap: 10px;">
+                    Lớp hiện tại: <span id="activeClassName" style="color: #FFD23F;">Lớp Toán 10A1</span>
+                    <button onclick="openEditClassModal()" title="Sửa thông tin lớp" style="background: none; border: none; color: #8E4DFF; cursor: pointer; font-size: 16px;"><i class="fa-solid fa-pen-to-square"></i></button>
+                </h3>
+                <span id="activeClassRosterCount" style="padding: 6px 16px; background: rgba(142, 77, 255, 0.15); border: 1px solid rgba(142, 77, 255, 0.3); border-radius: 20px; color: #E2D1FF; font-size: 13.5px; font-weight: 700;">
+                    <i class="fa-solid fa-user-group" style="margin-right: 6px;"></i>Sĩ số: 0/20
+                </span>
+            </div>
+            <div style="display: flex; gap: 25px; flex-wrap: wrap; color: #A6ADCE; font-size: 14px;">
+                <div><i class="fa-solid fa-book" style="color: #8E4DFF; margin-right: 6px;"></i>Môn học: <strong id="activeClassSubject" style="color: #FFF;">Toán học</strong></div>
+                <div><i class="fa-regular fa-clock" style="color: #8E4DFF; margin-right: 6px;"></i>Lịch học cố định: <strong id="activeClassSchedule" style="color: #FFF;">Thứ 2 & Thứ 5 (18:00 - 20:00)</strong></div>
+            </div>
+        </div>
+
+        <!-- Batch Evaluation Grid -->
+        <div class="card-box">
+            <div class="section-title">
+                <i class="fa-solid fa-clipboard-check"></i> Đánh giá & Điểm danh buổi học hàng loạt (Batch Evaluation)
+            </div>
+
+            <!-- Header Controls: Date & Global Note -->
+            <div style="display: flex; gap: 15px; flex-wrap: wrap; margin-bottom: 20px; background: rgba(255,255,255,0.02); padding: 15px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.06);">
+                <div style="flex: 1; min-width: 200px;">
+                    <label style="display: block; color: #A6ADCE; font-size: 13px; font-weight: 600; margin-bottom: 6px;">Ngày học:</label>
+                    <input type="date" id="evalStudyDate" class="form-control" style="background: rgba(255,255,255,0.06);">
+                </div>
+                <div style="flex: 3; min-width: 300px;">
+                    <label style="display: block; color: #A6ADCE; font-size: 13px; font-weight: 600; margin-bottom: 6px;">Nhận xét chung cho cả lớp (Global Note):</label>
+                    <input type="text" id="evalGlobalNote" placeholder="Ví dụ: Hôm nay lớp học bài mới đầy đủ, tiếp thu kiến thức khá tốt..." class="form-control" style="background: rgba(255,255,255,0.06);">
+                </div>
+            </div>
+
+            <!-- Student Evaluation Table -->
+            <div style="overflow-x: auto; border-radius: 12px; border: 1px solid rgba(255,255,255,0.08); margin-bottom: 20px;">
+                <table class="batch-eval-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 220px;">Học sinh</th>
+                            <th style="width: 140px;">Điểm danh (Mặc định)</th>
+                            <th style="width: 90px; text-align: center;">Điểm BTVN</th>
+                            <th style="width: 90px; text-align: center;">Điểm Test</th>
+                            <th style="width: 110px; text-align: center;">Đánh giá sao</th>
+                            <th>Nhận xét riêng (Private Note)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="batchEvalTbody">
+                        <!-- Render động danh sách học sinh -->
+                    </tbody>
+                </table>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end;">
+                <button onclick="saveBatchEvaluation()" style="padding: 12px 30px; background: linear-gradient(135deg, #10B981 0%, #059669 100%); border: none; border-radius: 25px; color: #FFF; font-weight: 700; font-size: 15px; cursor: pointer; box-shadow: 0 4px 20px rgba(16,185,129,0.3); display: flex; align-items: center; gap: 8px;">
+                    <i class="fa-solid fa-floppy-disk"></i> Lưu Đánh Giá Buổi Học Cả Lớp
+                </button>
+            </div>
+        </div>
+
+        <!-- Student Roster Management -->
+        <div class="card-box">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; flex-wrap: wrap; gap: 10px;">
+                <div class="section-title" style="margin: 0;">
+                    <i class="fa-solid fa-users-gear"></i> Danh sách thành viên lớp học
+                </div>
+                <button onclick="openAddStudentModal()" style="padding: 9px 18px; background: rgba(142,77,255,0.15); border: 1px solid #8E4DFF; border-radius: 20px; color: #FFF; font-weight: 600; font-size: 13.5px; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+                    <i class="fa-solid fa-user-plus"></i> Thêm học sinh
+                </button>
+            </div>
+
+            <div style="overflow-x: auto;">
+                <table class="batch-eval-table">
+                    <thead>
+                        <tr>
+                            <th>Mã HS</th>
+                            <th>Họ và Tên</th>
+                            <th>SĐT Phụ huynh</th>
+                            <th>Ngày tham gia</th>
+                            <th style="text-align: center;">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody id="studentRosterTbody">
+                        <!-- Render động danh sách học sinh -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Class Navigation Row at the bottom -->
+        <div class="card-box" style="text-align: center; background: rgba(11, 8, 38, 0.9); border-color: rgba(142, 77, 255, 0.3);">
+            <p style="color: #A6ADCE; font-size: 13px; margin-bottom: 12px; font-weight: 500;"><i class="fa-solid fa-arrow-pointer" style="margin-right: 6px; color: #FFD23F;"></i>Chọn lớp học để quản lý:</p>
+            <div class="class-nav-row" id="classNavRow">
+                <!-- Render động các nút Lớp học -->
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 1: Thêm Lớp Học Mới -->
+    <div id="addClassModal" class="modal-overlay">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-folder-plus" style="margin-right: 8px;"></i>Thêm Lớp Học Mới</h3>
+                <button class="btn-close-modal" onclick="closeModal('addClassModal')"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="form-group">
+                <label>Tên lớp học (ví dụ: Lớp Toán 10A1, Minh, Thảo...)</label>
+                <input type="text" id="newClassName" class="form-control" placeholder="Nhập tên lớp...">
+            </div>
+            <div class="form-group">
+                <label>Môn học</label>
+                <input type="text" id="newClassSubject" class="form-control" placeholder="Ví dụ: Toán học, Tiếng Anh...">
+            </div>
+            <div class="form-group">
+                <label>Lịch học cố định hàng tuần</label>
+                <input type="text" id="newClassSchedule" class="form-control" placeholder="Ví dụ: Thứ 2 & Thứ 5 (18:00 - 20:00)">
+            </div>
+            <button onclick="saveNewClass()" style="width: 100%; padding: 13px; background: linear-gradient(135deg, #8E4DFF, #5B2EFF); border: none; border-radius: 12px; color: #FFF; font-weight: bold; font-size: 15px; cursor: pointer; margin-top: 10px;">
+                Tạo Lớp Học & Khởi Tạo Sheet <i class="fa-solid fa-arrow-right" style="margin-left: 6px;"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- MODAL 2: Sửa Thông Tin Lớp -->
+    <div id="editClassModal" class="modal-overlay">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-pen" style="margin-right: 8px;"></i>Sửa Thông Tin Lớp Học</h3>
+                <button class="btn-close-modal" onclick="closeModal('editClassModal')"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="form-group">
+                <label>Tên lớp học</label>
+                <input type="text" id="editClassName" class="form-control">
+            </div>
+            <div class="form-group">
+                <label>Môn học</label>
+                <input type="text" id="editClassSubject" class="form-control">
+            </div>
+            <div class="form-group">
+                <label>Lịch học cố định</label>
+                <input type="text" id="editClassSchedule" class="form-control">
+            </div>
+            <button onclick="saveEditClass()" style="width: 100%; padding: 13px; background: linear-gradient(135deg, #8E4DFF, #5B2EFF); border: none; border-radius: 12px; color: #FFF; font-weight: bold; font-size: 15px; cursor: pointer; margin-top: 10px;">
+                Cập Nhật Thông Tin <i class="fa-solid fa-check" style="margin-left: 6px;"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- MODAL 3: Thêm Học Sinh Vào Lớp -->
+    <div id="addStudentModal" class="modal-overlay">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-user-plus" style="margin-right: 8px;"></i>Thêm Học Sinh Vào Lớp</h3>
+                <button class="btn-close-modal" onclick="closeModal('addStudentModal')"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="form-group">
+                <label>Họ và tên học sinh</label>
+                <input type="text" id="newStudentName" class="form-control" placeholder="Nhập tên học sinh...">
+            </div>
+            <div class="form-group">
+                <label>Số điện thoại phụ huynh</label>
+                <input type="text" id="newStudentParentPhone" class="form-control" placeholder="Nhập số điện thoại phụ huynh...">
+            </div>
+            <button onclick="saveNewStudent()" style="width: 100%; padding: 13px; background: linear-gradient(135deg, #8E4DFF, #5B2EFF); border: none; border-radius: 12px; color: #FFF; font-weight: bold; font-size: 15px; cursor: pointer; margin-top: 10px;">
+                Thêm Vào Lớp <i class="fa-solid fa-plus" style="margin-left: 6px;"></i>
+            </button>
+        </div>
+    </div>
+
+    <script src="js/api.js?v=1.6.8"></script>
+    <script>
+        var currentTutorData = null;
+        var currentClasses = [];
+        var activeClassIndex = 0;
+        var activeStudents = [];
+
+        document.addEventListener("DOMContentLoaded", function() {
+            // Đặt mặc định ngày hôm nay cho ô chọn ngày
+            var today = new Date().toISOString().split('T')[0];
+            document.getElementById("evalStudyDate").value = today;
+
+            // Đọc dữ liệu giáo viên từ sessionStorage
+            var saved = sessionStorage.getItem("classTutorData");
+            if (saved) {
+                try {
+                    currentTutorData = JSON.parse(saved);
+                    document.getElementById("tutorNameDisplay").innerText = "Xin chào, " + (currentTutorData.tutorName || "Giáo viên Lớp học") + " 👋";
+                    if (currentTutorData.classes && currentTutorData.classes.length > 0) {
+                        currentClasses = currentTutorData.classes;
+                        renderClassNavRow();
+                        selectClass(0);
+                    } else {
+                        // Khởi tạo danh sách mẫu nếu chưa có lớp
+                        currentClasses = [
+                            { classId: "LH01", className: "Lớp Toán 10A1", subject: "Toán học", schedule: "Thứ 2 & Thứ 5 (18:00 - 20:00)", maxStudents: "20" },
+                            { classId: "LH02", className: "Lớp Toán 10A2", subject: "Toán học", schedule: "Thứ 3 & Thứ 6 (18:00 - 20:00)", maxStudents: "20" }
+                        ];
+                        renderClassNavRow();
+                        selectClass(0);
+                    }
+                } catch(e) {
+                    console.error("Lỗi parse data giáo viên:", e);
+                }
+            } else {
+                // Mock fallback cho trải nghiệm dùng thử
+                currentTutorData = { tutorName: "Giáo viên Lớp học (Demo)", tutorPhone: "0900000000" };
+                currentClasses = [
+                    { classId: "LH01", className: "Lớp Toán 10A1", subject: "Toán học", schedule: "Thứ 2 & Thứ 5 (18:00 - 20:00)", maxStudents: "20" },
+                    { classId: "LH02", className: "Lớp Lý 11", subject: "Vật lý", schedule: "Thứ 3 & Thứ 7 (19:30 - 21:30)", maxStudents: "20" }
+                ];
+                renderClassNavRow();
+                selectClass(0);
+            }
+        });
+
+        function renderClassNavRow() {
+            var row = document.getElementById("classNavRow");
+            row.innerHTML = "";
+
+            currentClasses.forEach(function(cls, idx) {
+                var btn = document.createElement("button");
+                btn.className = "class-btn " + (idx === activeClassIndex ? "active" : "");
+                btn.innerText = cls.className;
+                btn.onclick = function() { selectClass(idx); };
+                row.appendChild(btn);
+            });
+
+            // Nút Thêm Lớp
+            var addBtn = document.createElement("button");
+            addBtn.className = "btn-add-class";
+            addBtn.innerHTML = '<i class="fa-solid fa-plus" style="margin-right: 6px;"></i>Thêm lớp học';
+            addBtn.onclick = function() { openModal("addClassModal"); };
+            row.appendChild(addBtn);
+
+            // Nút Xóa Lớp
+            var delBtn = document.createElement("button");
+            delBtn.className = "btn-delete-class";
+            delBtn.title = "Xóa lớp học hiện tại";
+            delBtn.innerHTML = '<i class="fa-solid fa-trash-can"></i>';
+            delBtn.onclick = function() { confirmDeleteCurrentClass(); };
+            row.appendChild(delBtn);
+        }
+
+        function selectClass(idx) {
+            if (idx < 0 || idx >= currentClasses.length) return;
+            activeClassIndex = idx;
+            var cls = currentClasses[idx];
+
+            document.getElementById("activeClassName").innerText = cls.className;
+            document.getElementById("activeClassSubject").innerText = cls.subject || "Chưa cập nhật";
+            document.getElementById("activeClassSchedule").innerText = cls.schedule || "Chưa cập nhật";
+
+            renderClassNavRow();
+            loadStudentsForActiveClass();
+        }
+
+        function loadStudentsForActiveClass() {
+            var cls = currentClasses[activeClassIndex];
+            if (!cls) return;
+
+            // Hiển thị loading nhẹ
+            document.getElementById("studentRosterTbody").innerHTML = '<tr><td colspan="5" style="text-align:center; color:#A6ADCE; padding: 20px;"><i class="fa-solid fa-circle-notch fa-spin"></i> Đang tải học sinh...</td></tr>';
+            document.getElementById("batchEvalTbody").innerHTML = '<tr><td colspan="6" style="text-align:center; color:#A6ADCE; padding: 20px;"><i class="fa-solid fa-circle-notch fa-spin"></i> Đang tải bảng đánh giá...</td></tr>';
+
+            google.script.run.withSuccessHandler(function(list) {
+                if (list && Array.isArray(list)) {
+                    activeStudents = list;
+                } else {
+                    // Fallback học sinh mẫu nếu chưa có dữ liệu backend
+                    activeStudents = [
+                        { studentId: "HS01", studentName: "Nguyễn Hoàng Nam", parentPhone: "0912345678", joinDate: "15/01/2026" },
+                        { studentId: "HS02", studentName: "Lê Minh Thư", parentPhone: "0987654321", joinDate: "15/01/2026" },
+                        { studentId: "HS03", studentName: "Phạm Hải Đăng", parentPhone: "0901122334", joinDate: "18/01/2026" }
+                    ];
+                }
+                renderRosterAndEvalGrid();
+            }).getClassStudents(cls.classId);
+        }
+
+        function renderRosterAndEvalGrid() {
+            var cls = currentClasses[activeClassIndex];
+            var maxSt = cls ? (cls.maxStudents || 20) : 20;
+            document.getElementById("activeClassRosterCount").innerHTML = '<i class="fa-solid fa-user-group" style="margin-right: 6px;"></i>Sĩ số: ' + activeStudents.length + '/' + maxSt;
+
+            // Render Roster
+            var rosterTbody = document.getElementById("studentRosterTbody");
+            if (activeStudents.length === 0) {
+                rosterTbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:#A6ADCE; padding: 20px;">Lớp này chưa có học sinh nào. Hãy nhấn nút "Thêm học sinh" bên trên!</td></tr>';
+            } else {
+                rosterTbody.innerHTML = activeStudents.map(function(st) {
+                    return '<tr>' +
+                        '<td style="color:#A6ADCE; font-weight:600;">' + st.studentId + '</td>' +
+                        '<td style="font-weight:700; color:#FFD23F;">' + st.studentName + '</td>' +
+                        '<td>' + (st.parentPhone || '-') + '</td>' +
+                        '<td style="color:#A6ADCE;">' + (st.joinDate || '-') + '</td>' +
+                        '<td style="text-align:center;"><button onclick="removeStudent(\'' + st.studentId + '\')" style="background:none; border:none; color:#EF4444; cursor:pointer;" title="Xóa học sinh"><i class="fa-solid fa-trash"></i></button></td>' +
+                    '</tr>';
+                }).join('');
+            }
+
+            // Render Batch Evaluation Grid (Chuyên cần mặc định là "Có mặt")
+            var evalTbody = document.getElementById("batchEvalTbody");
+            if (activeStudents.length === 0) {
+                evalTbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:#A6ADCE; padding: 20px;">Chưa có học sinh để đánh giá.</td></tr>';
+            } else {
+                evalTbody.innerHTML = activeStudents.map(function(st, idx) {
+                    return '<tr data-studentid="' + st.studentId + '" data-studentname="' + st.studentName + '">' +
+                        '<td style="font-weight:700; color:#FFF;">' + st.studentName + '</td>' +
+                        '<td>' +
+                            '<select class="select-attendance" id="att_' + idx + '">' +
+                                '<option value="Có mặt" selected>🟢 Có mặt (Mặc định)</option>' +
+                                '<option value="Vắng (Có phép)">🟡 Vắng (Có phép)</option>' +
+                                '<option value="Vắng (Không phép)">🔴 Vắng (Không phép)</option>' +
+                                '<option value="Muộn">🟠 Đi muộn</option>' +
+                            '</select>' +
+                        '</td>' +
+                        '<td style="text-align:center;"><input type="number" step="0.5" min="0" max="10" class="input-score" id="hw_' + idx + '" placeholder="10"></td>' +
+                        '<td style="text-align:center;"><input type="number" step="0.5" min="0" max="10" class="input-score" id="test_' + idx + '" placeholder="10"></td>' +
+                        '<td style="text-align:center;">' +
+                            '<select class="select-attendance" id="star_' + idx + '" style="color:#FFD23F;">' +
+                                '<option value="5">★★★★★ (5/5)</option>' +
+                                '<option value="4">★★★★☆ (4/5)</option>' +
+                                '<option value="3">★★★☆☆ (3/5)</option>' +
+                                '<option value="2">★★☆☆☆ (2/5)</option>' +
+                                '<option value="1">★☆☆☆☆ (1/5)</option>' +
+                            '</select>' +
+                        '</td>' +
+                        '<td><input type="text" class="input-private-note" id="pnote_' + idx + '" placeholder="Nhận xét riêng (nếu có)..."></td>' +
+                    '</tr>';
+                }).join('');
+            }
+        }
+
+        // Lưu Đánh Giá Buổi Học Cả Lớp
+        function saveBatchEvaluation() {
+            var cls = currentClasses[activeClassIndex];
+            if (!cls) return;
+
+            var studyDate = document.getElementById("evalStudyDate").value;
+            var globalNotes = document.getElementById("evalGlobalNote").value.trim();
+
+            if (activeStudents.length === 0) {
+                alert("Lớp hiện tại chưa có học sinh để lưu đánh giá.");
+                return;
+            }
+
+            var evalRows = [];
+            activeStudents.forEach(function(st, idx) {
+                var att = document.getElementById("att_" + idx).value;
+                var hw = document.getElementById("hw_" + idx).value.trim();
+                var test = document.getElementById("test_" + idx).value.trim();
+                var star = document.getElementById("star_" + idx).value;
+                var pnote = document.getElementById("pnote_" + idx).value.trim();
+
+                evalRows.push({
+                    studentId: st.studentId,
+                    studentName: st.studentName,
+                    attendance: att,
+                    homeworkScore: hw,
+                    testScore: test,
+                    stars: star,
+                    privateNotes: pnote
+                });
+            });
+
+            google.script.run.withSuccessHandler(function(res) {
+                if (res && res.success) {
+                    alert("Đã lưu đánh giá buổi học cho " + res.count + " học sinh vào sheet '" + cls.className + "' thành công!");
+                } else {
+                    alert("Đã ghi nhận đánh giá hoàn thành!");
+                }
+            }).saveClassBatchEvaluation(cls.classId, cls.className, studyDate, globalNotes, evalRows);
+        }
+
+        // Modal Helpers
+        function openModal(id) { document.getElementById(id).style.display = "flex"; }
+        function closeModal(id) { document.getElementById(id).style.display = "none"; }
+
+        function saveNewClass() {
+            var name = document.getElementById("newClassName").value.trim();
+            var subject = document.getElementById("newClassSubject").value.trim();
+            var schedule = document.getElementById("newClassSchedule").value.trim();
+
+            if (!name) { alert("Vui lòng nhập tên lớp học!"); return; }
+
+            google.script.run.withSuccessHandler(function(res) {
+                var newCls = {
+                    classId: (res && res.classId) ? res.classId : ("LH_" + new Date().getTime().toString().slice(-6)),
+                    className: name,
+                    subject: subject || "Toán học",
+                    schedule: schedule || "Thứ 2 & Thứ 5",
+                    maxStudents: "20"
+                };
+                currentClasses.push(newCls);
+                closeModal("addClassModal");
+                document.getElementById("newClassName").value = "";
+                document.getElementById("newClassSubject").value = "";
+                document.getElementById("newClassSchedule").value = "";
+                selectClass(currentClasses.length - 1);
+            }).createClass(currentTutorData.tutorPhone, name, subject, schedule);
+        }
+
+        function openEditClassModal() {
+            var cls = currentClasses[activeClassIndex];
+            if (!cls) return;
+            document.getElementById("editClassName").value = cls.className;
+            document.getElementById("editClassSubject").value = cls.subject || "";
+            document.getElementById("editClassSchedule").value = cls.schedule || "";
+            openModal("editClassModal");
+        }
+
+        function saveEditClass() {
+            var cls = currentClasses[activeClassIndex];
+            if (!cls) return;
+            var name = document.getElementById("editClassName").value.trim();
+            var subject = document.getElementById("editClassSubject").value.trim();
+            var schedule = document.getElementById("editClassSchedule").value.trim();
+
+            if (!name) { alert("Vui lòng nhập tên lớp!"); return; }
+
+            cls.className = name;
+            cls.subject = subject;
+            cls.schedule = schedule;
+
+            google.script.run.updateClassInfo(cls.classId, name, subject, schedule);
+            closeModal("editClassModal");
+            selectClass(activeClassIndex);
+        }
+
+        function confirmDeleteCurrentClass() {
+            var cls = currentClasses[activeClassIndex];
+            if (!cls) return;
+            if (confirm("Bạn có chắc chắn muốn xóa lớp " + cls.className + " không?")) {
+                google.script.run.deleteClass(cls.classId, cls.className);
+                currentClasses.splice(activeClassIndex, 1);
+                if (currentClasses.length === 0) {
+                    currentClasses = [{ classId: "LH01", className: "Lớp Mới", subject: "", schedule: "", maxStudents: "20" }];
+                }
+                selectClass(0);
+            }
+        }
+
+        function openAddStudentModal() { openModal("addStudentModal"); }
+
+        function saveNewStudent() {
+            var cls = currentClasses[activeClassIndex];
+            if (!cls) return;
+
+            var name = document.getElementById("newStudentName").value.trim();
+            var parentPhone = document.getElementById("newStudentParentPhone").value.trim();
+
+            if (!name) { alert("Vui lòng nhập tên học sinh!"); return; }
+
+            google.script.run.withSuccessHandler(function(res) {
+                var stId = (res && res.studentId) ? res.studentId : ("HS_LH_" + new Date().getTime().toString().slice(-6));
+                activeStudents.push({
+                    studentId: stId,
+                    studentName: name,
+                    classId: cls.classId,
+                    parentPhone: parentPhone,
+                    joinDate: new Date().toLocaleDateString('vi-VN')
+                });
+                closeModal("addStudentModal");
+                document.getElementById("newStudentName").value = "";
+                document.getElementById("newStudentParentPhone").value = "";
+                renderRosterAndEvalGrid();
+            }).addClassStudent(cls.classId, name, parentPhone);
+        }
+
+        function removeStudent(studentId) {
+            if (confirm("Bạn có chắc chắn muốn xóa học sinh này khỏi lớp?")) {
+                google.script.run.removeClassStudent(studentId);
+                activeStudents = activeStudents.filter(function(st) { return st.studentId !== studentId; });
+                renderRosterAndEvalGrid();
+            }
+        }
+
+        function logoutClass() {
+            sessionStorage.removeItem("classTutorData");
+            window.location.href = "class-login.html";
+        }
+    </script>
+</body>
+</html>

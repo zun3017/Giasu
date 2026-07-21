@@ -121,6 +121,11 @@
                 return;
             }
             
+            if (ketQua.role === 'student' && ketQua.multipleStudents && ketQua.childrenList) {
+                hienThiTheChonCon(ketQua.childrenList, phone);
+                return;
+            }
+
             if (ketQua.role === 'student' && ketQua.data && ketQua.data.timThay) {
                 sessionStorage.setItem('userRole', 'student');
                 sessionStorage.setItem('userPhone', phone);
@@ -185,5 +190,41 @@
                     window.location.href = 'admin-dashboard.html';
                 }
             }
+        }
+
+        function hienThiTheChonCon(childrenList, phone) {
+            var modal = document.getElementById('childSelectorModal');
+            var container = document.getElementById('childrenBtnContainer');
+            if (!modal || !container) {
+                // Inline fallback if modal element is missing in DOM
+                var names = childrenList.map(function(c) { return c.name; }).join(', ');
+                alert('Tìm thấy các học sinh: ' + names + '. Vui lòng chọn con.');
+                return;
+            }
+            
+            container.innerHTML = '';
+            childrenList.forEach(function(child) {
+                var btn = document.createElement('button');
+                btn.className = 'btn-child-select';
+                btn.style.cssText = 'width: 100%; padding: 14px 20px; margin-bottom: 10px; background: linear-gradient(135deg, #8E4DFF, #5B2EFF); border: none; border-radius: 14px; color: #FFF; font-weight: 700; font-size: 15px; cursor: pointer; display: flex; align-items: center; justify-content: space-between; transition: all 0.2s ease; box-shadow: 0 4px 15px rgba(142,77,255,0.3);';
+                btn.innerHTML = '<span><i class="fa-solid fa-user-graduate" style="margin-right:10px; color:#FFD23F;"></i>' + child.name + '</span> <i class="fa-solid fa-chevron-right" style="font-size:12px; opacity:0.8;"></i>';
+                btn.onclick = function() {
+                    chonConVaDangNhap(phone, child.name);
+                };
+                container.appendChild(btn);
+            });
+            
+            modal.style.display = 'flex';
+        }
+
+        function chonConVaDangNhap(phone, childName) {
+            var modal = document.getElementById('childSelectorModal');
+            if (modal) modal.style.display = 'none';
+            var loadingText = document.getElementById('loadingText');
+            if (loadingText) loadingText.style.display = 'block';
+            
+            google.script.run.withSuccessHandler(function(ketQua) {
+                hienThiKetQua(ketQua, 'student', phone, '');
+            }).loginSystem(phone, '', childName);
         }
         
