@@ -776,7 +776,7 @@
                                 currentClasses = classes;
                                 currentTutorData.classes = classes;
                                 sessionStorage.setItem("classTutorData", JSON.stringify(currentTutorData));
-                                renderEmptyClassState();
+                                selectClass(0);
                             } else {
                                 currentClasses = [];
                                 renderEmptyClassState();
@@ -784,7 +784,7 @@
                         }).getClassList(phone);
                     } else if (currentTutorData.classes && currentTutorData.classes.length > 0) {
                         currentClasses = currentTutorData.classes;
-                        renderEmptyClassState();
+                        selectClass(0);
                     } else {
                         currentClasses = [];
                         renderEmptyClassState();
