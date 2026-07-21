@@ -142,6 +142,9 @@ function getClassStudents(classId) {
   var data = sheetStudents.getDataRange().getDisplayValues();
   for (var i = 1; i < data.length; i++) {
     if (data[i].length >= 3 && data[i][2] === classId) {
+      var deletedAt = (data[i].length > 8) ? data[i][8].trim() : "";
+      if (deletedAt !== "") continue; // Bỏ qua học sinh nằm trong Thùng rác
+      
       students.push({
         studentId: data[i][0],
         studentName: data[i][1],
@@ -177,7 +180,8 @@ function addClassStudent(classId, studentName, parentPhone, parentName, fee, hom
     joinDate,
     parentName || "",
     fee || "",
-    homeworkCode || ""
+    homeworkCode || "",
+    "" // Cột 9: Ngày xóa (Trống = Hoạt động)
   ]);
   
   return {
@@ -191,7 +195,34 @@ function addClassStudent(classId, studentName, parentPhone, parentName, fee, hom
   };
 }
 
-// Xóa Học sinh khỏi Lớp học
+// Chỉnh sửa thông tin Học sinh Lớp học
+function updateClassStudent(studentId, studentName, parentPhone, parentName, fee, homeworkCode) {
+  var ss = getClassSpreadsheet();
+  var sheetStudents = ss.getSheetByName('Học sinh lớp học');
+  if (!sheetStudents) return { success: false, error: "Không tìm thấy sheet học sinh." };
+  
+  var data = sheetStudents.getDataRange().getDisplayValues();
+  var rowIndex = -1;
+  for (var i = 1; i < data.length; i++) {
+    if (data[i][0] === studentId) {
+      rowIndex = i + 1;
+      break;
+    }
+  }
+  
+  if (rowIndex !== -1) {
+    sheetStudents.getRange(rowIndex, 2).setValue(studentName || "").setFontFamily("Arial");
+    sheetStudents.getRange(rowIndex, 4).setValue("'" + (parentPhone || "")).setFontFamily("Arial");
+    sheetStudents.getRange(rowIndex, 6).setValue(parentName || "").setFontFamily("Arial");
+    sheetStudents.getRange(rowIndex, 7).setValue(fee || "").setFontFamily("Arial");
+    sheetStudents.getRange(rowIndex, 8).setValue(homeworkCode || "").setFontFamily("Arial");
+    SpreadsheetApp.flush();
+    return { success: true };
+  }
+  return { success: false, error: "Không tìm thấy học sinh cần sửa." };
+}
+
+// Chuyển Học sinh Lớp học vào Thùng rác (Soft delete)
 function removeClassStudent(studentId) {
   var ss = getClassSpreadsheet();
   var sheetStudents = ss.getSheetByName('Học sinh lớp học');
@@ -199,7 +230,69 @@ function removeClassStudent(studentId) {
     var data = sheetStudents.getDataRange().getDisplayValues();
     for (var i = 1; i < data.length; i++) {
       if (data[i][0] === studentId) {
+        var nowStr = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), "dd/MM/yyyy HH:mm");
+        sheetStudents.getRange(i + 1, 9).setValue(nowStr);
+        SpreadsheetApp.flush();
+        break;
+      }
+    }
+  }
+  return { success: true };
+}
+
+// Lấy danh sách Học sinh trong Thùng rác của Lớp học
+function getClassTrashStudents(classId) {
+  var ss = getClassSpreadsheet();
+  var sheetStudents = ss.getSheetByName('Học sinh lớp học');
+  var trashList = [];
+  if (!sheetStudents) return trashList;
+  
+  var data = sheetStudents.getDataRange().getDisplayValues();
+  for (var i = 1; i < data.length; i++) {
+    if (data[i].length >= 3 && data[i][2] === classId) {
+      var deletedAt = (data[i].length > 8) ? data[i][8].trim() : "";
+      if (deletedAt !== "") {
+        trashList.push({
+          studentId: data[i][0],
+          studentName: data[i][1],
+          classId: data[i][2],
+          parentPhone: data[i][3] || "",
+          parentName: data[i][5] || "",
+          deletedAt: deletedAt
+        });
+      }
+    }
+  }
+  return trashList;
+}
+
+// Khôi phục Học sinh từ Thùng rác Lớp học
+function restoreClassStudent(studentId) {
+  var ss = getClassSpreadsheet();
+  var sheetStudents = ss.getSheetByName('Học sinh lớp học');
+  if (sheetStudents) {
+    var data = sheetStudents.getDataRange().getDisplayValues();
+    for (var i = 1; i < data.length; i++) {
+      if (data[i][0] === studentId) {
+        sheetStudents.getRange(i + 1, 9).setValue("");
+        SpreadsheetApp.flush();
+        break;
+      }
+    }
+  }
+  return { success: true };
+}
+
+// Xóa vĩnh viễn Học sinh khỏi Sheet Lớp học
+function deleteClassStudentPermanently(studentId) {
+  var ss = getClassSpreadsheet();
+  var sheetStudents = ss.getSheetByName('Học sinh lớp học');
+  if (sheetStudents) {
+    var data = sheetStudents.getDataRange().getDisplayValues();
+    for (var i = 1; i < data.length; i++) {
+      if (data[i][0] === studentId) {
         sheetStudents.deleteRow(i + 1);
+        SpreadsheetApp.flush();
         break;
       }
     }
@@ -720,4 +813,81 @@ function deleteClassHomework(hwId) {
     }
   }
   return { success: true };
+}
+
+// Đồng bộ trạng thái đóng học phí của học sinh lớp học trong JSON
+function updateClassStudentPaymentStatus(logId, studentId, isPaid) {
+  var lock = LockService.getScriptLock();
+  try {
+    lock.waitLock(10000);
+    var ss = getClassSpreadsheet();
+    var sheet = ss.getSheetByName('Nhật ký học tập lớp');
+    if (!sheet) return { success: false, error: "Không tìm thấy sheet 'Nhật ký học tập lớp'." };
+    
+    var data = sheet.getDataRange().getDisplayValues();
+    var rowIndex = -1;
+    for (var i = 1; i < data.length; i++) {
+      if (data[i][0] === logId) {
+        rowIndex = i + 1;
+        break;
+      }
+    }
+    
+    if (rowIndex !== -1) {
+      var jsonCell = sheet.getRange(rowIndex, 12);
+      var jsonStr = jsonCell.getValue() || "{}";
+      var studentNotes = {};
+      try {
+        studentNotes = JSON.parse(jsonStr);
+      } catch(e) {
+        studentNotes = {};
+      }
+      
+      if (!studentNotes[studentId]) {
+        studentNotes[studentId] = {
+          studentName: "Học sinh",
+          attendance: "Có mặt",
+          privateNote: ""
+        };
+      }
+      
+      studentNotes[studentId].paid = (isPaid === true || isPaid === "true");
+      
+      jsonCell.setValue(JSON.stringify(studentNotes));
+      SpreadsheetApp.flush();
+      return { success: true };
+    }
+    return { success: false, error: "Không tìm thấy mã nhật ký." };
+  } catch(e) {
+    return { success: false, error: e.toString() };
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+// Lấy danh sách các bài nộp của cả lớp từ sheet Bài tập nộp lớp
+function getClassSubmissions(classId) {
+  var ss = getClassSpreadsheet();
+  var sheet = ss.getSheetByName('Bài tập nộp lớp');
+  var submissions = [];
+  if (!sheet) return submissions;
+  
+  var data = sheet.getDataRange().getDisplayValues();
+  var cleanClassId = String(classId || "").trim();
+  for (var i = 1; i < data.length; i++) {
+    if (data[i].length >= 8 && String(data[i][3]).trim() === cleanClassId) {
+      submissions.push({
+        subId: data[i][0],
+        hwId: data[i][1],
+        title: data[i][2],
+        classId: data[i][3],
+        studentId: data[i][4],
+        studentName: data[i][5],
+        fileUrl: data[i][6],
+        submittedAt: data[i][7]
+      });
+    }
+  }
+  submissions.reverse();
+  return submissions;
 }

@@ -126,9 +126,9 @@ var currentStudentName = "";
                     // Chỉ tính toán nếu buổi học nằm trong tháng hiện tại
                     if (parsedDate && parsedDate.year === currentYear && parsedDate.month === currentMonth) {
                         var tt = (item.trangThai || "").trim().toLowerCase();
-                        if (tt === "đã học" || tt === "học bù") {
+                        if (tt === "đã học" || tt === "học bù" || tt === "có mặt" || tt === "đi muộn") {
                             buoiHocThangNay++;
-                        } else if (tt.indexOf("hủy") !== -1 || tt.indexOf("nghỉ") !== -1) {
+                        } else if (tt.indexOf("hủy") !== -1 || tt.indexOf("nghỉ") !== -1 || tt === "vắng" || tt === "vắng mặt") {
                             buoiNghiThangNay++;
                         }
 
@@ -349,9 +349,13 @@ var currentStudentName = "";
                 if (totalBuoi > 0) {
                     var getStatusBadge = function(trangThai) {
                         var tt = (trangThai || "").trim().toLowerCase();
-                        if (tt === "đã học") return '<span class="status-badge badge-dahoc">Đã học</span>';
+                        if (tt === "đã học" || tt === "có mặt") return '<span class="status-badge badge-dahoc">Có mặt</span>';
                         if (tt === "học bù") return '<span class="status-badge badge-hocbu">Học bù</span>';
-                        if (tt.indexOf("hủy") !== -1 || tt.indexOf("nghỉ") !== -1) return '<span class="status-badge badge-nghi">Hủy/Nghỉ</span>';
+                        if (tt === "đi muộn") return '<span class="status-badge badge-hocbu" style="background:rgba(245,158,11,0.15); border-color:rgba(245,158,11,0.4); color:#F59E0B;">Đi muộn</span>';
+                        if (tt.indexOf("hủy") !== -1 || tt.indexOf("nghỉ") !== -1 || tt === "vắng" || tt === "vắng mặt") {
+                            var label = (tt === "cả lớp nghỉ") ? "Cả lớp nghỉ" : "Vắng";
+                            return '<span class="status-badge badge-nghi">' + label + '</span>';
+                        }
                         return '<span class="status-badge" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15); color: #FFF;">' + trangThai + '</span>';
                     };
                     var getBtvnBadge = function(btvn) {
