@@ -642,6 +642,13 @@
                 <label>Lịch học cố định hàng tuần</label>
                 <input type="text" id="newClassSchedule" class="form-control" placeholder="Ví dụ: Thứ 2 & Thứ 5 (18:00 - 20:00)">
             </div>
+            <div class="form-group">
+                <label>Hình thức thu học phí</label>
+                <select id="newClassFeeType" class="form-control" style="background:#130D3A; color:#FFF; border-radius:12px; padding:12px;">
+                    <option value="per_session">🟢 Thu theo buổi (Đơn giá × Số buổi)</option>
+                    <option value="monthly">🟣 Trọn gói theo tháng (Học phí cố định/tháng)</option>
+                </select>
+            </div>
             <button onclick="saveNewClass()" style="width: 100%; padding: 13px; background: linear-gradient(135deg, #8E4DFF, #5B2EFF); border: none; border-radius: 12px; color: #FFF; font-weight: bold; font-size: 15px; cursor: pointer; margin-top: 10px;">
                 Tạo Lớp Học & Khởi Tạo Sheet <i class="fa-solid fa-arrow-right" style="margin-left: 6px;"></i>
             </button>
@@ -666,6 +673,13 @@
             <div class="form-group">
                 <label>Lịch học cố định</label>
                 <input type="text" id="editClassSchedule" class="form-control">
+            </div>
+            <div class="form-group">
+                <label>Hình thức thu học phí mặc định của lớp</label>
+                <select id="editClassFeeType" class="form-control" style="background:#130D3A; color:#FFF; border-radius:12px; padding:12px;">
+                    <option value="per_session">🟢 Thu theo buổi (Đơn giá × Số buổi)</option>
+                    <option value="monthly">🟣 Trọn gói theo tháng (Học phí cố định/tháng)</option>
+                </select>
             </div>
             <button onclick="saveEditClass()" style="width: 100%; padding: 13px; background: linear-gradient(135deg, #8E4DFF, #5B2EFF); border: none; border-radius: 12px; color: #FFF; font-weight: bold; font-size: 15px; cursor: pointer; margin-top: 10px;">
                 Cập Nhật Thông Tin <i class="fa-solid fa-check" style="margin-left: 6px;"></i>
@@ -699,8 +713,17 @@
             </div>
 
             <div class="form-group" style="margin-bottom: 16px;">
-                <label style="display: block; color: #A6ADCE; font-size: 11.5px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 6px;">HỌC PHÍ / BUỔI (VNĐ)</label>
-                <input type="number" id="newStudentFee" class="form-control" placeholder="Ví dụ: 200000" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 13px 16px; color: #FFF; font-size: 14px; width: 100%; outline: none;">
+                <label style="display: block; color: #A6ADCE; font-size: 11.5px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 6px;">HỌC PHÍ (VNĐ)</label>
+                <input type="number" id="newStudentFee" class="form-control" placeholder="Ví dụ: 75000 (buổi) hoặc 600000 (tháng)" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 13px 16px; color: #FFF; font-size: 14px; width: 100%; outline: none;">
+            </div>
+
+            <div class="form-group" style="margin-bottom: 16px;">
+                <label style="display: block; color: #A6ADCE; font-size: 11.5px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 6px;">HÌNH THỨC THU HỌC PHÍ</label>
+                <select id="newStudentFeeType" class="form-control" style="background: #130D3A; border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 13px 16px; color: #FFF; font-size: 14px; width: 100%; outline: none;">
+                    <option value="">Theo mặc định của lớp</option>
+                    <option value="per_session">🟢 Thu theo buổi (Đơn giá × Số buổi)</option>
+                    <option value="monthly">🟣 Trọn gói theo tháng (Học phí cố định/tháng)</option>
+                </select>
             </div>
 
             <div class="form-group" style="margin-bottom: 20px;">
@@ -737,15 +760,23 @@
                 <label style="display: block; color: #A6ADCE; font-size: 11.5px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 6px;">SỐ ĐIỆN THOẠI PHỤ HUYNH <span style="color: #EF4444;">*</span></label>
                 <input type="text" id="editParentPhone" class="form-control" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 13px 16px; color: #FFF; font-size: 14px; width: 100%; outline: none;">
             </div>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 22px;">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px;">
                 <div>
-                    <label style="display: block; color: #A6ADCE; font-size: 11.5px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 6px;">HỌC PHÍ / BUỔI (VNĐ) <span style="color: #EF4444;">*</span></label>
+                    <label style="display: block; color: #A6ADCE; font-size: 11.5px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 6px;">HỌC PHÍ (VNĐ) <span style="color: #EF4444;">*</span></label>
                     <input type="number" id="editStudentFee" class="form-control" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 13px 16px; color: #10B981; font-weight: 700; font-size: 14px; width: 100%; outline: none;">
                 </div>
                 <div>
                     <label style="display: block; color: #A6ADCE; font-size: 11.5px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 6px;">MÃ BÀI TẬP (NỘP BÀI) <span style="color: #EF4444;">*</span></label>
                     <input type="text" id="editHomeworkCode" class="form-control" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 13px 16px; color: #FFD23F; font-weight: 700; font-size: 14px; width: 100%; outline: none;">
                 </div>
+            </div>
+            <div class="form-group" style="margin-bottom: 22px;">
+                <label style="display: block; color: #A6ADCE; font-size: 11.5px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 6px;">HÌNH THỨC THU HỌC PHÍ</label>
+                <select id="editStudentFeeType" class="form-control" style="background: #130D3A; border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 13px 16px; color: #FFF; font-size: 14px; width: 100%; outline: none;">
+                    <option value="">Theo mặc định của lớp</option>
+                    <option value="per_session">🟢 Thu theo buổi (Đơn giá × Số buổi)</option>
+                    <option value="monthly">🟣 Trọn gói theo tháng (Học phí cố định/tháng)</option>
+                </select>
             </div>
             <div style="display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap;">
                 <button onclick="deleteStudentFromEditModal()" style="padding: 12px 18px; background: rgba(239, 68, 68, 0.15); border: 1px dashed #EF4444; border-radius: 12px; color: #FCA5A5; font-weight: 700; font-size: 13.5px; cursor: pointer; outline: none; display: flex; align-items: center; gap: 6px;" title="Chuyển học sinh này vào thùng rác">
@@ -908,7 +939,7 @@
         </div>
     </div>
 
-    <script src="js/api.js?v=1.7.0"></script>
+    <script src="js/api.js?v=1.7.1"></script>
     <script>
         var currentTutorData = null;
         var currentClasses = [];
@@ -1106,13 +1137,18 @@
                 rosterTbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color:#A6ADCE; padding: 20px;">Lớp này chưa có học sinh nào. Hãy nhấn nút "+ Thêm học sinh mới" bên trên!</td></tr>';
             } else {
                 rosterTbody.innerHTML = activeStudents.map(function(st) {
+                    var effectiveType = st.feeType || (cls ? cls.feeType : "per_session") || "per_session";
+                    var feeBadge = effectiveType === 'monthly' 
+                        ? '<span style="font-size:10.5px; padding:2px 6px; background:rgba(142,77,255,0.2); border:1px solid rgba(142,77,255,0.4); border-radius:8px; color:#C4B5FD; margin-left:4px;">/tháng</span>' 
+                        : '<span style="font-size:10.5px; padding:2px 6px; background:rgba(16,185,129,0.2); border:1px solid rgba(16,185,129,0.4); border-radius:8px; color:#6EE7B7; margin-left:4px;">/buổi</span>';
+                    
                     return '<tr>' +
                         '<td style="color:#A6ADCE; font-weight:600;">' + st.studentId + '</td>' +
                         '<td style="font-weight:700; color:#FFD23F;">' + st.studentName + '</td>' +
                         '<td>' + (st.parentName || '-') + '</td>' +
                         '<td>' + (st.parentPhone || '-') + '</td>' +
                         '<td style="color:#8E4DFF; font-weight:700;">' + (st.homeworkCode || '-') + '</td>' +
-                        '<td style="color:#10B981; font-weight:600;">' + (st.fee ? (parseInt(st.fee).toLocaleString('vi-VN') + ' đ') : '-') + '</td>' +
+                        '<td style="color:#10B981; font-weight:600;">' + (st.fee ? (parseInt(st.fee).toLocaleString('vi-VN') + ' đ' + feeBadge) : '-') + '</td>' +
                         '<td style="text-align:center; display:flex; justify-content:center; align-items:center; gap:8px;">' +
                             '<button onclick="openClassInvoice(\'' + st.studentId + '\')" style="background:rgba(255,210,63,0.1); border:1px solid rgba(255,210,63,0.3); color:#FFD23F; cursor:pointer; padding:6px 10px; border-radius:15px; font-weight:700; font-size:12px; display:inline-flex; align-items:center; gap:4px;" title="Xuất hóa đơn"><i class="fa-solid fa-file-invoice-dollar"></i> Hóa đơn</button>' +
                             '<button onclick="openEditClassStudentModal(\'' + st.studentId + '\')" style="background:rgba(142,77,255,0.1); border:1px solid rgba(142,77,255,0.3); color:#C4B5FD; cursor:pointer; padding:6px 10px; border-radius:15px; font-weight:700; font-size:12px; display:inline-flex; align-items:center; gap:4px;" title="Chỉnh sửa thông tin học sinh"><i class="fa-solid fa-pen-to-square"></i> Sửa</button>' +
@@ -1132,6 +1168,7 @@
             var name = document.getElementById("newClassName").value.trim();
             var subject = document.getElementById("newClassSubject").value.trim();
             var schedule = document.getElementById("newClassSchedule").value.trim();
+            var feeType = document.getElementById("newClassFeeType").value;
 
             if (!name) { alert("Vui lòng nhập tên lớp học!"); return; }
 
@@ -1141,7 +1178,8 @@
                     className: name,
                     subject: subject || "Toán học",
                     schedule: schedule || "Thứ 2 & Thứ 5",
-                    maxStudents: "20"
+                    maxStudents: "20",
+                    feeType: feeType || "per_session"
                 };
                 currentClasses.push(newCls);
                 closeModal("addClassModal");
@@ -1149,7 +1187,7 @@
                 document.getElementById("newClassSubject").value = "";
                 document.getElementById("newClassSchedule").value = "";
                 selectClass(currentClasses.length - 1);
-            }).createClass(currentTutorData.tutorPhone, name, subject, schedule);
+            }).createClass(currentTutorData.tutorPhone, name, subject, schedule, feeType);
         }
 
         function openEditClassModal() {
@@ -1158,6 +1196,7 @@
             document.getElementById("editClassName").value = cls.className;
             document.getElementById("editClassSubject").value = cls.subject || "";
             document.getElementById("editClassSchedule").value = cls.schedule || "";
+            document.getElementById("editClassFeeType").value = cls.feeType || "per_session";
             openModal("editClassModal");
         }
 
@@ -1167,14 +1206,16 @@
             var name = document.getElementById("editClassName").value.trim();
             var subject = document.getElementById("editClassSubject").value.trim();
             var schedule = document.getElementById("editClassSchedule").value.trim();
+            var feeType = document.getElementById("editClassFeeType").value;
 
             if (!name) { alert("Vui lòng nhập tên lớp!"); return; }
 
             cls.className = name;
             cls.subject = subject;
             cls.schedule = schedule;
+            cls.feeType = feeType;
 
-            google.script.run.updateClassInfo(cls.classId, name, subject, schedule);
+            google.script.run.updateClassInfo(cls.classId, name, subject, schedule, feeType);
             closeModal("editClassModal");
             selectClass(activeClassIndex);
         }
@@ -1208,6 +1249,7 @@
             var parentPhone = document.getElementById("newStudentParentPhone").value.trim();
             var fee = document.getElementById("newStudentFee").value.trim();
             var homeworkCode = document.getElementById("newStudentHomeworkCode").value.trim();
+            var feeType = document.getElementById("newStudentFeeType").value;
 
             if (!name) { alert("Vui lòng nhập họ và tên học sinh!"); return; }
 
@@ -1221,6 +1263,7 @@
                     parentName: parentName,
                     fee: fee,
                     homeworkCode: homeworkCode,
+                    feeType: feeType || "",
                     joinDate: new Date().toLocaleDateString('vi-VN')
                 });
                 closeModal("addStudentModal");
@@ -1229,8 +1272,9 @@
                 document.getElementById("newStudentParentPhone").value = "";
                 document.getElementById("newStudentFee").value = "";
                 document.getElementById("newStudentHomeworkCode").value = "";
+                document.getElementById("newStudentFeeType").value = "";
                 renderRosterAndEvalGrid();
-            }).addClassStudent(cls.classId, name, parentPhone, parentName, fee, homeworkCode);
+            }).addClassStudent(cls.classId, name, parentPhone, parentName, fee, homeworkCode, feeType);
         }
 
         function removeStudent(studentId) {
@@ -1262,6 +1306,7 @@
             document.getElementById("editParentPhone").value = st.parentPhone || "";
             document.getElementById("editStudentFee").value = st.fee || "";
             document.getElementById("editHomeworkCode").value = st.homeworkCode || "";
+            document.getElementById("editStudentFeeType").value = st.feeType || "";
             
             openModal("editClassStudentModal");
         }
@@ -1274,6 +1319,7 @@
             var parentPhone = document.getElementById("editParentPhone").value.trim();
             var fee = document.getElementById("editStudentFee").value.trim();
             var homeworkCode = document.getElementById("editHomeworkCode").value.trim();
+            var feeType = document.getElementById("editStudentFeeType").value;
 
             if (!name || !parentPhone || !fee) {
                 alert("Vui lòng nhập đầy đủ các trường bắt buộc!");
@@ -1287,7 +1333,7 @@
                 } else {
                     alert("Lỗi cập nhật: " + (res.error || "Chưa xác định"));
                 }
-            }).updateClassStudent(studentId, name, parentPhone, parentName, fee, homeworkCode);
+            }).updateClassStudent(studentId, name, parentPhone, parentName, fee, homeworkCode, feeType);
         }
 
         // 3. Mở Thùng Rác Học Sinh Lớp Học
@@ -1782,16 +1828,34 @@
             document.getElementById("invHwDone").innerText = doneHwCount + " buổi";
             document.getElementById("invHwMiss").innerText = missHwCount + " buổi";
             
-            var totalFee = unpaidClasses * feePerClass;
-            document.getElementById("invFeeCalcText").innerText = "Học phí chưa đóng (" + feePerClass.toLocaleString('vi-VN') + "đ × " + unpaidClasses + "):";
-            document.getElementById("invFeeCalcTotal").innerText = totalFee.toLocaleString('vi-VN') + " VNĐ";
-            document.getElementById("invGrandTotal").innerText = totalFee.toLocaleString('vi-VN') + " đ";
-            
             var cls = currentClasses[activeClassIndex];
-            var msg = "Dạ em chào anh/chị, em gửi anh chị phiếu học tập tổng hợp của bé " + student.studentName + " (Lớp: " + cls.className + ") ạ.\n" +
-                "Tổng số buổi học chưa đóng phí là " + unpaidClasses + " buổi, thành tiền học phí là " + totalFee.toLocaleString('vi-VN') + " VNĐ.\n" +
-                "Anh/chị quét mã QR trên phiếu để thanh toán giúp em nhé. Em cảm ơn ạ!";
-            document.getElementById("invTextarea").value = msg;
+            var effectiveFeeType = student.feeType || (cls ? cls.feeType : "per_session") || "per_session";
+
+            var totalFee = 0;
+            if (effectiveFeeType === "monthly") {
+                // Đóng học phí cố định trọn gói theo tháng
+                totalFee = (unpaidClasses > 0) ? feePerClass : 0;
+                document.getElementById("invFeeCalcText").innerText = "Học phí trọn gói tháng (Đã học " + (presentClasses + lateClasses) + " buổi):";
+                document.getElementById("invFeeCalcTotal").innerText = feePerClass.toLocaleString('vi-VN') + " VNĐ/tháng";
+                document.getElementById("invGrandTotal").innerText = totalFee.toLocaleString('vi-VN') + " đ";
+                
+                var msg = "Dạ em chào anh/chị, em gửi anh chị phiếu học tập tổng hợp của bé " + student.studentName + " (Lớp: " + (cls ? cls.className : "") + ") ạ.\n" +
+                    "Học phí trọn gói tháng này là " + feePerClass.toLocaleString('vi-VN') + " VNĐ.\n" +
+                    (totalFee === 0 ? "Trạng thái: Đã hoàn tất đóng học phí tháng này.\n" : "Trạng thái: Chưa đóng học phí tháng này.\n") +
+                    "Anh/chị quét mã QR trên phiếu để thanh toán giúp em nhé. Em cảm ơn ạ!";
+                document.getElementById("invTextarea").value = msg;
+            } else {
+                // Thu theo buổi
+                totalFee = unpaidClasses * feePerClass;
+                document.getElementById("invFeeCalcText").innerText = "Học phí chưa đóng (" + feePerClass.toLocaleString('vi-VN') + "đ × " + unpaidClasses + " buổi):";
+                document.getElementById("invFeeCalcTotal").innerText = totalFee.toLocaleString('vi-VN') + " VNĐ";
+                document.getElementById("invGrandTotal").innerText = totalFee.toLocaleString('vi-VN') + " đ";
+                
+                var msg = "Dạ em chào anh/chị, em gửi anh chị phiếu học tập tổng hợp của bé " + student.studentName + " (Lớp: " + (cls ? cls.className : "") + ") ạ.\n" +
+                    "Tổng số buổi học chưa đóng phí là " + unpaidClasses + " buổi, thành tiền học phí là " + totalFee.toLocaleString('vi-VN') + " VNĐ.\n" +
+                    "Anh/chị quét mã QR trên phiếu để thanh toán giúp em nhé. Em cảm ơn ạ!";
+                document.getElementById("invTextarea").value = msg;
+            }
         }
 
         function toggleClassStudentPayment(checkbox) {

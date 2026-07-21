@@ -15,9 +15,19 @@ function getClassSpreadsheet() {
 
 function getOrCreateClassEvaluationSheet(ss, className) {
   if (!ss) ss = getClassSpreadsheet();
-  var cleanName = String(className || "Mới").trim();
-  var sheetName = "Bảng đánh giá học tập dành cho lớp học (" + cleanName + ")";
+  var cleanName = String(className || "Lớp mới").trim();
+  var sheetName = cleanName;
   var sheet = ss.getSheetByName(sheetName);
+  
+  // Kiểm tra nếu chưa có sheet tên mới thì thử tìm sheet tên cũ để tự động đổi tên
+  if (!sheet) {
+    var oldSheetName = "Bảng đánh giá học tập dành cho lớp học (" + cleanName + ")";
+    var oldSheet = ss.getSheetByName(oldSheetName);
+    if (oldSheet) {
+      oldSheet.setName(sheetName);
+      sheet = oldSheet;
+    }
+  }
   
   if (!sheet) {
     // Thử clone từ sheet mẫu 'Bảng đánh giá học tập ' nếu có, hoặc tạo mới với tiêu đề chuẩn
@@ -48,8 +58,8 @@ function getClassList(tutorPhone) {
   if (!sheetClasses) {
     // Khởi tạo sheet Danh sách lớp học nếu chưa có
     sheetClasses = ss.insertSheet('Danh sách lớp học');
-    sheetClasses.appendRow(["Mã lớp", "Tên lớp", "SĐT Gia sư", "Môn học", "Lịch học cố định", "Sĩ số tối đa"]);
-    sheetClasses.getRange(1, 1, 1, 6).setFontWeight("bold").setBackground("#5B2EFF").setFontColor("#FFFFFF");
+    sheetClasses.appendRow(["Mã lớp", "Tên lớp", "SĐT Gia sư", "Môn học", "Lịch học cố định", "Sĩ số tối đa", "Loại học phí"]);
+    sheetClasses.getRange(1, 1, 1, 7).setFontWeight("bold").setBackground("#5B2EFF").setFontColor("#FFFFFF");
     return classes;
   }
   
@@ -64,7 +74,8 @@ function getClassList(tutorPhone) {
           tutorPhone: data[i][2],
           subject: data[i][3] || "",
           schedule: data[i][4] || "",
-          maxStudents: data[i][5] || "20"
+          maxStudents: data[i][5] || "20",
+          feeType: (data[i].length > 6 && data[i][6]) ? data[i][6] : "per_session"
         });
       }
     }
@@ -73,7 +84,7 @@ function getClassList(tutorPhone) {
 }
 
 // Tạo Lớp học mới
-function createClass(tutorPhone, className, subject, schedule) {
+function createClass(tutorPhone, className, subject, schedule, feeType) {
   var ss = getClassSpreadsheet();
   var normPhone = normalizePhone(tutorPhone);
   var sheetClasses = ss.getSheetByName('Danh sách lớp học');
@@ -86,13 +97,13 @@ function createClass(tutorPhone, className, subject, schedule) {
   var classId = "LH_" + new Date().getTime().toString().slice(-6);
   var cleanClassName = String(className).trim();
   
-  sheetClasses.appendRow([classId, cleanClassName, tutorPhone, subject || "", schedule || "", "20"]);
+  sheetClasses.appendRow([classId, cleanClassName, tutorPhone, subject || "", schedule || "", "20", feeType || "per_session"]);
   
-  return { success: true, classId: classId, className: cleanClassName };
+  return { success: true, classId: classId, className: cleanClassName, feeType: feeType || "per_session" };
 }
 
-// Cập nhật thông tin Lớp học (Tên lớp, Lịch dạy, Môn học)
-function updateClassInfo(classId, className, subject, schedule) {
+// Cập nhật thông tin Lớp học (Tên lớp, Lịch dạy, Môn học, Loại học phí)
+function updateClassInfo(classId, className, subject, schedule, feeType) {
   var ss = getClassSpreadsheet();
   var sheetClasses = ss.getSheetByName('Danh sách lớp học');
   if (!sheetClasses) return { error: "Không tìm thấy sheet Danh sách lớp học." };
@@ -100,10 +111,21 @@ function updateClassInfo(classId, className, subject, schedule) {
   var data = sheetClasses.getDataRange().getDisplayValues();
   for (var i = 1; i < data.length; i++) {
     if (data[i][0] === classId) {
+      var oldClassName = data[i][1];
       sheetClasses.getRange(i + 1, 2).setValue(className);
       sheetClasses.getRange(i + 1, 4).setValue(subject);
       sheetClasses.getRange(i + 1, 5).setValue(schedule);
+      sheetClasses.getRange(i + 1, 7).setValue(feeType || "per_session");
       
+      // Nếu đổi tên lớp, tự động đổi tên Tab Sheet tương ứng
+      if (oldClassName && oldClassName !== className) {
+        var oldSheet = ss.getSheetByName(oldClassName) || ss.getSheetByName("Bảng đánh giá học tập dành cho lớp học (" + oldClassName + ")");
+        if (oldSheet) {
+          oldSheet.setName(className);
+        }
+      }
+      
+      SpreadsheetApp.flush();
       return { success: true };
     }
   }
@@ -134,8 +156,8 @@ function getClassStudents(classId) {
   
   if (!sheetStudents) {
     sheetStudents = ss.insertSheet('Học sinh lớp học');
-    sheetStudents.appendRow(["Mã học sinh", "Tên học sinh", "Mã lớp", "SĐT Phụ huynh", "Ngày tham gia", "Tên phụ huynh", "Học phí/buổi", "Mã bài tập"]);
-    sheetStudents.getRange(1, 1, 1, 8).setFontWeight("bold").setBackground("#8E4DFF").setFontColor("#FFFFFF");
+    sheetStudents.appendRow(["Mã học sinh", "Tên học sinh", "Mã lớp", "SĐT Phụ huynh", "Ngày tham gia", "Tên phụ huynh", "Học phí/buổi", "Mã bài tập", "Ngày xóa", "Loại học phí"]);
+    sheetStudents.getRange(1, 1, 1, 10).setFontWeight("bold").setBackground("#8E4DFF").setFontColor("#FFFFFF");
     return students;
   }
   
@@ -153,15 +175,16 @@ function getClassStudents(classId) {
         joinDate: data[i][4] || "",
         parentName: data[i][5] || "",
         fee: data[i][6] || "",
-        homeworkCode: data[i][7] || ""
+        homeworkCode: data[i][7] || "",
+        feeType: (data[i].length > 9 && data[i][9]) ? data[i][9] : ""
       });
     }
   }
   return students;
 }
 
-// Thêm Học sinh mới vào Lớp học (Đầy đủ thông tin Phụ huynh, Học phí, Mã bài tập)
-function addClassStudent(classId, studentName, parentPhone, parentName, fee, homeworkCode) {
+// Thêm Học sinh mới vào Lớp học (Đầy đủ thông tin Phụ huynh, Học phí, Mã bài tập, Loại học phí)
+function addClassStudent(classId, studentName, parentPhone, parentName, fee, homeworkCode, feeType) {
   var ss = getClassSpreadsheet();
   var sheetStudents = ss.getSheetByName('Học sinh lớp học');
   if (!sheetStudents) {
@@ -181,7 +204,8 @@ function addClassStudent(classId, studentName, parentPhone, parentName, fee, hom
     parentName || "",
     fee || "",
     homeworkCode || "",
-    "" // Cột 9: Ngày xóa (Trống = Hoạt động)
+    "", // Cột 9: Ngày xóa (Trống = Hoạt động)
+    feeType || "" // Cột 10: Loại học phí (Trống = dùng loại mặc định của lớp)
   ]);
   
   return {
@@ -191,12 +215,13 @@ function addClassStudent(classId, studentName, parentPhone, parentName, fee, hom
     parentPhone: parentPhone,
     parentName: parentName,
     fee: fee,
-    homeworkCode: homeworkCode
+    homeworkCode: homeworkCode,
+    feeType: feeType || ""
   };
 }
 
 // Chỉnh sửa thông tin Học sinh Lớp học
-function updateClassStudent(studentId, studentName, parentPhone, parentName, fee, homeworkCode) {
+function updateClassStudent(studentId, studentName, parentPhone, parentName, fee, homeworkCode, feeType) {
   var ss = getClassSpreadsheet();
   var sheetStudents = ss.getSheetByName('Học sinh lớp học');
   if (!sheetStudents) return { success: false, error: "Không tìm thấy sheet học sinh." };
@@ -216,6 +241,7 @@ function updateClassStudent(studentId, studentName, parentPhone, parentName, fee
     sheetStudents.getRange(rowIndex, 6).setValue(parentName || "").setFontFamily("Arial");
     sheetStudents.getRange(rowIndex, 7).setValue(fee || "").setFontFamily("Arial");
     sheetStudents.getRange(rowIndex, 8).setValue(homeworkCode || "").setFontFamily("Arial");
+    sheetStudents.getRange(rowIndex, 10).setValue(feeType || "").setFontFamily("Arial");
     SpreadsheetApp.flush();
     return { success: true };
   }
