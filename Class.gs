@@ -65,9 +65,10 @@ function getClassList(tutorPhone) {
   
   var data = sheetClasses.getDataRange().getDisplayValues();
   for (var i = 1; i < data.length; i++) {
-    if (data[i].length >= 3) {
+    if (data[i].length >= 2 && data[i][0] && data[i][1]) {
       var dbPhone = normalizePhone(data[i][2]);
-      if (dbPhone !== "" && dbPhone === normPhone) {
+      // Nếu normPhone rỗng (chưa gửi SĐT) HOẶC SĐT khớp HOẶC SĐT trong bảng rỗng -> Luôn trả về lớp!
+      if (normPhone === "" || dbPhone === "" || dbPhone === normPhone) {
         classes.push({
           classId: data[i][0],
           className: data[i][1],

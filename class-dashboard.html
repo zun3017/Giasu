@@ -975,7 +975,7 @@
     <!-- Sync Toast Badge giống Dành cho Gia Sư -->
     <div id="syncToast" class="sync-toast" style="display:none;"></div>
 
-    <script src="js/api.js?v=1.7.5"></script>
+    <script src="js/api.js?v=1.7.6"></script>
     <script>
         var currentTutorData = null;
         var currentClasses = [];
@@ -1016,21 +1016,20 @@
                         nameDisplay.innerText = "Xin chào, " + (currentTutorData.tutorName || "Giáo viên Lớp học") + " 👋";
                     }
 
-                    var phone = currentTutorData.tutorPhone || sessionStorage.getItem("userPhone") || localStorage.getItem("userPhone") || "";
-                    if (phone) {
-                        loadClassDashboardData(phone, null);
-                    } else {
-                        renderEmptyClassState();
+                    if (currentTutorData.classes && Array.isArray(currentTutorData.classes) && currentTutorData.classes.length > 0) {
+                        currentClasses = currentTutorData.classes;
+                        renderDashboardUI();
                     }
+
+                    var phone = currentTutorData.tutorPhone || sessionStorage.getItem("userPhone") || localStorage.getItem("userPhone") || "";
+                    loadClassDashboardData(phone, null);
                 } catch(e) {
                     console.error("Lỗi parse data giáo viên:", e);
-                    renderEmptyClassState();
+                    loadClassDashboardData("", null);
                 }
             } else {
                 currentTutorData = { tutorName: "Giáo viên Lớp học", tutorPhone: "" };
-                currentClasses = [];
-                renderClassNavRow();
-                renderEmptyClassState();
+                loadClassDashboardData("", null);
             }
         });
 
@@ -1039,8 +1038,10 @@
                 .withSuccessHandler(function(res) {
                     if (res && res.classes && Array.isArray(res.classes) && res.classes.length > 0) {
                         currentClasses = res.classes;
+                        if (!currentTutorData) currentTutorData = {};
                         currentTutorData.classes = res.classes;
                         sessionStorage.setItem("classTutorData", JSON.stringify(currentTutorData));
+                        localStorage.setItem("classTutorData", JSON.stringify(currentTutorData));
                         
                         var activeCls = res.activeClass || res.classes[0];
                         activeClassIndex = currentClasses.findIndex(function(c) { return c.classId === activeCls.classId; });
@@ -1055,16 +1056,18 @@
                         activeClassHomework = res.homeworkList || [];
 
                         renderDashboardUI();
-                    } else {
+                    } else if (!currentClasses || currentClasses.length === 0) {
                         currentClasses = [];
                         renderEmptyClassState();
                     }
                 })
                 .withFailureHandler(function(err) {
                     console.error("Lỗi tải dữ liệu tổng lớp học:", err);
-                    renderEmptyClassState();
+                    if (!currentClasses || currentClasses.length === 0) {
+                        renderEmptyClassState();
+                    }
                 })
-                .getClassDashboardData(phone, requestedClassId);
+                .getClassDashboardData(phone || "", requestedClassId);
         }
 
         function renderDashboardUI() {
@@ -1247,15 +1250,32 @@
                         ? '<span style="font-size:10.5px; padding:2px 6px; background:rgba(142,77,255,0.2); border:1px solid rgba(142,77,255,0.4); border-radius:8px; color:#C4B5FD; margin-left:4px;">/tháng</span>' 
                         : '<span style="font-size:10.5px; padding:2px 6px; background:rgba(16,185,129,0.2); border:1px solid rgba(16,185,129,0.4); border-radius:8px; color:#6EE7B7; margin-left:4px;">/buổi</span>';
                     
+                    var unpaidCount = 0;
+                    if (activeClassLessonLogs && activeClassLessonLogs.length > 0) {
+                        activeClassLessonLogs.forEach(function(log) {
+                            var sNotes = log.studentNotes || {};
+                            var pInfo = sNotes[st.studentId] || {};
+                            var att = pInfo.attendance || "Có mặt";
+                            if (log.status === "Cả lớp nghỉ") att = "Cả lớp nghỉ";
+                            if ((att === "Có mặt" || att === "Đi muộn") && !(pInfo.paid === true || pInfo.paid === "true")) {
+                                unpaidCount++;
+                            }
+                        });
+                    }
+
+                    var payBadge = unpaidCount === 0
+                        ? '<span style="font-size:11px; padding:3px 8px; background:rgba(16,185,129,0.15); border:1px solid rgba(16,185,129,0.4); color:#6EE7B7; border-radius:12px; font-weight:700;"><i class="fa-solid fa-circle-check"></i> Đã đóng đủ</span>'
+                        : '<span style="font-size:11px; padding:3px 8px; background:rgba(239,68,68,0.15); border:1px solid rgba(239,68,68,0.4); color:#FCA5A5; border-radius:12px; font-weight:700;"><i class="fa-solid fa-circle-exclamation"></i> Nợ ' + unpaidCount + ' buổi</span>';
+
                     return '<tr>' +
                         '<td style="color:#A6ADCE; font-weight:600;">' + st.studentId + '</td>' +
                         '<td style="font-weight:700; color:#FFD23F;">' + st.studentName + '</td>' +
                         '<td>' + (st.parentName || '-') + '</td>' +
                         '<td>' + (st.parentPhone || '-') + '</td>' +
                         '<td style="color:#8E4DFF; font-weight:700;">' + (st.homeworkCode || '-') + '</td>' +
-                        '<td style="color:#10B981; font-weight:600;">' + (st.fee ? (parseInt(st.fee).toLocaleString('vi-VN') + ' đ' + feeBadge) : '-') + '</td>' +
+                        '<td style="color:#10B981; font-weight:600;">' + (st.fee ? (parseInt(st.fee).toLocaleString('vi-VN') + ' đ' + feeBadge) : '-') + '<div style="margin-top:4px;">' + payBadge + '</div></td>' +
                         '<td style="text-align:center; display:flex; justify-content:center; align-items:center; gap:8px;">' +
-                            '<button onclick="openClassInvoice(\'' + st.studentId + '\')" style="background:rgba(255,210,63,0.1); border:1px solid rgba(255,210,63,0.3); color:#FFD23F; cursor:pointer; padding:6px 10px; border-radius:15px; font-weight:700; font-size:12px; display:inline-flex; align-items:center; gap:4px;" title="Xuất hóa đơn"><i class="fa-solid fa-file-invoice-dollar"></i> Hóa đơn</button>' +
+                            '<button onclick="openClassInvoice(\'' + st.studentId + '\')" style="background:rgba(255,210,63,0.1); border:1px solid rgba(255,210,63,0.3); color:#FFD23F; cursor:pointer; padding:6px 10px; border-radius:15px; font-weight:700; font-size:12px; display:inline-flex; align-items:center; gap:4px;" title="Xuất hóa đơn & xác nhận đóng tiền"><i class="fa-solid fa-file-invoice-dollar"></i> Hóa đơn</button>' +
                             '<button onclick="openEditClassStudentModal(\'' + st.studentId + '\')" style="background:rgba(142,77,255,0.1); border:1px solid rgba(142,77,255,0.3); color:#C4B5FD; cursor:pointer; padding:6px 10px; border-radius:15px; font-weight:700; font-size:12px; display:inline-flex; align-items:center; gap:4px;" title="Chỉnh sửa thông tin học sinh"><i class="fa-solid fa-pen-to-square"></i> Sửa</button>' +
                             '<button onclick="removeStudent(\'' + st.studentId + '\')" style="background:none; border:none; color:#EF4444; cursor:pointer; font-size:14px; margin-left:4px;" title="Đưa vào thùng rác"><i class="fa-solid fa-trash"></i></button>' +
                         '</td>' +
@@ -2050,10 +2070,12 @@
             if (!activeInvoiceStudentId) return;
             
             checkbox.disabled = true;
+            showSyncToast('pending');
             
             google.script.run.withSuccessHandler(function(res) {
                 checkbox.disabled = false;
                 if (res && res.success) {
+                    showSyncToast('success');
                     activeClassLessonLogs.forEach(function(log) {
                         if (log.logId === logId) {
                             if (!log.studentNotes) log.studentNotes = {};
@@ -2067,12 +2089,15 @@
                     var student = activeStudents.find(function(s) { return s.studentId === activeInvoiceStudentId; });
                     if (student) renderClassStudentInvoice(student);
                     
-                    loadClassLessonHistory();
+                    renderRosterAndEvalGrid();
+                    renderClassLessonLogsTableUI();
                 } else {
+                    showSyncToast('error');
                     checkbox.checked = !isPaid;
                     alert("Lỗi đồng bộ: " + (res.error || "Không xác định"));
                 }
             }).withFailureHandler(function(err) {
+                showSyncToast('error');
                 checkbox.disabled = false;
                 checkbox.checked = !isPaid;
                 alert("Lỗi kết nối: " + err.toString());
