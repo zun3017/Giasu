@@ -313,16 +313,16 @@
         <div class="card-box" id="classInfoBox">
             <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 15px;">
                 <h3 style="color: #FFF; font-size: 20px; font-weight: 800; margin: 0; display: flex; align-items: center; gap: 10px;">
-                    Lớp hiện tại: <span id="activeClassName" style="color: #FFD23F;">Lớp Toán 10A1</span>
+                    Lớp hiện tại: <span id="activeClassName" style="color: #FFD23F;">Chưa có lớp học</span>
                     <button onclick="openEditClassModal()" title="Sửa thông tin lớp" style="background: none; border: none; color: #8E4DFF; cursor: pointer; font-size: 16px;"><i class="fa-solid fa-pen-to-square"></i></button>
                 </h3>
                 <span id="activeClassRosterCount" style="padding: 6px 16px; background: rgba(142, 77, 255, 0.15); border: 1px solid rgba(142, 77, 255, 0.3); border-radius: 20px; color: #E2D1FF; font-size: 13.5px; font-weight: 700;">
-                    <i class="fa-solid fa-user-group" style="margin-right: 6px;"></i>Sĩ số: 0/20
+                    <i class="fa-solid fa-user-group" style="margin-right: 6px;"></i>Sĩ số: 0/0
                 </span>
             </div>
             <div style="display: flex; gap: 25px; flex-wrap: wrap; color: #A6ADCE; font-size: 14px;">
-                <div><i class="fa-solid fa-book" style="color: #8E4DFF; margin-right: 6px;"></i>Môn học: <strong id="activeClassSubject" style="color: #FFF;">Toán học</strong></div>
-                <div><i class="fa-regular fa-clock" style="color: #8E4DFF; margin-right: 6px;"></i>Lịch học cố định: <strong id="activeClassSchedule" style="color: #FFF;">Thứ 2 & Thứ 5 (18:00 - 20:00)</strong></div>
+                <div><i class="fa-solid fa-book" style="color: #8E4DFF; margin-right: 6px;"></i>Môn học: <strong id="activeClassSubject" style="color: #FFF;">-</strong></div>
+                <div><i class="fa-regular fa-clock" style="color: #8E4DFF; margin-right: 6px;"></i>Lịch học cố định: <strong id="activeClassSchedule" style="color: #FFF;">-</strong></div>
             </div>
         </div>
 
@@ -477,6 +477,25 @@
                 Thêm Vào Lớp <i class="fa-solid fa-plus" style="margin-left: 6px;"></i>
             </button>
         </div>
+    <!-- MODAL 4: Thông Tin Tài Khoản -->
+    <div id="tutorAccountModal" class="modal-overlay">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-user-gear" style="margin-right: 8px;"></i>Thông Tin Tài Khoản</h3>
+                <button class="btn-close-modal" onclick="closeModal('tutorAccountModal')"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="form-group">
+                <label>Họ và tên giáo viên</label>
+                <input type="text" id="accTutorName" class="form-control" readonly style="background: rgba(255,255,255,0.06); color: #FFF;">
+            </div>
+            <div class="form-group">
+                <label>Số điện thoại đăng nhập</label>
+                <input type="text" id="accTutorPhone" class="form-control" readonly style="background: rgba(255,255,255,0.06); color: #FFF;">
+            </div>
+            <button onclick="closeModal('tutorAccountModal')" style="width: 100%; padding: 12px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); border-radius: 12px; color: #FFF; font-weight: bold; font-size: 14px; cursor: pointer; margin-top: 10px;">
+                Đóng
+            </button>
+        </div>
     </div>
 
     <script src="js/api.js?v=1.6.8"></script>
@@ -488,30 +507,48 @@
 
         document.addEventListener("DOMContentLoaded", function() {
             // Đặt mặc định ngày hôm nay cho ô chọn ngày
-            var today = new Date().toISOString().split('T')[0];
-            document.getElementById("evalStudyDate").value = today;
+            var evalDateEl = document.getElementById("evalStudyDate");
+            if (evalDateEl) {
+                var today = new Date().toISOString().split('T')[0];
+                evalDateEl.value = today;
+            }
 
-            // Đọc dữ liệu giáo viên từ sessionStorage
-            var saved = sessionStorage.getItem("classTutorData");
+            // Đọc dữ liệu giáo viên từ sessionStorage hoặc localStorage
+            var saved = sessionStorage.getItem("classTutorData") || sessionStorage.getItem("userTutorData") || localStorage.getItem("classTutorData") || localStorage.getItem("userTutorData");
+            
             if (saved) {
                 try {
                     currentTutorData = JSON.parse(saved);
-                    document.getElementById("tutorNameDisplay").innerText = "Xin chào, " + (currentTutorData.tutorName || "Giáo viên Lớp học") + " 👋";
-                    if (currentTutorData.classes && currentTutorData.classes.length > 0) {
-                    if (currentTutorData && currentTutorData.classes) {
-                        currentClasses = currentTutorData.classes;
-                    } else {
-                        currentClasses = [];
+                    var nameDisplay = document.getElementById("tutorNameDisplay");
+                    if (nameDisplay) {
+                        nameDisplay.innerText = "Xin chào, " + (currentTutorData.tutorName || "Giáo viên Lớp học") + " 👋";
                     }
-                    if (currentClasses.length > 0) {
-                        renderClassNavRow();
+
+                    var phone = currentTutorData.tutorPhone || sessionStorage.getItem("userPhone") || localStorage.getItem("userPhone") || "";
+                    if (phone) {
+                        google.script.run.withSuccessHandler(function(classes) {
+                            if (classes && Array.isArray(classes) && classes.length > 0) {
+                                currentClasses = classes;
+                                currentTutorData.classes = classes;
+                                sessionStorage.setItem("classTutorData", JSON.stringify(currentTutorData));
+                                selectClass(0);
+                            } else {
+                                currentClasses = [];
+                                renderClassNavRow();
+                                renderEmptyClassState();
+                            }
+                        }).getClassList(phone);
+                    } else if (currentTutorData.classes && currentTutorData.classes.length > 0) {
+                        currentClasses = currentTutorData.classes;
                         selectClass(0);
                     } else {
+                        currentClasses = [];
                         renderClassNavRow();
                         renderEmptyClassState();
                     }
                 } catch(e) {
                     console.error("Lỗi parse data giáo viên:", e);
+                    renderEmptyClassState();
                 }
             } else {
                 currentTutorData = { tutorName: "Giáo viên Lớp học", tutorPhone: "" };
@@ -520,6 +557,14 @@
                 renderEmptyClassState();
             }
         });
+
+        function openTutorAccountModal() {
+            var nameEl = document.getElementById("accTutorName");
+            var phoneEl = document.getElementById("accTutorPhone");
+            if (nameEl) nameEl.value = currentTutorData ? (currentTutorData.tutorName || "Giáo viên Lớp học") : "";
+            if (phoneEl) phoneEl.value = currentTutorData ? (currentTutorData.tutorPhone || "") : "";
+            openModal("tutorAccountModal");
+        }
 
         function renderEmptyClassState() {
             document.getElementById("activeClassName").innerText = "Chưa có lớp học";
@@ -754,9 +799,11 @@
                 google.script.run.deleteClass(cls.classId, cls.className);
                 currentClasses.splice(activeClassIndex, 1);
                 if (currentClasses.length === 0) {
-                    currentClasses = [{ classId: "LH01", className: "Lớp Mới", subject: "", schedule: "", maxStudents: "20" }];
+                    renderClassNavRow();
+                    renderEmptyClassState();
+                } else {
+                    selectClass(0);
                 }
-                selectClass(0);
             }
         }
 
@@ -797,6 +844,11 @@
 
         function logoutClass() {
             sessionStorage.removeItem("classTutorData");
+            sessionStorage.removeItem("userTutorData");
+            sessionStorage.removeItem("userPhone");
+            localStorage.removeItem("classTutorData");
+            localStorage.removeItem("userTutorData");
+            localStorage.removeItem("userPhone");
             window.location.href = "class-login.html";
         }
     </script>

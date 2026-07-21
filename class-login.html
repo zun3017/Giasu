@@ -100,6 +100,14 @@
                     errEl.style.display = "block";
                 } else if (res && res.success) {
                     sessionStorage.setItem("classTutorData", JSON.stringify(res));
+                    sessionStorage.setItem("userTutorData", JSON.stringify(res));
+                    sessionStorage.setItem("userPhone", phone);
+                    sessionStorage.setItem("userRole", "class_tutor");
+
+                    localStorage.setItem("classTutorData", JSON.stringify(res));
+                    localStorage.setItem("userTutorData", JSON.stringify(res));
+                    localStorage.setItem("userPhone", phone);
+                    localStorage.setItem("userRole", "class_tutor");
                     window.location.href = "class-dashboard.html";
                 } else {
                     errEl.innerText = "Đăng nhập không thành công. Vui lòng thử lại!";
