@@ -309,12 +309,25 @@
             </div>
         </div>
 
+        <!-- 3. Khung Chọn & Quản Lý Lớp Học (Đặt vị trí trên cùng dễ nhìn) -->
+        <div class="card-box" style="background: rgba(11, 8, 38, 0.9); border-color: rgba(142, 77, 255, 0.3); margin-bottom: 20px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 12px;">
+                <p style="color: #A6ADCE; font-size: 13.5px; margin: 0; font-weight: 600;"><i class="fa-solid fa-layer-group" style="margin-right: 6px; color: #FFD23F;"></i>Danh sách các Lớp học của bạn:</p>
+                <button onclick="openModal('addClassModal')" style="padding: 8px 18px; background: linear-gradient(135deg, #10B981, #059669); border: none; border-radius: 20px; color: #FFF; font-weight: 700; font-size: 13px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 4px 12px rgba(16,185,129,0.3);">
+                    <i class="fa-solid fa-plus"></i> + Thêm lớp học mới
+                </button>
+            </div>
+            <div class="class-nav-row" id="classNavRow" style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
+                <!-- Render động các nút Lớp học -->
+            </div>
+        </div>
+
         <!-- Class Info Banner -->
         <div class="card-box" id="classInfoBox">
             <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 15px;">
                 <h3 style="color: #FFF; font-size: 20px; font-weight: 800; margin: 0; display: flex; align-items: center; gap: 10px;">
                     Lớp hiện tại: <span id="activeClassName" style="color: #FFD23F;">Chưa có lớp học</span>
-                    <button onclick="openEditClassModal()" title="Sửa thông tin lớp" style="background: none; border: none; color: #8E4DFF; cursor: pointer; font-size: 16px;"><i class="fa-solid fa-pen-to-square"></i></button>
+                    <button onclick="openEditClassModal()" title="Sửa thông tin lớp" style="background: rgba(142, 77, 255, 0.15); border: 1px solid rgba(142, 77, 255, 0.3); color: #E2D1FF; padding: 4px 10px; border-radius: 12px; cursor: pointer; font-size: 13px; display: inline-flex; align-items: center; gap: 5px;"><i class="fa-solid fa-pen-to-square"></i> Sửa lớp</button>
                 </h3>
                 <span id="activeClassRosterCount" style="padding: 6px 16px; background: rgba(142, 77, 255, 0.15); border: 1px solid rgba(142, 77, 255, 0.3); border-radius: 20px; color: #E2D1FF; font-size: 13.5px; font-weight: 700;">
                     <i class="fa-solid fa-user-group" style="margin-right: 6px;"></i>Sĩ số: 0/0
@@ -399,13 +412,6 @@
             </div>
         </div>
 
-        <!-- Class Navigation Row at the bottom -->
-        <div class="card-box" style="text-align: center; background: rgba(11, 8, 38, 0.9); border-color: rgba(142, 77, 255, 0.3);">
-            <p style="color: #A6ADCE; font-size: 13px; margin-bottom: 12px; font-weight: 500;"><i class="fa-solid fa-arrow-pointer" style="margin-right: 6px; color: #FFD23F;"></i>Chọn lớp học để quản lý:</p>
-            <div class="class-nav-row" id="classNavRow">
-                <!-- Render động các nút Lớp học -->
-            </div>
-        </div>
     </div>
 
     <!-- MODAL 1: Thêm Lớp Học Mới -->
@@ -477,6 +483,8 @@
                 Thêm Vào Lớp <i class="fa-solid fa-plus" style="margin-left: 6px;"></i>
             </button>
         </div>
+    </div>
+
     <!-- MODAL 4: Thông Tin Tài Khoản -->
     <div id="tutorAccountModal" class="modal-overlay">
         <div class="modal-card">
@@ -571,31 +579,61 @@
             document.getElementById("activeClassSubject").innerText = "-";
             document.getElementById("activeClassSchedule").innerText = "-";
             document.getElementById("activeClassRosterCount").innerHTML = '<i class="fa-solid fa-user-group" style="margin-right: 6px;"></i>Sĩ số: 0/0';
-            document.getElementById("studentRosterTbody").innerHTML = '<tr><td colspan="5" style="text-align:center; color:#A6ADCE; padding: 25px;">Chưa có lớp học nào. Vui lòng bấm nút <b>"+ Thêm lớp học"</b> bên dưới để tạo lớp học đầu tiên!</td></tr>';
+            document.getElementById("studentRosterTbody").innerHTML = '<tr><td colspan="5" style="text-align:center; color:#A6ADCE; padding: 25px;">Chưa có lớp học nào. Vui lòng bấm nút <b>"+ Thêm lớp học mới"</b> phía trên để tạo lớp học đầu tiên!</td></tr>';
             document.getElementById("batchEvalTbody").innerHTML = '<tr><td colspan="6" style="text-align:center; color:#A6ADCE; padding: 25px;">Chưa có lớp học nào. Vui lòng tạo lớp học trước khi đánh giá!</td></tr>';
+            renderClassNavRow();
         }
 
         function renderClassNavRow() {
             var row = document.getElementById("classNavRow");
+            if (!row) return;
             row.innerHTML = "";
 
-            currentClasses.forEach(function(cls, idx) {
-                var btn = document.createElement("button");
-                btn.className = "class-btn " + (idx === activeClassIndex ? "active" : "");
-                btn.innerText = cls.className;
-                btn.onclick = function() { selectClass(idx); };
-                row.appendChild(btn);
-            });
+            if (currentClasses && currentClasses.length > 0) {
+                currentClasses.forEach(function(cls, idx) {
+                    var btn = document.createElement("button");
+                    btn.className = "class-btn " + (idx === activeClassIndex ? "active" : "");
+                    btn.innerText = cls.className;
+                    btn.onclick = function() { selectClass(idx); };
+                    row.appendChild(btn);
+                });
+            } else {
+                var emptySpan = document.createElement("span");
+                emptySpan.style.color = "#A6ADCE";
+                emptySpan.style.fontSize = "13.5px";
+                emptySpan.style.fontStyle = "italic";
+                emptySpan.style.marginRight = "10px";
+                emptySpan.innerText = "Chưa có lớp học nào. Bấm nút bên dưới để tạo lớp mới!";
+                row.appendChild(emptySpan);
+            }
 
             // Nút Thêm Lớp
             var addBtn = document.createElement("button");
             addBtn.className = "btn-add-class";
+            addBtn.style.padding = "8px 16px";
+            addBtn.style.borderRadius = "20px";
+            addBtn.style.fontWeight = "bold";
+            addBtn.style.cursor = "pointer";
             addBtn.innerHTML = '<i class="fa-solid fa-plus" style="margin-right: 6px;"></i>Thêm lớp học';
             addBtn.onclick = function() { openModal("addClassModal"); };
             row.appendChild(addBtn);
 
-            // Nút Xóa Lớp
-            if (currentClasses.length > 0) {
+            if (currentClasses && currentClasses.length > 0) {
+                // Nút Sửa Lớp
+                var editBtn = document.createElement("button");
+                editBtn.className = "btn-add-class";
+                editBtn.style.background = "rgba(142, 77, 255, 0.15)";
+                editBtn.style.borderColor = "rgba(142, 77, 255, 0.4)";
+                editBtn.style.color = "#E2D1FF";
+                editBtn.style.padding = "8px 16px";
+                editBtn.style.borderRadius = "20px";
+                editBtn.style.fontWeight = "600";
+                editBtn.style.cursor = "pointer";
+                editBtn.innerHTML = '<i class="fa-solid fa-pen-to-square" style="margin-right: 6px;"></i>Sửa lớp';
+                editBtn.onclick = function() { openEditClassModal(); };
+                row.appendChild(editBtn);
+
+                // Nút Xóa Lớp
                 var delBtn = document.createElement("button");
                 delBtn.className = "btn-delete-class";
                 delBtn.title = "Xóa lớp học hiện tại";
