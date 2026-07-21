@@ -649,7 +649,7 @@
                     <option value="monthly">🟣 Trọn gói theo tháng (Học phí cố định/tháng)</option>
                 </select>
             </div>
-            <button onclick="saveNewClass()" style="width: 100%; padding: 13px; background: linear-gradient(135deg, #8E4DFF, #5B2EFF); border: none; border-radius: 12px; color: #FFF; font-weight: bold; font-size: 15px; cursor: pointer; margin-top: 10px;">
+            <button onclick="saveNewClass(this)" style="width: 100%; padding: 13px; background: linear-gradient(135deg, #8E4DFF, #5B2EFF); border: none; border-radius: 12px; color: #FFF; font-weight: bold; font-size: 15px; cursor: pointer; margin-top: 10px;">
                 Tạo Lớp Học & Khởi Tạo Sheet <i class="fa-solid fa-arrow-right" style="margin-left: 6px;"></i>
             </button>
         </div>
@@ -939,7 +939,7 @@
         </div>
     </div>
 
-    <script src="js/api.js?v=1.7.1"></script>
+    <script src="js/api.js?v=1.7.2"></script>
     <script>
         var currentTutorData = null;
         var currentClasses = [];
@@ -1164,7 +1164,7 @@
         function openModal(id) { document.getElementById(id).style.display = "flex"; }
         function closeModal(id) { document.getElementById(id).style.display = "none"; }
 
-        function saveNewClass() {
+        function saveNewClass(btn) {
             var name = document.getElementById("newClassName").value.trim();
             var subject = document.getElementById("newClassSubject").value.trim();
             var schedule = document.getElementById("newClassSchedule").value.trim();
@@ -1172,22 +1172,55 @@
 
             if (!name) { alert("Vui lòng nhập tên lớp học!"); return; }
 
-            google.script.run.withSuccessHandler(function(res) {
-                var newCls = {
-                    classId: (res && res.classId) ? res.classId : ("LH_" + new Date().getTime().toString().slice(-6)),
-                    className: name,
-                    subject: subject || "Toán học",
-                    schedule: schedule || "Thứ 2 & Thứ 5",
-                    maxStudents: "20",
-                    feeType: feeType || "per_session"
-                };
-                currentClasses.push(newCls);
-                closeModal("addClassModal");
-                document.getElementById("newClassName").value = "";
-                document.getElementById("newClassSubject").value = "";
-                document.getElementById("newClassSchedule").value = "";
-                selectClass(currentClasses.length - 1);
-            }).createClass(currentTutorData.tutorPhone, name, subject, schedule, feeType);
+            var phone = (currentTutorData && currentTutorData.tutorPhone) 
+                ? currentTutorData.tutorPhone 
+                : (sessionStorage.getItem("userPhone") || localStorage.getItem("userPhone") || sessionStorage.getItem("tutorPhone") || localStorage.getItem("tutorPhone") || "");
+
+            if (!phone) {
+                alert("Không tìm thấy thông tin đăng nhập của giáo viên. Vui lòng đăng nhập lại!");
+                window.location.href = "class-login.html";
+                return;
+            }
+
+            var originalBtnHtml = "";
+            if (btn) {
+                btn.disabled = true;
+                originalBtnHtml = btn.innerHTML;
+                btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Đang tạo lớp...';
+            }
+
+            google.script.run
+                .withSuccessHandler(function(res) {
+                    if (btn) {
+                        btn.disabled = false;
+                        btn.innerHTML = originalBtnHtml;
+                    }
+                    var newCls = {
+                        classId: (res && res.classId) ? res.classId : ("LH_" + new Date().getTime().toString().slice(-6)),
+                        className: name,
+                        subject: subject || "Toán học",
+                        schedule: schedule || "Thứ 2 & Thứ 5",
+                        maxStudents: "20",
+                        feeType: feeType || "per_session"
+                    };
+                    if (!currentTutorData) currentTutorData = { tutorPhone: phone };
+                    currentTutorData.tutorPhone = phone;
+
+                    currentClasses.push(newCls);
+                    closeModal("addClassModal");
+                    document.getElementById("newClassName").value = "";
+                    document.getElementById("newClassSubject").value = "";
+                    document.getElementById("newClassSchedule").value = "";
+                    selectClass(currentClasses.length - 1);
+                })
+                .withFailureHandler(function(err) {
+                    if (btn) {
+                        btn.disabled = false;
+                        btn.innerHTML = originalBtnHtml;
+                    }
+                    alert("Lỗi khi kết nối hệ thống tạo lớp: " + err.toString());
+                })
+                .createClass(phone, name, subject, schedule, feeType);
         }
 
         function openEditClassModal() {

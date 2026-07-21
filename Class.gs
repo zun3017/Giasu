@@ -98,6 +98,7 @@ function createClass(tutorPhone, className, subject, schedule, feeType) {
   var cleanClassName = String(className).trim();
   
   sheetClasses.appendRow([classId, cleanClassName, tutorPhone, subject || "", schedule || "", "20", feeType || "per_session"]);
+  SpreadsheetApp.flush();
   
   return { success: true, classId: classId, className: cleanClassName, feeType: feeType || "per_session" };
 }
