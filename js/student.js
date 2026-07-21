@@ -78,8 +78,10 @@ var currentStudentName = "";
                 var currentYear = today.getFullYear();
                 
                 // Thiết lập nhãn động cho tháng hiện tại
-                document.getElementById('lblBuoiHoc').innerText = "Số buổi đã học (Tháng " + (currentMonth + 1) + ")";
-                document.getElementById('lblBuoiNghi').innerText = "Số buổi nghỉ (Tháng " + (currentMonth + 1) + ")";
+                var elLblBuoiHoc = document.getElementById('lblBuoiHoc');
+                if (elLblBuoiHoc) elLblBuoiHoc.innerText = "Số buổi đã học (Tháng " + (currentMonth + 1) + ")";
+                var elLblBuoiNghi = document.getElementById('lblBuoiNghi');
+                if (elLblBuoiNghi) elLblBuoiNghi.innerText = "Số buổi nghỉ (Tháng " + (currentMonth + 1) + ")";
 
                 var buoiHocThangNay = 0;
                 var buoiNghiThangNay = 0;
@@ -202,11 +204,15 @@ var currentStudentName = "";
                     btvnPercent = 0;
                     valBTVNText = "0%";
                 }
-                document.getElementById('valBTVN').innerText = valBTVNText;
+                var elBTVN = document.getElementById('valBTVN');
+                if (elBTVN) elBTVN.innerText = valBTVNText;
 
                 // Gán số buổi học & nghỉ
-                document.getElementById('valBuoiHoc').innerText = buoiHocThangNay + " buổi";
-                document.getElementById('valBuoiNghi').innerText = buoiNghiThangNay + " buổi";
+                var elBuoiHoc = document.getElementById('valBuoiHoc');
+                if (elBuoiHoc) elBuoiHoc.innerText = buoiHocThangNay + " buổi";
+
+                var elBuoiNghi = document.getElementById('valBuoiNghi');
+                if (elBuoiNghi) elBuoiNghi.innerText = buoiNghiThangNay + " buổi";
 
                 // Sinh huy chương vinh danh động cho 2 loại điểm
                 function createScoreBadgeHtml(scoreNum) {
@@ -239,7 +245,8 @@ var currentStudentName = "";
                         btvnBadgeHtml = '<div class="medal-badge medal-bronze"><i class="fa-solid fa-medal"></i> Cố gắng 🥉</div>';
                     }
                 }
-                document.getElementById('btvnBadgeContainer').innerHTML = btvnBadgeHtml;
+                var elBtvnBadge = document.getElementById('btvnBadgeContainer');
+                if (elBtvnBadge) elBtvnBadge.innerHTML = btvnBadgeHtml;
 
                 // --- 3. KHỞI TẠO BIỂU ĐỒ DIỄM SỐ (TOÀN BỘ LỊCH SỬ CHRONOLOGICAL) ---
                 var labels = [];
