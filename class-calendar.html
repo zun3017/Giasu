@@ -1376,47 +1376,26 @@
     <script>
         let calendar = null;
 
-        const userPhone = sessionStorage.getItem('userPhone');
-        const dashDataStr = sessionStorage.getItem('dashboardData');
-        let tutorDataGlobal = dashDataStr ? JSON.parse(dashDataStr) : null;
-        const isDemoMode = !userPhone;
-
-        // Dữ liệu mô phỏng theo cấu trúc sheet Lịch học của bạn.
-        let tutorScheduleSheetData = [
-            {
-                studentName: "Nguyễn Văn A",
-                color: localStorage.getItem('student_color_Nguyễn Văn A') || "#4D9EFF",
-                mon: "08:00 - 10:00 (Sáng - Toán) | 14:00 - 16:00 (Chiều - Lý)",
-                tue: "",
-                wed: "15:00 - 17:00",
-                thu: "",
-                fri: "",
-                sat: "",
-                sun: ""
-            },
-            {
-                studentName: "Trần Thị B",
-                color: localStorage.getItem('student_color_Trần Thị B') || "#FF6B9D",
-                mon: "",
-                tue: "17:30 - 19:30",
-                wed: "",
-                thu: "17:30 - 19:30 (Vật lý)",
-                fri: "",
-                sat: "",
-                sun: ""
-            },
-            {
-                studentName: "Lê Hoàng C",
-                color: localStorage.getItem('student_color_Lê Hoàng C') || "#4DFFC3",
-                mon: "",
-                tue: "",
-                wed: "",
-                thu: "",
-                fri: "09:00 - 11:00",
-                sat: "",
-                sun: ""
+        function getPhoneFromStorage() {
+            var p = sessionStorage.getItem('userPhone') || localStorage.getItem('userPhone');
+            if (p) return p;
+            var cData = sessionStorage.getItem('classTutorData') || localStorage.getItem('classTutorData');
+            if (cData) {
+                try {
+                    var parsed = JSON.parse(cData);
+                    return parsed.tutorPhone || '';
+                } catch(e){}
             }
-        ];
+            return '';
+        }
+
+        const userPhone = getPhoneFromStorage();
+        const dashDataStr = sessionStorage.getItem('dashboardData') || sessionStorage.getItem('classTutorData');
+        let tutorDataGlobal = dashDataStr ? JSON.parse(dashDataStr) : null;
+        const isDemoMode = false;
+
+        // Dữ liệu thời khóa biểu thực tế từ Google Sheet (Trống mặc định)
+        let tutorScheduleSheetData = [];
 
         // Nếu ở chế độ thật, sẽ fetch lịch từ Sheets thông qua Apps Script
         function loadTutorScheduleFromBackend(onSuccess) {
