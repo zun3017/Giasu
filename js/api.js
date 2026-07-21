@@ -1,4 +1,4 @@
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxriZx2NIrUOHR8RmL-0Qpk36FTTWNA2x5h6Mgbs2S_BZ0eRA6pWFqfkRu2ZRSLjq8X/exec';
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzCukYOmHXbOLkyiNIE02P5E3UOVFtU5nlf7K7OMYD6NXxE_e_L7GZAMaF81ZjLtRo2/exec';
 
         // Chỉ tạo Shim giả lập nếu chạy ngoài môi trường Google Apps Script (ví dụ trên GitHub Pages)
         if (typeof google === 'undefined' || typeof google.script === 'undefined' || typeof google.script.run === 'undefined') {
@@ -63,15 +63,16 @@
                         return response.json();
                     })
                     .then(data => {
-                        if (data && data.error) {
+                        let resData = (data && data.result !== undefined) ? data.result : data;
+                        if (data && data.error && data.result === undefined) {
                             if (this._failureHandler) {
                                 this._failureHandler(data.error);
-                            } else {
-                                console.error('Lỗi từ Apps Script:', data.error);
+                            } else if (this._successHandler) {
+                                this._successHandler({ error: data.error });
                             }
                         } else {
                             if (this._successHandler) {
-                                this._successHandler(data ? data.result : undefined);
+                                this._successHandler(resData);
                             }
                         }
                     })
