@@ -142,7 +142,11 @@ function createClass(tutorPhone, className, subject, schedule, feeType) {
   var classId = "LH_" + new Date().getTime().toString().slice(-6);
   var cleanClassName = String(className).trim();
   
-  sheetClasses.appendRow([classId, cleanClassName, tutorPhone, subject || "", schedule || "", "20", feeType || "per_session"]);
+  sheetClasses.appendRow([classId, cleanClassName, tutorPhone, subject || "", schedule || "", "", feeType || "per_session"]);
+  
+  // Tự động tạo Tab Sheet đánh giá học tập riêng cho Lớp học mới!
+  getOrCreateClassEvaluationSheet(ss, cleanClassName);
+  
   SpreadsheetApp.flush();
   
   return { success: true, classId: classId, className: cleanClassName, feeType: feeType || "per_session" };

@@ -189,6 +189,39 @@
             font-size: 13px;
         }
 
+        /* Sync Toast Notification */
+        .sync-toast {
+            position: fixed;
+            bottom: 25px;
+            right: 25px;
+            z-index: 9999;
+            padding: 10px 18px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+        .sync-toast.pending {
+            background: rgba(142, 77, 255, 0.25);
+            border: 1px solid #8E4DFF;
+            color: #E2D1FF;
+        }
+        .sync-toast.success {
+            background: rgba(16, 185, 129, 0.25);
+            border: 1px solid #10B981;
+            color: #6EE7B7;
+        }
+        .sync-toast.error {
+            background: rgba(239, 68, 68, 0.25);
+            border: 1px solid #EF4444;
+            color: #FCA5A5;
+        }
+
         /* Modal Overlay */
         .modal-overlay {
             position: fixed;
@@ -333,7 +366,7 @@
                     <button onclick="openEditClassModal()" title="Sửa thông tin lớp" style="background: rgba(142, 77, 255, 0.15); border: 1px solid rgba(142, 77, 255, 0.3); color: #E2D1FF; padding: 4px 10px; border-radius: 12px; cursor: pointer; font-size: 13px; display: inline-flex; align-items: center; gap: 5px;"><i class="fa-solid fa-pen-to-square"></i> Sửa lớp</button>
                 </h3>
                 <span id="activeClassRosterCount" style="padding: 6px 16px; background: rgba(142, 77, 255, 0.15); border: 1px solid rgba(142, 77, 255, 0.3); border-radius: 20px; color: #E2D1FF; font-size: 13.5px; font-weight: 700;">
-                    <i class="fa-solid fa-user-group" style="margin-right: 6px;"></i>Sĩ số: 0/0
+                    <i class="fa-solid fa-user-group" style="margin-right: 6px;"></i>Sĩ số: 0 học sinh
                 </span>
             </div>
             <div style="display: flex; gap: 25px; flex-wrap: wrap; color: #A6ADCE; font-size: 14px;">
@@ -939,7 +972,10 @@
         </div>
     </div>
 
-    <script src="js/api.js?v=1.7.4"></script>
+    <!-- Sync Toast Badge giống Dành cho Gia Sư -->
+    <div id="syncToast" class="sync-toast" style="display:none;"></div>
+
+    <script src="js/api.js?v=1.7.5"></script>
     <script>
         var currentTutorData = null;
         var currentClasses = [];
@@ -948,6 +984,24 @@
         var activeClassLessonLogs = [];
 
         var activeClassHomework = [];
+
+        function showSyncToast(state) {
+            var toast = document.getElementById('syncToast');
+            if (!toast) return;
+            toast.className = 'sync-toast ' + state;
+            if (state === 'pending') {
+                toast.innerHTML = '<i class="fa-solid fa-rotate fa-spin"></i> Đang đồng bộ...';
+                toast.style.display = 'flex';
+            } else if (state === 'success') {
+                toast.innerHTML = '<i class="fa-solid fa-circle-check"></i> Đã đồng bộ';
+                toast.style.display = 'flex';
+                setTimeout(function() { toast.style.display = 'none'; }, 2500);
+            } else if (state === 'error') {
+                toast.innerHTML = '<i class="fa-solid fa-circle-xmark"></i> Lỗi đồng bộ!';
+                toast.style.display = 'flex';
+                setTimeout(function() { toast.style.display = 'none'; }, 4000);
+            }
+        }
 
         document.addEventListener("DOMContentLoaded", function() {
 
@@ -1054,7 +1108,7 @@
             document.getElementById("activeClassName").innerText = "Chưa có lớp học";
             document.getElementById("activeClassSubject").innerText = "-";
             document.getElementById("activeClassSchedule").innerText = "-";
-            document.getElementById("activeClassRosterCount").innerHTML = '<i class="fa-solid fa-user-group" style="margin-right: 6px;"></i>Sĩ số: 0/0';
+            document.getElementById("activeClassRosterCount").innerHTML = '<i class="fa-solid fa-user-group" style="margin-right: 6px;"></i>Sĩ số: 0 học sinh';
             document.getElementById("studentRosterTbody").innerHTML = '<tr><td colspan="7" style="text-align:center; color:#A6ADCE; padding: 25px;">Chưa có lớp học nào. Vui lòng bấm nút <b>"+ Thêm lớp học mới"</b> phía trên để tạo lớp học đầu tiên!</td></tr>';
             var logTbody = document.getElementById("classLessonLogsTbody");
             if (logTbody) logTbody.innerHTML = '<tr><td colspan="9" style="text-align:center; color:#A6ADCE; padding: 25px;">Chưa có lớp học nào. Vui lòng tạo lớp học trước khi mở nhật ký!</td></tr>';
@@ -1126,20 +1180,34 @@
                 return;
             }
             activeClassIndex = idx;
-            closeClassInvoice(); // Đóng hóa đơn đang xem của lớp cũ
+            closeClassInvoice();
+
+            // Hiển thị UI ngay lập tức trong 0.01s bằng dữ liệu local memory
+            renderDashboardUI();
+
             var cls = currentClasses[idx];
-
-            document.getElementById("activeClassName").innerText = cls.className;
-            document.getElementById("activeClassSubject").innerText = cls.subject || "Chưa cập nhật";
-            document.getElementById("activeClassSchedule").innerText = cls.schedule || "Chưa cập nhật";
-            renderClassNavRow();
-
             var phone = (currentTutorData && currentTutorData.tutorPhone) ? currentTutorData.tutorPhone : "";
             if (phone) {
-                loadClassDashboardData(phone, cls.classId);
-            } else {
-                renderDashboardUI();
+                loadClassDetailDataOnly(phone, cls.classId);
             }
+        }
+
+        function loadClassDetailDataOnly(phone, requestedClassId) {
+            google.script.run
+                .withSuccessHandler(function(res) {
+                    if (res && res.activeClass && res.activeClass.classId === requestedClassId) {
+                        activeStudents = res.students || [];
+                        activeClassLessonLogs = res.lessonLogs || [];
+                        var inputEl = document.getElementById("classQuickAnnouncementInput");
+                        if (inputEl) inputEl.value = res.announcement || "";
+                        activeClassHomework = res.homeworkList || [];
+
+                        renderRosterAndEvalGrid();
+                        renderClassLessonLogsTableUI();
+                        renderClassHomeworkListUI();
+                    }
+                })
+                .getClassDashboardData(phone, requestedClassId);
         }
 
         function loadStudentsForActiveClass() {
@@ -1166,8 +1234,7 @@
 
         function renderRosterAndEvalGrid() {
             var cls = currentClasses[activeClassIndex];
-            var maxSt = cls ? (cls.maxStudents || 20) : 20;
-            document.getElementById("activeClassRosterCount").innerHTML = '<i class="fa-solid fa-user-group" style="margin-right: 6px;"></i>Sĩ số: ' + activeStudents.length + '/' + maxSt;
+            document.getElementById("activeClassRosterCount").innerHTML = '<i class="fa-solid fa-user-group" style="margin-right: 6px;"></i>Sĩ số: ' + activeStudents.length + ' học sinh';
 
             // Render Roster
             var rosterTbody = document.getElementById("studentRosterTbody");
@@ -1227,36 +1294,59 @@
                 btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Đang tạo lớp...';
             }
 
+            var tempId = "LH_" + new Date().getTime().toString().slice(-6);
+            var newCls = {
+                classId: tempId,
+                className: name,
+                subject: subject || "Toán học",
+                schedule: schedule || "Thứ 2 & Thứ 5",
+                maxStudents: "20",
+                feeType: feeType || "per_session",
+                tutorPhone: phone
+            };
+
+            if (!currentTutorData) currentTutorData = { tutorPhone: phone };
+            currentTutorData.tutorPhone = phone;
+
+            // OPTIMISTIC UI: Cập nhật memory & render UI trong 0.01s!
+            currentClasses.push(newCls);
+            currentTutorData.classes = currentClasses;
+            sessionStorage.setItem("classTutorData", JSON.stringify(currentTutorData));
+
+            activeClassIndex = currentClasses.length - 1;
+            activeStudents = [];
+            activeClassLessonLogs = [];
+            activeClassHomework = [];
+
+            closeModal("addClassModal");
+            document.getElementById("newClassName").value = "";
+            document.getElementById("newClassSubject").value = "";
+            document.getElementById("newClassSchedule").value = "";
+
+            renderDashboardUI();
+            showSyncToast('pending');
+
+            // Lưu ngầm ở server Google
             google.script.run
                 .withSuccessHandler(function(res) {
+                    showSyncToast('success');
                     if (btn) {
                         btn.disabled = false;
                         btn.innerHTML = originalBtnHtml;
                     }
-                    var newCls = {
-                        classId: (res && res.classId) ? res.classId : ("LH_" + new Date().getTime().toString().slice(-6)),
-                        className: name,
-                        subject: subject || "Toán học",
-                        schedule: schedule || "Thứ 2 & Thứ 5",
-                        maxStudents: "20",
-                        feeType: feeType || "per_session"
-                    };
-                    if (!currentTutorData) currentTutorData = { tutorPhone: phone };
-                    currentTutorData.tutorPhone = phone;
-
-                    currentClasses.push(newCls);
-                    closeModal("addClassModal");
-                    document.getElementById("newClassName").value = "";
-                    document.getElementById("newClassSubject").value = "";
-                    document.getElementById("newClassSchedule").value = "";
-                    selectClass(currentClasses.length - 1);
+                    if (res && res.classId) {
+                        newCls.classId = res.classId;
+                        currentTutorData.classes = currentClasses;
+                        sessionStorage.setItem("classTutorData", JSON.stringify(currentTutorData));
+                    }
                 })
                 .withFailureHandler(function(err) {
+                    showSyncToast('error');
                     if (btn) {
                         btn.disabled = false;
                         btn.innerHTML = originalBtnHtml;
                     }
-                    alert("Lỗi khi kết nối hệ thống tạo lớp: " + err.toString());
+                    console.error("Lỗi tạo lớp ngầm:", err);
                 })
                 .createClass(phone, name, subject, schedule, feeType);
         }
@@ -1286,7 +1376,8 @@
             cls.schedule = schedule;
             cls.feeType = feeType;
 
-            google.script.run.updateClassInfo(cls.classId, name, subject, schedule, feeType);
+            showSyncToast('pending');
+            google.script.run.withSuccessHandler(function() { showSyncToast('success'); }).updateClassInfo(cls.classId, name, subject, schedule, feeType);
             closeModal("editClassModal");
             selectClass(activeClassIndex);
         }
@@ -1295,7 +1386,8 @@
             var cls = currentClasses[activeClassIndex];
             if (!cls) return;
             if (confirm("Bạn có chắc chắn muốn xóa lớp " + cls.className + " không?")) {
-                google.script.run.deleteClass(cls.classId, cls.className);
+                showSyncToast('pending');
+                google.script.run.withSuccessHandler(function() { showSyncToast('success'); }).deleteClass(cls.classId, cls.className);
                 currentClasses.splice(activeClassIndex, 1);
                 if (currentClasses.length === 0) {
                     renderClassNavRow();
@@ -1324,7 +1416,9 @@
 
             if (!name) { alert("Vui lòng nhập họ và tên học sinh!"); return; }
 
+            showSyncToast('pending');
             google.script.run.withSuccessHandler(function(res) {
+                showSyncToast('success');
                 var stId = (res && res.studentId) ? res.studentId : ("HS_LH_" + new Date().getTime().toString().slice(-6));
                 activeStudents.push({
                     studentId: stId,
@@ -1350,7 +1444,8 @@
 
         function removeStudent(studentId) {
             if (confirm("Bạn có chắc chắn muốn chuyển học sinh này vào thùng rác không? (Có thể khôi phục lại từ thùng rác).")) {
-                google.script.run.removeClassStudent(studentId);
+                showSyncToast('pending');
+                google.script.run.withSuccessHandler(function() { showSyncToast('success'); }).removeClassStudent(studentId);
                 activeStudents = activeStudents.filter(function(st) { return st.studentId !== studentId; });
                 renderRosterAndEvalGrid();
             }
@@ -1619,8 +1714,9 @@
             closeModal("addClassLessonModal");
             renderClassLessonLogsTableUI();
 
+            showSyncToast('pending');
             // Gửi ngầm bên dưới
-            google.script.run.saveClassLessonLog(
+            google.script.run.withSuccessHandler(function() { showSyncToast('success'); }).saveClassLessonLog(
                 cls.classId,
                 cls.className,
                 weekNum,
@@ -1685,8 +1781,9 @@
                 activeClassLessonLogs = activeClassLessonLogs.filter(function(log) { return log.logId !== logId; });
                 renderClassLessonLogsTableUI();
 
+                showSyncToast('pending');
                 // Gửi ngầm bên dưới
-                google.script.run.deleteClassLessonLog(logId);
+                google.script.run.withSuccessHandler(function() { showSyncToast('success'); }).deleteClassLessonLog(logId);
             }
         }
 
@@ -2095,7 +2192,9 @@
             switchClassHwSubTab("list");
             renderClassHomeworkListUI();
 
+            showSyncToast('pending');
             google.script.run.withSuccessHandler(function(res) {
+                showSyncToast('success');
                 if (btn) {
                     btn.disabled = false;
                     btn.innerHTML = "Giao bài";
@@ -2143,8 +2242,9 @@
                 activeClassHomework = activeClassHomework.filter(function(hw) { return hw.hwId !== hwId; });
                 renderClassHomeworkListUI();
 
+                showSyncToast('pending');
                 // Gửi ngầm bên dưới
-                google.script.run.deleteClassHomework(hwId);
+                google.script.run.withSuccessHandler(function() { showSyncToast('success'); }).deleteClassHomework(hwId);
             }
         }
 
