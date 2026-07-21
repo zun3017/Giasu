@@ -326,6 +326,7 @@
                 <p style="color: #A6ADCE; font-size: 14px; margin-top: 4px; margin-bottom: 0;">Tổng quan hệ thống giảng dạy</p>
             </div>
             <div style="display: flex; gap: 10px;">
+                <button onclick="openTrashModal()" class="btn-back" style="width: auto; padding: 10px 20px; background: rgba(239, 68, 68, 0.15); border: 1px solid #EF4444; border-radius: 20px; color: #FFF; font-size: 13.5px; font-weight: 600; cursor: pointer;"><i class="fa-solid fa-trash-can"></i> Thùng rác</button>
                 <button onclick="openTutorAccountModal()" class="btn-back" style="width: auto; padding: 10px 20px; background: rgba(142,77,255,0.1); border: 1px solid #8E4DFF; border-radius: 20px; color: #FFF; font-size: 13.5px; font-weight: 600; cursor: pointer;"><i class="fa-solid fa-user"></i> Tài khoản</button>
                 <button onclick="logoutClass()" class="btn-back" style="width: auto; padding: 10px 20px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15); border-radius: 20px; color: #FFF; font-size: 13.5px; font-weight: 600; cursor: pointer;"><i class="fa-solid fa-arrow-right-from-bracket"></i> Đăng xuất</button>
             </div>
@@ -975,7 +976,7 @@
     <!-- Sync Toast Badge giống Dành cho Gia Sư -->
     <div id="syncToast" class="sync-toast" style="display:none;"></div>
 
-    <script src="js/api.js?v=1.7.8"></script>
+    <script src="js/api.js?v=1.7.9"></script>
     <script>
         var currentTutorData = null;
         var currentClasses = [];
@@ -1022,18 +1023,20 @@
                     }
 
                     var phone = currentTutorData.tutorPhone || sessionStorage.getItem("userPhone") || localStorage.getItem("userPhone") || "";
-                    loadClassDashboardData(phone, null);
+                    var code = currentTutorData.tutorCode || currentTutorData.tutorId || sessionStorage.getItem("userCode") || localStorage.getItem("userCode") || "";
+                    loadClassDashboardData(phone, null, code);
                 } catch(e) {
                     console.error("Lỗi parse data giáo viên:", e);
-                    loadClassDashboardData("", null);
+                    loadClassDashboardData("", null, "");
                 }
             } else {
-                currentTutorData = { tutorName: "Giáo viên Lớp học", tutorPhone: "" };
-                loadClassDashboardData("", null);
+                currentTutorData = { tutorName: "Giáo viên Lớp học", tutorPhone: "", tutorCode: "" };
+                loadClassDashboardData("", null, "");
             }
         });
 
-        function loadClassDashboardData(phone, requestedClassId) {
+        function loadClassDashboardData(phone, requestedClassId, code) {
+            var tutorCode = code || (currentTutorData ? (currentTutorData.tutorCode || currentTutorData.tutorId || "") : "");
             google.script.run
                 .withSuccessHandler(function(res) {
                     if (res && res.classes && Array.isArray(res.classes) && res.classes.length > 0) {
@@ -1079,7 +1082,7 @@
                         renderEmptyClassState();
                     }
                 })
-                .getClassDashboardData(phone || "", requestedClassId);
+                .getClassDashboardData(phone || "", requestedClassId, tutorCode);
         }
 
         function renderDashboardUI() {
@@ -1313,7 +1316,11 @@
                 ? currentTutorData.tutorPhone 
                 : (sessionStorage.getItem("userPhone") || localStorage.getItem("userPhone") || sessionStorage.getItem("tutorPhone") || localStorage.getItem("tutorPhone") || "");
 
-            if (!phone) {
+            var tutorCode = (currentTutorData && (currentTutorData.tutorCode || currentTutorData.tutorId))
+                ? (currentTutorData.tutorCode || currentTutorData.tutorId)
+                : (sessionStorage.getItem("userCode") || localStorage.getItem("userCode") || "");
+
+            if (!phone && !tutorCode) {
                 alert("Không tìm thấy thông tin đăng nhập của giáo viên. Vui lòng đăng nhập lại!");
                 window.location.href = "class-login.html";
                 return;
@@ -1334,16 +1341,19 @@
                 schedule: schedule || "Thứ 2 & Thứ 5",
                 maxStudents: "20",
                 feeType: feeType || "per_session",
-                tutorPhone: phone
+                tutorPhone: phone || tutorCode,
+                tutorCode: tutorCode || phone
             };
 
-            if (!currentTutorData) currentTutorData = { tutorPhone: phone };
+            if (!currentTutorData) currentTutorData = { tutorPhone: phone, tutorCode: tutorCode };
             currentTutorData.tutorPhone = phone;
+            if (tutorCode) currentTutorData.tutorCode = tutorCode;
 
             // OPTIMISTIC UI: Cập nhật memory & render UI trong 0.01s!
             currentClasses.push(newCls);
             currentTutorData.classes = currentClasses;
             sessionStorage.setItem("classTutorData", JSON.stringify(currentTutorData));
+            localStorage.setItem("classTutorData", JSON.stringify(currentTutorData));
 
             activeClassIndex = currentClasses.length - 1;
             activeStudents = [];
@@ -1370,6 +1380,7 @@
                         newCls.classId = res.classId;
                         currentTutorData.classes = currentClasses;
                         sessionStorage.setItem("classTutorData", JSON.stringify(currentTutorData));
+                        localStorage.setItem("classTutorData", JSON.stringify(currentTutorData));
                     }
                 })
                 .withFailureHandler(function(err) {
@@ -1380,7 +1391,7 @@
                     }
                     console.error("Lỗi tạo lớp ngầm:", err);
                 })
-                .createClass(phone, name, subject, schedule, feeType);
+                .createClass(phone, name, subject, schedule, feeType, tutorCode);
         }
 
         function openEditClassModal() {
@@ -2161,6 +2172,11 @@
                     
                     renderRosterAndEvalGrid();
                     renderClassLessonLogsTableUI();
+
+                    if (currentTutorData) {
+                        sessionStorage.setItem("classTutorData", JSON.stringify(currentTutorData));
+                        localStorage.setItem("classTutorData", JSON.stringify(currentTutorData));
+                    }
                 } else {
                     showSyncToast('error');
                     checkbox.checked = !isPaid;
@@ -2343,6 +2359,74 @@
             }
         }
 
+        function openTrashModal() {
+            var modal = document.getElementById("classTrashModal");
+            var body = document.getElementById("trashModalBody");
+            if (modal) modal.style.display = "flex";
+            if (body) body.innerHTML = '<div style="text-align: center; color: #A6ADCE; padding: 40px;"><i class="fa-solid fa-circle-notch fa-spin"></i> Đang tải danh sách mục đã xóa...</div>';
+            
+            var phone = currentTutorData ? (currentTutorData.tutorPhone || "") : "";
+            var code = currentTutorData ? (currentTutorData.tutorCode || "") : "";
+            
+            google.script.run.withSuccessHandler(function(items) {
+                if (!items || !Array.isArray(items) || items.length === 0) {
+                    body.innerHTML = '<div style="text-align: center; color: #10B981; padding: 40px; font-weight: bold;"><i class="fa-solid fa-circle-check" style="font-size: 32px; display: block; margin-bottom: 10px;"></i> Thùng rác trống! Không có mục nào bị xóa.</div>';
+                    return;
+                }
+                
+                var html = '<table style="width: 100%; border-collapse: collapse; color: #FFF; font-size: 13.5px;">' +
+                    '<thead><tr style="border-bottom: 1px solid rgba(255,255,255,0.1); color: #A6ADCE; font-weight: bold;"><td style="padding: 10px;">Loại mục</td><td style="padding: 10px;">Tên / Nội dung</td><td style="padding: 10px;">Ngày xóa</td><td style="padding: 10px; text-align: center;">Thao tác</td></tr></thead><tbody>';
+                
+                items.forEach(function(item) {
+                    var typeText = item.type === 'class' ? '<span style="color:#8E4DFF; font-weight:bold;">[Lớp học]</span>' : (item.type === 'student' ? '<span style="color:#3B82F6; font-weight:bold;">[Học sinh]</span>' : '<span style="color:#F59E0B; font-weight:bold;">[Buổi học]</span>');
+                    html += '<tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">' +
+                        '<td style="padding: 12px 10px;">' + typeText + '</td>' +
+                        '<td style="padding: 12px 10px;"><strong>' + item.name + '</strong><br><small style="color:#A6ADCE;">' + (item.detail || "") + '</small></td>' +
+                        '<td style="padding: 12px 10px; color:#A6ADCE;">' + (item.deletedAt || "") + '</td>' +
+                        '<td style="padding: 12px 10px; text-align: center; display:flex; gap:8px; justify-content:center;">' +
+                            '<button onclick="restoreTrashItem(\'' + item.type + '\', \'' + item.id + '\', \'' + (item.className || "") + '\')" style="padding: 6px 14px; background: rgba(16, 185, 129, 0.2); border: 1px solid #10B981; border-radius: 8px; color: #10B981; font-weight: bold; cursor: pointer; font-size: 12px;"><i class="fa-solid fa-rotate-left"></i> Phục hồi</button>' +
+                            '<button onclick="purgeTrashItem(\'' + item.type + '\', \'' + item.id + '\', \'' + (item.className || "") + '\')" style="padding: 6px 14px; background: rgba(239, 68, 68, 0.2); border: 1px solid #EF4444; border-radius: 8px; color: #EF4444; font-weight: bold; cursor: pointer; font-size: 12px;"><i class="fa-solid fa-trash"></i> Xóa vĩnh viễn</button>' +
+                        '</td>' +
+                    '</tr>';
+                });
+                
+                html += '</tbody></table>';
+                body.innerHTML = html;
+            }).withFailureHandler(function(err) {
+                body.innerHTML = '<div style="color: #EF4444; padding: 20px; text-align: center;">Lỗi tải thùng rác: ' + err.toString() + '</div>';
+            }).getClassTrashItems(phone, code);
+        }
+
+        function restoreTrashItem(type, itemId, className) {
+            showSyncToast('pending');
+            google.script.run.withSuccessHandler(function(res) {
+                if (res && res.success) {
+                    showSyncToast('success');
+                    openTrashModal();
+                    var phone = currentTutorData ? (currentTutorData.tutorPhone || "") : "";
+                    var code = currentTutorData ? (currentTutorData.tutorCode || "") : "";
+                    loadClassDashboardData(phone, null, code);
+                } else {
+                    showSyncToast('error');
+                    alert("Lỗi phục hồi: " + (res.error || "Thất bại"));
+                }
+            }).restoreClassItem(type, itemId, className);
+        }
+
+        function purgeTrashItem(type, itemId, className) {
+            if (!confirm("Bạn có chắc chắn muốn XÓA VĨNH VIỄN mục này khỏi hệ thống? Không thể khôi phục sau khi xóa!")) return;
+            showSyncToast('pending');
+            google.script.run.withSuccessHandler(function(res) {
+                if (res && res.success) {
+                    showSyncToast('success');
+                    openTrashModal();
+                } else {
+                    showSyncToast('error');
+                    alert("Lỗi xóa: " + (res.error || "Thất bại"));
+                }
+            }).purgeClassItem(type, itemId, className);
+        }
+
         function logoutClass() {
             sessionStorage.removeItem("classTutorData");
             sessionStorage.removeItem("userTutorData");
@@ -2353,5 +2437,25 @@
             window.location.href = "class-login.html";
         }
     </script>
+
+    <!-- Modal Thùng Rác (Phục Hồi Mục Đã Xóa) -->
+    <div id="classTrashModal" class="modal-overlay" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(10px); z-index: 9999; justify-content: center; align-items: center;">
+        <div style="background: #161233; border: 1px solid rgba(239, 68, 68, 0.4); border-radius: 20px; width: 90%; max-width: 750px; padding: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); max-height: 85vh; display: flex; flex-direction: column;">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 15px; margin-bottom: 15px;">
+                <h3 style="color: #EF4444; font-size: 18px; font-weight: 800; margin: 0; display: flex; align-items: center; gap: 8px;">
+                    <i class="fa-solid fa-trash-can"></i> Thùng rác & Phục hồi dữ liệu
+                </h3>
+                <button onclick="closeModal('classTrashModal')" style="background: none; border: none; color: #A6ADCE; font-size: 20px; cursor: pointer;"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            
+            <div id="trashModalBody" style="overflow-y: auto; flex: 1; min-height: 250px;">
+                <div style="text-align: center; color: #A6ADCE; padding: 40px;"><i class="fa-solid fa-circle-notch fa-spin"></i> Đang tải danh sách mục đã xóa...</div>
+            </div>
+            
+            <div style="display: flex; justify-content: flex-end; margin-top: 15px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px;">
+                <button onclick="closeModal('classTrashModal')" style="padding: 10px 24px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 12px; color: #FFF; font-weight: bold; cursor: pointer;">Đóng</button>
+            </div>
+        </div>
+    </div>
 </body>
 </html>
