@@ -339,47 +339,41 @@
             </div>
         </div>
 
-        <!-- Batch Evaluation Grid -->
-        <div class="card-box">
-            <div class="section-title">
-                <i class="fa-solid fa-clipboard-check"></i> Đánh giá & Điểm danh buổi học hàng loạt (Batch Evaluation)
-            </div>
-
-            <!-- Header Controls: Date & Global Note -->
-            <div style="display: flex; gap: 15px; flex-wrap: wrap; margin-bottom: 20px; background: rgba(255,255,255,0.02); padding: 15px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.06);">
-                <div style="flex: 1; min-width: 200px;">
-                    <label style="display: block; color: #A6ADCE; font-size: 13px; font-weight: 600; margin-bottom: 6px;">Ngày học:</label>
-                    <input type="date" id="evalStudyDate" class="form-control" style="background: rgba(255,255,255,0.06);">
-                </div>
-                <div style="flex: 3; min-width: 300px;">
-                    <label style="display: block; color: #A6ADCE; font-size: 13px; font-weight: 600; margin-bottom: 6px;">Nhận xét chung cho cả lớp (Global Note):</label>
-                    <input type="text" id="evalGlobalNote" placeholder="Ví dụ: Hôm nay lớp học bài mới đầy đủ, tiếp thu kiến thức khá tốt..." class="form-control" style="background: rgba(255,255,255,0.06);">
+        <!-- Lịch Sử Học Tập & Nhận Xét Chi Tiết (Tương thích 100% bản Gia sư) -->
+        <div class="card-box" style="margin-top: 25px; margin-bottom: 25px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 15px;">
+                <h3 style="color: #FFF; font-size: 18px; font-weight: 800; margin: 0; display: flex; align-items: center; gap: 10px;">
+                    <i class="fa-solid fa-clock-rotate-left" style="color: #8E4DFF;"></i> Lịch sử học tập & Nhận xét chi tiết
+                </h3>
+                <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                    <button onclick="openAddClassLessonModal()" style="background: linear-gradient(135deg, #8E4DFF 0%, #5B21B6 100%); border: none; color: #FFF; font-weight: 700; border-radius: 20px; padding: 8px 18px; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 12px rgba(142,77,255,0.3); cursor: pointer; font-size: 13.5px;" title="Thêm buổi học mới">
+                        <i class="fa-solid fa-calendar-plus"></i> Thêm buổi học
+                    </button>
+                    <button onclick="refreshClassHistory()" style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15); color: #FFF; font-weight: 600; border-radius: 20px; padding: 8px 16px; display: inline-flex; align-items: center; gap: 6px; cursor: pointer; font-size: 13.5px;" title="Làm mới lịch sử">
+                        <i class="fa-solid fa-arrows-rotate"></i> Làm mới
+                    </button>
                 </div>
             </div>
 
-            <!-- Student Evaluation Table -->
-            <div style="overflow-x: auto; border-radius: 12px; border: 1px solid rgba(255,255,255,0.08); margin-bottom: 20px;">
+            <div style="overflow-x: auto; border-radius: 12px; border: 1px solid rgba(255,255,255,0.08);">
                 <table class="batch-eval-table">
                     <thead>
                         <tr>
-                            <th style="width: 220px;">Học sinh</th>
-                            <th style="width: 140px;">Điểm danh (Mặc định)</th>
-                            <th style="width: 90px; text-align: center;">Điểm BTVN</th>
-                            <th style="width: 90px; text-align: center;">Điểm Test</th>
-                            <th style="width: 110px; text-align: center;">Đánh giá sao</th>
-                            <th>Nhận xét riêng (Private Note)</th>
+                            <th style="width: 60px; text-align: center;">Tuần</th>
+                            <th style="width: 100px;">Ngày dạy</th>
+                            <th style="width: 110px;">Môn</th>
+                            <th>Nội dung & Nhận xét chung</th>
+                            <th style="width: 160px;">Đánh giá BTVN</th>
+                            <th style="width: 100px; text-align: center;">KT Đầu giờ</th>
+                            <th style="width: 100px; text-align: center;">KT Định kỳ</th>
+                            <th style="width: 100px; text-align: center;">Trạng thái</th>
+                            <th style="width: 80px; text-align: center;">Thao tác</th>
                         </tr>
                     </thead>
-                    <tbody id="batchEvalTbody">
-                        <!-- Render động danh sách học sinh -->
+                    <tbody id="classLessonLogsTbody">
+                        <!-- Render động lịch sử các buổi học -->
                     </tbody>
                 </table>
-            </div>
-
-            <div style="display: flex; justify-content: flex-end;">
-                <button onclick="saveBatchEvaluation()" style="padding: 12px 30px; background: linear-gradient(135deg, #10B981 0%, #059669 100%); border: none; border-radius: 25px; color: #FFF; font-weight: 700; font-size: 15px; cursor: pointer; box-shadow: 0 4px 20px rgba(16,185,129,0.3); display: flex; align-items: center; gap: 8px;">
-                    <i class="fa-solid fa-floppy-disk"></i> Lưu Đánh Giá Buổi Học Cả Lớp
-                </button>
             </div>
         </div>
 
@@ -523,9 +517,98 @@
                 <label>Số điện thoại đăng nhập</label>
                 <input type="text" id="accTutorPhone" class="form-control" readonly style="background: rgba(255,255,255,0.06); color: #FFF;">
             </div>
-            <button onclick="closeModal('tutorAccountModal')" style="width: 100%; padding: 12px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); border-radius: 12px; color: #FFF; font-weight: bold; font-size: 14px; cursor: pointer; margin-top: 10px;">
-                Đóng
-            </button>
+    <!-- MODAL 5: Thêm Nhật Ký Buổi Học (Chuẩn 100% theo giao diện Gia sư) -->
+    <div id="addClassLessonModal" class="modal-overlay">
+        <div class="modal-card" style="max-width: 580px; width: 94%; padding: 25px; border-radius: 22px; background: #0D0826; border: 1px solid rgba(142, 77, 255, 0.35); box-shadow: 0 12px 50px rgba(0,0,0,0.85); max-height: 90vh; overflow-y: auto;">
+            <div class="modal-header" style="margin-bottom: 22px; display: flex; justify-content: space-between; align-items: center;">
+                <h3 style="color: #FFD23F; font-size: 20px; font-weight: 800; display: flex; align-items: center; gap: 10px; margin: 0;">
+                    <i class="fa-solid fa-calendar-plus" style="color: #FFD23F;"></i> Thêm nhật ký buổi học
+                </h3>
+                <button class="btn-close-modal" onclick="closeModal('addClassLessonModal')" style="background: none; border: none; color: #A6ADCE; font-size: 20px; cursor: pointer;">&times;</button>
+            </div>
+
+            <!-- Grid 2 cột: Tuần dạy & Ngày học -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 16px;">
+                <div>
+                    <label style="display: block; color: #A6ADCE; font-size: 11.5px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 6px;">TUẦN DẠY</label>
+                    <input type="text" id="logWeekNum" class="form-control" placeholder="Ví dụ: 7" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 13px 16px; color: #FFF; font-size: 14px; width: 100%; outline: none;">
+                </div>
+                <div>
+                    <label style="display: block; color: #A6ADCE; font-size: 11.5px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 6px;">NGÀY HỌC</label>
+                    <input type="text" id="logStudyDate" class="form-control" placeholder="dd/mm/yyyy" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 13px 16px; color: #FFF; font-size: 14px; width: 100%; outline: none;">
+                </div>
+            </div>
+
+            <!-- Grid 2 cột: Môn học & Trạng thái -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 16px;">
+                <div>
+                    <label style="display: block; color: #A6ADCE; font-size: 11.5px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 6px;">MÔN HỌC</label>
+                    <select id="logSubject" class="form-control" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 13px 16px; color: #FFF; font-size: 14px; width: 100%; outline: none;">
+                        <option value="Toán học" style="background:#0D0826;">Toán học</option>
+                        <option value="Vật lý" style="background:#0D0826;">Vật lý</option>
+                        <option value="Hóa học" style="background:#0D0826;">Hóa học</option>
+                        <option value="Tiếng Anh" style="background:#0D0826;">Tiếng Anh</option>
+                        <option value="Ngữ văn" style="background:#0D0826;">Ngữ văn</option>
+                    </select>
+                </div>
+                <div>
+                    <label style="display: block; color: #A6ADCE; font-size: 11.5px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 6px;">TRẠNG THÁI</label>
+                    <select id="logStatus" class="form-control" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 13px 16px; color: #FFF; font-size: 14px; width: 100%; outline: none;">
+                        <option value="Đã học" style="background:#0D0826;">Đã học</option>
+                        <option value="Hủy/Nghỉ" style="background:#0D0826;">Hủy / Nghỉ</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Đánh giá bài tập về nhà -->
+            <div style="margin-bottom: 16px;">
+                <label style="display: block; color: #A6ADCE; font-size: 11.5px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 6px;">ĐÁNH GIÁ BÀI TẬP VỀ NHÀ</label>
+                <select id="logHwEval" class="form-control" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 13px 16px; color: #FFF; font-size: 14px; width: 100%; outline: none;">
+                    <option value="Hoàn thành" style="background:#0D0826;">Hoàn thành</option>
+                    <option value="Phụ huynh nhớ nhắc nhờ bé làm bài tập gia sư mới giao" style="background:#0D0826;">Phụ huynh nhớ nhắc nhờ bé làm bài tập gia sư mới giao</option>
+                    <option value="Thiếu 1 bài" style="background:#0D0826;">Thiếu 1 bài</option>
+                    <option value="Chưa làm bài" style="background:#0D0826;">Chưa làm bài</option>
+                    <option value="Không có bài tập" style="background:#0D0826;">Không có bài tập</option>
+                </select>
+            </div>
+
+            <!-- Grid 2 cột: Điểm kiểm tra đầu giờ & Điểm kiểm tra định kỳ -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 16px;">
+                <div>
+                    <label style="display: block; color: #A6ADCE; font-size: 11.5px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 6px;">ĐIỂM KIỂM TRA ĐẦU GIỜ</label>
+                    <input type="text" id="logEntryTest" class="form-control" placeholder="Không có" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 13px 16px; color: #FFF; font-size: 14px; width: 100%; outline: none;">
+                </div>
+                <div>
+                    <label style="display: block; color: #A6ADCE; font-size: 11.5px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 6px;">ĐIỂM KIỂM TRA ĐỊNH KỲ</label>
+                    <input type="text" id="logTermTest" class="form-control" placeholder="Không có" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 13px 16px; color: #FFF; font-size: 14px; width: 100%; outline: none;">
+                </div>
+            </div>
+
+            <!-- Nội dung bài học & Nhận xét chung -->
+            <div style="margin-bottom: 18px;">
+                <label style="display: block; color: #A6ADCE; font-size: 11.5px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 6px;">NỘI DUNG BÀI HỌC & NHẬN XÉT CHUNG CHO CẢ LỚP</label>
+                <textarea id="logGeneralNote" rows="3" class="form-control" placeholder="Nhập nội dung giảng dạy và nhận xét chi tiết..." style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 13px 16px; color: #FFF; font-size: 14px; width: 100%; outline: none; resize: vertical;"></textarea>
+            </div>
+
+            <!-- Accordion Drawer: Nhận xét & Điểm danh riêng từng học sinh -->
+            <div style="background: rgba(142, 77, 255, 0.08); border: 1px solid rgba(142, 77, 255, 0.25); border-radius: 14px; padding: 12px 16px; margin-bottom: 20px;">
+                <button type="button" onclick="toggleStudentNotesAccordion()" style="width: 100%; background: none; border: none; color: #E2D1FF; font-weight: 700; font-size: 13.5px; cursor: pointer; display: flex; justify-content: space-between; align-items: center;">
+                    <span><i class="fa-solid fa-users" style="color: #FFD23F; margin-right: 8px;"></i>Nhận xét & Điểm danh riêng từng học sinh (Tùy chọn)</span>
+                    <i id="accordionIcon" class="fa-solid fa-chevron-down" style="transition: transform 0.3s;"></i>
+                </button>
+                
+                <div id="studentNotesAccordionContainer" style="display: none; margin-top: 15px; max-height: 250px; overflow-y: auto; padding-right: 5px;">
+                    <div id="modalStudentNotesList" style="display: flex; flex-direction: column; gap: 12px;">
+                        <!-- Render danh sách học sinh để điền nhận xét riêng -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal Footer Buttons -->
+            <div style="display: flex; justify-content: flex-end; gap: 12px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.06);">
+                <button type="button" onclick="closeModal('addClassLessonModal')" style="padding: 10px 26px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15); border-radius: 20px; color: #FFF; font-weight: 600; cursor: pointer; font-size: 14px;">Đóng</button>
+                <button type="button" onclick="saveClassLessonLog()" style="padding: 10px 32px; background: linear-gradient(135deg, #8E4DFF 0%, #5B21B6 100%); border: none; border-radius: 20px; color: #FFF; font-weight: 700; cursor: pointer; font-size: 14px; box-shadow: 0 4px 15px rgba(142,77,255,0.4);">Tiếp tục</button>
+            </div>
         </div>
     </div>
 
@@ -602,8 +685,9 @@
             document.getElementById("activeClassSubject").innerText = "-";
             document.getElementById("activeClassSchedule").innerText = "-";
             document.getElementById("activeClassRosterCount").innerHTML = '<i class="fa-solid fa-user-group" style="margin-right: 6px;"></i>Sĩ số: 0/0';
-            document.getElementById("studentRosterTbody").innerHTML = '<tr><td colspan="5" style="text-align:center; color:#A6ADCE; padding: 25px;">Chưa có lớp học nào. Vui lòng bấm nút <b>"+ Thêm lớp học mới"</b> phía trên để tạo lớp học đầu tiên!</td></tr>';
-            document.getElementById("batchEvalTbody").innerHTML = '<tr><td colspan="6" style="text-align:center; color:#A6ADCE; padding: 25px;">Chưa có lớp học nào. Vui lòng tạo lớp học trước khi đánh giá!</td></tr>';
+            document.getElementById("studentRosterTbody").innerHTML = '<tr><td colspan="7" style="text-align:center; color:#A6ADCE; padding: 25px;">Chưa có lớp học nào. Vui lòng bấm nút <b>"+ Thêm lớp học mới"</b> phía trên để tạo lớp học đầu tiên!</td></tr>';
+            var logTbody = document.getElementById("classLessonLogsTbody");
+            if (logTbody) logTbody.innerHTML = '<tr><td colspan="9" style="text-align:center; color:#A6ADCE; padding: 25px;">Chưa có lớp học nào. Vui lòng tạo lớp học trước khi mở nhật ký!</td></tr>';
             renderClassNavRow();
         }
 
@@ -680,6 +764,7 @@
 
             renderClassNavRow();
             loadStudentsForActiveClass();
+            loadClassLessonHistory();
         }
 
         function loadStudentsForActiveClass() {
@@ -689,9 +774,10 @@
                 return;
             }
 
-            // Hiển thị loading nhẹ
-            document.getElementById("studentRosterTbody").innerHTML = '<tr><td colspan="5" style="text-align:center; color:#A6ADCE; padding: 20px;"><i class="fa-solid fa-circle-notch fa-spin"></i> Đang tải học sinh...</td></tr>';
-            document.getElementById("batchEvalTbody").innerHTML = '<tr><td colspan="6" style="text-align:center; color:#A6ADCE; padding: 20px;"><i class="fa-solid fa-circle-notch fa-spin"></i> Đang tải bảng đánh giá...</td></tr>';
+            var rosterTbody = document.getElementById("studentRosterTbody");
+            if (rosterTbody) {
+                rosterTbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color:#A6ADCE; padding: 20px;"><i class="fa-solid fa-circle-notch fa-spin"></i> Đang tải danh sách học sinh...</td></tr>';
+            }
 
             google.script.run.withSuccessHandler(function(list) {
                 if (list && Array.isArray(list)) {
@@ -915,6 +1001,180 @@
                 activeStudents = activeStudents.filter(function(st) { return st.studentId !== studentId; });
                 renderRosterAndEvalGrid();
             }
+        }
+
+        function openAddClassLessonModal() {
+            var cls = currentClasses[activeClassIndex];
+            if (!cls) {
+                alert("Vui lòng tạo hoặc chọn lớp học trước khi thêm buổi học!");
+                return;
+            }
+
+            var today = new Date();
+            var dd = String(today.getDate()).padStart(2, '0');
+            var mm = String(today.getMonth() + 1).padStart(2, '0');
+            var yyyy = today.getFullYear();
+            var dateStr = dd + '/' + mm + '/' + yyyy;
+
+            document.getElementById("logWeekNum").value = "7";
+            document.getElementById("logStudyDate").value = dateStr;
+            document.getElementById("logSubject").value = cls.subject || "Toán học";
+            document.getElementById("logStatus").value = "Đã học";
+            document.getElementById("logHwEval").value = "Hoàn thành";
+            document.getElementById("logEntryTest").value = "Không có";
+            document.getElementById("logTermTest").value = "Không có";
+            document.getElementById("logGeneralNote").value = "";
+
+            // Render Accordion list of students
+            var listEl = document.getElementById("modalStudentNotesList");
+            listEl.innerHTML = "";
+
+            if (activeStudents && activeStudents.length > 0) {
+                activeStudents.forEach(function(st) {
+                    var card = document.createElement("div");
+                    card.style.cssText = "background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 12px;";
+                    card.innerHTML = 
+                        '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; flex-wrap:wrap; gap:8px;">' +
+                            '<strong style="color:#FFD23F; font-size:14px;">' + st.studentName + '</strong>' +
+                            '<select id="stAtt_' + st.studentId + '" class="form-control" style="width:auto; padding:4px 10px; font-size:12.5px; background:rgba(255,255,255,0.06); border-radius:8px; color:#10B981;">' +
+                                '<option value="Có mặt" style="background:#0D0826;">🟢 Có mặt</option>' +
+                                '<option value="Vắng (Có phép)" style="background:#0D0826;">🟡 Vắng (Có phép)</option>' +
+                                '<option value="Vắng (Không phép)" style="background:#0D0826;">🔴 Vắng (Không phép)</option>' +
+                                '<option value="Muộn" style="background:#0D0826;">🟠 Đi muộn</option>' +
+                            '</select>' +
+                        '</div>' +
+                        '<div>' +
+                            '<input type="text" id="stNote_' + st.studentId + '" class="form-control" placeholder="Nhập nhận xét riêng cho em ' + st.studentName + ' (phụ huynh bé sẽ thấy)..." style="background:rgba(255,255,255,0.04); font-size:13px; padding:8px 12px; border-radius:8px;">' +
+                        '</div>';
+                    listEl.appendChild(card);
+                });
+            } else {
+                listEl.innerHTML = '<div style="color:#A6ADCE; font-size:13px; font-style:italic;">Lớp này chưa có danh sách học sinh.</div>';
+            }
+
+            openModal("addClassLessonModal");
+        }
+
+        function toggleStudentNotesAccordion() {
+            var container = document.getElementById("studentNotesAccordionContainer");
+            var icon = document.getElementById("accordionIcon");
+            if (container.style.display === "none" || container.style.display === "") {
+                container.style.display = "block";
+                if (icon) icon.style.transform = "rotate(180deg)";
+            } else {
+                container.style.display = "none";
+                if (icon) icon.style.transform = "rotate(0deg)";
+            }
+        }
+
+        function saveClassLessonLog() {
+            var cls = currentClasses[activeClassIndex];
+            if (!cls) return;
+
+            var weekNum = document.getElementById("logWeekNum").value.trim();
+            var studyDate = document.getElementById("logStudyDate").value.trim();
+            var subject = document.getElementById("logSubject").value;
+            var status = document.getElementById("logStatus").value;
+            var hwEval = document.getElementById("logHwEval").value;
+            var entryTest = document.getElementById("logEntryTest").value.trim() || "Không có";
+            var termTest = document.getElementById("logTermTest").value.trim() || "Không có";
+            var generalNote = document.getElementById("logGeneralNote").value.trim();
+
+            if (!studyDate) {
+                alert("Vui lòng nhập ngày học!");
+                return;
+            }
+
+            // Gom nhận xét riêng từng học sinh
+            var studentNotesObj = {};
+            if (activeStudents && activeStudents.length > 0) {
+                activeStudents.forEach(function(st) {
+                    var attEl = document.getElementById("stAtt_" + st.studentId);
+                    var noteEl = document.getElementById("stNote_" + st.studentId);
+                    var att = attEl ? attEl.value : "Có mặt";
+                    var note = noteEl ? noteEl.value.trim() : "";
+                    if (att !== "Có mặt" || note !== "") {
+                        studentNotesObj[st.studentId] = {
+                            studentName: st.studentName,
+                            attendance: att,
+                            privateNote: note
+                        };
+                    }
+                });
+            }
+
+            var studentNotesJson = JSON.stringify(studentNotesObj);
+
+            google.script.run.withSuccessHandler(function(res) {
+                closeModal("addClassLessonModal");
+                loadClassLessonHistory();
+            }).saveClassLessonLog(
+                cls.classId,
+                cls.className,
+                weekNum,
+                studyDate,
+                subject,
+                status,
+                hwEval,
+                entryTest,
+                termTest,
+                generalNote,
+                studentNotesJson
+            );
+        }
+
+        function loadClassLessonHistory() {
+            var cls = currentClasses[activeClassIndex];
+            var tbody = document.getElementById("classLessonLogsTbody");
+            if (!cls || !tbody) return;
+
+            tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; color:#A6ADCE; padding:20px;"><i class="fa-solid fa-circle-notch fa-spin"></i> Đang tải lịch sử học tập...</td></tr>';
+
+            google.script.run.withSuccessHandler(function(logs) {
+                if (!logs || !Array.isArray(logs) || logs.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; color:#A6ADCE; padding:25px;">Chưa có nhật ký buổi học nào. Vui lòng bấm nút <b>"+ Thêm buổi học"</b> góc trên để tạo!</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = logs.map(function(log) {
+                    var statusBadge = log.status === "Đã học" 
+                        ? '<span style="padding:4px 12px; background:rgba(16,185,129,0.15); border:1px solid rgba(16,185,129,0.4); color:#6EE7B7; border-radius:15px; font-weight:700; font-size:12px;">Đã học</span>'
+                        : '<span style="padding:4px 12px; background:rgba(239,68,68,0.15); border:1px solid rgba(239,68,68,0.4); color:#FCA5A5; border-radius:15px; font-weight:700; font-size:12px;">Hủy/Nghỉ</span>';
+
+                    var hwBadge = '<span style="padding:4px 12px; background:rgba(142,77,255,0.15); border:1px solid rgba(142,77,255,0.3); color:#E2D1FF; border-radius:15px; font-size:12.5px;">' + log.hwEval + '</span>';
+
+                    var noteDisplay = log.generalNote || '<i>(Chưa có nhận xét)</i>';
+                    
+                    var pNoteCount = (log.studentNotes && typeof log.studentNotes === 'object') ? Object.keys(log.studentNotes).length : 0;
+                    if (pNoteCount > 0) {
+                        noteDisplay += '<div style="margin-top:6px; font-size:12px; color:#FFD23F;"><i class="fa-solid fa-user-pen"></i> Có ' + pNoteCount + ' học sinh có nhận xét riêng từ Thầy</div>';
+                    }
+
+                    return '<tr>' +
+                        '<td style="text-align:center; color:#A6ADCE; font-weight:600;">' + (log.weekNum || '-') + '</td>' +
+                        '<td style="font-weight:700; color:#FFF;">' + (log.studyDate || '-') + '</td>' +
+                        '<td style="color:#C4B5FD; font-weight:600;">' + (log.subject || '-') + '</td>' +
+                        '<td style="color:#FFF; line-height:1.5;">' + noteDisplay + '</td>' +
+                        '<td>' + hwBadge + '</td>' +
+                        '<td style="text-align:center; color:#FFF;">' + (log.entryTest || 'Không có') + '</td>' +
+                        '<td style="text-align:center; color:#FFF;">' + (log.termTest || 'Không có') + '</td>' +
+                        '<td style="text-align:center;">' + statusBadge + '</td>' +
+                        '<td style="text-align:center;"><button onclick="deleteClassLessonLog(\'' + log.logId + '\')" style="background:none; border:none; color:#EF4444; cursor:pointer; font-size:15px;" title="Xóa buổi học này"><i class="fa-solid fa-trash"></i></button></td>' +
+                    '</tr>';
+                }).join('');
+            }).getClassLessonLogs(cls.classId, cls.className);
+        }
+
+        function deleteClassLessonLog(logId) {
+            if (confirm("Bạn có chắc chắn muốn xóa nhật ký buổi học này không?")) {
+                google.script.run.withSuccessHandler(function() {
+                    loadClassLessonHistory();
+                }).deleteClassLessonLog(logId);
+            }
+        }
+
+        function refreshClassHistory() {
+            loadClassLessonHistory();
         }
 
         function logoutClass() {
