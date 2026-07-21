@@ -171,19 +171,39 @@
         const contentArea = document.getElementById("demoContentArea");
         
         // Tính toán các huy chương/huy hiệu vinh danh giống hệt trang thật
-        let gpaVal = parseFloat(student.gpa);
-        let gpaBadgeHtml = "";
-        if (!isNaN(gpaVal)) {
-            if (gpaVal >= 9.0) {
-                gpaBadgeHtml = '<div class="medal-badge medal-academic" style="margin-top: 6px;"><i class="fa-solid fa-award"></i> Học giỏi 🎖️</div>';
-            } else if (gpaVal >= 8.0) {
-                gpaBadgeHtml = '<div class="medal-badge medal-silver" style="margin-top: 6px;"><i class="fa-solid fa-award"></i> Học khá 🎖️</div>';
-            } else if (gpaVal >= 7.0) {
-                gpaBadgeHtml = '<div class="medal-badge medal-bronze" style="margin-top: 6px;"><i class="fa-solid fa-award"></i> Học TB 🎖️</div>';
+        let sumDG = 0, countDG = 0;
+        let sumDK = 0, countDK = 0;
+        if (student.logs && student.logs.length > 0) {
+            student.logs.forEach(log => {
+                if (log.valDG !== null && log.valDG !== undefined && !isNaN(log.valDG)) {
+                    sumDG += parseFloat(log.valDG);
+                    countDG++;
+                }
+                if (log.valDK !== null && log.valDK !== undefined && !isNaN(log.valDK)) {
+                    sumDK += parseFloat(log.valDK);
+                    countDK++;
+                }
+            });
+        }
+        let avgDGVal = countDG > 0 ? (sumDG / countDG) : null;
+        let avgDKVal = countDK > 0 ? (sumDK / countDK) : null;
+        let strDG = avgDGVal !== null ? avgDGVal.toFixed(1) : "Chưa có";
+        let strDK = avgDKVal !== null ? avgDKVal.toFixed(1) : "Chưa có";
+
+        function getDemoBadgeHtml(val) {
+            if (val === null || isNaN(val)) return "";
+            if (val >= 9.0) {
+                return '<div class="medal-badge medal-academic" style="margin-top: 6px;"><i class="fa-solid fa-award"></i> Học giỏi 🎖️</div>';
+            } else if (val >= 8.0) {
+                return '<div class="medal-badge medal-silver" style="margin-top: 6px;"><i class="fa-solid fa-award"></i> Học khá 🎖️</div>';
+            } else if (val >= 7.0) {
+                return '<div class="medal-badge medal-bronze" style="margin-top: 6px;"><i class="fa-solid fa-award"></i> Học TB 🎖️</div>';
             } else {
-                gpaBadgeHtml = '<div class="medal-badge" style="margin-top: 6px; background: rgba(255, 51, 51, 0.15); border: 1px solid #FF3333; color: #FF3333; text-shadow: 0 0 5px rgba(255, 51, 51, 0.3);"><i class="fa-solid fa-triangle-exclamation"></i> Học yếu</div>';
+                return '<div class="medal-badge" style="margin-top: 6px; background: rgba(255, 51, 51, 0.15); border: 1px solid #FF3333; color: #FF3333; text-shadow: 0 0 5px rgba(255, 51, 51, 0.3);"><i class="fa-solid fa-triangle-exclamation"></i> Học yếu</div>';
             }
         }
+        let badgeDauGioHtml = getDemoBadgeHtml(avgDGVal);
+        let badgeDinhKiHtml = getDemoBadgeHtml(avgDKVal);
 
         let btvnVal = parseInt(student.btvnRate);
         let btvnBadgeHtml = "";
@@ -226,9 +246,17 @@
                     <div class="summary-card">
                         <div class="summary-icon icon-purple" style="background: linear-gradient(135deg, #8E4DFF, #5B2EFF); box-shadow: 0 0 20px rgba(142,77,255,0.4);"><i class="fa-solid fa-graduation-cap"></i></div>
                         <div class="summary-info">
-                            <span class="summary-label">Điểm trung bình (tháng)</span>
-                            <span class="summary-val">${student.gpa}</span>
-                            ${gpaBadgeHtml}
+                            <span class="summary-label">TB Đầu giờ (tháng)</span>
+                            <span class="summary-val">${strDG}</span>
+                            ${badgeDauGioHtml}
+                        </div>
+                    </div>
+                    <div class="summary-card">
+                        <div class="summary-icon" style="background: linear-gradient(135deg, #FFD23F, #FF8C00); box-shadow: 0 0 20px rgba(255,210,63,0.4);"><i class="fa-solid fa-award"></i></div>
+                        <div class="summary-info">
+                            <span class="summary-label">TB Định kì (tháng)</span>
+                            <span class="summary-val">${strDK}</span>
+                            ${badgeDinhKiHtml}
                         </div>
                     </div>
                     <div class="summary-card">

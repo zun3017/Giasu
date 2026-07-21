@@ -83,7 +83,8 @@ var currentStudentName = "";
 
                 var buoiHocThangNay = 0;
                 var buoiNghiThangNay = 0;
-                var listDiemThangNay = [];
+                var listDiemDauGioThangNay = [];
+                var listDiemDinhKiThangNay = [];
                 var tongBTVNThangNay = 0;
                 var completedBTVNThangNay = 0;
 
@@ -133,10 +134,10 @@ var currentStudentName = "";
                         var scoreDG = parseFloat(item.diemDauGio);
                         var scoreDK = parseFloat(item.diemDinhKi);
                         if (!isNaN(scoreDG) && scoreDG >= 0 && scoreDG <= 10) {
-                            listDiemThangNay.push(scoreDG);
+                            listDiemDauGioThangNay.push(scoreDG);
                         }
                         if (!isNaN(scoreDK) && scoreDK >= 0 && scoreDK <= 10) {
-                            listDiemThangNay.push(scoreDK);
+                            listDiemDinhKiThangNay.push(scoreDK);
                         }
 
                         // Đánh giá BTVN
@@ -163,18 +164,33 @@ var currentStudentName = "";
                     }
                 });
 
-                // Gán chỉ số trung bình điểm (GPA)
-                var valGPA = "Chưa có";
-                var gpaNumeric = null;
-                if (listDiemThangNay.length > 0) {
-                    var sum = 0;
-                    for (var s = 0; s < listDiemThangNay.length; s++) {
-                        sum += listDiemThangNay[s];
+                // Gán chỉ số trung bình điểm Đầu Giờ (tháng)
+                var valDiemDauGio = "Chưa có";
+                var numDiemDauGio = null;
+                if (listDiemDauGioThangNay.length > 0) {
+                    var sumDG = 0;
+                    for (var s = 0; s < listDiemDauGioThangNay.length; s++) {
+                        sumDG += listDiemDauGioThangNay[s];
                     }
-                    gpaNumeric = sum / listDiemThangNay.length;
-                    valGPA = gpaNumeric.toFixed(2);
+                    numDiemDauGio = sumDG / listDiemDauGioThangNay.length;
+                    valDiemDauGio = numDiemDauGio.toFixed(2);
                 }
-                document.getElementById('valGPA').innerText = valGPA;
+                var elDauGio = document.getElementById('valDiemDauGio');
+                if (elDauGio) elDauGio.innerText = valDiemDauGio;
+
+                // Gán chỉ số trung bình điểm Định Kỳ (tháng)
+                var valDiemDinhKi = "Chưa có";
+                var numDiemDinhKi = null;
+                if (listDiemDinhKiThangNay.length > 0) {
+                    var sumDK = 0;
+                    for (var k = 0; k < listDiemDinhKiThangNay.length; k++) {
+                        sumDK += listDiemDinhKiThangNay[k];
+                    }
+                    numDiemDinhKi = sumDK / listDiemDinhKiThangNay.length;
+                    valDiemDinhKi = numDiemDinhKi.toFixed(2);
+                }
+                var elDinhKi = document.getElementById('valDiemDinhKi');
+                if (elDinhKi) elDinhKi.innerText = valDiemDinhKi;
 
                 // Gán tỷ lệ BTVN
                 var valBTVNText = "Chưa có";
@@ -192,20 +208,24 @@ var currentStudentName = "";
                 document.getElementById('valBuoiHoc').innerText = buoiHocThangNay + " buổi";
                 document.getElementById('valBuoiNghi').innerText = buoiNghiThangNay + " buổi";
 
-                // Sinh huy chương vinh danh động
-                var gpaBadgeHtml = "";
-                if (gpaNumeric !== null) {
-                    if (gpaNumeric >= 9.0) {
-                        gpaBadgeHtml = '<div class="medal-badge medal-academic"><i class="fa-solid fa-award"></i> Học giỏi 🎖️</div>';
-                    } else if (gpaNumeric >= 8.0) {
-                        gpaBadgeHtml = '<div class="medal-badge medal-silver"><i class="fa-solid fa-award"></i> Học khá 🎖️</div>';
-                    } else if (gpaNumeric >= 7.0) {
-                        gpaBadgeHtml = '<div class="medal-badge medal-bronze"><i class="fa-solid fa-award"></i> Học TB 🎖️</div>';
+                // Sinh huy chương vinh danh động cho 2 loại điểm
+                function createScoreBadgeHtml(scoreNum) {
+                    if (scoreNum === null) return "";
+                    if (scoreNum >= 9.0) {
+                        return '<div class="medal-badge medal-academic"><i class="fa-solid fa-award"></i> Học giỏi 🎖️</div>';
+                    } else if (scoreNum >= 8.0) {
+                        return '<div class="medal-badge medal-silver"><i class="fa-solid fa-award"></i> Học khá 🎖️</div>';
+                    } else if (scoreNum >= 7.0) {
+                        return '<div class="medal-badge medal-bronze"><i class="fa-solid fa-award"></i> Học TB 🎖️</div>';
                     } else {
-                        gpaBadgeHtml = '<div class="medal-badge" style="background: rgba(255, 51, 51, 0.15); border: 1px solid #FF3333; color: #FF3333; text-shadow: 0 0 5px rgba(255, 51, 51, 0.3);"><i class="fa-solid fa-triangle-exclamation"></i> Học yếu</div>';
+                        return '<div class="medal-badge" style="background: rgba(255, 51, 51, 0.15); border: 1px solid #FF3333; color: #FF3333; text-shadow: 0 0 5px rgba(255, 51, 51, 0.3);"><i class="fa-solid fa-triangle-exclamation"></i> Học yếu</div>';
                     }
                 }
-                document.getElementById('gpaBadgeContainer').innerHTML = gpaBadgeHtml;
+                var badgeDauGioEl = document.getElementById('badgeDauGioContainer');
+                if (badgeDauGioEl) badgeDauGioEl.innerHTML = createScoreBadgeHtml(numDiemDauGio);
+
+                var badgeDinhKiEl = document.getElementById('badgeDinhKiContainer');
+                if (badgeDinhKiEl) badgeDinhKiEl.innerHTML = createScoreBadgeHtml(numDiemDinhKi);
 
                 var btvnBadgeHtml = "";
                 if (btvnPercent !== null) {
