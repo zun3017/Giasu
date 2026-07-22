@@ -917,7 +917,7 @@
                 <button onclick="closeModal('tutorAccountModal')" style="flex: 1; padding: 12px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); border-radius: 12px; color: #FFF; font-weight: bold; font-size: 14px; cursor: pointer;">
                     Đóng
                 </button>
-                <button onclick="saveClassTutorAccount()" style="flex: 1; padding: 12px; background: linear-gradient(135deg, #8E4DFF 0%, #5B21B6 100%); border: none; border-radius: 12px; color: #FFF; font-weight: bold; font-size: 14px; cursor: pointer; box-shadow: 0 4px 15px rgba(142,77,255,0.3);">
+                <button id="btnSaveClassTutorAccount" onclick="saveClassTutorAccount(this)" style="flex: 1; padding: 12px; background: linear-gradient(135deg, #8E4DFF 0%, #5B21B6 100%); border: none; border-radius: 12px; color: #FFF; font-weight: bold; font-size: 14px; cursor: pointer; box-shadow: 0 4px 15px rgba(142,77,255,0.3);">
                     Cập nhật tài khoản
                 </button>
             </div>
@@ -1198,7 +1198,7 @@
             openModal("tutorAccountModal");
         }
 
-        function saveClassTutorAccount() {
+        function saveClassTutorAccount(btn) {
             var name = document.getElementById("accTutorName").value.trim();
             var phone = document.getElementById("accTutorPhone").value.trim();
             var pin = document.getElementById("accTutorPin").value.trim();
@@ -1206,6 +1206,14 @@
             if (!name || !phone) {
                 alert("Vui lòng nhập đầy đủ Họ tên và Số điện thoại!");
                 return;
+            }
+
+            var saveBtn = btn || document.getElementById("btnSaveClassTutorAccount");
+            var originalBtnHtml = "";
+            if (saveBtn) {
+                saveBtn.disabled = true;
+                originalBtnHtml = saveBtn.innerHTML;
+                saveBtn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Đang lưu...';
             }
 
             if (!currentTutorData) currentTutorData = {};
@@ -1221,8 +1229,24 @@
 
             showSyncToast('pending');
             google.script.run
-                .withSuccessHandler(function() { showSyncToast('success'); closeModal("tutorAccountModal"); })
-                .withFailureHandler(function(err) { showSyncToast('error'); console.error("Lỗi cập nhật tài khoản:", err); })
+                .withSuccessHandler(function() {
+                    showSyncToast('success');
+                    if (saveBtn) {
+                        saveBtn.disabled = false;
+                        saveBtn.innerHTML = originalBtnHtml;
+                    }
+                    alert("✅ Đã cập nhật thông tin tài khoản thành công!");
+                    closeModal("tutorAccountModal");
+                })
+                .withFailureHandler(function(err) {
+                    showSyncToast('error');
+                    if (saveBtn) {
+                        saveBtn.disabled = false;
+                        saveBtn.innerHTML = originalBtnHtml;
+                    }
+                    alert("⚠️ Đã xảy ra lỗi khi lưu thông tin: " + (err ? err.toString() : "Không xác định"));
+                    console.error("Lỗi cập nhật tài khoản:", err);
+                })
                 .updateTutorAccountInfo(phone, name, pin);
         }
 
