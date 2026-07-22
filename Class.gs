@@ -53,10 +53,14 @@ function initClassSpreadsheetSchema(ss) {
 
   // 4. Sheet 'Bài tập lớp học'
   var sHw = ss.getSheetByName('Bài tập lớp học');
+  var homeworkHeaders = ["Mã bài tập", "Mã lớp", "Tên lớp", "Tên bài tập", "Ngày giao", "Link đính kèm", "URL File đính kèm"];
   if (!sHw) {
     sHw = ss.insertSheet('Bài tập lớp học');
-    sHw.appendRow(["Mã bài tập", "Mã lớp", "Tên lớp", "Tên bài tập", "Môn học", "Nội dung / Link bài tập", "Hạn nộp", "Ngày giao"]);
-    sHw.getRange(1, 1, 1, 8).setFontWeight("bold").setBackground("#F59E0B").setFontColor("#FFFFFF");
+    sHw.appendRow(homeworkHeaders);
+    sHw.getRange(1, 1, 1, 7).setFontWeight("bold").setBackground("#8E4DFF").setFontColor("#FFFFFF");
+    sHw.setFrozenRows(1);
+  } else {
+    sHw.getRange(1, 1, 1, 7).setValues([homeworkHeaders]).setFontWeight("bold").setBackground("#8E4DFF").setFontColor("#FFFFFF");
     sHw.setFrozenRows(1);
   }
 
@@ -1333,15 +1337,18 @@ function getClassSubmissions(classId) {
   return submissions;
 }
 
-// === QUẢN LÝ BÀI TẬP GIAO LỚP HỌC (SHEET 'Bài tập giao lớp') ===
+// === QUẢN LÝ BÀI TẬP GIAO LỚP HỌC (SHEET 'Bài tập lớp học') ===
 
 function getOrCreateClassHomeworkSheet(ss) {
   if (!ss) ss = getClassSpreadsheet();
-  var sheet = ss.getSheetByName('Bài tập giao lớp');
+  var sheet = ss.getSheetByName('Bài tập lớp học');
+  var homeworkHeaders = ["Mã bài tập", "Mã lớp", "Tên lớp", "Tên bài tập", "Ngày giao", "Link đính kèm", "URL File đính kèm"];
   if (!sheet) {
-    sheet = ss.insertSheet('Bài tập giao lớp');
-    sheet.appendRow(["Mã bài tập", "Mã lớp", "Tên lớp", "Tên bài tập", "Ngày giao", "Link đính kèm", "URL File đính kèm"]);
+    sheet = ss.insertSheet('Bài tập lớp học');
+    sheet.appendRow(homeworkHeaders);
     sheet.getRange(1, 1, 1, 7).setFontWeight("bold").setBackground("#8E4DFF").setFontColor("#FFFFFF");
+  } else {
+    sheet.getRange(1, 1, 1, 7).setValues([homeworkHeaders]).setFontWeight("bold").setBackground("#8E4DFF").setFontColor("#FFFFFF");
   }
   return sheet;
 }
