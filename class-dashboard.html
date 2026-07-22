@@ -364,12 +364,7 @@
             </div>
         </div>
 
-        <!-- Widget Thông báo khi chưa chọn lớp học -->
-        <div id="noClassSelectedNotice" style="display: block; text-align: center; padding: 60px 20px; background: rgba(142, 77, 255, 0.05); border: 1px dashed rgba(142, 77, 255, 0.3); border-radius: 16px; margin-bottom: 25px;">
-            <div style="font-size: 50px; color: #3B2B68; margin-bottom: 15px;"><i class="fa-solid fa-layer-group"></i></div>
-            <h3 style="color: #E2D1FF; font-size: 18px; margin: 0 0 10px; font-weight: 700;">Chưa chọn lớp học</h3>
-            <p style="color: #A6ADCE; font-size: 14px; margin: 0; line-height: 1.5;">Vui lòng chọn một lớp học ở phía trên hoặc tạo lớp học mới để xem chi tiết.</p>
-        </div>
+        <!-- Widget Thông báo khi chưa chọn lớp học đã bị xóa theo yêu cầu -->
 
         <!-- Khung Nội Dung Chi Tiết Lớp Học (Luôn hiển thị mượt mà hệt Gia sư) -->
         <div id="classDetailsContainer" style="display: none; animation: fadeIn 0.3s ease-in-out;">
@@ -1319,8 +1314,6 @@
             var container = document.getElementById("classDetailsContainer");
             if (container) {
                 container.style.display = "block";
-                var notice = document.getElementById("noClassSelectedNotice");
-                if (notice) notice.style.display = "none";
             }
 
             document.getElementById("activeClassName").innerText = cls.className;
@@ -1430,9 +1423,7 @@
         function renderEmptyClassState() {
             activeClassIndex = -1;
             var details = document.getElementById("classDetailsContainer");
-            var notice = document.getElementById("noClassSelectedNotice");
             if (details) details.style.display = "none";
-            if (notice) notice.style.display = "block";
 
             renderClassNavRow();
         }
