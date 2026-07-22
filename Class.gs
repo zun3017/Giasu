@@ -1550,3 +1550,109 @@ function getClassTutorFeedback(tutorPhone, tutorCode) {
 
   return feedbacks;
 }
+
+// Lấy danh sách mục đã xóa tạm (Thùng rác) của hệ thống Lớp học
+function getClassTrashItems(tutorPhone, tutorCode) {
+  var ss = getClassSpreadsheet();
+  var items = [];
+
+  // 1. Quét học sinh đã bị soft delete trong 'Học sinh lớp học'
+  var sheetStudents = ss.getSheetByName('Học sinh lớp học');
+  if (sheetStudents) {
+    var dataS = sheetStudents.getDataRange().getDisplayValues();
+    for (var i = 1; i < dataS.length; i++) {
+      var row = dataS[i];
+      var deletedAt = (row.length > 8) ? String(row[8]).trim() : "";
+      if (deletedAt !== "") {
+        items.push({
+          type: 'student',
+          id: row[0] || "",
+          name: row[1] || "Học sinh",
+          className: row[4] || row[3] || "",
+          detail: "Lớp: " + (row[4] || row[3] || "-") + " | SĐT PH: " + (row[2] || "-"),
+          deletedAt: deletedAt
+        });
+      }
+    }
+  }
+
+  // 2. Quét nhật ký đã bị soft delete trong 'Nhật ký buổi học'
+  var sheetLogs = ss.getSheetByName('Nhật ký buổi học');
+  if (sheetLogs) {
+    var dataL = sheetLogs.getDataRange().getDisplayValues();
+    for (var j = 1; j < dataL.length; j++) {
+      var rowL = dataL[j];
+      var delAtLog = (rowL.length > 12) ? String(rowL[12]).trim() : "";
+      if (delAtLog !== "") {
+        items.push({
+          type: 'lessonLog',
+          id: rowL[0] || "",
+          name: "Buổi học ngày " + (rowL[4] || "-"),
+          className: rowL[2] || rowL[1] || "",
+          detail: "Tuần: " + (rowL[3] || "-") + " | Lớp: " + (rowL[2] || "-"),
+          deletedAt: delAtLog
+        });
+      }
+    }
+  }
+
+  return items;
+}
+
+// Phục hồi mục trong Thùng rác Lớp học
+function restoreClassItem(type, itemId, className) {
+  var ss = getClassSpreadsheet();
+  if (type === 'student') {
+    var sheetS = ss.getSheetByName('Học sinh lớp học');
+    if (sheetS) {
+      var dataS = sheetS.getDataRange().getDisplayValues();
+      for (var i = 1; i < dataS.length; i++) {
+        if (String(dataS[i][0]).trim() === String(itemId).trim()) {
+          sheetS.getRange(i + 1, 9).setValue("");
+          return { success: true };
+        }
+      }
+    }
+  } else if (type === 'lessonLog') {
+    var sheetL = ss.getSheetByName('Nhật ký buổi học');
+    if (sheetL) {
+      var dataL = sheetL.getDataRange().getDisplayValues();
+      for (var j = 1; j < dataL.length; j++) {
+        if (String(dataL[j][0]).trim() === String(itemId).trim()) {
+          sheetL.getRange(j + 1, 13).setValue("");
+          return { success: true };
+        }
+      }
+    }
+  }
+  return { success: false, error: "Không tìm thấy mục để khôi phục." };
+}
+
+// Xóa vĩnh viễn mục trong Thùng rác Lớp học
+function purgeClassItem(type, itemId, className) {
+  var ss = getClassSpreadsheet();
+  if (type === 'student') {
+    var sheetS = ss.getSheetByName('Học sinh lớp học');
+    if (sheetS) {
+      var dataS = sheetS.getDataRange().getDisplayValues();
+      for (var i = dataS.length - 1; i >= 1; i--) {
+        if (String(dataS[i][0]).trim() === String(itemId).trim()) {
+          sheetS.deleteRow(i + 1);
+          return { success: true };
+        }
+      }
+    }
+  } else if (type === 'lessonLog') {
+    var sheetL = ss.getSheetByName('Nhật ký buổi học');
+    if (sheetL) {
+      var dataL = sheetL.getDataRange().getDisplayValues();
+      for (var j = dataL.length - 1; j >= 1; j--) {
+        if (String(dataL[j][0]).trim() === String(itemId).trim()) {
+          sheetL.deleteRow(j + 1);
+          return { success: true };
+        }
+      }
+    }
+  }
+  return { success: false, error: "Không tìm thấy mục để xóa vĩnh viễn." };
+}

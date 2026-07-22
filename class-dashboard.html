@@ -998,7 +998,7 @@
     <!-- Sync Toast Badge giống Dành cho Gia Sư -->
     <div id="syncToast" class="sync-toast" style="display:none;"></div>
 
-    <script src="js/api.js?v=1.8.4"></script>
+    <script src="js/api.js?v=1.8.5"></script>
     <script>
         var currentTutorData = null;
         var currentClasses = [];
@@ -2423,9 +2423,8 @@
         }
 
         function openTrashModal() {
-            var modal = document.getElementById("classTrashModal");
             var body = document.getElementById("trashModalBody");
-            if (modal) modal.style.display = "flex";
+            openModal("classTrashModal");
             if (body) body.innerHTML = '<div style="text-align: center; color: #A6ADCE; padding: 40px;"><i class="fa-solid fa-circle-notch fa-spin"></i> Đang tải danh sách mục đã xóa...</div>';
             
             var phone = currentTutorData ? (currentTutorData.tutorPhone || "") : "";
@@ -2502,7 +2501,7 @@
     </script>
 
     <!-- Modal Thùng Rác (Phục Hồi Mục Đã Xóa) -->
-    <div id="classTrashModal" class="modal-overlay" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(10px); z-index: 9999; justify-content: center; align-items: center;">
+    <div id="classTrashModal" class="modal-overlay" style="z-index: 9999;">
         <div style="background: #161233; border: 1px solid rgba(239, 68, 68, 0.4); border-radius: 20px; width: 90%; max-width: 750px; padding: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); max-height: 85vh; display: flex; flex-direction: column;">
             <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 15px; margin-bottom: 15px;">
                 <h3 style="color: #EF4444; font-size: 18px; font-weight: 800; margin: 0; display: flex; align-items: center; gap: 8px;">
