@@ -28,12 +28,14 @@ function clearClassCache(classId, type) {
   
   if (!type) {
     cache.remove("all_classes_raw");
+    cache.remove("all_class_logs_raw");
   }
 
   if (!classId) return;
   var cleanClassId = String(classId).trim();
   if (type) {
     cache.remove("class_" + type + "_" + cleanClassId);
+    if (type === "logs") cache.remove("all_class_logs_raw");
   } else {
     cache.remove("class_students_" + cleanClassId);
     cache.remove("class_logs_" + cleanClassId);
@@ -101,11 +103,56 @@ function initClassSpreadsheetSchema(ss) {
     sAnnounce.getRange(1, 1, 1, 4).setFontWeight("bold").setBackground("#8E4DFF").setFontColor("#FFFFFF");
     sAnnounce.setFrozenRows(1);
   }
+
+  // 8. Sheet 'Nhật ký chung' (Centralized Database thay thế hàng chục tab nhỏ)
+  var sLogs = ss.getSheetByName('Nhật ký chung');
+  if (!sLogs) {
+    sLogs = ss.insertSheet('Nhật ký chung');
+    sLogs.setFrozenRows(0); // Không cần đóng băng vì mỗi lớp có block riêng
+  }
+
+  // 9. Sheet 'Đánh giá chung'
+  var sEval = ss.getSheetByName('Đánh giá chung');
+  if (!sEval) {
+    sEval = ss.insertSheet('Đánh giá chung');
+    sEval.setFrozenRows(0);
+  }
   schemaInitialized = true;
 }
 
-function getOrCreateClassEvaluationSheet(ss, className) {
-  return getOrCreateClassLessonLogSheet(ss, className);
+// Hệ thống Block Allocation: Cấp phát 15 dòng trống cho mỗi lớp trong Nhật ký chung
+function allocateClassBlock(ss, classId, className) {
+  var sheetName = 'Nhật ký chung';
+  var sheet = ss.getSheetByName(sheetName);
+  if (!sheet) return;
+  
+  var data = sheet.getDataRange().getValues();
+  // Kiểm tra xem lớp này đã được cấp phát Block chưa
+  for (var i = 0; i < data.length; i++) {
+    if (String(data[i][1]).trim() === classId && String(data[i][0]).includes("--- NHẬT KÝ LỚP HỌC")) {
+      return sheet; // Đã cấp phát
+    }
+  }
+  
+  // Chưa cấp phát -> Tạo Block mới ở cuối sheet
+  sheet.appendRow(["--- NHẬT KÝ LỚP HỌC: " + className.toUpperCase() + " ---", classId, "", "", "", "", "", "", "", "", "", "", ""]);
+  var headerRow = sheet.getLastRow();
+  sheet.getRange(headerRow, 1, 1, 13).setFontWeight("bold").setBackground("#5B2EFF").setFontColor("#FFFFFF");
+  
+  var logHeaders = [
+    "Mã nhật ký", "Mã lớp", "Tên lớp", "Tuần dạy", "Ngày học", "Môn học",
+    "Trạng thái", "Đánh giá BTVN", "Điểm KT Đầu giờ", "Điểm KT Định kỳ",
+    "Nội dung & Nhận xét chung", "Chi tiết nhận xét riêng (JSON)", "Ngày xóa"
+  ];
+  sheet.appendRow(logHeaders);
+  sheet.getRange(headerRow + 1, 1, 1, 13).setFontWeight("bold").setBackground("#8E4DFF").setFontColor("#FFFFFF");
+  
+  // Chèn 15 dòng trống cho lớp này
+  for (var k = 0; k < 15; k++) {
+    sheet.appendRow(["", classId, className, "", "", "", "", "", "", "", "", "", ""]);
+  }
+  
+  return sheet;
 }
 
 // Hàm đăng nhập dành cho Giáo viên Lớp học nhóm (Xác thực tài khoản tại Sheet Chính, lấy lớp tại Sheet Lớp)
@@ -360,8 +407,8 @@ function createClass(tutorPhone, className, subject, schedule, feeType, tutorCod
   
   sheetClasses.appendRow([classId, cleanClassName, ownerCred, subject || "", schedule || "", "", feeType || "per_session"]);
   
-  // Tự động tạo Tab Sheet đánh giá học tập riêng cho Lớp học mới!
-  getOrCreateClassEvaluationSheet(ss, cleanClassName);
+  // Cấp phát 15 dòng trống vào Nhật ký chung
+  allocateClassBlock(ss, classId, cleanClassName);
   
   clearClassCache(null, null); // Xóa cache Danh sách lớp chung
   SpreadsheetApp.flush();
@@ -958,24 +1005,63 @@ function getOrCreateClassLessonLogSheet(ss, className) {
 
 function saveClassLessonLog(classId, className, weekNum, studyDate, subject, status, hwEval, entryTest, termTest, generalNote, studentNotesJson) {
   var ss = getClassSpreadsheet();
-  var sheet = getOrCreateClassLessonLogSheet(ss, className);
-  var logId = "LOG_LH_" + new Date().getTime();
+  var sheet = ss.getSheetByName('Nhật ký chung');
+  if (!sheet) {
+    allocateClassBlock(ss, classId, className);
+    sheet = ss.getSheetByName('Nhật ký chung');
+  }
   
-  sheet.appendRow([
-    logId,
-    classId || "",
-    className || "",
-    weekNum || "",
-    studyDate || "",
-    subject || "",
-    status || "Đã học",
-    hwEval || "Hoàn thành",
-    entryTest || "Không có",
-    termTest || "Không có",
-    generalNote || "",
-    studentNotesJson || "{}",
-    "" // Cột 13: Ngày xóa (Trống = Hoạt động)
-  ]);
+  var data = sheet.getDataRange().getValues();
+  var targetRowIndex = -1;
+  var classBlockFound = false;
+  var blockStart = -1;
+  
+  for (var i = 0; i < data.length; i++) {
+    if (String(data[i][1]).trim() === classId && String(data[i][0]).includes("--- NHẬT KÝ LỚP HỌC")) {
+      classBlockFound = true;
+      blockStart = i;
+      break;
+    }
+  }
+  
+  if (!classBlockFound) {
+    allocateClassBlock(ss, classId, className);
+    data = sheet.getDataRange().getValues();
+    for (var i = 0; i < data.length; i++) {
+      if (String(data[i][1]).trim() === classId && String(data[i][0]).includes("--- NHẬT KÝ LỚP HỌC")) {
+        blockStart = i;
+        break;
+      }
+    }
+  }
+  
+  var logId = "LOG_LH_" + new Date().getTime();
+  var newRowData = [
+    logId, classId || "", className || "", weekNum || "", studyDate || "", subject || "",
+    status || "Đã học", hwEval || "Hoàn thành", entryTest || "Không có", termTest || "Không có",
+    generalNote || "", studentNotesJson || "{}", ""
+  ];
+  
+  var lastRowOfPartition = blockStart + 1; // Default is the headers row
+  
+  for (var j = blockStart + 2; j < data.length; j++) {
+    if (String(data[j][0]).includes("--- NHẬT KÝ LỚP HỌC")) break;
+    lastRowOfPartition = j;
+    if (targetRowIndex === -1 && String(data[j][0]).trim() === "") {
+      targetRowIndex = j + 1;
+    }
+  }
+  
+  if (targetRowIndex === -1) {
+    var insertRowPos = lastRowOfPartition + 1; 
+    sheet.insertRowsAfter(insertRowPos, 15);
+    for (var d = 1; d <= 15; d++) {
+      sheet.getRange(insertRowPos + d, 2, 1, 2).setValues([[classId, className]]);
+    }
+    targetRowIndex = insertRowPos + 1;
+  }
+  
+  sheet.getRange(targetRowIndex, 1, 1, 13).setValues([newRowData]);
   
   clearClassCache(classId, "logs");
   SpreadsheetApp.flush();
@@ -987,19 +1073,24 @@ function getClassLessonLogs(classId, className, ssParam) {
   if (cleanClassId === "") return [];
   
   var cache = CacheService.getScriptCache();
-  var cacheKey = "class_logs_" + cleanClassId;
+  var cacheKey = "all_class_logs_raw";
   var cached = cache.get(cacheKey);
+  var data = null;
+  
   if (cached) {
-    try {
-      return JSON.parse(cached);
-    } catch(e) {
-      Logger.log("Lỗi parse cache logs: " + e.toString());
-    }
+    try { data = JSON.parse(cached); } catch(e){}
   }
   
-  var ss = ssParam || getClassSpreadsheet();
-  var sheet = getOrCreateClassLessonLogSheet(ss, className);
-  var data = sheet.getDataRange().getValues(); // Dùng getValues() để đọc thô siêu nhanh
+  if (!data) {
+    var ss = ssParam || getClassSpreadsheet();
+    var sheet = ss.getSheetByName('Nhật ký chung');
+    if (!sheet) return [];
+    data = sheet.getDataRange().getValues();
+    try {
+      var logsStr = JSON.stringify(data);
+      if (logsStr.length < 95000) cache.put(cacheKey, logsStr, 600);
+    } catch(e) {}
+  }
   
   var logs = [];
   var cleanClassName = String(className || "").trim();
@@ -1046,13 +1137,6 @@ function getClassLessonLogs(classId, className, ssParam) {
   }
   
   logs.reverse();
-  
-  try {
-    cache.put(cacheKey, JSON.stringify(logs), 600); // Lưu đệm 10 phút
-  } catch(e) {
-    Logger.log("Lỗi lưu cache logs: " + e.toString());
-  }
-  
   return logs;
 }
 
