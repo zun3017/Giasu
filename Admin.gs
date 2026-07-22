@@ -780,12 +780,12 @@ function adminSetTutorStatus(tutorPhone, status) {
   }
 }
 
-// Khởi tạo trang tính 'Mã admin' nếu chưa có trong Google Sheet
+// Khởi tạo trang tính 'Mã admin' LUÔN TRÊN SHEET CHÍNH (SpreadsheetApp.getActiveSpreadsheet())
 function initAdminSheet(ss) {
-  if (!ss) ss = (typeof getClassSpreadsheet === 'function') ? getClassSpreadsheet() : SpreadsheetApp.getActiveSpreadsheet();
-  var sheetAdmin = ss.getSheetByName('Mã admin');
+  var mainSS = SpreadsheetApp.getActiveSpreadsheet();
+  var sheetAdmin = mainSS.getSheetByName('Mã admin');
   if (!sheetAdmin) {
-    sheetAdmin = ss.insertSheet('Mã admin');
+    sheetAdmin = mainSS.insertSheet('Mã admin');
     sheetAdmin.appendRow(["Mã admin", "Họ tên Admin", "SĐT Admin", "Mã PIN Admin"]);
     sheetAdmin.getRange(1, 1, 1, 4).setFontWeight("bold").setBackground("#FFD23F").setFontColor("#000000");
     sheetAdmin.setFrozenRows(1);

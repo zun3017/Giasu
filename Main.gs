@@ -58,10 +58,11 @@ function normalizePhone(p) {
 
 // Hàm xác thực đăng nhập trung tâm (Gia sư, Lớp học, Admin, Phụ huynh)
 function loginSystem(phone, pin, childName) {
-  var ss = (typeof getClassSpreadsheet === 'function') ? getClassSpreadsheet() : SpreadsheetApp.getActiveSpreadsheet();
+  var ssMain = SpreadsheetApp.getActiveSpreadsheet(); // SHEET CHÍNH DÀNH CHO GIA SƯ 1-1 / ADMIN
+  var ssClass = (typeof getClassSpreadsheet === 'function') ? getClassSpreadsheet() : ssMain; // SHEET LỚP HỌC NHÓM
   
-  // Tự động khởi tạo sheet Admin nếu chưa có
-  initAdminSheet(ss);
+  // Tự động khởi tạo sheet Admin trên SHEET CHÍNH nếu chưa có
+  initAdminSheet(ssMain);
   
   var rawInput = String(phone || "").trim();
   var normPhone = normalizePhone(rawInput);
@@ -73,8 +74,8 @@ function loginSystem(phone, pin, childName) {
   if (pin && String(pin).trim() !== "") {
     var phoneFoundInStaff = false;
 
-    // 1. Thử đối chiếu với quyền Admin trước
-    var sheetAdmin = ss.getSheetByName('Mã admin');
+    // 1. Thử đối chiếu với quyền Admin trên SHEET CHÍNH trước
+    var sheetAdmin = ssMain.getSheetByName('Mã admin');
     if (sheetAdmin) {
       var dataAdmin = sheetAdmin.getDataRange().getDisplayValues();
       for (var i = 1; i < dataAdmin.length; i++) {
@@ -93,8 +94,8 @@ function loginSystem(phone, pin, childName) {
       }
     }
 
-    // 2. Thử đối chiếu với quyền Gia sư
-    var sheetGS = ss.getSheetByName('Mã gia sư');
+    // 2. Thử đối chiếu với quyền Gia sư trên SHEET CHÍNH
+    var sheetGS = ssMain.getSheetByName('Mã gia sư');
     if (sheetGS) {
       var dataGS = sheetGS.getDataRange().getDisplayValues();
       for (var i = 1; i < dataGS.length; i++) {
@@ -129,7 +130,7 @@ function loginSystem(phone, pin, childName) {
   var matches = [];
   var rawLower = rawInput.toLowerCase();
   
-  var sheetHS = ss.getSheetByName('Mã học sinh');
+  var sheetHS = ssMain.getSheetByName('Mã học sinh');
   if (sheetHS) {
     var dataHS = sheetHS.getDataRange().getDisplayValues();
     for (var i = 1; i < dataHS.length; i++) {
@@ -165,7 +166,7 @@ function loginSystem(phone, pin, childName) {
     }
   }
 
-  var sheetClassStudents = ss.getSheetByName('Học sinh lớp học');
+  var sheetClassStudents = ssClass.getSheetByName('Học sinh lớp học');
   if (sheetClassStudents) {
     var dataCS = sheetClassStudents.getDataRange().getDisplayValues();
     for (var i = 1; i < dataCS.length; i++) {
