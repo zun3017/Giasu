@@ -126,26 +126,30 @@ function loginClassSystem(phone, pin) {
     return { success: false, error: "Hệ thống chưa thiết lập danh sách Giáo viên." };
   }
 
-  var dataGS = sheetGS.getDataRange().getDisplayValues();
+  var dataGS = sheetGS.getDataRange().getValues();
   var teacherFound = false;
   var teacherName = "Giáo viên Lớp học";
   var tutorCode = "";
 
   for (var i = 1; i < dataGS.length; i++) {
-    var gsPhone = normalizePhone(dataGS[i][2] || "");
+    var rawPhone = dataGS[i][2] !== null && dataGS[i][2] !== undefined ? String(dataGS[i][2]).trim() : "";
+    if (rawPhone && !rawPhone.startsWith("0") && /^\d+$/.test(rawPhone)) {
+      rawPhone = "0" + rawPhone;
+    }
+    var gsPhone = normalizePhone(rawPhone);
     if (gsPhone !== "" && gsPhone === normPhone) {
-      var tDelDate = (dataGS[i].length > 5) ? dataGS[i][5].trim() : "";
+      var tDelDate = (dataGS[i].length > 5 && dataGS[i][5] !== null) ? String(dataGS[i][5]).trim() : "";
       if (tDelDate !== "") continue; // Bỏ qua giáo viên đã xóa
 
       teacherFound = true;
-      var truePin = String(dataGS[i][3] || "").trim();
+      var truePin = String(dataGS[i][3] !== null && dataGS[i][3] !== undefined ? dataGS[i][3] : "").trim();
       var inputPin = String(pin || "").trim();
       
       if (inputPin !== truePin) {
         return { success: false, error: "Mã PIN bảo mật không chính xác!" };
       }
 
-      var tStatus = (dataGS[i].length > 9) ? dataGS[i][9].trim() : "";
+      var tStatus = (dataGS[i].length > 9 && dataGS[i][9] !== null) ? String(dataGS[i][9]).trim() : "";
       if (tStatus === "Vô hiệu hóa") {
         return { success: false, error: "Tài khoản của bạn đã bị vô hiệu hóa. Vui lòng liên hệ Admin!" };
       }
@@ -195,11 +199,17 @@ function getClassList(tutorPhone, tutorCode) {
     var ssMain = SpreadsheetApp.getActiveSpreadsheet();
     var sheetGS = ssMain.getSheetByName('Mã gia sư');
     if (sheetGS) {
-      var dataGS = sheetGS.getDataRange().getDisplayValues();
+      var dataGS = sheetGS.getDataRange().getValues(); // Dùng getValues()
       for (var k = 1; k < dataGS.length; k++) {
-        if (dataGS[k] && dataGS[k].length > 2 && normalizePhone(dataGS[k][2]) === normPhone) {
-          teacherName = String(dataGS[k][1]).trim().toLowerCase();
-          break;
+        if (dataGS[k] && dataGS[k].length > 2) {
+          var rawPhone = dataGS[k][2] !== null && dataGS[k][2] !== undefined ? String(dataGS[k][2]).trim() : "";
+          if (rawPhone && !rawPhone.startsWith("0") && /^\d+$/.test(rawPhone)) {
+            rawPhone = "0" + rawPhone;
+          }
+          if (normalizePhone(rawPhone) === normPhone) {
+            teacherName = String(dataGS[k][1]).trim().toLowerCase();
+            break;
+          }
         }
       }
     }
@@ -207,7 +217,7 @@ function getClassList(tutorPhone, tutorCode) {
     Logger.log("Lỗi tra cứu tên giáo viên: " + e.toString());
   }
   
-  var data = sheetClasses.getDataRange().getDisplayValues();
+  var data = sheetClasses.getDataRange().getValues(); // Dùng getValues()
   var allClasses = [];
   var matchedClasses = [];
 
@@ -220,20 +230,24 @@ function getClassList(tutorPhone, tutorCode) {
         if (!cId) cId = "LH_" + i;
         if (!cName) cName = "Lớp " + i;
         
+        var dbVal = data[i][2] !== null && data[i][2] !== undefined ? String(data[i][2]).trim() : "";
+        if (dbVal && !dbVal.startsWith("0") && /^\d+$/.test(dbVal)) {
+          dbVal = "0" + dbVal;
+        }
+        
         var clsObj = {
           classId: cId,
           className: cName,
-          tutorPhone: data[i][2] || "",
-          tutorCode: data[i][2] || "",
-          subject: data[i][3] || "",
-          schedule: data[i][4] || "",
-          maxStudents: data[i][5] || "20",
-          feeType: (data[i].length > 6 && data[i][6]) ? data[i][6] : "per_session"
+          tutorPhone: dbVal,
+          tutorCode: dbVal,
+          subject: data[i][3] ? String(data[i][3]).trim() : "",
+          schedule: data[i][4] ? String(data[i][4]).trim() : "",
+          maxStudents: data[i][5] !== null && data[i][5] !== undefined ? String(data[i][5]).trim() : "20",
+          feeType: (data[i].length > 6 && data[i][6]) ? String(data[i][6]).trim() : "per_session"
         };
         
         allClasses.push(clsObj);
         
-        var dbVal = String(data[i][2] || "").trim();
         var dbPhone = normalizePhone(dbVal);
         var dbCode = dbVal.toLowerCase();
         
