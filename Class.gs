@@ -111,27 +111,6 @@ function initClassSpreadsheetSchema(ss) {
     sLogs.setFrozenRows(0);
   }
 
-  // 9. Dọn dẹp tự động các Sheet rác thừa cũ (như 'Đánh giá chung', hoặc các Sheet tự tạo theo tên lớp riêng lẻ)
-  try {
-    var validSheets = [
-      'Danh sách lớp học', 'Học sinh lớp học', 'Bài tập lớp học', 
-      'Học sinh nộp bài lớp học', 'Ý kiến Phụ huynh lớp học', 
-      'Thông báo lớp', 'Nhật ký chung', 'Thùng rác', 'Lịch học lớp'
-    ];
-    var allSheets = ss.getSheets();
-    if (allSheets.length > 1) {
-      allSheets.forEach(function(sh) {
-        var sName = sh.getName().trim();
-        if (validSheets.indexOf(sName) === -1) {
-          try {
-            ss.deleteSheet(sh);
-            Logger.log("Đã xóa sheet rác: " + sName);
-          } catch(err) {}
-        }
-      });
-    }
-  } catch(e) {}
-
   schemaInitialized = true;
 }
 
@@ -289,7 +268,7 @@ function getClassList(tutorPhone, tutorCode, ssParam) {
     try { data = JSON.parse(cachedCls); } catch(e){}
   }
   
-  if (!data) {
+  if (!data || !Array.isArray(data) || data.length <= 1) {
     var ss = ssParam || getClassSpreadsheet();
     var sheetClasses = ss.getSheetByName('Danh sách lớp học');
     if (!sheetClasses) {
@@ -301,7 +280,7 @@ function getClassList(tutorPhone, tutorCode, ssParam) {
     data = sheetClasses.getDataRange().getValues();
     try {
       var clsStr = JSON.stringify(data);
-      if (clsStr.length < 95000) cache.put(clsCacheKey, clsStr, 600);
+      if (clsStr.length < 95000 && data.length > 1) cache.put(clsCacheKey, clsStr, 300);
     } catch(e) {}
   }
   var allClasses = [];
