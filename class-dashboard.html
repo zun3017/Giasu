@@ -2177,11 +2177,11 @@
                 var statusBadge = '';
                 var st = log.status || "Có mặt";
                 if (st === "Có mặt" || st === "Đã học") {
-                    statusBadge = '<span style="padding:4px 12px; background:rgba(16,185,129,0.15); border:1px solid rgba(16,185,129,0.4); color:#6EE7B7; border-radius:15px; font-weight:700; font-size:12px; white-space:nowrap; display:inline-flex; align-items:center; gap:4px;">🟢 Có mặt</span>';
+                    statusBadge = '<span style="padding:4px 12px; background:rgba(16,185,129,0.15); border:1px solid rgba(16,185,129,0.4); color:#6EE7B7; border-radius:15px; font-weight:700; font-size:12px; white-space:nowrap; display:inline-flex; align-items:center; gap:4px;">🟢 Đã học</span>';
                 } else if (st === "Đi muộn") {
                     statusBadge = '<span style="padding:4px 12px; background:rgba(249,115,22,0.15); border:1px solid rgba(249,115,22,0.4); color:#FDBA74; border-radius:15px; font-weight:700; font-size:12px; white-space:nowrap; display:inline-flex; align-items:center; gap:4px;">🟠 Đi muộn</span>';
                 } else {
-                    statusBadge = '<span style="padding:4px 12px; background:rgba(239,68,68,0.15); border:1px solid rgba(239,68,68,0.4); color:#FCA5A5; border-radius:15px; font-weight:700; font-size:12px; white-space:nowrap; display:inline-flex; align-items:center; gap:4px;">🔴 Cả lớp nghỉ</span>';
+                    statusBadge = '<span style="padding:4px 12px; background:rgba(239,68,68,0.15); border:1px solid rgba(239,68,68,0.4); color:#FCA5A5; border-radius:15px; font-weight:700; font-size:12px; white-space:nowrap; display:inline-flex; align-items:center; gap:4px;">🔴 Hủy / Nghỉ</span>';
                 }
 
                 var hwBadge = '<span style="padding:4px 12px; background:rgba(142,77,255,0.15); border:1px solid rgba(142,77,255,0.3); color:#E2D1FF; border-radius:15px; font-size:12.5px; white-space:nowrap;">' + (log.hwEval || 'Bình thường') + '</span>';
