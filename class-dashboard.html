@@ -145,6 +145,7 @@
             padding: 12px 14px;
             border-bottom: 1px solid rgba(255, 255, 255, 0.08);
             text-align: left;
+            vertical-align: middle;
         }
 
         .batch-eval-table th {
@@ -1484,10 +1485,12 @@
                         '<td>' + (st.parentPhone || '-') + '</td>' +
                         '<td style="color:#8E4DFF; font-weight:700;">' + (st.homeworkCode || '-') + '</td>' +
                         '<td style="color:#10B981; font-weight:600;">' + (st.fee ? (parseInt(st.fee).toLocaleString('vi-VN') + ' đ' + feeBadge) : '-') + '<div style="margin-top:4px;">' + payBadge + '</div></td>' +
-                        '<td style="text-align:center; display:flex; justify-content:center; align-items:center; gap:8px;">' +
-                            '<button onclick="openClassInvoice(\'' + st.studentId + '\')" style="background:rgba(255,210,63,0.1); border:1px solid rgba(255,210,63,0.3); color:#FFD23F; cursor:pointer; padding:6px 10px; border-radius:15px; font-weight:700; font-size:12px; display:inline-flex; align-items:center; gap:4px;" title="Xuất hóa đơn & xác nhận đóng tiền"><i class="fa-solid fa-file-invoice-dollar"></i> Hóa đơn</button>' +
-                            '<button onclick="openEditClassStudentModal(\'' + st.studentId + '\')" style="background:rgba(142,77,255,0.1); border:1px solid rgba(142,77,255,0.3); color:#C4B5FD; cursor:pointer; padding:6px 10px; border-radius:15px; font-weight:700; font-size:12px; display:inline-flex; align-items:center; gap:4px;" title="Chỉnh sửa thông tin học sinh"><i class="fa-solid fa-pen-to-square"></i> Sửa</button>' +
-                            '<button onclick="removeStudent(\'' + st.studentId + '\')" style="background:none; border:none; color:#EF4444; cursor:pointer; font-size:14px; margin-left:4px;" title="Đưa vào thùng rác"><i class="fa-solid fa-trash"></i></button>' +
+                        '<td style="text-align:center; vertical-align:middle; white-space:nowrap;">' +
+                            '<div style="display:inline-flex; align-items:center; justify-content:center; gap:8px;">' +
+                                '<button onclick="openClassInvoice(\'' + st.studentId + '\')" style="background:rgba(255,210,63,0.1); border:1px solid rgba(255,210,63,0.3); color:#FFD23F; cursor:pointer; padding:6px 10px; border-radius:15px; font-weight:700; font-size:12px; display:inline-flex; align-items:center; gap:4px;" title="Xuất hóa đơn & xác nhận đóng tiền"><i class="fa-solid fa-file-invoice-dollar"></i> Hóa đơn</button>' +
+                                '<button onclick="openEditClassStudentModal(\'' + st.studentId + '\')" style="background:rgba(142,77,255,0.1); border:1px solid rgba(142,77,255,0.3); color:#C4B5FD; cursor:pointer; padding:6px 10px; border-radius:15px; font-weight:700; font-size:12px; display:inline-flex; align-items:center; gap:4px;" title="Chỉnh sửa thông tin học sinh"><i class="fa-solid fa-pen-to-square"></i> Sửa</button>' +
+                                '<button onclick="removeStudent(\'' + st.studentId + '\')" style="background:none; border:none; color:#EF4444; cursor:pointer; font-size:14px; margin-left:4px;" title="Đưa vào thùng rác"><i class="fa-solid fa-trash"></i></button>' +
+                            '</div>' +
                         '</td>' +
                     '</tr>';
                 }).join('');
@@ -1797,9 +1800,11 @@
                         '<td style="font-weight:700; color:#FFD23F;">' + st.studentName + '</td>' +
                         '<td>' + (st.parentName || '-') + ' (' + (st.parentPhone || '-') + ')</td>' +
                         '<td style="color:#A6ADCE; font-size:12px;">' + st.deletedAt + '</td>' +
-                        '<td style="text-align:center; display:flex; justify-content:center; gap:8px;">' +
-                            '<button onclick="restoreClassStudent(\'' + st.studentId + '\')" style="background:rgba(16,185,129,0.15); border:1px solid #10B981; color:#6EE7B7; border-radius:15px; padding:4px 10px; font-size:12px; font-weight:700; cursor:pointer;"><i class="fa-solid fa-rotate-left"></i> Khôi phục</button>' +
-                            '<button onclick="deleteClassStudentPermanently(\'' + st.studentId + '\')" style="background:rgba(239,68,68,0.15); border:1px solid #EF4444; color:#FCA5A5; border-radius:15px; padding:4px 10px; font-size:12px; font-weight:700; cursor:pointer;"><i class="fa-solid fa-trash-can"></i> Xóa vĩnh viễn</button>' +
+                        '<td style="text-align:center; vertical-align:middle; white-space:nowrap;">' +
+                            '<div style="display:inline-flex; justify-content:center; align-items:center; gap:8px;">' +
+                                '<button onclick="restoreClassStudent(\'' + st.studentId + '\')" style="background:rgba(16,185,129,0.15); border:1px solid #10B981; color:#6EE7B7; border-radius:15px; padding:4px 10px; font-size:12px; font-weight:700; cursor:pointer;"><i class="fa-solid fa-rotate-left"></i> Khôi phục</button>' +
+                                '<button onclick="deleteClassStudentPermanently(\'' + st.studentId + '\')" style="background:rgba(239,68,68,0.15); border:1px solid #EF4444; color:#FCA5A5; border-radius:15px; padding:4px 10px; font-size:12px; font-weight:700; cursor:pointer;"><i class="fa-solid fa-trash-can"></i> Xóa vĩnh viễn</button>' +
+                            '</div>' +
                         '</td>' +
                     '</tr>';
                 }).join('');
@@ -2100,9 +2105,11 @@
                     '<td style="text-align:center; color:#FFF;">' + (log.entryTest || 'Không có') + '</td>' +
                     '<td style="text-align:center; color:#FFF;">' + (log.termTest || 'Không có') + '</td>' +
                     '<td style="text-align:center;">' + statusBadge + '</td>' +
-                    '<td style="text-align:center; display:flex; justify-content:center; align-items:center; gap:10px;">' +
-                        '<button onclick="openEditClassLessonLogModal(\'' + log.logId + '\')" style="background:rgba(142,77,255,0.15); border:1px solid rgba(142,77,255,0.3); color:#C4B5FD; cursor:pointer; padding:4px 8px; border-radius:12px; font-size:12px; display:inline-flex; align-items:center; gap:4px;" title="Sửa nhật ký buổi học này"><i class="fa-solid fa-pen-to-square"></i> Sửa</button>' +
-                        '<button onclick="deleteClassLessonLog(\'' + log.logId + '\')" style="background:none; border:none; color:#EF4444; cursor:pointer; font-size:15px;" title="Xóa buổi học này"><i class="fa-solid fa-trash"></i></button>' +
+                    '<td style="text-align:center; vertical-align:middle; white-space:nowrap;">' +
+                        '<div style="display:inline-flex; align-items:center; justify-content:center; gap:10px;">' +
+                            '<button onclick="openEditClassLessonLogModal(\'' + log.logId + '\')" style="background:rgba(142,77,255,0.15); border:1px solid rgba(142,77,255,0.3); color:#C4B5FD; cursor:pointer; padding:4px 8px; border-radius:12px; font-size:12px; display:inline-flex; align-items:center; gap:4px;" title="Sửa nhật ký buổi học này"><i class="fa-solid fa-pen-to-square"></i> Sửa</button>' +
+                            '<button onclick="deleteClassLessonLog(\'' + log.logId + '\')" style="background:none; border:none; color:#EF4444; cursor:pointer; font-size:15px;" title="Xóa buổi học này"><i class="fa-solid fa-trash"></i></button>' +
+                        '</div>' +
                     '</td>' +
                 '</tr>';
             }).join('');
@@ -2643,9 +2650,11 @@
                         '<td style="padding: 12px 10px;">' + typeText + '</td>' +
                         '<td style="padding: 12px 10px;"><strong>' + item.name + '</strong><br><small style="color:#A6ADCE;">' + (item.detail || "") + '</small></td>' +
                         '<td style="padding: 12px 10px; color:#A6ADCE;">' + (item.deletedAt || "") + '</td>' +
-                        '<td style="padding: 12px 10px; text-align: center; display:flex; gap:8px; justify-content:center;">' +
-                            '<button onclick="restoreTrashItem(\'' + item.type + '\', \'' + item.id + '\', \'' + (item.className || "") + '\')" style="padding: 6px 14px; background: rgba(16, 185, 129, 0.2); border: 1px solid #10B981; border-radius: 8px; color: #10B981; font-weight: bold; cursor: pointer; font-size: 12px;"><i class="fa-solid fa-rotate-left"></i> Phục hồi</button>' +
-                            '<button onclick="purgeTrashItem(\'' + item.type + '\', \'' + item.id + '\', \'' + (item.className || "") + '\')" style="padding: 6px 14px; background: rgba(239, 68, 68, 0.2); border: 1px solid #EF4444; border-radius: 8px; color: #EF4444; font-weight: bold; cursor: pointer; font-size: 12px;"><i class="fa-solid fa-trash"></i> Xóa vĩnh viễn</button>' +
+                        '<td style="padding: 12px 10px; text-align: center; vertical-align:middle; white-space:nowrap;">' +
+                            '<div style="display:inline-flex; gap:8px; justify-content:center; align-items:center;">' +
+                                '<button onclick="restoreTrashItem(\'' + item.type + '\', \'' + item.id + '\', \'' + (item.className || "") + '\')" style="padding: 6px 14px; background: rgba(16, 185, 129, 0.2); border: 1px solid #10B981; border-radius: 8px; color: #10B981; font-weight: bold; cursor: pointer; font-size: 12px;"><i class="fa-solid fa-rotate-left"></i> Phục hồi</button>' +
+                                '<button onclick="purgeTrashItem(\'' + item.type + '\', \'' + item.id + '\', \'' + (item.className || "") + '\')" style="padding: 6px 14px; background: rgba(239, 68, 68, 0.2); border: 1px solid #EF4444; border-radius: 8px; color: #EF4444; font-weight: bold; cursor: pointer; font-size: 12px;"><i class="fa-solid fa-trash"></i> Xóa vĩnh viễn</button>' +
+                            '</div>' +
                         '</td>' +
                     '</tr>';
                 });
