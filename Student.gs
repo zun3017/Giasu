@@ -402,27 +402,51 @@ function uploadHomeworkFiles(ma, studentName, lessonName, filesList) {
       }
     }
     
-    var parentFolderId = "1ZKHCDdZzkMqLTV4guvMNkKYbaQHCEGus";
+    var className = "Lớp học không tên";
+    if (isClassStudent && classId && ssClass) {
+      var sheetClassList = ssClass.getSheetByName('Danh sách lớp học');
+      if (sheetClassList) {
+        var dataClassList = sheetClassList.getDataRange().getDisplayValues();
+        for (var c = 1; c < dataClassList.length; c++) {
+          if (dataClassList[c][0] === classId) {
+            className = dataClassList[c][1];
+            break;
+          }
+        }
+      }
+    }
+
+    var parentFolderId = "1whPsrPc49CHwUDM51xa5-iFQekcONnZW";
     var parentFolder;
     var driveApp = DriveApp;
     
     try {
       parentFolder = driveApp.getFolderById(parentFolderId);
     } catch (err) {
-      var folders = driveApp.getRootFolder().getFoldersByName("BÀI TẬP GIA SƯ");
+      var folders = driveApp.getRootFolder().getFoldersByName("HỌC SINH NỘP BÀI");
       if (folders.hasNext()) {
         parentFolder = folders.next();
       } else {
-        parentFolder = driveApp.getRootFolder().createFolder("BÀI TẬP GIA SƯ");
+        parentFolder = driveApp.getRootFolder().createFolder("HỌC SINH NỘP BÀI");
       }
     }
     
-    var studentFolders = parentFolder.getFoldersByName(studentName);
+    var baseFolder = parentFolder;
+    if (isClassStudent) {
+      var classFolders = parentFolder.getFoldersByName(className);
+      if (classFolders.hasNext()) {
+        baseFolder = classFolders.next();
+      } else {
+        baseFolder = parentFolder.createFolder(className);
+      }
+    }
+
+    var studentFolders = baseFolder.getFoldersByName(studentName);
     var studentFolder;
     if (studentFolders.hasNext()) {
       studentFolder = studentFolders.next();
     } else {
-      studentFolder = parentFolder.createFolder(studentName);
+      studentFolder = baseFolder.createFolder(studentName);
     }
     
     var now = new Date();
