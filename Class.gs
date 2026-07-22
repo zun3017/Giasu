@@ -173,6 +173,24 @@ function getClassList(tutorPhone, tutorCode) {
   var normPhone = normalizePhone(tutorPhone || "");
   var normCode = String(tutorCode || "").trim().toLowerCase();
   
+  // Tra cứu Tên Giáo viên từ SĐT ở sheet Mã gia sư trên bảng tính chính để hỗ trợ khớp bằng cả Tên Giáo viên
+  var teacherName = "";
+  try {
+    var ssMain = SpreadsheetApp.getActiveSpreadsheet();
+    var sheetGS = ssMain.getSheetByName('Mã gia sư');
+    if (sheetGS) {
+      var dataGS = sheetGS.getDataRange().getDisplayValues();
+      for (var k = 1; k < dataGS.length; k++) {
+        if (dataGS[k] && dataGS[k].length > 2 && normalizePhone(dataGS[k][2]) === normPhone) {
+          teacherName = String(dataGS[k][1]).trim().toLowerCase();
+          break;
+        }
+      }
+    }
+  } catch (e) {
+    Logger.log("Lỗi tra cứu tên giáo viên: " + e.toString());
+  }
+  
   var data = sheetClasses.getDataRange().getDisplayValues();
   var allClasses = [];
   var matchedClasses = [];
@@ -212,6 +230,8 @@ function getClassList(tutorPhone, tutorCode) {
           isMatch = true;
         } else if (normCode !== "" && dbCode === normCode) {
           isMatch = true;
+        } else if (teacherName !== "" && dbCode === teacherName) {
+          isMatch = true; // Khớp bằng Tên Giáo viên
         }
         
         if (isMatch) {
@@ -221,7 +241,7 @@ function getClassList(tutorPhone, tutorCode) {
     }
   }
   
-  // Nếu tìm thấy theo SĐT / Mã GV thì lấy matchedClasses, nếu không thì lấy toàn bộ allClasses
+  // Nếu tìm thấy theo SĐT / Mã GV / Tên GV thì lấy matchedClasses, nếu không thì lấy toàn bộ allClasses
   return (matchedClasses.length > 0) ? matchedClasses : allClasses;
 }
 
