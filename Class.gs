@@ -2,7 +2,12 @@
 
 const CLASS_SPREADSHEET_ID = '1g4M-WjXxCf-rx9aVNBcKrs6dgXsAlZGVupQP8P3xgyc';
 
+var ssCache = null;
+var schemaInitialized = false;
+
 function getClassSpreadsheet() {
+  if (ssCache) return ssCache;
+  
   var ss = null;
   if (typeof CLASS_SPREADSHEET_ID !== 'undefined' && CLASS_SPREADSHEET_ID.trim() !== '') {
     try {
@@ -12,13 +17,15 @@ function getClassSpreadsheet() {
     }
   }
   if (!ss) ss = SpreadsheetApp.getActiveSpreadsheet();
+  
   initClassSpreadsheetSchema(ss);
+  ssCache = ss;
   return ss;
 }
 
 // Hàm tự động khởi tạo 6 trang tính chuẩn màu cho Google Sheet Lớp học nhóm nếu chưa có
 function initClassSpreadsheetSchema(ss) {
-  if (!ss) return;
+  if (!ss || schemaInitialized) return;
 
   // 1. Sheet 'Danh sách lớp học'
   var sClasses = ss.getSheetByName('Danh sách lớp học');
@@ -84,6 +91,7 @@ function initClassSpreadsheetSchema(ss) {
     sAnnounce.getRange(1, 1, 1, 4).setFontWeight("bold").setBackground("#8E4DFF").setFontColor("#FFFFFF");
     sAnnounce.setFrozenRows(1);
   }
+  schemaInitialized = true;
 }
 
 function getOrCreateClassEvaluationSheet(ss, className) {
