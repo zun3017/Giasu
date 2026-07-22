@@ -2299,13 +2299,22 @@
 
         function deleteClassLessonLog(logId) {
             showCustomConfirm("Bạn có chắc chắn muốn xóa nhật ký buổi học này không?", function() {
+                var cls = currentClasses[activeClassIndex];
+                var className = cls ? cls.className : "";
+
                 // OPTIMISTIC UI: Xóa khỏi mảng và vẽ lại UI trong 0.05s!
                 activeClassLessonLogs = activeClassLessonLogs.filter(function(log) { return log.logId !== logId; });
                 renderClassLessonLogsTableUI();
 
                 showSyncToast('pending');
-                // Gửi ngầm bên dưới
-                google.script.run.withSuccessHandler(function() { showSyncToast('success'); }).deleteClassLessonLog(logId);});
+                // Gửi ngầm bên dưới với đầy đủ tham số (logId, className)
+                google.script.run.withSuccessHandler(function() { 
+                    showSyncToast('success'); 
+                }).withFailureHandler(function(err) {
+                    showSyncToast('error');
+                    console.error("Lỗi xóa nhật ký buổi học:", err);
+                }).deleteClassLessonLog(logId, className);
+            });
         }
 
         function refreshClassHistory() {

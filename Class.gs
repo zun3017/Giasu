@@ -1143,19 +1143,53 @@ function getClassLessonLogs(classId, className, ssParam) {
 // Xóa tạm Nhật ký buổi học vào Thùng rác (Soft Delete)
 function deleteClassLessonLog(logId, className) {
   var ss = getClassSpreadsheet();
-  var sheet = getOrCreateClassLessonLogSheet(ss, className);
-  var data = sheet.getDataRange().getDisplayValues();
-  var nowStr = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), "dd/MM/yyyy HH:mm");
+  var sheet = null;
+  if (className && String(className).trim() !== '') {
+    sheet = ss.getSheetByName(String(className).trim());
+  }
+  if (!sheet) {
+    sheet = getOrCreateClassLessonLogSheet(ss, className);
+  }
   
-  for (var i = 1; i < data.length; i++) {
-    if (String(data[i][0]).trim() === String(logId).trim()) {
-      sheet.getRange(i + 1, 13).setValue(nowStr);
-      var classId = data[i][1];
-      if (classId) clearClassCache(classId, "logs");
-      SpreadsheetApp.flush();
-      break;
+  var nowStr = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), "dd/MM/yyyy HH:mm");
+  var found = false;
+  
+  if (sheet) {
+    var data = sheet.getDataRange().getDisplayValues();
+    for (var i = 1; i < data.length; i++) {
+      if (String(data[i][0]).trim() === String(logId).trim()) {
+        sheet.getRange(i + 1, 13).setValue(nowStr);
+        var classId = data[i][1];
+        if (classId) clearClassCache(classId, "logs");
+        SpreadsheetApp.flush();
+        found = true;
+        break;
+      }
     }
   }
+
+  // Nếu không tìm thấy ở Sheet chỉ định, quét tìm tất cả các Sheet còn lại
+  if (!found) {
+    var sheets = ss.getSheets();
+    for (var s = 0; s < sheets.length; s++) {
+      var sh = sheets[s];
+      var data = sh.getDataRange().getDisplayValues();
+      if (data.length > 1 && data[0].length >= 13 && String(data[0][0]).trim() === "Mã nhật ký") {
+        for (var i = 1; i < data.length; i++) {
+          if (String(data[i][0]).trim() === String(logId).trim()) {
+            sh.getRange(i + 1, 13).setValue(nowStr);
+            var classId = data[i][1];
+            if (classId) clearClassCache(classId, "logs");
+            SpreadsheetApp.flush();
+            found = true;
+            break;
+          }
+        }
+      }
+      if (found) break;
+    }
+  }
+  
   return { success: true };
 }
 
