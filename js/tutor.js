@@ -597,17 +597,22 @@ function formatScheduleCell(val) {
             if(!currentTutorStudent) return;
             document.getElementById('editOldStudentPhone').value = currentTutorStudent.phone;
             document.getElementById('editStudentName').value = currentTutorStudent.name;
+            document.getElementById('editStudentPhone').value = currentTutorStudent.phone;
             document.getElementById('editStudentTuition').value = currentTutorStudent.tuition || "";
             document.getElementById('editStudentMaBaiTap').value = currentTutorStudent.maBaiTap || "";
             
-            document.getElementById('editParentName').value = ""; 
-            document.getElementById('editParentName').placeholder = "Đang tải tên phụ huynh...";
-            google.script.run.withSuccessHandler(function(pName) {
-                document.getElementById('editParentName').value = pName || "";
-                document.getElementById('editParentName').placeholder = "";
-            }).getStudentParentName(currentTutorStudent.phone);
+            var pNameDirect = currentTutorStudent.parentName || currentTutorStudent.pName || "";
+            document.getElementById('editParentName').value = pNameDirect;
             
-            document.getElementById('editStudentPhone').value = currentTutorStudent.phone;
+            if (!pNameDirect && typeof google !== 'undefined' && google.script && google.script.run) {
+                document.getElementById('editParentName').placeholder = "Đang tải tên phụ huynh...";
+                google.script.run.withSuccessHandler(function(pName) {
+                    var finalPName = (typeof pName === 'string') ? pName : (pName && pName.parentName ? pName.parentName : "");
+                    document.getElementById('editParentName').value = finalPName;
+                    document.getElementById('editParentName').placeholder = "";
+                }).getStudentParentName(currentTutorStudent.phone);
+            }
+            
             document.getElementById('editStudentModal').style.display = "flex";
         }
         function closeEditStudentModal() {
