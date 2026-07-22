@@ -1085,6 +1085,74 @@
             }
         }
 
+        function showCustomConfirm(message, callback) {
+            var modal = document.createElement('div');
+            modal.style.position = 'fixed';
+            modal.style.top = '0';
+            modal.style.left = '0';
+            modal.style.width = '100vw';
+            modal.style.height = '100vh';
+            modal.style.background = 'rgba(3, 8, 29, 0.8)';
+            modal.style.backdropFilter = 'blur(8px)';
+            modal.style.webkitBackdropFilter = 'blur(8px)';
+            modal.style.zIndex = '99999';
+            modal.style.display = 'flex';
+            modal.style.alignItems = 'center';
+            modal.style.justifyContent = 'center';
+            modal.style.fontFamily = "'Inter', sans-serif";
+            
+            var box = document.createElement('div');
+            box.style.background = 'rgba(11, 8, 38, 0.95)';
+            box.style.border = '1px solid rgba(142, 77, 255, 0.3)';
+            box.style.borderRadius = '16px';
+            box.style.padding = '30px';
+            box.style.maxWidth = '400px';
+            box.style.width = '90%';
+            box.style.textAlign = 'center';
+            box.style.boxShadow = '0 20px 50px rgba(0,0,0,0.5)';
+            box.style.transform = 'scale(0.8)';
+            box.style.opacity = '0';
+            box.style.transition = 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
+            
+            box.innerHTML = 
+                '<div style="font-size: 44px; color: #FFD23F; margin-bottom: 15px;"><i class="fa-solid fa-circle-question"></i></div>' +
+                '<h4 style="color: #FFF; margin: 0 0 10px; font-size: 18px; font-weight: 700;">Xác nhận</h4>' +
+                '<p style="color: #A6ADCE; font-size: 14px; margin: 0 0 24px; line-height: 1.5; text-align: center;">' + message + '</p>' +
+                '<div style="display: flex; gap: 12px; justify-content: center;">' +
+                    '<button id="confirmCancelBtn" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #A6ADCE; padding: 10px 24px; border-radius: 20px; font-size: 13px; font-weight:600; cursor: pointer; transition: all 0.3s; outline: none; border-style: solid;">Hủy</button>' +
+                    '<button id="confirmOkBtn" style="background: linear-gradient(135deg, #8E4DFF 0%, #5B21B6 100%); border: none; color: #FFF; padding: 10px 24px; border-radius: 20px; font-size: 13px; font-weight:600; cursor: pointer; transition: all 0.3s; box-shadow: 0 4px 10px rgba(142, 77, 255, 0.2); outline: none;">Đồng ý</button>' +
+                '</div>';
+                
+            modal.appendChild(box);
+            document.body.appendChild(modal);
+            box.offsetHeight; // force reflow
+            
+            box.style.transform = 'scale(1)';
+            box.style.opacity = '1';
+            
+            var cancelBtn = box.querySelector('#confirmCancelBtn');
+            var okBtn = box.querySelector('#confirmOkBtn');
+            
+            cancelBtn.onmouseenter = () => cancelBtn.style.background = 'rgba(255,255,255,0.1)';
+            cancelBtn.onmouseleave = () => cancelBtn.style.background = 'rgba(255,255,255,0.05)';
+            okBtn.onmouseenter = () => okBtn.style.transform = 'translateY(-2px)';
+            okBtn.onmouseleave = () => okBtn.style.transform = 'translateY(0)';
+            
+            var closeConfirm = function(result) {
+                box.style.transform = 'scale(0.8)';
+                box.style.opacity = '0';
+                modal.style.opacity = '0';
+                modal.style.transition = 'opacity 0.3s ease';
+                setTimeout(function() {
+                    modal.remove();
+                    if (result && callback) callback();
+                }, 300);
+            };
+            
+            cancelBtn.onclick = () => closeConfirm(false);
+            okBtn.onclick = () => closeConfirm(true);
+        }
+
         function showToast(message, type) {
             if (!type) type = 'info';
             var container = document.getElementById('toastContainer');
@@ -1732,13 +1800,10 @@
             selectClass(activeClassIndex);
         }
 
-        function confirmDeleteCurrentClass() {
-            var cls = currentClasses[activeClassIndex];
-            if (!cls) {
-                showToast("Vui lòng tạo hoặc chọn lớp học trước khi xóa!", "error");
-                return;
-            }
-            if (confirm("Bạn có chắc chắn muốn xóa lớp " + cls.className + " không?")) {
+        function deleteClass(classId) {
+            var cls = currentClasses.find(function(c) { return c.classId === classId; });
+            if (!cls) return;
+            showCustomConfirm("Bạn có chắc chắn muốn xóa lớp " + cls.className + " không?", function() {
                 showSyncToast('pending');
                 google.script.run.withSuccessHandler(function() { showSyncToast('success'); }).deleteClass(cls.classId, cls.className);
                 currentClasses.splice(activeClassIndex, 1);
@@ -1748,7 +1813,7 @@
                 } else {
                     selectClass(0);
                 }
-            }
+            });
         }
 
         function openAddStudentModal() { openModal("addStudentModal"); }
@@ -1810,7 +1875,7 @@
         }
 
         function removeStudent(studentId) {
-            if (confirm("Bạn có chắc chắn muốn chuyển học sinh này vào thùng rác không?")) {
+            showCustomConfirm("Bạn có chắc chắn muốn chuyển học sinh này vào thùng rác không?", function() {
                 // OPTIMISTIC UI: Xóa khỏi danh sách & render ngay lập tức!
                 activeStudents = activeStudents.filter(function(st) { return st.studentId !== studentId; });
                 renderRosterAndEvalGrid();
@@ -1818,18 +1883,16 @@
                 google.script.run
                     .withSuccessHandler(function() { showSyncToast('success'); })
                     .withFailureHandler(function(err) { showSyncToast('error'); })
-                    .deleteClassStudent(studentId);
-            }
+                    .deleteClassStudent(studentId);});
         }
 
         function deleteStudentFromEditModal() {
             var studentId = document.getElementById("editStudentId").value;
             if (!studentId) return;
             
-            if (confirm("Bạn có chắc chắn muốn chuyển học sinh này vào thùng rác không? (Có thể khôi phục lại bất kỳ lúc nào từ Thùng rác).")) {
+            showCustomConfirm("Bạn có chắc chắn muốn chuyển học sinh này vào thùng rác không? (Có thể khôi phục lại bất kỳ lúc nào từ Thùng rác).", function() {
                 closeModal("editClassStudentModal");
-                removeStudent(studentId);
-            }
+                removeStudent(studentId);});
         }
 
         // 1. Mở modal sửa thông tin học sinh
@@ -1915,11 +1978,10 @@
 
         // 5. Xóa vĩnh viễn học sinh khỏi thùng rác
         function deleteClassStudentPermanently(studentId) {
-            if (confirm("Bạn có chắc chắn muốn xóa VĨNH VIỄN học sinh này khỏi Google Sheets? Hành động này không thể hoàn tác!")) {
+            showCustomConfirm("Bạn có chắc chắn muốn xóa VĨNH VIỄN học sinh này khỏi Google Sheets? Hành động này không thể hoàn tác!", function() {
                 google.script.run.withSuccessHandler(function() {
                     openClassStudentTrashModal();
-                }).deleteClassStudentPermanently(studentId);
-            }
+                }).deleteClassStudentPermanently(studentId);});
         }
 
         var editingLessonLogId = null;
@@ -2213,15 +2275,14 @@
         }
 
         function deleteClassLessonLog(logId) {
-            if (confirm("Bạn có chắc chắn muốn xóa nhật ký buổi học này không?")) {
+            showCustomConfirm("Bạn có chắc chắn muốn xóa nhật ký buổi học này không?", function() {
                 // OPTIMISTIC UI: Xóa khỏi mảng và vẽ lại UI trong 0.05s!
                 activeClassLessonLogs = activeClassLessonLogs.filter(function(log) { return log.logId !== logId; });
                 renderClassLessonLogsTableUI();
 
                 showSyncToast('pending');
                 // Gửi ngầm bên dưới
-                google.script.run.withSuccessHandler(function() { showSyncToast('success'); }).deleteClassLessonLog(logId);
-            }
+                google.script.run.withSuccessHandler(function() { showSyncToast('success'); }).deleteClassLessonLog(logId);});
         }
 
         function refreshClassHistory() {
@@ -2397,6 +2458,7 @@
                 qrImg.style.display = "block";
                 qrText.innerText = "Quét mã để thanh toán";
             } else {
+                qrImg.src = "";
                 qrImg.style.display = "none";
                 qrText.innerText = "Chưa có QR thanh toán";
             }
@@ -2486,7 +2548,7 @@
                 if (isBillable) {
                     if (!sLog.paid) unpaidClasses++;
                     checkboxHtml = '<input type="checkbox" ' + (sLog.paid ? 'checked' : '') + 
-                        ' data-logid="' + sLog.logId + '" onchange="toggleClassStudentPayment(this)" style="transform: scale(1.2); cursor:pointer;">';
+                        ' data-logid="' + sLog.logId + '" data-studentid="' + student.studentId + '" class="log-checkbox" onchange="toggleClassStudentPayment(this)" style="transform: scale(1.2); cursor:pointer;">';
                 }
                 
                 tableBody.innerHTML += '<tr>' +
@@ -2509,7 +2571,6 @@
 
             var totalFee = 0;
             if (effectiveFeeType === "monthly") {
-                // Đóng học phí cố định trọn gói theo tháng
                 totalFee = (unpaidClasses > 0) ? feePerClass : 0;
                 document.getElementById("invFeeCalcText").innerText = "Học phí trọn gói tháng (Đã học " + (presentClasses + lateClasses) + " buổi):";
                 document.getElementById("invFeeCalcTotal").innerText = feePerClass.toLocaleString('vi-VN') + " VNĐ/tháng";
@@ -2521,7 +2582,6 @@
                 document.getElementById("invTextarea").value = msg;
                 window.currentInvoiceMsgBase = msg;
             } else {
-                // Thu theo buổi
                 totalFee = unpaidClasses * feePerClass;
                 document.getElementById("invFeeCalcText").innerText = "Học phí chưa đóng (" + feePerClass.toLocaleString('vi-VN') + "đ × " + unpaidClasses + " buổi):";
                 document.getElementById("invFeeCalcTotal").innerText = totalFee.toLocaleString('vi-VN') + " VNĐ";
@@ -2574,42 +2634,42 @@
             
             var logIds = Array.from(checkboxes).map(function(cb) { return cb.getAttribute("data-logid"); });
             
-            if (!confirm("Bạn có chắc chắn đánh dấu " + logIds.length + " buổi học này là ĐÃ THANH TOÁN?")) return;
-            
-            btn.disabled = true;
-            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Đang lưu...';
-            showSyncToast('pending');
-            
-            google.script.run.withSuccessHandler(function(res) {
-                btn.disabled = false;
-                btn.innerHTML = '<i class="fa-solid fa-check-double"></i> Xác nhận Đã Thu tiền';
-                if (res && res.success) {
-                    showSyncToast('success');
-                    
-                    // Cập nhật Optimistic UI
-                    activeClassLessonLogs.forEach(function(log) {
-                        if (logIds.includes(log.logId)) {
-                            if (!log.studentNotes) log.studentNotes = {};
-                            if (!log.studentNotes[activeInvoiceStudentId]) log.studentNotes[activeInvoiceStudentId] = {};
-                            log.studentNotes[activeInvoiceStudentId].paid = true;
-                        }
-                    });
-                    
-                    var student = activeStudents.find(function(s) { return s.studentId === activeInvoiceStudentId; });
-                    if (student) renderClassStudentInvoice(student);
-                    renderRosterAndEvalGrid();
-                    renderClassLessonLogsTableUI();
-                    showToast("Đã xác nhận thu tiền thành công!", "success");
-                } else {
+            showCustomConfirm("Bạn có chắc chắn đánh dấu " + logIds.length + " buổi học này là ĐÃ THANH TOÁN?", function() {
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Đang lưu...';
+                showSyncToast('pending');
+                
+                google.script.run.withSuccessHandler(function(res) {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fa-solid fa-check-double"></i> Xác nhận Đã Thu tiền';
+                    if (res && res.success) {
+                        showSyncToast('success');
+                        
+                        // Cập nhật Optimistic UI
+                        activeClassLessonLogs.forEach(function(log) {
+                            if (logIds.includes(log.logId)) {
+                                if (!log.studentNotes) log.studentNotes = {};
+                                if (!log.studentNotes[activeInvoiceStudentId]) log.studentNotes[activeInvoiceStudentId] = {};
+                                log.studentNotes[activeInvoiceStudentId].paid = true;
+                            }
+                        });
+                        
+                        var student = activeStudents.find(function(s) { return s.studentId === activeInvoiceStudentId; });
+                        if (student) renderClassStudentInvoice(student);
+                        renderRosterAndEvalGrid();
+                        renderClassLessonLogsTableUI();
+                        showToast("Đã xác nhận thu tiền thành công!", "success");
+                    } else {
+                        showSyncToast('error');
+                        showToast("Lỗi đồng bộ: " + (res.error || "Không xác định"), "error");
+                    }
+                }).withFailureHandler(function(err) {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fa-solid fa-check-double"></i> Xác nhận Đã Thu tiền';
                     showSyncToast('error');
-                    showToast("Lỗi đồng bộ: " + (res.error || "Không xác định"), "error");
-                }
-            }).withFailureHandler(function(err) {
-                btn.disabled = false;
-                btn.innerHTML = '<i class="fa-solid fa-check-double"></i> Xác nhận Đã Thu tiền';
-                showSyncToast('error');
-                showToast("Lỗi kết nối: " + err.toString(), "error");
-            }).markClassInvoiceBulkPaid(logIds, activeInvoiceStudentId);
+                    showToast("Lỗi kết nối: " + err.toString(), "error");
+                }).markClassInvoiceBulkPaid(logIds, activeInvoiceStudentId);
+            });
         }
 
         function toggleClassStudentPayment(checkbox) {
@@ -2856,15 +2916,14 @@
         }
 
         function deleteClassHomework(hwId) {
-            if (confirm("Bạn có chắc chắn muốn xóa bài tập này?")) {
+            showCustomConfirm("Bạn có chắc chắn muốn xóa bài tập này?", function() {
                 // OPTIMISTIC UI: Xóa khỏi mảng và render lại UI ngay 0.05s!
                 activeClassHomework = activeClassHomework.filter(function(hw) { return hw.hwId !== hwId; });
                 renderClassHomeworkListUI();
 
                 showSyncToast('pending');
                 // Gửi ngầm bên dưới
-                google.script.run.withSuccessHandler(function() { showSyncToast('success'); }).deleteClassHomework(hwId);
-            }
+                google.script.run.withSuccessHandler(function() { showSyncToast('success'); }).deleteClassHomework(hwId);});
         }
 
         function openTrashModal() {
@@ -2923,17 +2982,18 @@
         }
 
         function purgeTrashItem(type, itemId, className) {
-            if (!confirm("Bạn có chắc chắn muốn XÓA VĨNH VIỄN mục này khỏi hệ thống? Không thể khôi phục sau khi xóa!")) return;
-            showSyncToast('pending');
-            google.script.run.withSuccessHandler(function(res) {
-                if (res && res.success) {
-                    showSyncToast('success');
-                    openTrashModal();
-                } else {
-                    showSyncToast('error');
-                    showToast("Lỗi xóa: " + (res.error || "Thất bại"), "error");
-                }
-            }).purgeClassItem(type, itemId, className);
+            showCustomConfirm("Bạn có chắc chắn muốn XÓA VĨNH VIỄN mục này khỏi hệ thống? Không thể khôi phục sau khi xóa!", function() {
+                showSyncToast('pending');
+                google.script.run.withSuccessHandler(function(res) {
+                    if (res && res.success) {
+                        showSyncToast('success');
+                        openTrashModal();
+                    } else {
+                        showSyncToast('error');
+                        showToast("Lỗi xóa: " + (res.error || "Thất bại"), "error");
+                    }
+                }).purgeClassItem(type, itemId, className);
+            });
         }
 
         function logoutClass() {
