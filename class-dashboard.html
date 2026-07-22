@@ -881,22 +881,46 @@
 
     <!-- MODAL 4: Thông Tin Tài Khoản -->
     <div id="tutorAccountModal" class="modal-overlay">
-        <div class="modal-card">
+        <div class="modal-card" style="max-width: 520px; width: 92%;">
             <div class="modal-header">
-                <h3><i class="fa-solid fa-user-gear" style="margin-right: 8px;"></i>Thông Tin Tài Khoản</h3>
+                <h3><i class="fa-solid fa-user-gear" style="margin-right: 8px;"></i>Tài khoản của tôi</h3>
                 <button class="btn-close-modal" onclick="closeModal('tutorAccountModal')"><i class="fa-solid fa-xmark"></i></button>
             </div>
             <div class="form-group">
-                <label>Họ và tên giáo viên</label>
-                <input type="text" id="accTutorName" class="form-control" readonly style="background: rgba(255,255,255,0.06); color: #FFF;">
+                <label>HỌ VÀ TÊN GIÁO VIÊN</label>
+                <input type="text" id="accTutorName" class="form-control">
             </div>
             <div class="form-group">
-                <label>Số điện thoại đăng nhập</label>
-                <input type="text" id="accTutorPhone" class="form-control" readonly style="background: rgba(255,255,255,0.06); color: #FFF;">
+                <label>SỐ ĐIỆN THOẠI</label>
+                <input type="text" id="accTutorPhone" class="form-control">
             </div>
-            <button onclick="closeModal('tutorAccountModal')" style="width: 100%; padding: 12px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); border-radius: 12px; color: #FFF; font-weight: bold; font-size: 14px; cursor: pointer; margin-top: 10px;">
-                Đóng
-            </button>
+            <div class="form-group">
+                <label>MÃ PIN ĐĂNG NHẬP</label>
+                <input type="text" id="accTutorPin" class="form-control" placeholder="Mã PIN 4 số...">
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 16px;">
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label>SỐ LỚP ĐANG DẠY</label>
+                    <input type="text" id="accClassCount" class="form-control" readonly style="background: rgba(255,255,255,0.06); color: #FFD23F; font-weight: bold;">
+                </div>
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label>THU NHẬP CHƯA ĐÓNG</label>
+                    <input type="text" id="accUnpaidIncome" class="form-control" readonly style="background: rgba(255,255,255,0.06); color: #10B981; font-weight: bold;">
+                </div>
+            </div>
+            <div class="form-group" style="text-align: center; display: flex; flex-direction: column; align-items: center; background: rgba(0,0,0,0.25); padding: 15px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.08);">
+                <label style="text-align: center; width: 100%; color: #A6ADCE; font-weight: bold; font-size: 12px;">Ảnh mã QR thanh toán (Admin quản lý)</label>
+                <img id="accQrImg" src="" style="max-width: 100%; max-height: 180px; margin: 10px auto 0; border-radius: 10px; border: 1px solid rgba(255,255,255,0.15); object-fit: contain; display: none;">
+                <div id="accQrText" style="color: #A6ADCE; font-size: 13px; margin-top: 8px;">Chưa cấu hình ảnh QR</div>
+            </div>
+            <div style="display: flex; gap: 12px; margin-top: 20px;">
+                <button onclick="closeModal('tutorAccountModal')" style="flex: 1; padding: 12px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); border-radius: 12px; color: #FFF; font-weight: bold; font-size: 14px; cursor: pointer;">
+                    Đóng
+                </button>
+                <button onclick="saveClassTutorAccount()" style="flex: 1; padding: 12px; background: linear-gradient(135deg, #8E4DFF 0%, #5B21B6 100%); border: none; border-radius: 12px; color: #FFF; font-weight: bold; font-size: 14px; cursor: pointer; box-shadow: 0 4px 15px rgba(142,77,255,0.3);">
+                    Cập nhật tài khoản
+                </button>
+            </div>
         </div>
     </div>
 
@@ -1133,9 +1157,73 @@
         function openTutorAccountModal() {
             var nameEl = document.getElementById("accTutorName");
             var phoneEl = document.getElementById("accTutorPhone");
+            var pinEl = document.getElementById("accTutorPin");
+            var classCountEl = document.getElementById("accClassCount");
+            var unpaidEl = document.getElementById("accUnpaidIncome");
+            var qrImg = document.getElementById("accQrImg");
+            var qrText = document.getElementById("accQrText");
+
             if (nameEl) nameEl.value = currentTutorData ? (currentTutorData.tutorName || "Giáo viên Lớp học") : "";
             if (phoneEl) phoneEl.value = currentTutorData ? (currentTutorData.tutorPhone || "") : "";
+            if (pinEl) pinEl.value = currentTutorData ? (currentTutorData.tutorPin || currentTutorData.pin || "") : "";
+            if (classCountEl) classCountEl.value = (currentClasses ? currentClasses.length : 0) + " lớp";
+
+            var totalUnpaid = 0;
+            if (activeClassLessonLogs && activeStudents) {
+                activeClassLessonLogs.forEach(function(log) {
+                    var sNotes = log.studentNotes || {};
+                    activeStudents.forEach(function(st) {
+                        var pInfo = sNotes[st.studentId] || {};
+                        var att = pInfo.attendance || "Có mặt";
+                        if (log.status === "Cả lớp nghỉ") att = "Cả lớp nghỉ";
+                        if ((att === "Có mặt" || att === "Đi muộn") && !(pInfo.paid === true || pInfo.paid === "true")) {
+                            var fee = parseInt(st.fee) || 0;
+                            totalUnpaid += fee;
+                        }
+                    });
+                });
+            }
+            if (unpaidEl) unpaidEl.value = totalUnpaid.toLocaleString('vi-VN') + " VNĐ";
+
+            var qrUrl = currentTutorData ? (currentTutorData.qrUrl || currentTutorData.qrCodeUrl || "") : "";
+            if (qrUrl && qrImg) {
+                qrImg.src = qrUrl;
+                qrImg.style.display = "block";
+                if (qrText) qrText.style.display = "none";
+            } else if (qrImg) {
+                qrImg.style.display = "none";
+                if (qrText) qrText.style.display = "block";
+            }
+
             openModal("tutorAccountModal");
+        }
+
+        function saveClassTutorAccount() {
+            var name = document.getElementById("accTutorName").value.trim();
+            var phone = document.getElementById("accTutorPhone").value.trim();
+            var pin = document.getElementById("accTutorPin").value.trim();
+
+            if (!name || !phone) {
+                alert("Vui lòng nhập đầy đủ Họ tên và Số điện thoại!");
+                return;
+            }
+
+            if (!currentTutorData) currentTutorData = {};
+            currentTutorData.tutorName = name;
+            currentTutorData.tutorPhone = phone;
+            currentTutorData.tutorPin = pin;
+
+            sessionStorage.setItem("classTutorData", JSON.stringify(currentTutorData));
+            localStorage.setItem("classTutorData", JSON.stringify(currentTutorData));
+
+            var nameDisplay = document.getElementById("tutorNameDisplay");
+            if (nameDisplay) nameDisplay.innerText = "Xin chào, " + name + " 👋";
+
+            showSyncToast('pending');
+            google.script.run
+                .withSuccessHandler(function() { showSyncToast('success'); closeModal("tutorAccountModal"); })
+                .withFailureHandler(function(err) { showSyncToast('error'); console.error("Lỗi cập nhật tài khoản:", err); })
+                .updateTutorAccountInfo(phone, name, pin);
         }
 
         function renderEmptyClassState() {
