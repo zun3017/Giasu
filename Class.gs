@@ -123,41 +123,63 @@ function getOrCreateClassEvaluationSheet(ss, className) {
   return sheet;
 }
 
-// Hàm đăng nhập dành cho Giáo viên Lớp học nhóm (Cô lập hoàn toàn trên Sheet 2)
+// Hàm đăng nhập dành cho Giáo viên Lớp học nhóm (Xác thực tài khoản tại Sheet Chính, lấy lớp tại Sheet Lớp)
 function loginClassSystem(phone, pin) {
-  var ss = getClassSpreadsheet(); // Tự động đảm bảo kết nối Sheet 2 Lớp học nhóm
+  var ssMain = SpreadsheetApp.getActiveSpreadsheet(); // Sheet chính Gia sư 1-1 / Admin chứa danh mục tài khoản Giáo viên
   var normPhone = normalizePhone(phone || "");
   if (!normPhone) {
     return { success: false, error: "Vui lòng nhập số điện thoại hợp lệ." };
   }
 
-  var classes = getClassList(phone, "");
-  
-  // Tùy chọn kiểm tra PIN nếu giáo viên cài mã PIN trên Sheet 2
-  var sheetClasses = ss.getSheetByName('Danh sách lớp học');
-  if (sheetClasses) {
-    var data = sheetClasses.getDataRange().getDisplayValues();
-    for (var i = 1; i < data.length; i++) {
-      var dbPhone = normalizePhone(data[i][2] || "");
-      if (dbPhone === normPhone) {
-        var dbPin = (data[i].length > 7) ? String(data[i][7] || "").trim() : "";
-        if (dbPin !== "" && pin && String(pin).trim() !== dbPin) {
-          return { success: false, error: "Mã PIN bảo mật không chính xác!" };
-        }
+  // 1. Xác thực tài khoản giáo viên tại Sheet Chính ('Mã gia sư')
+  var sheetGS = ssMain.getSheetByName('Mã gia sư');
+  if (!sheetGS) {
+    return { success: false, error: "Hệ thống chưa thiết lập danh sách Giáo viên." };
+  }
+
+  var dataGS = sheetGS.getDataRange().getDisplayValues();
+  var teacherFound = false;
+  var teacherName = "Giáo viên Lớp học";
+  var tutorCode = "";
+
+  for (var i = 1; i < dataGS.length; i++) {
+    var gsPhone = normalizePhone(dataGS[i][2] || "");
+    if (gsPhone !== "" && gsPhone === normPhone) {
+      var tDelDate = (dataGS[i].length > 5) ? dataGS[i][5].trim() : "";
+      if (tDelDate !== "") continue; // Bỏ qua giáo viên đã xóa
+
+      teacherFound = true;
+      var truePin = String(dataGS[i][3] || "").trim();
+      var inputPin = String(pin || "").trim();
+      
+      if (inputPin !== truePin) {
+        return { success: false, error: "Mã PIN bảo mật không chính xác!" };
       }
+
+      var tStatus = (dataGS[i].length > 9) ? dataGS[i][9].trim() : "";
+      if (tStatus === "Vô hiệu hóa") {
+        return { success: false, error: "Tài khoản của bạn đã bị vô hiệu hóa. Vui lòng liên hệ Admin!" };
+      }
+
+      teacherName = dataGS[i][1] || teacherName;
+      tutorCode = dataGS[i][0] || "";
+      break;
     }
   }
 
-  var teacherName = "Giáo viên Lớp học";
-  if (classes && classes.length > 0) {
-    teacherName = "Giáo viên (" + (classes[0].subject || "Lớp học") + ")";
+  if (!teacherFound) {
+    return { success: false, error: "Số điện thoại giáo viên không tồn tại trên hệ thống." };
   }
+
+  // 2. Lấy danh sách lớp học của giáo viên từ Sheet Lớp học
+  var classes = getClassList(phone, tutorCode);
 
   return {
     success: true,
     role: "class_tutor",
     tutorPhone: phone,
     tutorName: teacherName,
+    tutorCode: tutorCode,
     classes: classes
   };
 }
