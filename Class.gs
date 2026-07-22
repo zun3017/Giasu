@@ -1206,8 +1206,8 @@ function updateClassStudentPaymentStatus(logId, studentId, isPaid) {
   try {
     lock.waitLock(10000);
     var ss = getClassSpreadsheet();
-    var sheet = ss.getSheetByName('Nhật ký học tập lớp');
-    if (!sheet) return { success: false, error: "Không tìm thấy sheet 'Nhật ký học tập lớp'." };
+    var sheet = ss.getSheetByName('Nhật ký chung');
+    if (!sheet) return { success: false, error: "Không tìm thấy sheet 'Nhật ký chung'." };
     
     var data = sheet.getDataRange().getDisplayValues();
     var rowIndex = -1;
@@ -1239,10 +1239,61 @@ function updateClassStudentPaymentStatus(logId, studentId, isPaid) {
       studentNotes[studentId].paid = (isPaid === true || isPaid === "true");
       
       jsonCell.setValue(JSON.stringify(studentNotes));
+      clearClassCache(null, "logs");
       SpreadsheetApp.flush();
       return { success: true };
     }
     return { success: false, error: "Không tìm thấy mã nhật ký." };
+  } catch(e) {
+    return { success: false, error: e.toString() };
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+function markClassInvoiceBulkPaid(logIds, studentId) {
+  var lock = LockService.getScriptLock();
+  try {
+    lock.waitLock(15000);
+    var ss = getClassSpreadsheet();
+    var sheet = ss.getSheetByName('Nhật ký chung');
+    if (!sheet) return { success: false, error: "Không tìm thấy sheet 'Nhật ký chung'." };
+    
+    var data = sheet.getDataRange().getDisplayValues();
+    
+    var updated = false;
+    for (var i = 1; i < data.length; i++) {
+      var currentLogId = data[i][0];
+      if (logIds.indexOf(currentLogId) !== -1) {
+        var rowIndex = i + 1;
+        var jsonStr = data[i][11] || "{}"; // column L is index 11
+        var studentNotes = {};
+        try {
+          studentNotes = JSON.parse(jsonStr);
+        } catch(e) {
+          studentNotes = {};
+        }
+        
+        if (!studentNotes[studentId]) {
+          studentNotes[studentId] = {
+            studentName: "Học sinh",
+            attendance: "Có mặt",
+            privateNote: ""
+          };
+        }
+        
+        studentNotes[studentId].paid = true;
+        sheet.getRange(rowIndex, 12).setValue(JSON.stringify(studentNotes));
+        updated = true;
+      }
+    }
+    
+    if (updated) {
+      clearClassCache(null, "logs");
+      SpreadsheetApp.flush();
+      return { success: true };
+    }
+    return { success: false, error: "Không tìm thấy nhật ký để cập nhật." };
   } catch(e) {
     return { success: false, error: e.toString() };
   } finally {

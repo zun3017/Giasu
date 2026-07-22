@@ -600,12 +600,20 @@
                     <div class="inv-title" style="text-align:center; font-size:24px; font-weight:800; color:#8E4DFF; margin-bottom:20px; font-family:'Inter', sans-serif;">PHIẾU HỌC TẬP & HÓA ĐƠN LỚP HỌC</div>
                     
                     <div class="inv-box" style="margin-bottom:20px; border-bottom:1px solid #E5E7EB; padding-bottom:15px;">
-                        <div class="inv-student-info" style="display:flex; align-items:center; gap:15px;">
-                            <div class="inv-student-icon" style="width:50px; height:50px; border-radius:50%; background:#8E4DFF; display:flex; align-items:center; justify-content:center; color:#FFF; font-size:22px;"><i class="fa-solid fa-user-graduate"></i></div>
-                            <div class="inv-student-text">
-                                <h5 style="margin:0; font-size:11px; color:#9CA3AF; text-transform:uppercase; font-weight:700;">HỌC SINH</h5>
-                                <h3 id="invStudentName" style="margin:4px 0 0 0; font-size:18px; color:#1F2937; font-weight:800;">Đang tải...</h3>
-                                <div id="invClassDisplay" style="font-size:12px; color:#8E4DFF; font-weight:700; margin-top:6px; background:rgba(142,77,255,0.1); display:inline-block; padding:4px 10px; border-radius:12px;">Đang tải...</div>
+                        <div class="inv-student-info" style="display:flex; align-items:center; justify-content:space-between; gap:15px; flex-wrap:wrap;">
+                            <div style="display:flex; align-items:center; gap:15px;">
+                                <div class="inv-student-icon" style="width:50px; height:50px; border-radius:50%; background:#8E4DFF; display:flex; align-items:center; justify-content:center; color:#FFF; font-size:22px;"><i class="fa-solid fa-user-graduate"></i></div>
+                                <div class="inv-student-text">
+                                    <h5 style="margin:0; font-size:11px; color:#9CA3AF; text-transform:uppercase; font-weight:700;">HỌC SINH</h5>
+                                    <h3 id="invStudentName" style="margin:4px 0 0 0; font-size:18px; color:#1F2937; font-weight:800;">Đang tải...</h3>
+                                    <div id="invClassDisplay" style="font-size:12px; color:#8E4DFF; font-weight:700; margin-top:6px; background:rgba(142,77,255,0.1); display:inline-block; padding:4px 10px; border-radius:12px;">Đang tải...</div>
+                                </div>
+                            </div>
+                            <div style="display:flex; flex-direction:column; gap:6px;">
+                                <label style="font-size:11px; color:#6B7280; font-weight:700; text-transform:uppercase;">Kỳ thanh toán</label>
+                                <select id="invMonthFilter" onchange="renderClassStudentInvoice()" style="padding:8px 12px; border:1px solid #D1D5DB; border-radius:8px; outline:none; background:#FFF; color:#374151; font-weight:600; cursor:pointer; min-width:140px;">
+                                    <option value="all">Tất cả lịch sử</option>
+                                </select>
                             </div>
                         </div>
                     </div>
@@ -648,9 +656,19 @@
                         </div>
                     </div>
 
-                    <div class="inv-fee-row" style="display:flex; justify-content:space-between; font-size:15px; font-weight:700; color:#374151; border-top:1px dashed #E5E7EB; padding-top:15px; margin-bottom:15px;">
+                    <div class="inv-fee-row" style="display:flex; justify-content:space-between; font-size:15px; font-weight:700; color:#374151; border-top:1px dashed #E5E7EB; padding-top:15px; margin-bottom:10px;">
                         <div class="inv-fee-label" id="invFeeCalcText">Học phí:</div>
                         <div class="inv-fee-val" id="invFeeCalcTotal">0 VNĐ</div>
+                    </div>
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px; margin-bottom:15px;">
+                        <div>
+                            <label style="font-size:11px; color:#6B7280; font-weight:700; text-transform:uppercase;">Cộng Phụ phí (+)</label>
+                            <input type="number" id="invExtraFee" oninput="calculateGrandTotalInvoice()" placeholder="VD: 50000" style="width:100%; padding:8px 12px; border:1px solid #D1D5DB; border-radius:8px; font-size:14px; outline:none; margin-top:4px; box-sizing: border-box;">
+                        </div>
+                        <div>
+                            <label style="font-size:11px; color:#6B7280; font-weight:700; text-transform:uppercase;">Trừ Giảm trừ (-)</label>
+                            <input type="number" id="invDiscountFee" oninput="calculateGrandTotalInvoice()" placeholder="VD: 20000" style="width:100%; padding:8px 12px; border:1px solid #D1D5DB; border-radius:8px; font-size:14px; outline:none; margin-top:4px; box-sizing: border-box;">
+                        </div>
                     </div>
 
                     <div class="inv-payment-box" style="display:grid; grid-template-columns:1.5fr 1fr; gap:20px; background:#F9FAFB; padding:15px; border-radius:12px; border:1px solid #E5E7EB;">
@@ -666,9 +684,12 @@
                     </div>
                 </div>
 
-                <div class="export-btn-container" style="margin-top: 15px; text-align: center; display: flex; justify-content: center; gap: 12px; margin-bottom: 25px;">
+                <div class="export-btn-container" style="margin-top: 15px; text-align: center; display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin-bottom: 25px;">
                     <button onclick="closeClassInvoice()" style="padding: 10px 24px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: #A6ADCE; border-radius: 20px; cursor: pointer; font-weight: 600; font-size: 13.5px; display: inline-flex; align-items: center; gap: 6px; outline:none;">
-                        <i class="fa-solid fa-xmark"></i> Thu gọn
+                        <i class="fa-solid fa-xmark"></i> Đóng
+                    </button>
+                    <button class="btn-export" id="btnMarkInvoicePaid" onclick="markAllInvoicePaid()" style="padding: 10px 24px; background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%); border: none; color: #FFF; border-radius: 20px; cursor: pointer; font-weight: 700; font-size: 13.5px; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 4px 15px rgba(59,130,246,0.3); outline:none;">
+                        <i class="fa-solid fa-check-double"></i> Xác nhận Đã Thu tiền
                     </button>
                     <button class="btn-export" onclick="exportClassInvoiceImage()" style="padding: 10px 24px; background: linear-gradient(135deg, #10B981 0%, #059669 100%); border: none; color: #FFF; border-radius: 20px; cursor: pointer; font-weight: 700; font-size: 13.5px; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 4px 15px rgba(16,185,129,0.3); outline:none;">
                         <i class="fa-solid fa-camera"></i> Lưu Ảnh Hóa Đơn
@@ -2343,6 +2364,22 @@
             var container = document.getElementById("invoiceCollapseContainer");
             container.style.display = "block";
             
+            // Populate Month Filter
+            var monthSet = new Set();
+            activeClassLessonLogs.forEach(function(log) {
+                if (log.studyDate) {
+                    var parts = log.studyDate.split('/');
+                    if (parts.length >= 3) {
+                        monthSet.add(parts[1] + '/' + parts[2]);
+                    }
+                }
+            });
+            var monthSelect = document.getElementById("invMonthFilter");
+            monthSelect.innerHTML = '<option value="all">Tất cả lịch sử</option>';
+            Array.from(monthSet).sort().reverse().forEach(function(m) {
+                monthSelect.innerHTML += '<option value="' + m + '">Tháng ' + m + '</option>';
+            });
+            
             container.scrollIntoView({ behavior: 'smooth' });
             
             document.getElementById("invStudentName").innerText = student.studentName;
@@ -2385,9 +2422,17 @@
             var tableBody = document.getElementById("invoiceLessonsTableBody");
             tableBody.innerHTML = "";
             
+            var selectedMonth = document.getElementById("invMonthFilter").value;
             var studentLogs = [];
             
             activeClassLessonLogs.forEach(function(log) {
+                if (selectedMonth !== "all") {
+                    var parts = (log.studyDate || "").split('/');
+                    if (parts.length < 3 || (parts[1] + '/' + parts[2]) !== selectedMonth) {
+                        return;
+                    }
+                }
+                
                 var studentNotes = log.studentNotes || {};
                 var personalInfo = studentNotes[student.studentId] || {};
                 
@@ -2465,25 +2510,103 @@
                 totalFee = (unpaidClasses > 0) ? feePerClass : 0;
                 document.getElementById("invFeeCalcText").innerText = "Học phí trọn gói tháng (Đã học " + (presentClasses + lateClasses) + " buổi):";
                 document.getElementById("invFeeCalcTotal").innerText = feePerClass.toLocaleString('vi-VN') + " VNĐ/tháng";
-                document.getElementById("invGrandTotal").innerText = totalFee.toLocaleString('vi-VN') + " đ";
                 
                 var msg = "Dạ em chào anh/chị, em gửi anh chị phiếu học tập tổng hợp của bé " + student.studentName + " (Lớp: " + (cls ? cls.className : "") + ") ạ.\n" +
-                    "Học phí trọn gói tháng này là " + feePerClass.toLocaleString('vi-VN') + " VNĐ.\n" +
-                    (totalFee === 0 ? "Trạng thái: Đã hoàn tất đóng học phí tháng này.\n" : "Trạng thái: Chưa đóng học phí tháng này.\n") +
+                    "Học phí trọn gói là " + feePerClass.toLocaleString('vi-VN') + " VNĐ.\n" +
+                    (totalFee === 0 ? "Trạng thái: Đã hoàn tất đóng học phí.\n" : "Trạng thái: Chưa đóng học phí.\n") +
                     "Anh/chị quét mã QR trên phiếu để thanh toán giúp em nhé. Em cảm ơn ạ!";
                 document.getElementById("invTextarea").value = msg;
+                window.currentInvoiceMsgBase = msg;
             } else {
                 // Thu theo buổi
                 totalFee = unpaidClasses * feePerClass;
                 document.getElementById("invFeeCalcText").innerText = "Học phí chưa đóng (" + feePerClass.toLocaleString('vi-VN') + "đ × " + unpaidClasses + " buổi):";
                 document.getElementById("invFeeCalcTotal").innerText = totalFee.toLocaleString('vi-VN') + " VNĐ";
-                document.getElementById("invGrandTotal").innerText = totalFee.toLocaleString('vi-VN') + " đ";
                 
                 var msg = "Dạ em chào anh/chị, em gửi anh chị phiếu học tập tổng hợp của bé " + student.studentName + " (Lớp: " + (cls ? cls.className : "") + ") ạ.\n" +
                     "Tổng số buổi học chưa đóng phí là " + unpaidClasses + " buổi, thành tiền học phí là " + totalFee.toLocaleString('vi-VN') + " VNĐ.\n" +
                     "Anh/chị quét mã QR trên phiếu để thanh toán giúp em nhé. Em cảm ơn ạ!";
                 document.getElementById("invTextarea").value = msg;
+                window.currentInvoiceMsgBase = msg;
             }
+            
+            window.currentBaseTotalFee = totalFee;
+            document.getElementById("invExtraFee").value = "";
+            document.getElementById("invDiscountFee").value = "";
+            calculateGrandTotalInvoice();
+        }
+
+        function calculateGrandTotalInvoice() {
+            var extra = parseFloat(document.getElementById("invExtraFee").value) || 0;
+            var discount = parseFloat(document.getElementById("invDiscountFee").value) || 0;
+            var finalTotal = (window.currentBaseTotalFee || 0) + extra - discount;
+            if (finalTotal < 0) finalTotal = 0;
+            
+            document.getElementById("invGrandTotal").innerText = finalTotal.toLocaleString('vi-VN') + " đ";
+            
+            var msgObj = document.getElementById("invTextarea");
+            var originalMsg = window.currentInvoiceMsgBase || "";
+            
+            if (extra > 0 || discount > 0) {
+                var addText = "\nTrong đó:";
+                if (extra > 0) addText += "\n- Phụ phí (+): " + extra.toLocaleString('vi-VN') + " đ";
+                if (discount > 0) addText += "\n- Giảm trừ (-): " + discount.toLocaleString('vi-VN') + " đ";
+                addText += "\n=> TỔNG CẦN THANH TOÁN: " + finalTotal.toLocaleString('vi-VN') + " đ";
+                msgObj.value = originalMsg + "\n" + addText;
+            } else {
+                msgObj.value = originalMsg;
+            }
+        }
+        
+        function markAllInvoicePaid() {
+            if (!activeInvoiceStudentId) return;
+            var btn = document.getElementById("btnMarkInvoicePaid");
+            
+            // Tìm tất cả logIds đang hiển thị và chưa thanh toán
+            var checkboxes = document.querySelectorAll('#invoiceLessonsTableBody input[type="checkbox"]:not(:checked)');
+            if (checkboxes.length === 0) {
+                showToast("Tất cả buổi học đang hiển thị đều đã được thanh toán!", "success");
+                return;
+            }
+            
+            var logIds = Array.from(checkboxes).map(function(cb) { return cb.getAttribute("data-logid"); });
+            
+            if (!confirm("Bạn có chắc chắn đánh dấu " + logIds.length + " buổi học này là ĐÃ THANH TOÁN?")) return;
+            
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Đang lưu...';
+            showSyncToast('pending');
+            
+            google.script.run.withSuccessHandler(function(res) {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-check-double"></i> Xác nhận Đã Thu tiền';
+                if (res && res.success) {
+                    showSyncToast('success');
+                    
+                    // Cập nhật Optimistic UI
+                    activeClassLessonLogs.forEach(function(log) {
+                        if (logIds.includes(log.logId)) {
+                            if (!log.studentNotes) log.studentNotes = {};
+                            if (!log.studentNotes[activeInvoiceStudentId]) log.studentNotes[activeInvoiceStudentId] = {};
+                            log.studentNotes[activeInvoiceStudentId].paid = true;
+                        }
+                    });
+                    
+                    var student = activeStudents.find(function(s) { return s.studentId === activeInvoiceStudentId; });
+                    if (student) renderClassStudentInvoice(student);
+                    renderRosterAndEvalGrid();
+                    renderClassLessonLogsTableUI();
+                    showToast("Đã xác nhận thu tiền thành công!", "success");
+                } else {
+                    showSyncToast('error');
+                    showToast("Lỗi đồng bộ: " + (res.error || "Không xác định"), "error");
+                }
+            }).withFailureHandler(function(err) {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-check-double"></i> Xác nhận Đã Thu tiền';
+                showSyncToast('error');
+                showToast("Lỗi kết nối: " + err.toString(), "error");
+            }).markClassInvoiceBulkPaid(logIds, activeInvoiceStudentId);
         }
 
         function toggleClassStudentPayment(checkbox) {
