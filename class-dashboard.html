@@ -2522,6 +2522,26 @@
             }
         }
 
+        function loadClassHomeworkList() {
+            var cls = currentClasses[activeClassIndex];
+            if (!cls) return;
+            
+            var tbody = document.getElementById("classHwTableBody");
+            if (tbody) {
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:#A6ADCE; padding: 20px;"><i class="fa-solid fa-circle-notch fa-spin"></i> Đang tải bài tập...</td></tr>';
+            }
+            
+            google.script.run
+                .withSuccessHandler(function(list) {
+                    activeClassHomework = list || [];
+                    renderClassHomeworkListUI();
+                })
+                .withFailureHandler(function(err) {
+                    showToast("Không thể tải danh sách bài tập: " + err.toString(), "error");
+                })
+                .getClassHomeworkList(cls.classId, cls.className);
+        }
+
         function handleClassHwFileSelect(e) {
             var file = e.target.files[0];
             if (!file) return;
