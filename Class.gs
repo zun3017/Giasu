@@ -60,15 +60,6 @@ function initClassSpreadsheetSchema(ss) {
     sStudents.setFrozenRows(1);
   }
 
-  // 3. Sheet 'Nhật ký buổi học'
-  var sLogs = ss.getSheetByName('Nhật ký buổi học');
-  if (!sLogs) {
-    sLogs = ss.insertSheet('Nhật ký buổi học');
-    sLogs.appendRow(["Mã nhật ký", "Mã lớp", "Tên lớp", "Tuần số", "Ngày học", "Môn học", "Trạng thái cả lớp", "Đánh giá BTVN", "Bài kiểm tra đầu giờ", "Bài kiểm tra định kỳ", "Nhận xét chung buổi học", "Nhận xét riêng từng học sinh (JSON)"]);
-    sLogs.getRange(1, 1, 1, 12).setFontWeight("bold").setBackground("#10B981").setFontColor("#FFFFFF");
-    sLogs.setFrozenRows(1);
-  }
-
   // 4. Sheet 'Bài tập lớp học'
   var sHw = ss.getSheetByName('Bài tập lớp học');
   var homeworkHeaders = ["Mã bài tập", "Mã lớp", "Tên lớp", "Tên bài tập", "Ngày giao", "Link đính kèm", "URL File đính kèm", "Tên file"];
@@ -178,8 +169,8 @@ function loginClassSystem(phone, pin) {
 }
 
 // Lấy danh sách Lớp học của Giáo viên theo SĐT hoặc Mã Giáo Viên
-function getClassList(tutorPhone, tutorCode) {
-  var ss = getClassSpreadsheet();
+function getClassList(tutorPhone, tutorCode, ssParam) {
+  var ss = ssParam || getClassSpreadsheet();
   var sheetClasses = ss.getSheetByName('Danh sách lớp học');
   
   if (!sheetClasses) {
@@ -277,7 +268,8 @@ function getClassList(tutorPhone, tutorCode) {
 
 // Lấy toàn bộ dữ liệu tổng cho Phân hệ Lớp Học trong 1 chuyến gọi server duy nhất (1s)
 function getClassDashboardData(tutorPhone, requestedClassId, tutorCode) {
-  var classes = getClassList(tutorPhone, tutorCode);
+  var ss = getClassSpreadsheet();
+  var classes = getClassList(tutorPhone, tutorCode, ss);
   
   if (!classes || classes.length === 0) {
     return {
@@ -304,10 +296,10 @@ function getClassDashboardData(tutorPhone, requestedClassId, tutorCode) {
     activeClass = classes[0];
   }
   
-  var students = getClassStudents(activeClass.classId);
-  var lessonLogs = getClassLessonLogs(activeClass.classId, activeClass.className);
-  var announcement = getClassAnnouncement(activeClass.classId);
-  var homeworkList = getClassHomeworkList(activeClass.classId, activeClass.className);
+  var students = getClassStudents(activeClass.classId, ss);
+  var lessonLogs = getClassLessonLogs(activeClass.classId, activeClass.className, ss);
+  var announcement = getClassAnnouncement(activeClass.classId, ss);
+  var homeworkList = getClassHomeworkList(activeClass.classId, activeClass.className, ss);
   
   return {
     success: true,
@@ -395,7 +387,7 @@ function deleteClass(classId, className) {
 }
 
 // Lấy danh sách Học sinh thuộc một Lớp học
-function getClassStudents(classId) {
+function getClassStudents(classId, ssParam) {
   var cleanClassId = String(classId || "").trim();
   if (cleanClassId === "") return [];
   
@@ -410,7 +402,7 @@ function getClassStudents(classId) {
     }
   }
   
-  var ss = getClassSpreadsheet();
+  var ss = ssParam || getClassSpreadsheet();
   var sheetStudents = ss.getSheetByName('Học sinh lớp học');
   var students = [];
   
@@ -957,7 +949,7 @@ function saveClassLessonLog(classId, className, weekNum, studyDate, subject, sta
   return { success: true, logId: logId };
 }
 
-function getClassLessonLogs(classId, className) {
+function getClassLessonLogs(classId, className, ssParam) {
   var cleanClassId = String(classId || "").trim();
   if (cleanClassId === "") return [];
   
@@ -972,7 +964,7 @@ function getClassLessonLogs(classId, className) {
     }
   }
   
-  var ss = getClassSpreadsheet();
+  var ss = ssParam || getClassSpreadsheet();
   var sheet = getOrCreateClassLessonLogSheet(ss, className);
   var data = sheet.getDataRange().getValues(); // Dùng getValues() để đọc thô siêu nhanh
   
@@ -1196,7 +1188,7 @@ function getOrCreateClassHomeworkSheet(ss) {
   return sheet;
 }
 
-function getClassHomeworkList(classId, className) {
+function getClassHomeworkList(classId, className, ssParam) {
   var cleanClassId = String(classId || "").trim();
   if (cleanClassId === "") return [];
   
@@ -1211,7 +1203,7 @@ function getClassHomeworkList(classId, className) {
     }
   }
   
-  var ss = getClassSpreadsheet();
+  var ss = ssParam || getClassSpreadsheet();
   var sheet = getOrCreateClassHomeworkSheet(ss);
   var data = sheet.getDataRange().getValues(); // Dùng getValues() để đọc thô siêu nhanh
   var list = [];
@@ -1332,7 +1324,7 @@ function getOrCreateClassAnnouncementSheet(ss) {
   return sheet;
 }
 
-function getClassAnnouncement(classId) {
+function getClassAnnouncement(classId, ssParam) {
   var cleanClassId = String(classId || "").trim();
   if (cleanClassId === "") return "";
   
@@ -1342,7 +1334,7 @@ function getClassAnnouncement(classId) {
   if (cached !== null) return cached;
   
   try {
-    var ss = getClassSpreadsheet();
+    var ss = ssParam || getClassSpreadsheet();
     var sheet = ss.getSheetByName('Thông báo lớp');
     if (!sheet) return "";
     
