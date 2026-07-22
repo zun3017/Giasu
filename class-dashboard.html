@@ -1411,7 +1411,20 @@
             activeClassIndex = idx;
             closeClassInvoice();
 
-            // Hiển thị UI ngay lập tức trong 0.01s bằng dữ liệu local memory
+            // Làm sạch ngay dữ liệu cũ để tránh chồng lấn hiển thị
+            activeStudents = [];
+            activeClassLessonLogs = [];
+            activeClassHomework = [];
+            
+            var rosterBody = document.getElementById("classRosterTableBody");
+            if (rosterBody) rosterBody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:#A6ADCE; padding:20px;"><i class="fa-solid fa-circle-notch fa-spin"></i> Đang tải học sinh...</td></tr>';
+            
+            var logsBody = document.getElementById("classLessonLogsTableBody");
+            if (logsBody) logsBody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:#A6ADCE; padding:20px;"><i class="fa-solid fa-circle-notch fa-spin"></i> Đang tải nhật ký...</td></tr>';
+            
+            var hwBody = document.getElementById("classHwTableBody");
+            if (hwBody) hwBody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:#A6ADCE; padding:20px;"><i class="fa-solid fa-circle-notch fa-spin"></i> Đang tải bài tập...</td></tr>';
+
             renderDashboardUI();
 
             var cls = currentClasses[idx];
@@ -2577,27 +2590,48 @@
                 link: link
             };
 
-            // OPTIMISTIC UI: Thêm bài tập mới vào UI ngay 0.05s!
-            if (!activeClassHomework) activeClassHomework = [];
-            activeClassHomework.unshift(newHw);
-
-            resetClassHwForm();
-            switchClassHwSubTab("list");
-            renderClassHomeworkListUI();
-
             showSyncToast('pending');
-            google.script.run.withSuccessHandler(function(res) {
-                showSyncToast('success');
-                if (btn) {
-                    btn.disabled = false;
-                    btn.innerHTML = "Giao bài";
-                }
-                if (res && res.hwId) {
-                    newHw.hwId = res.hwId;
-                    newHw.fileUrl = res.fileUrl || "";
-                    renderClassHomeworkListUI();
-                }
-            }).saveClassHomework(cls.classId, cls.className, title, releaseDate, selectedClassHwFile, link);
+            google.script.run
+                .withSuccessHandler(function(res) {
+                    if (btn) {
+                        btn.disabled = false;
+                        btn.innerHTML = "Giao bài";
+                    }
+                    if (res && res.success) {
+                        showSyncToast('success');
+                        showToast("Đăng bài tập thành công!", "success");
+                        
+                        var savedHw = {
+                            hwId: res.hwId,
+                            classId: cls.classId,
+                            className: cls.className,
+                            title: title,
+                            releaseDate: releaseDate || new Date().toLocaleDateString('vi-VN'),
+                            fileUrl: res.fileUrl || "",
+                            fileName: res.fileName || "",
+                            link: link
+                        };
+                        
+                        if (!activeClassHomework) activeClassHomework = [];
+                        activeClassHomework.unshift(savedHw);
+                        
+                        resetClassHwForm();
+                        switchClassHwSubTab("list");
+                        renderClassHomeworkListUI();
+                    } else {
+                        showSyncToast('error');
+                        showToast("Lỗi: " + (res ? res.error : "Không thể giao bài tập"), "error");
+                    }
+                })
+                .withFailureHandler(function(err) {
+                    showSyncToast('error');
+                    if (btn) {
+                        btn.disabled = false;
+                        btn.innerHTML = "Giao bài";
+                    }
+                    showToast("Lỗi kết nối: " + err.toString(), "error");
+                })
+                .saveClassHomework(cls.classId, cls.className, title, releaseDate, selectedClassHwFile, link);
         }
 
         function renderClassHomeworkListUI() {
