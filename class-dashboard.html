@@ -364,8 +364,15 @@
             </div>
         </div>
 
+        <!-- Widget Thông báo khi chưa chọn lớp học -->
+        <div id="noClassSelectedNotice" style="display: block; text-align: center; padding: 60px 20px; background: rgba(142, 77, 255, 0.05); border: 1px dashed rgba(142, 77, 255, 0.3); border-radius: 16px; margin-bottom: 25px;">
+            <div style="font-size: 50px; color: #3B2B68; margin-bottom: 15px;"><i class="fa-solid fa-layer-group"></i></div>
+            <h3 style="color: #E2D1FF; font-size: 18px; margin: 0 0 10px; font-weight: 700;">Chưa chọn lớp học</h3>
+            <p style="color: #A6ADCE; font-size: 14px; margin: 0; line-height: 1.5;">Vui lòng chọn một lớp học ở phía trên hoặc tạo lớp học mới để xem chi tiết.</p>
+        </div>
+
         <!-- Khung Nội Dung Chi Tiết Lớp Học (Luôn hiển thị mượt mà hệt Gia sư) -->
-        <div id="classDetailsContainer" style="display: block; animation: fadeIn 0.3s ease-in-out;">
+        <div id="classDetailsContainer" style="display: none; animation: fadeIn 0.3s ease-in-out;">
             <!-- Class Info Banner -->
             <div class="card-box" id="classInfoBox">
             <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 15px;">
@@ -1061,7 +1068,7 @@
     <script>
         var currentTutorData = null;
         var currentClasses = [];
-        var activeClassIndex = 0;
+        var activeClassIndex = -1;
         var activeStudents = [];
         var activeClassLessonLogs = [];
 
@@ -1268,9 +1275,13 @@
                         sessionStorage.setItem("classTutorData", JSON.stringify(currentTutorData));
                         localStorage.setItem("classTutorData", JSON.stringify(currentTutorData));
                         
-                        var activeCls = res.activeClass || currentClasses[activeClassIndex] || currentClasses[0];
-                        activeClassIndex = currentClasses.findIndex(function(c) { return c.classId === activeCls.classId; });
-                        if (activeClassIndex < 0) activeClassIndex = 0;
+                        if (requestedClassId) {
+                            activeClassIndex = currentClasses.findIndex(function(c) { return c.classId === requestedClassId; });
+                        } else if (res.activeClass) {
+                            activeClassIndex = currentClasses.findIndex(function(c) { return c.classId === res.activeClass.classId; });
+                        } else if (activeClassIndex >= currentClasses.length) {
+                            activeClassIndex = -1;
+                        }
 
                         activeStudents = res.students || [];
                         activeClassLessonLogs = res.lessonLogs || [];
@@ -1420,16 +1431,9 @@
             activeClassIndex = -1;
             var details = document.getElementById("classDetailsContainer");
             var notice = document.getElementById("noClassSelectedNotice");
-            if (details) details.style.display = "block";
-            if (notice) notice.style.display = "none";
+            if (details) details.style.display = "none";
+            if (notice) notice.style.display = "block";
 
-            document.getElementById("activeClassName").innerText = "Chưa có lớp học";
-            document.getElementById("activeClassSubject").innerText = "-";
-            document.getElementById("activeClassSchedule").innerText = "-";
-            document.getElementById("activeClassRosterCount").innerHTML = '<i class="fa-solid fa-user-group" style="margin-right: 6px;"></i>Sĩ số: 0 học sinh';
-            document.getElementById("studentRosterTbody").innerHTML = '<tr><td colspan="7" style="text-align:center; color:#A6ADCE; padding: 25px;">Chưa có lớp học nào. Vui lòng bấm nút <b>"+ Thêm lớp học mới"</b> phía trên để tạo lớp học đầu tiên!</td></tr>';
-            var logTbody = document.getElementById("classLessonLogsTbody");
-            if (logTbody) logTbody.innerHTML = '<tr><td colspan="9" style="text-align:center; color:#A6ADCE; padding: 25px;">Chưa có lớp học nào. Vui lòng tạo lớp học trước khi mở nhật ký!</td></tr>';
             renderClassNavRow();
         }
 
