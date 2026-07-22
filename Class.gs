@@ -2024,6 +2024,9 @@ function traCuuDuLieuHocSinhLop(phone, csRow, ss) {
   if (sheetLogs) {
     var dataLogs = sheetLogs.getDataRange().getDisplayValues();
     for (var l = 1; l < dataLogs.length; l++) {
+      var logId = String(dataLogs[l][0] || "").trim();
+      if (logId === "") continue; // Bỏ qua các dòng trống
+      
       var delDate = (dataLogs[l].length > 12) ? String(dataLogs[l][12]).trim() : "";
       if (delDate !== "") continue; // Bỏ qua nhật ký đã bị xóa tạm
       
@@ -2050,6 +2053,8 @@ function traCuuDuLieuHocSinhLop(phone, csRow, ss) {
             if (pObj && pObj[studentId]) {
               if (pObj[studentId].attendance) privateAtt = pObj[studentId].attendance;
               if (pObj[studentId].privateNote) privateNote = pObj[studentId].privateNote + (generalNote ? " (" + generalNote + ")" : "");
+              if (pObj[studentId].entryTest) entryTest = pObj[studentId].entryTest;
+              if (pObj[studentId].termTest) termTest = pObj[studentId].termTest;
             }
           } catch(e){}
         }
