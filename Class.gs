@@ -2019,8 +2019,8 @@ function traCuuDuLieuHocSinhLop(phone, csRow, ss) {
     baiTap: []
   };
 
-  // 1. Trích xuất Nhật ký buổi học của Lớp học (Đọc từ sheet riêng của lớp hoặc sheet Nhật ký buổi học)
-  var sheetLogs = ss.getSheetByName(className) || ss.getSheetByName('Nhật ký buổi học');
+  // 1. Trích xuất Nhật ký buổi học của Lớp học (Đọc từ sheet riêng của lớp hoặc sheet Nhật ký chung)
+  var sheetLogs = ss.getSheetByName(className) || ss.getSheetByName('Nhật ký chung');
   if (sheetLogs) {
     var dataLogs = sheetLogs.getDataRange().getDisplayValues();
     for (var l = 1; l < dataLogs.length; l++) {

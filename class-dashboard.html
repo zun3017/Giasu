@@ -3189,7 +3189,7 @@
                         window.tuitionUndoHistory = window.tuitionUndoHistory || {};
                         if (window.tuitionUndoHistory[student.studentId] && window.tuitionUndoHistory[student.studentId].length > 0) {
                             actionBtn = '<span style="color:#10B981; font-size:12px; font-weight:bold; margin-right:8px;"><i class="fa-solid fa-circle-check"></i> Hoàn thành</span>' +
-                                        '<button onclick="undoStudentTuitionPaid(\'' + student.studentId + '\')" style="padding: 4px 8px; background: rgba(245, 158, 11, 0.15); border: 1px solid #F59E0B; border-radius: 6px; color: #F59E0B; cursor: pointer; font-size: 11px;" title="Hoàn tác (Undo) thao tác thu tiền vừa rồi"><i class="fa-solid fa-rotate-left"></i> Lùi lại</button>';
+                                        '<button onclick="undoStudentTuitionPaid(\'' + student.studentId + '\')" style="padding: 4px 8px; background: rgba(245, 158, 11, 0.15); border: 1px solid #F59E0B; border-radius: 6px; color: #F59E0B; cursor: pointer; font-size: 11px;" title="Hoàn tác (Undo) thao tác thu tiền vừa rồi"><i class="fa-solid fa-rotate-left"></i> Hoàn tác </button>';
                         } else {
                             actionBtn = '<span style="color:#10B981; font-size:12px; font-weight:bold;"><i class="fa-solid fa-circle-check"></i> Hoàn thành</span>';
                         }
