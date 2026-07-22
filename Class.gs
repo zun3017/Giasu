@@ -333,7 +333,7 @@ function deleteClass(classId, className) {
     var nowStr = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), "dd/MM/yyyy HH:mm");
     for (var i = 1; i < data.length; i++) {
       if (String(data[i][0]).trim() === String(classId).trim()) {
-        sheetClasses.getRange(i + 1, 6).setValue(nowStr);
+        sheetClasses.getRange(i + 1, 8).setValue(nowStr); // Cột 8: Ngày xóa
         SpreadsheetApp.flush();
         break;
       }
