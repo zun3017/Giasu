@@ -2046,8 +2046,14 @@
                     var info = log.studentNotes[stId];
                     var attEl = document.getElementById("stAtt_" + stId);
                     var noteEl = document.getElementById("stNote_" + stId);
+                    var entryEl = document.getElementById("stEntryTest_" + stId);
+                    var termEl = document.getElementById("stTermTest_" + stId);
+
                     if (attEl && info.attendance) attEl.value = info.attendance;
                     if (noteEl && info.privateNote) noteEl.value = info.privateNote;
+                    if (entryEl && (info.entryTest || info.entryScore)) entryEl.value = info.entryTest || info.entryScore;
+                    if (termEl && (info.termTest || info.termScore)) termEl.value = info.termTest || info.termScore;
+
                     updateStSummary(stId);
                 });
             }
@@ -2083,6 +2089,16 @@
                                     '<option value="Vắng" style="background:#0D0826;">🔴 Vắng</option>' +
                                 '</select>' +
                             '</div>' +
+                            '<div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;">' +
+                                '<div>' +
+                                    '<label style="display:block; color:#A6ADCE; font-size:11.5px; font-weight:700; margin-bottom:4px;">KT ĐẦU GIỜ (RIÊNG):</label>' +
+                                    '<input type="text" id="stEntryTest_' + st.studentId + '" oninput="updateStSummary(\'' + st.studentId + '\')" class="form-control" placeholder="Ví dụ: 8/10 hoặc Đạt" style="background:rgba(255,255,255,0.04); font-size:12.5px; padding:8px 12px; border-radius:8px; width:100%; outline:none; color:#FFF;">' +
+                                '</div>' +
+                                '<div>' +
+                                    '<label style="display:block; color:#A6ADCE; font-size:11.5px; font-weight:700; margin-bottom:4px;">KT ĐỊNH KỲ (RIÊNG):</label>' +
+                                    '<input type="text" id="stTermTest_' + st.studentId + '" oninput="updateStSummary(\'' + st.studentId + '\')" class="form-control" placeholder="Ví dụ: 9/10 hoặc Giỏi" style="background:rgba(255,255,255,0.04); font-size:12.5px; padding:8px 12px; border-radius:8px; width:100%; outline:none; color:#FFF;">' +
+                                '</div>' +
+                            '</div>' +
                             '<div>' +
                                 '<label style="display:block; color:#A6ADCE; font-size:12px; font-weight:700; margin-bottom:6px;">NHẬN XÉT RIÊNG TỪ THẦY:</label>' +
                                 '<input type="text" id="stNote_' + st.studentId + '" class="form-control" placeholder="Nhập nhận xét riêng cho em ' + st.studentName + ' (phụ huynh bé sẽ thấy)..." style="background:rgba(255,255,255,0.04); font-size:13px; padding:10px 14px; border-radius:10px; width:100%; outline:none;">' +
@@ -2114,18 +2130,27 @@
         function updateStSummary(stId) {
             var attEl = document.getElementById("stAtt_" + stId);
             var sumEl = document.getElementById("stSummary_" + stId);
+            var entryEl = document.getElementById("stEntryTest_" + stId);
+            var termEl = document.getElementById("stTermTest_" + stId);
             if (!attEl || !sumEl) return;
+            
             var val = attEl.value;
-            if (val === "Có mặt") {
-                sumEl.style.color = "#10B981";
-                sumEl.innerText = "🟢 Có mặt";
-            } else if (val === "Muộn") {
-                sumEl.style.color = "#F97316";
-                sumEl.innerText = "🟠 Đi muộn";
-            } else {
-                sumEl.style.color = "#EF4444";
-                sumEl.innerText = "🔴 Vắng";
+            var text = "🟢 Có mặt";
+            var color = "#10B981";
+            if (val === "Muộn") {
+                color = "#F97316";
+                text = "🟠 Đi muộn";
+            } else if (val === "Vắng") {
+                color = "#EF4444";
+                text = "🔴 Vắng";
             }
+
+            var extra = [];
+            if (entryEl && entryEl.value.trim()) extra.push("Đầu giờ: " + entryEl.value.trim());
+            if (termEl && termEl.value.trim()) extra.push("Định kỳ: " + termEl.value.trim());
+
+            sumEl.style.color = color;
+            sumEl.innerText = text + (extra.length > 0 ? " | " + extra.join(", ") : "");
         }
 
         function toggleStudentNotesAccordion() {
@@ -2158,19 +2183,27 @@
                 return;
             }
 
-            // Gom nhận xét riêng từng học sinh
+            // Gom nhận xét riêng và điểm số riêng từng học sinh
             var studentNotesObj = {};
             if (activeStudents && activeStudents.length > 0) {
                 activeStudents.forEach(function(st) {
                     var attEl = document.getElementById("stAtt_" + st.studentId);
                     var noteEl = document.getElementById("stNote_" + st.studentId);
+                    var entryEl = document.getElementById("stEntryTest_" + st.studentId);
+                    var termEl = document.getElementById("stTermTest_" + st.studentId);
+
                     var att = attEl ? attEl.value : "Có mặt";
                     var note = noteEl ? noteEl.value.trim() : "";
-                    if (att !== "Có mặt" || note !== "") {
+                    var entry = entryEl ? entryEl.value.trim() : "";
+                    var term = termEl ? termEl.value.trim() : "";
+
+                    if (att !== "Có mặt" || note !== "" || entry !== "" || term !== "") {
                         studentNotesObj[st.studentId] = {
                             studentName: st.studentName,
                             attendance: att,
-                            privateNote: note
+                            privateNote: note,
+                            entryTest: entry,
+                            termTest: term
                         };
                     }
                 });
