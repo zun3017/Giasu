@@ -652,7 +652,7 @@
                     <!-- Bảng chi tiết các buổi học trong tháng -->
                     <div style="margin-bottom:20px;">
                         <h4 style="font-size:13px; font-weight:700; color:#4B5563; margin-bottom:8px; text-transform:uppercase; letter-spacing:0.5px;">Chi tiết lịch học & Học phí</h4>
-                        <div style="max-height: 250px; overflow-y: auto; border: 1px solid #E5E7EB; border-radius: 8px;">
+                        <div style="max-height: 250px; overflow-y: auto; overflow-x: hidden; border: 1px solid #E5E7EB; border-radius: 8px;">
                             <table style="width:100%; border-collapse:collapse; text-align:left; font-size:13px;">
                                 <thead style="background:#F3F4F6; position:sticky; top:0; z-index:10;">
                                     <tr>
@@ -2555,9 +2555,9 @@
             var selectedMonth = document.getElementById("invMonthFilter").value;
             var studentLogs = [];
             
-            activeClassLessonLogs.forEach(function(log) {
+                var formattedDate = formatClassStudyDate(log.studyDate);
                 if (selectedMonth !== "all") {
-                    var parts = (log.studyDate || "").split('/');
+                    var parts = (formattedDate || "").split('/');
                     if (parts.length < 3 || (parts[1] + '/' + parts[2]) !== selectedMonth) {
                         return;
                     }
@@ -2576,7 +2576,7 @@
                 
                 studentLogs.push({
                     logId: log.logId,
-                    studyDate: log.studyDate,
+                    studyDate: formattedDate,
                     attendance: att,
                     hwEval: log.hwEval,
                     note: note,
