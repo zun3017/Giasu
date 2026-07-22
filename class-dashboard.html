@@ -3166,7 +3166,8 @@
                 // HÌNH THỨC ĐÓNG THEO BUỔI
                 document.getElementById("tuitionStatsExpectedTitle").innerText = "DOANH THU DỰ KIẾN (TỔNG CÁC BUỔI)";
                 
-                thead.innerHTML = '<tr>' +
+                thead.innerHTML = '<tr><td colspan="7" style="padding: 10px; background: rgba(255, 210, 63, 0.1); border-radius: 8px; color: #FFD23F; font-size: 13px; font-style: italic;"><i class="fa-solid fa-circle-info" style="margin-right: 5px;"></i> <b>Mẹo:</b> Tích vào các ô vuông bên trái rồi nhấn nút <b>"Đã thu tiền (Hàng loạt)"</b> màu xanh ở góc trên bên phải để xác nhận thu học phí của nhiều học sinh cùng lúc!</td></tr>' + 
+                '<tr>' +
                     '<th style="width:40px; text-align:center;"><input type="checkbox" id="tuitionCheckAll" onchange="toggleTuitionCheckAll(this)" style="transform: scale(1.2); cursor:pointer;"></th>' +
                     '<th>Họ và Tên HS</th>' +
                     '<th>SĐT Phụ Huynh</th>' +
@@ -3206,7 +3207,7 @@
 
                     var debtColor = studentDebt > 0 ? '#EF4444' : '#10B981';
                     var checkboxHtml = studentDebt > 0 ? '<input type="checkbox" class="tuition-student-cb" value="' + student.studentId + '" style="transform: scale(1.2); cursor:pointer;">' : '';
-                    var actionBtn = studentDebt > 0 ? '<button onclick="markStudentTuitionPaid(\'' + student.studentId + '\')" style="padding: 6px 12px; background: rgba(16,185,129,0.15); border: 1px solid #10B981; border-radius: 8px; color: #10B981; font-weight: bold; cursor: pointer; font-size: 12px;"><i class="fa-solid fa-check"></i> Đã thu</button>' : '<span style="color:#10B981; font-size:12px; font-weight:bold;"><i class="fa-solid fa-circle-check"></i> Hoàn thành</span>';
+                    var actionBtn = studentDebt > 0 ? '<button onclick="markStudentTuitionPaid(\'' + student.studentId + '\')" style="padding: 6px 12px; background: rgba(239, 68, 68, 0.15); border: 1px solid #EF4444; border-radius: 8px; color: #EF4444; font-weight: bold; cursor: pointer; font-size: 12px;" title="Click để xác nhận đã thu tiền học sinh này"><i class="fa-solid fa-bell"></i> Chưa thu</button>' : '<span style="color:#10B981; font-size:12px; font-weight:bold;"><i class="fa-solid fa-circle-check"></i> Hoàn thành</span>';
 
                     tbody.innerHTML += '<tr>' +
                         '<td style="text-align:center;">' + checkboxHtml + '</td>' +
