@@ -528,7 +528,7 @@
                     <i class="fa-solid fa-clock-rotate-left" style="color: #8E4DFF;"></i> Lịch sử học tập & Nhận xét chi tiết
                 </h3>
                 <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
-                    <button onclick="openAddClassLessonModal()" style="background: linear-gradient(135deg, #8E4DFF 0%, #5B21B6 100%); border: none; color: #FFF; font-weight: 700; border-radius: 20px; padding: 8px 18px; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 12px rgba(142,77,255,0.3); cursor: pointer; font-size: 13.5px;" title="Thêm buổi học mới">
+                    <button onclick="openAddClassLessonLogModal()" style="background: linear-gradient(135deg, #8E4DFF 0%, #5B21B6 100%); border: none; color: #FFF; font-weight: 700; border-radius: 20px; padding: 8px 18px; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 12px rgba(142,77,255,0.3); cursor: pointer; font-size: 13.5px;" title="Thêm buổi học mới">
                         <i class="fa-solid fa-calendar-plus"></i> Thêm buổi học
                     </button>
                     <button onclick="refreshClassHistory()" style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15); color: #FFF; font-weight: 600; border-radius: 20px; padding: 8px 16px; display: inline-flex; align-items: center; gap: 6px; cursor: pointer; font-size: 13.5px;" title="Làm mới lịch sử">
@@ -579,7 +579,6 @@
                 <table class="batch-eval-table">
                     <thead>
                         <tr>
-                            <th>Mã HS</th>
                             <th>Họ và Tên HS</th>
                             <th>Tên Phụ Huynh</th>
                             <th>SĐT Phụ Huynh</th>
@@ -1389,7 +1388,7 @@
             // Render Roster
             var rosterTbody = document.getElementById("studentRosterTbody");
             if (activeStudents.length === 0) {
-                rosterTbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color:#A6ADCE; padding: 20px;">Lớp này chưa có học sinh nào. Hãy nhấn nút "+ Thêm học sinh mới" bên trên!</td></tr>';
+                rosterTbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:#A6ADCE; padding: 20px;">Lớp này chưa có học sinh nào. Hãy nhấn nút "+ Thêm học sinh mới" bên trên!</td></tr>';
             } else {
                 rosterTbody.innerHTML = activeStudents.map(function(st) {
                     var effectiveType = st.feeType || (cls ? cls.feeType : "per_session") || "per_session";
@@ -1415,7 +1414,6 @@
                         : '<span style="font-size:11px; padding:3px 8px; background:rgba(239,68,68,0.15); border:1px solid rgba(239,68,68,0.4); color:#FCA5A5; border-radius:12px; font-weight:700;"><i class="fa-solid fa-circle-exclamation"></i> Nợ ' + unpaidCount + ' buổi</span>';
 
                     return '<tr>' +
-                        '<td style="color:#A6ADCE; font-weight:600;">' + st.studentId + '</td>' +
                         '<td style="font-weight:700; color:#FFD23F;">' + st.studentName + '</td>' +
                         '<td>' + (st.parentName || '-') + '</td>' +
                         '<td>' + (st.parentPhone || '-') + '</td>' +
