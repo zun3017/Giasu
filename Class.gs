@@ -37,9 +37,6 @@ function initClassSpreadsheetSchema(ss) {
     sStudents.appendRow(studentHeaders);
     sStudents.getRange(1, 1, 1, 10).setFontWeight("bold").setBackground("#8E4DFF").setFontColor("#FFFFFF");
     sStudents.setFrozenRows(1);
-  } else {
-    sStudents.getRange(1, 1, 1, 10).setValues([studentHeaders]).setFontWeight("bold").setBackground("#8E4DFF").setFontColor("#FFFFFF");
-    sStudents.setFrozenRows(1);
   }
 
   // 3. Sheet 'Nhật ký buổi học'
@@ -58,9 +55,6 @@ function initClassSpreadsheetSchema(ss) {
     sHw = ss.insertSheet('Bài tập lớp học');
     sHw.appendRow(homeworkHeaders);
     sHw.getRange(1, 1, 1, 8).setFontWeight("bold").setBackground("#8E4DFF").setFontColor("#FFFFFF");
-    sHw.setFrozenRows(1);
-  } else {
-    sHw.getRange(1, 1, 1, 8).setValues([homeworkHeaders]).setFontWeight("bold").setBackground("#8E4DFF").setFontColor("#FFFFFF");
     sHw.setFrozenRows(1);
   }
 
