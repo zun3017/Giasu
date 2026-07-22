@@ -24,8 +24,13 @@ function getClassSpreadsheet() {
 }
 
 function clearClassCache(classId, type) {
-  if (!classId) return;
   var cache = CacheService.getScriptCache();
+  
+  if (!type) {
+    cache.remove("all_classes_raw");
+  }
+
+  if (!classId) return;
   var cleanClassId = String(classId).trim();
   if (type) {
     cache.remove("class_" + type + "_" + cleanClassId);
@@ -170,27 +175,33 @@ function loginClassSystem(phone, pin) {
 
 // Lấy danh sách Lớp học của Giáo viên theo SĐT hoặc Mã Giáo Viên
 function getClassList(tutorPhone, tutorCode, ssParam) {
-  var ss = ssParam || getClassSpreadsheet();
-  var sheetClasses = ss.getSheetByName('Danh sách lớp học');
-  
-  if (!sheetClasses) {
-    // Khởi tạo sheet Danh sách lớp học nếu chưa có
-    sheetClasses = ss.insertSheet('Danh sách lớp học');
-    sheetClasses.appendRow(["Mã lớp", "Tên lớp", "SĐT / Mã Giáo viên", "Môn học", "Lịch học cố định", "Sĩ số tối đa", "Loại học phí"]);
-    sheetClasses.getRange(1, 1, 1, 7).setFontWeight("bold").setBackground("#5B2EFF").setFontColor("#FFFFFF");
-    return [];
-  }
-  
   var normPhone = normalizePhone(tutorPhone || "");
   var normCode = String(tutorCode || "").trim().toLowerCase();
   
-  // Tra cứu Tên Giáo viên từ SĐT ở sheet Mã gia sư trên bảng tính chính để hỗ trợ khớp bằng cả Tên Giáo viên
   var teacherName = "";
+  var cache = CacheService.getScriptCache();
   try {
-    var ssMain = SpreadsheetApp.getActiveSpreadsheet();
-    var sheetGS = ssMain.getSheetByName('Mã gia sư');
-    if (sheetGS) {
-      var dataGS = sheetGS.getDataRange().getValues(); // Dùng getValues()
+    var gsCacheKey = "all_tutors_raw";
+    var cachedGS = cache.get(gsCacheKey);
+    var dataGS = null;
+    
+    if (cachedGS) {
+      try { dataGS = JSON.parse(cachedGS); } catch(e){}
+    }
+    
+    if (!dataGS) {
+      var ssMain = SpreadsheetApp.getActiveSpreadsheet();
+      var sheetGS = ssMain.getSheetByName('Mã gia sư');
+      if (sheetGS) {
+        dataGS = sheetGS.getDataRange().getValues();
+        try {
+          var gsStr = JSON.stringify(dataGS);
+          if (gsStr.length < 95000) cache.put(gsCacheKey, gsStr, 600);
+        } catch(e) {}
+      }
+    }
+    
+    if (dataGS) {
       for (var k = 1; k < dataGS.length; k++) {
         if (dataGS[k] && dataGS[k].length > 2) {
           var rawPhone = dataGS[k][2] !== null && dataGS[k][2] !== undefined ? String(dataGS[k][2]).trim() : "";
@@ -208,7 +219,29 @@ function getClassList(tutorPhone, tutorCode, ssParam) {
     Logger.log("Lỗi tra cứu tên giáo viên: " + e.toString());
   }
   
-  var data = sheetClasses.getDataRange().getValues(); // Dùng getValues()
+  var clsCacheKey = "all_classes_raw";
+  var cachedCls = cache.get(clsCacheKey);
+  var data = null;
+  
+  if (cachedCls) {
+    try { data = JSON.parse(cachedCls); } catch(e){}
+  }
+  
+  if (!data) {
+    var ss = ssParam || getClassSpreadsheet();
+    var sheetClasses = ss.getSheetByName('Danh sách lớp học');
+    if (!sheetClasses) {
+      sheetClasses = ss.insertSheet('Danh sách lớp học');
+      sheetClasses.appendRow(["Mã lớp", "Tên lớp", "SĐT / Mã Giáo viên", "Môn học", "Lịch học cố định", "Sĩ số tối đa", "Loại học phí"]);
+      sheetClasses.getRange(1, 1, 1, 7).setFontWeight("bold").setBackground("#5B2EFF").setFontColor("#FFFFFF");
+      return [];
+    }
+    data = sheetClasses.getDataRange().getValues();
+    try {
+      var clsStr = JSON.stringify(data);
+      if (clsStr.length < 95000) cache.put(clsCacheKey, clsStr, 600);
+    } catch(e) {}
+  }
   var allClasses = [];
   var matchedClasses = [];
 
@@ -268,8 +301,7 @@ function getClassList(tutorPhone, tutorCode, ssParam) {
 
 // Lấy toàn bộ dữ liệu tổng cho Phân hệ Lớp Học trong 1 chuyến gọi server duy nhất (1s)
 function getClassDashboardData(tutorPhone, requestedClassId, tutorCode) {
-  var ss = getClassSpreadsheet();
-  var classes = getClassList(tutorPhone, tutorCode, ss);
+  var classes = getClassList(tutorPhone, tutorCode);
   
   if (!classes || classes.length === 0) {
     return {
@@ -296,10 +328,10 @@ function getClassDashboardData(tutorPhone, requestedClassId, tutorCode) {
     activeClass = classes[0];
   }
   
-  var students = getClassStudents(activeClass.classId, ss);
-  var lessonLogs = getClassLessonLogs(activeClass.classId, activeClass.className, ss);
-  var announcement = getClassAnnouncement(activeClass.classId, ss);
-  var homeworkList = getClassHomeworkList(activeClass.classId, activeClass.className, ss);
+  var students = getClassStudents(activeClass.classId);
+  var lessonLogs = getClassLessonLogs(activeClass.classId, activeClass.className);
+  var announcement = getClassAnnouncement(activeClass.classId);
+  var homeworkList = getClassHomeworkList(activeClass.classId, activeClass.className);
   
   return {
     success: true,
@@ -331,6 +363,7 @@ function createClass(tutorPhone, className, subject, schedule, feeType, tutorCod
   // Tự động tạo Tab Sheet đánh giá học tập riêng cho Lớp học mới!
   getOrCreateClassEvaluationSheet(ss, cleanClassName);
   
+  clearClassCache(null, null); // Xóa cache Danh sách lớp chung
   SpreadsheetApp.flush();
   
   return { success: true, classId: classId, className: cleanClassName, feeType: feeType || "per_session" };
