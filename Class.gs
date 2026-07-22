@@ -73,6 +73,15 @@ function initClassSpreadsheetSchema(ss) {
     sFeedback.getRange(1, 1, 1, 6).setFontWeight("bold").setBackground("#EC4899").setFontColor("#FFFFFF");
     sFeedback.setFrozenRows(1);
   }
+
+  // 7. Sheet 'Thông báo lớp'
+  var sAnnounce = ss.getSheetByName('Thông báo lớp');
+  if (!sAnnounce) {
+    sAnnounce = ss.insertSheet('Thông báo lớp');
+    sAnnounce.appendRow(["Mã lớp", "Tên lớp", "Nội dung thông báo", "Thời gian cập nhật"]);
+    sAnnounce.getRange(1, 1, 1, 4).setFontWeight("bold").setBackground("#8E4DFF").setFontColor("#FFFFFF");
+    sAnnounce.setFrozenRows(1);
+  }
 }
 
 function getOrCreateClassEvaluationSheet(ss, className) {
@@ -1697,4 +1706,57 @@ function updateTutorAccountInfo(phone, name, pin) {
 
 function updateTutorAccount(phone, name, pin) {
   return updateTutorAccountInfo(phone, name, pin);
+}
+
+// Lưu thông báo nhanh cho Lớp học vào Sheet 'Thông báo lớp'
+function saveClassAnnouncement(classId, className, text) {
+  try {
+    var ss = getClassSpreadsheet();
+    var sheet = ss.getSheetByName('Thông báo lớp');
+    if (!sheet) {
+      initClassSpreadsheetSchema(ss);
+      sheet = ss.getSheetByName('Thông báo lớp');
+    }
+    
+    var data = sheet.getDataRange().getDisplayValues();
+    var found = false;
+    var nowStr = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), "dd/MM/yyyy HH:mm");
+    
+    for (var i = 1; i < data.length; i++) {
+      if (String(data[i][0]).trim() === String(classId).trim()) {
+        sheet.getRange(i + 1, 3).setValue(text);
+        sheet.getRange(i + 1, 4).setValue(nowStr);
+        found = true;
+        break;
+      }
+    }
+    
+    if (!found) {
+      sheet.appendRow([classId, className, text, nowStr]);
+    }
+    
+    SpreadsheetApp.flush();
+    return { success: true };
+  } catch (e) {
+    return { success: false, error: e.toString() };
+  }
+}
+
+// Lấy thông báo nhanh của Lớp học từ Sheet 'Thông báo lớp'
+function getClassAnnouncement(classId) {
+  try {
+    var ss = getClassSpreadsheet();
+    var sheet = ss.getSheetByName('Thông báo lớp');
+    if (!sheet) return "";
+    
+    var data = sheet.getDataRange().getDisplayValues();
+    for (var i = 1; i < data.length; i++) {
+      if (String(data[i][0]).trim() === String(classId).trim()) {
+        return data[i][2] || "";
+      }
+    }
+    return "";
+  } catch (e) {
+    return "";
+  }
 }
