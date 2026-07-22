@@ -15,21 +15,30 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
     <style>
+        *, *::before, *::after {
+            box-sizing: border-box;
+        }
+
         body {
             background: radial-gradient(circle at 50% 30%, #150F3B 0%, #08051A 100%) no-repeat fixed;
             color: #FFF;
             font-family: 'Inter', sans-serif;
             min-height: 100vh;
             padding-bottom: 60px;
+            overflow-y: scroll;
         }
 
         .dashboard-container {
+            width: 100%;
             max-width: 1200px;
             margin: 30px auto;
             padding: 0 20px;
+            box-sizing: border-box;
         }
 
         .tutor-header-card {
+            width: 100%;
+            box-sizing: border-box;
             background: rgba(11, 8, 38, 0.85);
             border: 1px solid rgba(142, 77, 255, 0.3);
             border-radius: 24px;
@@ -45,6 +54,8 @@
         }
 
         .card-box {
+            width: 100%;
+            box-sizing: border-box;
             background: rgba(11, 8, 38, 0.75);
             border: 1px solid rgba(142, 77, 255, 0.2);
             border-radius: 20px;
