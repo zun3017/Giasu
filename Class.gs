@@ -1005,7 +1005,7 @@ function getOrCreateClassLessonLogSheet(ss, className) {
   return sheet;
 }
 
-function saveClassLessonLog(classId, className, weekNum, studyDate, subject, status, hwEval, entryTest, termTest, generalNote, studentNotesJson) {
+function saveClassLessonLog(classId, className, weekNum, studyDate, subject, status, hwEval, entryTest, termTest, generalNote, studentNotesJson, editingLogId) {
   var ss = getClassSpreadsheet();
   var sheet = ss.getSheetByName('Nhật ký chung');
   if (!sheet) {
@@ -1014,6 +1014,24 @@ function saveClassLessonLog(classId, className, weekNum, studyDate, subject, sta
   }
   
   var data = sheet.getDataRange().getValues();
+  
+  if (editingLogId) {
+    for (var i = 0; i < data.length; i++) {
+      if (String(data[i][0]).trim() === editingLogId) {
+        var updateRow = i + 1;
+        var updateData = [
+          editingLogId, classId || "", className || "", weekNum || "", studyDate || "", subject || "",
+          status || "Đã học", hwEval || "Hoàn thành", entryTest || "Không có", termTest || "Không có",
+          generalNote || "", studentNotesJson || "{}", ""
+        ];
+        sheet.getRange(updateRow, 1, 1, 13).setValues([updateData]);
+        clearClassCache(classId, "logs");
+        SpreadsheetApp.flush();
+        return { success: true };
+      }
+    }
+  }
+
   var targetRowIndex = -1;
   var classBlockFound = false;
   var blockStart = -1;
@@ -1044,7 +1062,7 @@ function saveClassLessonLog(classId, className, weekNum, studyDate, subject, sta
     generalNote || "", studentNotesJson || "{}", ""
   ];
   
-  var lastRowOfPartition = blockStart + 1; // Default is the headers row
+  var lastRowOfPartition = blockStart + 1;
   
   for (var j = blockStart + 2; j < data.length; j++) {
     if (String(data[j][0]).includes("--- NHẬT KÝ LỚP HỌC")) break;
@@ -1067,7 +1085,7 @@ function saveClassLessonLog(classId, className, weekNum, studyDate, subject, sta
   
   clearClassCache(classId, "logs");
   SpreadsheetApp.flush();
-  return { success: true, logId: logId };
+  return { success: true };
 }
 
 function getClassLessonLogs(classId, className, ssParam) {
