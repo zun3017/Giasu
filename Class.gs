@@ -93,38 +93,7 @@ function initClassSpreadsheetSchema(ss) {
 }
 
 function getOrCreateClassEvaluationSheet(ss, className) {
-  if (!ss) ss = getClassSpreadsheet();
-  var cleanName = String(className || "Lớp mới").trim();
-  var sheetName = cleanName;
-  var sheet = ss.getSheetByName(sheetName);
-  
-  // Kiểm tra nếu chưa có sheet tên mới thì thử tìm sheet tên cũ để tự động đổi tên
-  if (!sheet) {
-    var oldSheetName = "Bảng đánh giá học tập dành cho lớp học (" + cleanName + ")";
-    var oldSheet = ss.getSheetByName(oldSheetName);
-    if (oldSheet) {
-      oldSheet.setName(sheetName);
-      sheet = oldSheet;
-    }
-  }
-  
-  if (!sheet) {
-    // Thử clone từ sheet mẫu 'Bảng đánh giá học tập ' nếu có, hoặc tạo mới với tiêu đề chuẩn
-    var templateSheet = ss.getSheetByName('Bảng đánh giá học tập ');
-    if (templateSheet) {
-      sheet = templateSheet.copyTo(ss);
-      sheet.setName(sheetName);
-    } else {
-      sheet = ss.insertSheet(sheetName);
-      // Tạo hàng tiêu đề chuẩn
-      sheet.appendRow([
-        "Mã đánh giá", "Mã lớp", "Mã học sinh", "Tên học sinh", "Ngày học", 
-        "Chuyên cần", "Điểm BTVN", "Điểm kiểm tra", "Đánh giá sao", "Ghi chú riêng", "Ghi chú chung buổi học"
-      ]);
-      sheet.getRange(1, 1, 1, 11).setFontWeight("bold").setBackground("#8E4DFF").setFontColor("#FFFFFF");
-    }
-  }
-  return sheet;
+  return getOrCreateClassLessonLogSheet(ss, className);
 }
 
 // Hàm đăng nhập dành cho Giáo viên Lớp học nhóm (Xác thực tài khoản tại Sheet Chính, lấy lớp tại Sheet Lớp)
@@ -839,28 +808,29 @@ function getOrCreateClassLessonLogSheet(ss, className) {
   if (!ss) ss = getClassSpreadsheet();
   var sheetName = className ? String(className).trim() : 'Nhật ký học tập lớp';
   var sheet = ss.getSheetByName(sheetName);
+  var logHeaders = [
+    "Mã nhật ký",
+    "Mã lớp",
+    "Tên lớp",
+    "Tuần dạy",
+    "Ngày học",
+    "Môn học",
+    "Trạng thái",
+    "Đánh giá BTVN",
+    "Điểm KT Đầu giờ",
+    "Điểm KT Định kỳ",
+    "Nội dung & Nhận xét chung",
+    "Chi tiết nhận xét riêng (JSON)",
+    "Ngày xóa"
+  ];
   if (!sheet) {
     sheet = ss.insertSheet(sheetName);
-    sheet.appendRow([
-      "Mã nhật ký",
-      "Mã lớp",
-      "Tên lớp",
-      "Tuần dạy",
-      "Ngày học",
-      "Môn học",
-      "Trạng thái",
-      "Đánh giá BTVN",
-      "Điểm KT Đầu giờ",
-      "Điểm KT Định kỳ",
-      "Nội dung & Nhận xét chung",
-      "Chi tiết nhận xét riêng (JSON)",
-      "Ngày xóa"
-    ]);
+    sheet.appendRow(logHeaders);
     sheet.getRange(1, 1, 1, 13).setFontWeight("bold").setBackground("#8E4DFF").setFontColor("#FFFFFF");
+    sheet.setFrozenRows(1);
   } else {
-    if (sheet.getLastColumn() < 13) {
-      sheet.getRange(1, 13).setValue("Ngày xóa").setFontWeight("bold").setBackground("#8E4DFF").setFontColor("#FFFFFF");
-    }
+    sheet.getRange(1, 1, 1, 13).setValues([logHeaders]).setFontWeight("bold").setBackground("#8E4DFF").setFontColor("#FFFFFF");
+    sheet.setFrozenRows(1);
   }
   return sheet;
 }
