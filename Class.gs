@@ -1677,7 +1677,7 @@ function traCuuDuLieuHocSinhLop(phone, csRow, ss) {
         ketQua.baiTap.push({
           mon: dataHw[h][4] || hwClassName || "Bài tập lớp",
           tenBai: dataHw[h][3] || "Bài tập",
-          link: dataHw[h][5] || ""
+          link: dataHw[h][6] || dataHw[h][5] || "" // Lấy URL Drive (Col G) hoặc link ngoài (Col F)
         });
       }
     }
