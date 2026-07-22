@@ -1425,12 +1425,15 @@ function saveClassHomework(classId, className, title, releaseDate, fileData, lin
     
     if (fileData && fileData.base64) {
       try {
-        var folderName = "VibeCode_Homework_Class";
-        var folders = DriveApp.getFoldersByName(folderName);
-        var folder = folders.hasNext() ? folders.next() : DriveApp.createFolder(folderName);
+        var parentFolderId = "1hloyK1wJcq5944hgvfmCu5YYmKXR12qM";
+        var parentFolder = DriveApp.getFolderById(parentFolderId);
+        
+        var classFolderName = className || "Lớp học không tên";
+        var classFolders = parentFolder.getFoldersByName(classFolderName);
+        var classFolder = classFolders.hasNext() ? classFolders.next() : parentFolder.createFolder(classFolderName);
         
         var blob = Utilities.newBlob(Utilities.base64Decode(fileData.base64), fileData.mimeType, fileData.fileName);
-        var file = folder.createFile(blob);
+        var file = classFolder.createFile(blob);
         file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
         fileUrl = file.getUrl();
         fileName = fileData.fileName;
