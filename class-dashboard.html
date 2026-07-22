@@ -673,17 +673,6 @@
                         <div class="inv-fee-label" id="invFeeCalcText">Học phí:</div>
                         <div class="inv-fee-val" id="invFeeCalcTotal">0 VNĐ</div>
                     </div>
-                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px; margin-bottom:15px;">
-                        <div>
-                            <label style="font-size:11px; color:#6B7280; font-weight:700; text-transform:uppercase;">Cộng Phụ phí (+)</label>
-                            <input type="number" id="invExtraFee" oninput="calculateGrandTotalInvoice()" placeholder="VD: 50000" style="width:100%; padding:8px 12px; border:1px solid #D1D5DB; border-radius:8px; font-size:14px; outline:none; margin-top:4px; box-sizing: border-box;">
-                        </div>
-                        <div>
-                            <label style="font-size:11px; color:#6B7280; font-weight:700; text-transform:uppercase;">Trừ Giảm trừ (-)</label>
-                            <input type="number" id="invDiscountFee" oninput="calculateGrandTotalInvoice()" placeholder="VD: 20000" style="width:100%; padding:8px 12px; border:1px solid #D1D5DB; border-radius:8px; font-size:14px; outline:none; margin-top:4px; box-sizing: border-box;">
-                        </div>
-                    </div>
-
                     <div class="inv-payment-box" style="display:grid; grid-template-columns:1.5fr 1fr; gap:20px; background:#F9FAFB; padding:15px; border-radius:12px; border:1px solid #E5E7EB;">
                         <div class="inv-total-section">
                             <div class="inv-total-title" style="font-size:11px; font-weight:700; color:#9CA3AF; text-transform:uppercase;">TỔNG CẦN THANH TOÁN</div>
@@ -701,9 +690,7 @@
                     <button onclick="closeClassInvoice()" style="padding: 10px 24px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: #A6ADCE; border-radius: 20px; cursor: pointer; font-weight: 600; font-size: 13.5px; display: inline-flex; align-items: center; gap: 6px; outline:none;">
                         <i class="fa-solid fa-xmark"></i> Đóng
                     </button>
-                    <button class="btn-export" id="btnMarkInvoicePaid" onclick="markAllInvoicePaid()" style="padding: 10px 24px; background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%); border: none; color: #FFF; border-radius: 20px; cursor: pointer; font-weight: 700; font-size: 13.5px; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 4px 15px rgba(59,130,246,0.3); outline:none;">
-                        <i class="fa-solid fa-check-double"></i> Xác nhận Đã Thu tiền
-                    </button>
+
                     <button class="btn-export" onclick="exportClassInvoiceImage()" style="padding: 10px 24px; background: linear-gradient(135deg, #10B981 0%, #059669 100%); border: none; color: #FFF; border-radius: 20px; cursor: pointer; font-weight: 700; font-size: 13.5px; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 4px 15px rgba(16,185,129,0.3); outline:none;">
                         <i class="fa-solid fa-camera"></i> Lưu Ảnh Hóa Đơn
                     </button>
@@ -727,7 +714,7 @@
             <!-- Stats Widgets -->
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px;">
                 <div style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); padding: 15px; border-radius: 12px; text-align: center;">
-                    <div style="font-size: 11px; color: #FCA5A5; font-weight: 700; text-transform: uppercase; margin-bottom: 5px;">TỔNG NỢ CHƯA THU</div>
+                    <div style="font-size: 11px; color: #FCA5A5; font-weight: 700; text-transform: uppercase; margin-bottom: 5px;">TỔNG HỌC PHÍ CHƯA THU</div>
                     <div id="tuitionStatsTotalDebt" style="font-size: 22px; font-weight: 800; color: #EF4444;">0 đ</div>
                 </div>
                 <div style="background: rgba(142, 77, 255, 0.1); border: 1px solid rgba(142, 77, 255, 0.3); padding: 15px; border-radius: 12px; text-align: center;">
@@ -1715,7 +1702,7 @@
 
                     var payBadge = unpaidCount === 0
                         ? '<span style="font-size:11px; padding:3px 8px; background:rgba(16,185,129,0.15); border:1px solid rgba(16,185,129,0.4); color:#6EE7B7; border-radius:12px; font-weight:700;"><i class="fa-solid fa-circle-check"></i> Đã đóng đủ</span>'
-                        : '<span style="font-size:11px; padding:3px 8px; background:rgba(239,68,68,0.15); border:1px solid rgba(239,68,68,0.4); color:#FCA5A5; border-radius:12px; font-weight:700;"><i class="fa-solid fa-circle-exclamation"></i> Nợ ' + unpaidCount + ' buổi</span>';
+                        : '<span style="font-size:11px; padding:3px 8px; background:rgba(239,68,68,0.15); border:1px solid rgba(239,68,68,0.4); color:#FCA5A5; border-radius:12px; font-weight:700;"><i class="fa-solid fa-circle-exclamation"></i> Chưa thu ' + unpaidCount + ' buổi</span>';
 
                     return '<tr>' +
                         '<td style="font-weight:700; color:#FFD23F;">' + st.studentName + '</td>' +
@@ -2729,31 +2716,18 @@
             }
             
             window.currentBaseTotalFee = totalFee;
-            document.getElementById("invExtraFee").value = "";
-            document.getElementById("invDiscountFee").value = "";
             calculateGrandTotalInvoice();
         }
 
         function calculateGrandTotalInvoice() {
-            var extra = parseFloat(document.getElementById("invExtraFee").value) || 0;
-            var discount = parseFloat(document.getElementById("invDiscountFee").value) || 0;
-            var finalTotal = (window.currentBaseTotalFee || 0) + extra - discount;
+            var finalTotal = window.currentBaseTotalFee || 0;
             if (finalTotal < 0) finalTotal = 0;
             
             document.getElementById("invGrandTotal").innerText = finalTotal.toLocaleString('vi-VN') + " đ";
             
             var msgObj = document.getElementById("invTextarea");
             var originalMsg = window.currentInvoiceMsgBase || "";
-            
-            if (extra > 0 || discount > 0) {
-                var addText = "\nTrong đó:";
-                if (extra > 0) addText += "\n- Phụ phí (+): " + extra.toLocaleString('vi-VN') + " đ";
-                if (discount > 0) addText += "\n- Giảm trừ (-): " + discount.toLocaleString('vi-VN') + " đ";
-                addText += "\n=> TỔNG CẦN THANH TOÁN: " + finalTotal.toLocaleString('vi-VN') + " đ";
-                msgObj.value = originalMsg + "\n" + addText;
-            } else {
-                msgObj.value = originalMsg;
-            }
+            msgObj.value = originalMsg;
         }
         
         function markAllInvoicePaid() {
@@ -3166,7 +3140,7 @@
                 // HÌNH THỨC ĐÓNG THEO BUỔI
                 document.getElementById("tuitionStatsExpectedTitle").innerText = "DOANH THU DỰ KIẾN (TỔNG CÁC BUỔI)";
                 
-                thead.innerHTML = '<tr><td colspan="7" style="padding: 10px; background: rgba(255, 210, 63, 0.1); border-radius: 8px; color: #FFD23F; font-size: 13px; font-style: italic;"><i class="fa-solid fa-circle-info" style="margin-right: 5px;"></i> <b>Mẹo:</b> Tích vào các ô vuông bên trái rồi nhấn nút <b>"Đã thu tiền (Hàng loạt)"</b> màu xanh ở góc trên bên phải để xác nhận thu học phí của nhiều học sinh cùng lúc!</td></tr>' + 
+                thead.innerHTML = '<tr><td colspan="7" style="padding: 10px; background: rgba(255, 210, 63, 0.1); border-radius: 8px; color: #FFD23F; font-size: 13px; font-style: italic;"><i class="fa-solid fa-circle-info" style="margin-right: 5px;"></i> <b>Mẹo:</b> Tích vào các ô vuông bên trái rồi nhấn nút <b>"Đã thu tiền (Hàng loạt)"</b> màu xanh ở góc trên bên phải để xác nhận thu học phí của nhiều học sinh cùng lúc. Nhấn vào nút chưa thu bên phải để thu học phí của học sinh đó!</td></tr>' + 
                 '<tr>' +
                     '<th style="width:40px; text-align:center;"><input type="checkbox" id="tuitionCheckAll" onchange="toggleTuitionCheckAll(this)" style="transform: scale(1.2); cursor:pointer;"></th>' +
                     '<th>Họ và Tên HS</th>' +
