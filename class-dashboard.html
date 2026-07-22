@@ -1031,11 +1031,11 @@
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 16px;">
                 <div>
                     <label style="display: block; color: #A6ADCE; font-size: 11.5px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 6px;">ĐIỂM KIỂM TRA ĐẦU GIỜ</label>
-                    <input type="text" id="logEntryTest" class="form-control" placeholder="Không có" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 13px 16px; color: #FFF; font-size: 14px; width: 100%; outline: none;">
+                    <input type="text" id="logEntryTest" class="form-control" placeholder="Ví dụ: 8.5" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 13px 16px; color: #FFF; font-size: 14px; width: 100%; outline: none;">
                 </div>
                 <div>
                     <label style="display: block; color: #A6ADCE; font-size: 11.5px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 6px;">ĐIỂM KIỂM TRA ĐỊNH KỲ</label>
-                    <input type="text" id="logTermTest" class="form-control" placeholder="Không có" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 13px 16px; color: #FFF; font-size: 14px; width: 100%; outline: none;">
+                    <input type="text" id="logTermTest" class="form-control" placeholder="Ví dụ: 9.0" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 13px 16px; color: #FFF; font-size: 14px; width: 100%; outline: none;">
                 </div>
             </div>
 
@@ -2014,8 +2014,8 @@
             document.getElementById("logSubject").value = cls.subject || "Toán học";
             document.getElementById("logStatus").value = "Có mặt";
             document.getElementById("logHwEval").value = "Hoàn thành";
-            document.getElementById("logEntryTest").value = "Không có";
-            document.getElementById("logTermTest").value = "Không có";
+            document.getElementById("logEntryTest").value = "";
+            document.getElementById("logTermTest").value = "";
             document.getElementById("logGeneralNote").value = "";
 
             renderModalStudentNotesInputs();
@@ -2092,11 +2092,11 @@
                             '<div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;">' +
                                 '<div>' +
                                     '<label style="display:block; color:#A6ADCE; font-size:11.5px; font-weight:700; margin-bottom:4px;">KT ĐẦU GIỜ (RIÊNG):</label>' +
-                                    '<input type="text" id="stEntryTest_' + st.studentId + '" oninput="updateStSummary(\'' + st.studentId + '\')" class="form-control" placeholder="Ví dụ: 8/10 hoặc Đạt" style="background:rgba(255,255,255,0.04); font-size:12.5px; padding:8px 12px; border-radius:8px; width:100%; outline:none; color:#FFF;">' +
+                                    '<input type="text" id="stEntryTest_' + st.studentId + '" oninput="updateStSummary(\'' + st.studentId + '\')" class="form-control" placeholder="Ví dụ: 8.5" style="background:rgba(255,255,255,0.04); font-size:12.5px; padding:8px 12px; border-radius:8px; width:100%; outline:none; color:#FFF;">' +
                                 '</div>' +
                                 '<div>' +
                                     '<label style="display:block; color:#A6ADCE; font-size:11.5px; font-weight:700; margin-bottom:4px;">KT ĐỊNH KỲ (RIÊNG):</label>' +
-                                    '<input type="text" id="stTermTest_' + st.studentId + '" oninput="updateStSummary(\'' + st.studentId + '\')" class="form-control" placeholder="Ví dụ: 9/10 hoặc Giỏi" style="background:rgba(255,255,255,0.04); font-size:12.5px; padding:8px 12px; border-radius:8px; width:100%; outline:none; color:#FFF;">' +
+                                    '<input type="text" id="stTermTest_' + st.studentId + '" oninput="updateStSummary(\'' + st.studentId + '\')" class="form-control" placeholder="Ví dụ: 9.0" style="background:rgba(255,255,255,0.04); font-size:12.5px; padding:8px 12px; border-radius:8px; width:100%; outline:none; color:#FFF;">' +
                                 '</div>' +
                             '</div>' +
                             '<div>' +
@@ -2174,8 +2174,8 @@
             var subject = document.getElementById("logSubject").value;
             var status = document.getElementById("logStatus").value;
             var hwEval = document.getElementById("logHwEval").value;
-            var entryTest = document.getElementById("logEntryTest").value.trim() || "Không có";
-            var termTest = document.getElementById("logTermTest").value.trim() || "Không có";
+            var entryTest = document.getElementById("logEntryTest").value.trim() || "-";
+            var termTest = document.getElementById("logTermTest").value.trim() || "-";
             var generalNote = document.getElementById("logGeneralNote").value.trim();
 
             if (!studyDate) {
@@ -2317,8 +2317,8 @@
                     '<td style="color:#C4B5FD; font-weight:600;">' + (log.subject || '-') + '</td>' +
                     '<td style="color:#FFF; line-height:1.5;">' + noteDisplay + '</td>' +
                     '<td>' + hwBadge + '</td>' +
-                    '<td style="text-align:center; color:#FFF;">' + (log.entryTest || 'Không có') + '</td>' +
-                    '<td style="text-align:center; color:#FFF;">' + (log.termTest || 'Không có') + '</td>' +
+                    '<td style="text-align:center; color:#FFF; font-weight:600;">' + (log.entryTest && log.entryTest !== 'Không có' ? log.entryTest : '-') + '</td>' +
+                    '<td style="text-align:center; color:#FFF; font-weight:600;">' + (log.termTest && log.termTest !== 'Không có' ? log.termTest : '-') + '</td>' +
                     '<td style="text-align:center;">' + statusBadge + '</td>' +
                     '<td style="text-align:center; vertical-align:middle; white-space:nowrap;">' +
                         '<div style="display:inline-flex; align-items:center; justify-content:center; gap:10px;">' +
