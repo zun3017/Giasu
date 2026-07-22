@@ -1527,15 +1527,6 @@
                 }, false);
             }
         })();
-
-        // Lưu giữ mã bài tập trên ô nhập (không tự động đăng nhập để tránh hiểu nhầm)
-        window.addEventListener('DOMContentLoaded', function() {
-            var savedCode = sessionStorage.getItem('currentHwCode');
-            if (savedCode) {
-                var inputEl = document.getElementById('maInput');
-                if (inputEl) inputEl.value = savedCode;
-            }
-        });
     </script>
 </body>
 </html>
