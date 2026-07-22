@@ -780,15 +780,4 @@ function adminSetTutorStatus(tutorPhone, status) {
   }
 }
 
-// Khởi tạo trang tính 'Mã admin' LUÔN TRÊN SHEET CHÍNH (SpreadsheetApp.getActiveSpreadsheet())
-function initAdminSheet(ss) {
-  var mainSS = SpreadsheetApp.getActiveSpreadsheet();
-  var sheetAdmin = mainSS.getSheetByName('Mã admin');
-  if (!sheetAdmin) {
-    sheetAdmin = mainSS.insertSheet('Mã admin');
-    sheetAdmin.appendRow(["Mã admin", "Họ tên Admin", "SĐT Admin", "Mã PIN Admin"]);
-    sheetAdmin.getRange(1, 1, 1, 4).setFontWeight("bold").setBackground("#FFD23F").setFontColor("#000000");
-    sheetAdmin.setFrozenRows(1);
-    sheetAdmin.appendRow(["ADM_001", "Quản trị viên", "'0999999999", "123456"]);
-  }
-}
+// Hết file Admin.gs

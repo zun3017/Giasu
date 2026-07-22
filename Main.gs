@@ -47,15 +47,6 @@ function doPost(e) {
   }
 }
 
-function normalizePhone(p) {
-  if (!p) return "";
-  var clean = String(p).replace(/\D/g, "");
-  if (clean.length > 1 && clean.charAt(0) === '0') {
-    clean = clean.substring(1);
-  }
-  return clean;
-}
-
 // Hàm xác thực đăng nhập trung tâm (Gia sư, Lớp học, Admin, Phụ huynh)
 function loginSystem(phone, pin, childName) {
   var ssMain = SpreadsheetApp.getActiveSpreadsheet(); // SHEET CHÍNH DÀNH CHO GIA SƯ 1-1 / ADMIN
@@ -113,7 +104,7 @@ function loginSystem(phone, pin, childName) {
             return { 
               role: 'tutor', 
               thongBao: "Đăng nhập với quyền Gia sư thành công!", 
-              data: getTutorDashboardData(phone, dataGS[i], ss) 
+              data: getTutorDashboardData(phone, dataGS[i], ssMain) 
             };
           }
         }
