@@ -1235,7 +1235,6 @@
                         saveBtn.disabled = false;
                         saveBtn.innerHTML = originalBtnHtml;
                     }
-                    alert("✅ Đã cập nhật thông tin tài khoản thành công!");
                     closeModal("tutorAccountModal");
                 })
                 .withFailureHandler(function(err) {
@@ -1244,7 +1243,6 @@
                         saveBtn.disabled = false;
                         saveBtn.innerHTML = originalBtnHtml;
                     }
-                    alert("⚠️ Đã xảy ra lỗi khi lưu thông tin: " + (err ? err.toString() : "Không xác định"));
                     console.error("Lỗi cập nhật tài khoản:", err);
                 })
                 .updateTutorAccountInfo(phone, name, pin);

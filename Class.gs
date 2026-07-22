@@ -1673,3 +1673,28 @@ function purgeClassItem(type, itemId, className) {
   }
   return { success: false, error: "Không tìm thấy mục để xóa vĩnh viễn." };
 }
+
+// Cập nhật thông tin tài khoản Giáo viên / Gia sư
+function updateTutorAccountInfo(phone, name, pin) {
+  try {
+    var ss = getClassSpreadsheet();
+    var sheetC = ss.getSheetByName('Danh sách lớp học');
+    if (sheetC) {
+      var dataC = sheetC.getDataRange().getDisplayValues();
+      for (var i = 1; i < dataC.length; i++) {
+        var rowPhone = (dataC[i][2] || "").toString().trim();
+        if (rowPhone === String(phone).trim() || normalizePhone(rowPhone) === normalizePhone(phone)) {
+          if (name) sheetC.getRange(i + 1, 3).setValue(name);
+          if (pin) sheetC.getRange(i + 1, 8).setValue(pin);
+        }
+      }
+    }
+    return { success: true };
+  } catch (e) {
+    return { success: false, error: e.toString() };
+  }
+}
+
+function updateTutorAccount(phone, name, pin) {
+  return updateTutorAccountInfo(phone, name, pin);
+}
