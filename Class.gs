@@ -1760,3 +1760,103 @@ function getClassAnnouncement(classId) {
     return "";
   }
 }
+
+// Tra cứu dữ liệu cho Học sinh / Phụ huynh thuộc hệ thống Lớp học
+function traCuuDuLieuHocSinhLop(phone, csRow, ss) {
+  if (!ss) ss = getClassSpreadsheet();
+  
+  var studentId = csRow[0] || "";
+  var studentName = csRow[1] || "Học sinh";
+  var classId = csRow[2] || "";
+  var parentPhone = csRow[3] || "";
+  var parentName = csRow[5] || "";
+  
+  // Lấy tên lớp từ 'Danh sách lớp học'
+  var className = "Lớp học";
+  var sheetClasses = ss.getSheetByName('Danh sách lớp học');
+  if (sheetClasses && classId) {
+    var dataClasses = sheetClasses.getDataRange().getDisplayValues();
+    for (var c = 1; c < dataClasses.length; c++) {
+      if (String(dataClasses[c][0]).trim() === String(classId).trim()) {
+        className = dataClasses[c][1] || className;
+        break;
+      }
+    }
+  }
+
+  // Lấy thông báo lớp
+  var thongBaoText = getClassAnnouncement(classId);
+
+  var ketQua = {
+    timThay: true,
+    tenHocSinh: studentName,
+    thongBaoHocSinh: thongBaoText,
+    lichSuHocTap: [],
+    baiTap: []
+  };
+
+  // 1. Trích xuất Nhật ký buổi học của Lớp học
+  var sheetLogs = ss.getSheetByName('Nhật ký buổi học');
+  if (sheetLogs) {
+    var dataLogs = sheetLogs.getDataRange().getDisplayValues();
+    for (var l = 1; l < dataLogs.length; l++) {
+      var rowClassId = String(dataLogs[l][1] || "").trim();
+      var rowClassName = String(dataLogs[l][2] || "").trim();
+      
+      if (rowClassId === String(classId).trim() || (className && rowClassName === String(className).trim())) {
+        var weekNum = dataLogs[l][3] || "-";
+        var studyDate = dataLogs[l][4] || "-";
+        var subject = dataLogs[l][5] || className;
+        var classStatus = dataLogs[l][6] || "Có mặt";
+        var hwEval = dataLogs[l][7] || "Bình thường";
+        var entryTest = dataLogs[l][8] || "Không có";
+        var termTest = dataLogs[l][9] || "Không có";
+        var generalNote = dataLogs[l][10] || "";
+        var studentNotesRaw = dataLogs[l][11] || "";
+        
+        var privateAtt = classStatus;
+        var privateNote = generalNote;
+        
+        if (studentNotesRaw && studentNotesRaw.trim() !== "") {
+          try {
+            var pObj = JSON.parse(studentNotesRaw);
+            if (pObj && pObj[studentId]) {
+              if (pObj[studentId].attendance) privateAtt = pObj[studentId].attendance;
+              if (pObj[studentId].privateNote) privateNote = pObj[studentId].privateNote + (generalNote ? " (" + generalNote + ")" : "");
+            }
+          } catch(e){}
+        }
+
+        ketQua.lichSuHocTap.push({
+          tuan: weekNum,
+          ngay: studyDate,
+          mon: subject,
+          noiDung: privateNote || "Nhật ký buổi học",
+          danhGiaBTVN: hwEval,
+          diemDauGio: entryTest,
+          diemDinhKi: termTest,
+          trangThai: privateAtt
+        });
+      }
+    }
+  }
+
+  // 2. Trích xuất Bài tập đã giao của Lớp học
+  var sheetHw = ss.getSheetByName('Bài tập lớp học');
+  if (sheetHw) {
+    var dataHw = sheetHw.getDataRange().getDisplayValues();
+    for (var h = 1; h < dataHw.length; h++) {
+      var hwClassId = String(dataHw[h][1] || "").trim();
+      var hwClassName = String(dataHw[h][2] || "").trim();
+      if (hwClassId === String(classId).trim() || (className && hwClassName === String(className).trim())) {
+        ketQua.baiTap.push({
+          mon: dataHw[h][4] || hwClassName || "Bài tập lớp",
+          tenBai: dataHw[h][3] || "Bài tập",
+          link: dataHw[h][5] || ""
+        });
+      }
+    }
+  }
+
+  return ketQua;
+}
