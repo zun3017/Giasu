@@ -1278,6 +1278,11 @@
                         currentClasses = merged;
                         if (!currentTutorData) currentTutorData = {};
                         currentTutorData.classes = currentClasses;
+                        if (phone) currentTutorData.tutorPhone = phone;
+                        if (tutorCode) {
+                            currentTutorData.tutorCode = tutorCode;
+                            currentTutorData.tutorId = tutorCode;
+                        }
                         sessionStorage.setItem("classTutorData", JSON.stringify(currentTutorData));
                         localStorage.setItem("classTutorData", JSON.stringify(currentTutorData));
                         
@@ -1566,9 +1571,13 @@
                 clearAndShowClassSpinners();
             }
 
-            var phone = (currentTutorData && currentTutorData.tutorPhone) ? currentTutorData.tutorPhone : "";
+            var phone = (currentTutorData && currentTutorData.tutorPhone) ? currentTutorData.tutorPhone : (window.tutorPhone || "");
+            var code = (currentTutorData && (currentTutorData.tutorCode || currentTutorData.tutorId)) ? (currentTutorData.tutorCode || currentTutorData.tutorId) : (window.tutorCode || "");
+            
             if (phone) {
-                loadClassDetailDataOnly(phone, cls.classId);
+                loadClassDetailDataOnly(phone, cls.classId, code);
+            } else {
+                console.warn("Không tìm thấy phone để tải dữ liệu lớp học chi tiết.");
             }
         }
 
@@ -1589,7 +1598,7 @@
             renderDashboardUI();
         }
 
-        function loadClassDetailDataOnly(phone, requestedClassId) {
+        function loadClassDetailDataOnly(phone, requestedClassId, tutorCode) {
             google.script.run
                 .withSuccessHandler(function(res) {
                     if (res && res.activeClass && res.activeClass.classId === requestedClassId) {
