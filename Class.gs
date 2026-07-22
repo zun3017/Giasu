@@ -23,6 +23,20 @@ function getClassSpreadsheet() {
   return ss;
 }
 
+function clearClassCache(classId, type) {
+  if (!classId) return;
+  var cache = CacheService.getScriptCache();
+  var cleanClassId = String(classId).trim();
+  if (type) {
+    cache.remove("class_" + type + "_" + cleanClassId);
+  } else {
+    cache.remove("class_students_" + cleanClassId);
+    cache.remove("class_logs_" + cleanClassId);
+    cache.remove("class_hw_" + cleanClassId);
+    cache.remove("class_announce_" + cleanClassId);
+  }
+}
+
 // Hàm tự động khởi tạo 6 trang tính chuẩn màu cho Google Sheet Lớp học nhóm nếu chưa có
 function initClassSpreadsheetSchema(ss) {
   if (!ss || schemaInitialized) return;
@@ -339,6 +353,7 @@ function updateClassInfo(classId, className, subject, schedule, feeType) {
         }
       }
       
+      clearClassCache(classId);
       SpreadsheetApp.flush();
       return { success: true };
     }
@@ -356,6 +371,7 @@ function deleteClass(classId, className) {
     for (var i = 1; i < data.length; i++) {
       if (String(data[i][0]).trim() === String(classId).trim()) {
         sheetClasses.getRange(i + 1, 8).setValue(nowStr); // Cột 8: Ngày xóa
+        clearClassCache(classId);
         SpreadsheetApp.flush();
         break;
       }
@@ -366,6 +382,20 @@ function deleteClass(classId, className) {
 
 // Lấy danh sách Học sinh thuộc một Lớp học
 function getClassStudents(classId) {
+  var cleanClassId = String(classId || "").trim();
+  if (cleanClassId === "") return [];
+  
+  var cache = CacheService.getScriptCache();
+  var cacheKey = "class_students_" + cleanClassId;
+  var cached = cache.get(cacheKey);
+  if (cached) {
+    try {
+      return JSON.parse(cached);
+    } catch(e) {
+      Logger.log("Lỗi parse cache students: " + e.toString());
+    }
+  }
+  
   var ss = getClassSpreadsheet();
   var sheetStudents = ss.getSheetByName('Học sinh lớp học');
   var students = [];
@@ -377,25 +407,44 @@ function getClassStudents(classId) {
     return students;
   }
   
-  var data = sheetStudents.getDataRange().getDisplayValues();
+  var data = sheetStudents.getDataRange().getValues(); // Dùng getValues() để đọc thô siêu nhanh
   for (var i = 1; i < data.length; i++) {
-    if (data[i].length >= 3 && data[i][2] === classId) {
-      var deletedAt = (data[i].length > 8) ? data[i][8].trim() : "";
+    if (data[i].length >= 3 && String(data[i][2]).trim() === cleanClassId) {
+      var deletedAt = (data[i].length > 8 && data[i][8] !== null) ? String(data[i][8]).trim() : "";
       if (deletedAt !== "") continue; // Bỏ qua học sinh nằm trong Thùng rác
       
+      var phoneVal = data[i][3] !== null && data[i][3] !== undefined ? String(data[i][3]).trim() : "";
+      if (phoneVal && !phoneVal.startsWith("0") && /^\d+$/.test(phoneVal)) {
+        phoneVal = "0" + phoneVal;
+      }
+      
+      var joinDateVal = "";
+      if (data[i][4] instanceof Date) {
+        joinDateVal = Utilities.formatDate(data[i][4], Session.getScriptTimeZone(), "dd/MM/yyyy");
+      } else {
+        joinDateVal = data[i][4] ? String(data[i][4]).trim() : "";
+      }
+      
       students.push({
-        studentId: data[i][0],
-        studentName: data[i][1],
-        classId: data[i][2],
-        parentPhone: data[i][3] || "",
-        joinDate: data[i][4] || "",
-        parentName: data[i][5] || "",
-        fee: data[i][6] || "",
-        homeworkCode: data[i][7] || "",
-        feeType: (data[i].length > 9 && data[i][9]) ? data[i][9] : ""
+        studentId: data[i][0] ? String(data[i][0]).trim() : "",
+        studentName: data[i][1] ? String(data[i][1]).trim() : "",
+        classId: String(data[i][2]).trim(),
+        parentPhone: phoneVal,
+        joinDate: joinDateVal,
+        parentName: data[i][5] ? String(data[i][5]).trim() : "",
+        fee: data[i][6] !== null && data[i][6] !== undefined ? String(data[i][6]).trim() : "",
+        homeworkCode: data[i][7] !== null && data[i][7] !== undefined ? String(data[i][7]).trim() : "",
+        feeType: (data[i].length > 9 && data[i][9]) ? String(data[i][9]).trim() : ""
       });
     }
   }
+  
+  try {
+    cache.put(cacheKey, JSON.stringify(students), 600); // Lưu đệm 10 phút
+  } catch(e) {
+    Logger.log("Lỗi lưu cache students: " + e.toString());
+  }
+  
   return students;
 }
 
@@ -421,8 +470,10 @@ function addClassStudent(classId, studentName, parentPhone, parentName, fee, hom
     fee || "",
     homeworkCode || "",
     "", // Cột 9: Ngày xóa (Trống = Hoạt động)
-    feeType || "" // Cột 10: Loại học phí (Trống = dùng loại mặc định của lớp)
+    feeType || "" // Cột 10: Loại học phí
   ]);
+  
+  clearClassCache(classId, "students");
   
   return {
     success: true,
@@ -461,9 +512,11 @@ function updateClassStudent(studentId, studentName, parentPhone, parentName, fee
   
   var data = sheetStudents.getDataRange().getDisplayValues();
   var rowIndex = -1;
+  var classId = "";
   for (var i = 1; i < data.length; i++) {
     if (data[i][0] === studentId) {
       rowIndex = i + 1;
+      classId = data[i][2];
       break;
     }
   }
@@ -475,6 +528,7 @@ function updateClassStudent(studentId, studentName, parentPhone, parentName, fee
     sheetStudents.getRange(rowIndex, 7).setValue(fee || "").setFontFamily("Arial");
     sheetStudents.getRange(rowIndex, 8).setValue(homeworkCode || "").setFontFamily("Arial");
     sheetStudents.getRange(rowIndex, 10).setValue(feeType || "").setFontFamily("Arial");
+    if (classId) clearClassCache(classId, "students");
     SpreadsheetApp.flush();
     return { success: true };
   }
@@ -491,6 +545,8 @@ function removeClassStudent(studentId) {
       if (data[i][0] === studentId) {
         var nowStr = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), "dd/MM/yyyy HH:mm");
         sheetStudents.getRange(i + 1, 9).setValue(nowStr);
+        var classId = data[i][2];
+        if (classId) clearClassCache(classId, "students");
         SpreadsheetApp.flush();
         break;
       }
@@ -534,6 +590,8 @@ function restoreClassStudent(studentId) {
     for (var i = 1; i < data.length; i++) {
       if (data[i][0] === studentId) {
         sheetStudents.getRange(i + 1, 9).setValue("");
+        var classId = data[i][2];
+        if (classId) clearClassCache(classId, "students");
         SpreadsheetApp.flush();
         break;
       }
@@ -550,7 +608,9 @@ function deleteClassStudentPermanently(studentId) {
     var data = sheetStudents.getDataRange().getDisplayValues();
     for (var i = 1; i < data.length; i++) {
       if (data[i][0] === studentId) {
+        var classId = data[i][2];
         sheetStudents.deleteRow(i + 1);
+        if (classId) clearClassCache(classId, "students");
         SpreadsheetApp.flush();
         break;
       }
@@ -878,22 +938,36 @@ function saveClassLessonLog(classId, className, weekNum, studyDate, subject, sta
     "" // Cột 13: Ngày xóa (Trống = Hoạt động)
   ]);
   
+  clearClassCache(classId, "logs");
   SpreadsheetApp.flush();
   return { success: true, logId: logId };
 }
 
 function getClassLessonLogs(classId, className) {
+  var cleanClassId = String(classId || "").trim();
+  if (cleanClassId === "") return [];
+  
+  var cache = CacheService.getScriptCache();
+  var cacheKey = "class_logs_" + cleanClassId;
+  var cached = cache.get(cacheKey);
+  if (cached) {
+    try {
+      return JSON.parse(cached);
+    } catch(e) {
+      Logger.log("Lỗi parse cache logs: " + e.toString());
+    }
+  }
+  
   var ss = getClassSpreadsheet();
   var sheet = getOrCreateClassLessonLogSheet(ss, className);
-  var data = sheet.getDataRange().getDisplayValues();
+  var data = sheet.getDataRange().getValues(); // Dùng getValues() để đọc thô siêu nhanh
   
   var logs = [];
-  var cleanClassId = String(classId || "").trim();
   var cleanClassName = String(className || "").trim();
   
   for (var i = 1; i < data.length; i++) {
     if (data[i].length >= 11 && data[i][0] !== "") {
-      var deletedAt = (data[i].length > 12) ? String(data[i][12]).trim() : "";
+      var deletedAt = (data[i].length > 12 && data[i][12] !== null) ? String(data[i][12]).trim() : "";
       if (deletedAt !== "") continue; // Bỏ qua nhật ký nằm trong Thùng rác
       
       var rowClassId = String(data[i][1] || "").trim();
@@ -907,18 +981,25 @@ function getClassLessonLogs(classId, className) {
           studentNotes = {};
         }
         
+        var studyDateVal = "";
+        if (data[i][4] instanceof Date) {
+          studyDateVal = Utilities.formatDate(data[i][4], Session.getScriptTimeZone(), "dd/MM/yyyy");
+        } else {
+          studyDateVal = data[i][4] ? String(data[i][4]).trim() : "";
+        }
+        
         logs.push({
-          logId: data[i][0],
-          classId: data[i][1],
-          className: data[i][2],
-          weekNum: data[i][3],
-          studyDate: data[i][4],
-          subject: data[i][5],
-          status: data[i][6],
-          hwEval: data[i][7],
-          entryTest: data[i][8],
-          termTest: data[i][9],
-          generalNote: data[i][10],
+          logId: String(data[i][0]).trim(),
+          classId: String(data[i][1]).trim(),
+          className: String(data[i][2]).trim(),
+          weekNum: data[i][3] !== null && data[i][3] !== undefined ? String(data[i][3]).trim() : "",
+          studyDate: studyDateVal,
+          subject: data[i][5] ? String(data[i][5]).trim() : "",
+          status: data[i][6] ? String(data[i][6]).trim() : "",
+          hwEval: data[i][7] ? String(data[i][7]).trim() : "",
+          entryTest: data[i][8] !== null && data[i][8] !== undefined ? String(data[i][8]).trim() : "",
+          termTest: data[i][9] !== null && data[i][9] !== undefined ? String(data[i][9]).trim() : "",
+          generalNote: data[i][10] ? String(data[i][10]).trim() : "",
           studentNotes: studentNotes
         });
       }
@@ -926,6 +1007,13 @@ function getClassLessonLogs(classId, className) {
   }
   
   logs.reverse();
+  
+  try {
+    cache.put(cacheKey, JSON.stringify(logs), 600); // Lưu đệm 10 phút
+  } catch(e) {
+    Logger.log("Lỗi lưu cache logs: " + e.toString());
+  }
+  
   return logs;
 }
 
@@ -939,6 +1027,8 @@ function deleteClassLessonLog(logId, className) {
   for (var i = 1; i < data.length; i++) {
     if (String(data[i][0]).trim() === String(logId).trim()) {
       sheet.getRange(i + 1, 13).setValue(nowStr);
+      var classId = data[i][1];
+      if (classId) clearClassCache(classId, "logs");
       SpreadsheetApp.flush();
       break;
     }
@@ -983,20 +1073,7 @@ function saveClassAnnouncement(classId, className, announcementText) {
   return { success: true };
 }
 
-function getClassAnnouncement(classId) {
-  var ss = getClassSpreadsheet();
-  var sheet = ss.getSheetByName('Thông báo lớp');
-  if (!sheet) return "";
-  
-  var cleanClassId = String(classId || "").trim();
-  var data = sheet.getDataRange().getDisplayValues();
-  for (var i = 1; i < data.length; i++) {
-    if (String(data[i][0]).trim() === cleanClassId) {
-      return data[i][2] || "";
-    }
-  }
-  return "";
-}
+// Đã xóa trùng lặp getClassAnnouncement 1
 
 // === ĐÃ XÓA TRÙNG LẶP HÀM BÀI TẬP 1 ===
 
@@ -1106,12 +1183,25 @@ function getOrCreateClassHomeworkSheet(ss) {
 }
 
 function getClassHomeworkList(classId, className) {
+  var cleanClassId = String(classId || "").trim();
+  if (cleanClassId === "") return [];
+  
+  var cache = CacheService.getScriptCache();
+  var cacheKey = "class_hw_" + cleanClassId;
+  var cached = cache.get(cacheKey);
+  if (cached) {
+    try {
+      return JSON.parse(cached);
+    } catch(e) {
+      Logger.log("Lỗi parse cache hw: " + e.toString());
+    }
+  }
+  
   var ss = getClassSpreadsheet();
   var sheet = getOrCreateClassHomeworkSheet(ss);
-  var data = sheet.getDataRange().getDisplayValues();
+  var data = sheet.getDataRange().getValues(); // Dùng getValues() để đọc thô siêu nhanh
   var list = [];
   
-  var cleanId = String(classId || "").trim();
   var cleanName = String(className || "").trim().toLowerCase();
   
   for (var i = 1; i < data.length; i++) {
@@ -1119,21 +1209,35 @@ function getClassHomeworkList(classId, className) {
       var rowClassId = String(data[i][1] || "").trim();
       var rowClassName = String(data[i][2] || "").trim().toLowerCase();
       
-      if ((cleanId !== "" && rowClassId === cleanId) || (cleanName !== "" && rowClassName === cleanName) || (cleanId === "" && cleanName === "")) {
+      if ((cleanClassId !== "" && rowClassId === cleanClassId) || (cleanName !== "" && rowClassName === cleanName) || (cleanClassId === "" && cleanName === "")) {
+        var releaseDateVal = "";
+        if (data[i][4] instanceof Date) {
+          releaseDateVal = Utilities.formatDate(data[i][4], Session.getScriptTimeZone(), "dd/MM/yyyy");
+        } else {
+          releaseDateVal = data[i][4] ? String(data[i][4]).trim() : "";
+        }
+        
         list.push({
-          hwId: data[i][0],
-          classId: data[i][1],
-          className: data[i][2],
-          title: data[i][3],
-          releaseDate: data[i][4] || "",
-          link: data[i][5] || "",
-          fileUrl: data[i][6] || "",
-          fileName: data[i].length > 7 ? data[i][7] || "" : ""
+          hwId: String(data[i][0]).trim(),
+          classId: String(data[i][1]).trim(),
+          className: String(data[i][2]).trim(),
+          title: String(data[i][3]).trim(),
+          releaseDate: releaseDateVal,
+          link: data[i][5] ? String(data[i][5]).trim() : "",
+          fileUrl: data[i][6] ? String(data[i][6]).trim() : "",
+          fileName: data[i].length > 7 && data[i][7] ? String(data[i][7]).trim() : ""
         });
       }
     }
   }
   list.reverse();
+  
+  try {
+    cache.put(cacheKey, JSON.stringify(list), 600); // Lưu đệm 10 phút
+  } catch(e) {
+    Logger.log("Lỗi lưu cache hw: " + e.toString());
+  }
+  
   return list;
 }
 
@@ -1171,6 +1275,7 @@ function saveClassHomework(classId, className, title, releaseDate, fileData, lin
       fileUrl,
       fileName
     ]);
+    clearClassCache(classId, "hw");
     SpreadsheetApp.flush();
     return { success: true, hwId: hwId, fileUrl: fileUrl, fileName: fileName };
   } catch(e) {
@@ -1187,7 +1292,9 @@ function deleteClassHomework(hwId) {
     
     for (var i = 1; i < data.length; i++) {
       if (String(data[i][0]).trim() === cleanId) {
+        var classId = data[i][1];
         sheet.deleteRow(i + 1);
+        if (classId) clearClassCache(classId, "hw");
         SpreadsheetApp.flush();
         return { success: true };
       }
@@ -1212,27 +1319,108 @@ function getOrCreateClassAnnouncementSheet(ss) {
 }
 
 function getClassAnnouncement(classId) {
-  var ss = getClassSpreadsheet();
-  var sheet = getOrCreateClassAnnouncementSheet(ss);
-  var data = sheet.getDataRange().getDisplayValues();
-  var cleanId = String(classId || "").trim();
+  var cleanClassId = String(classId || "").trim();
+  if (cleanClassId === "") return "";
   
-  for (var i = data.length - 1; i >= 1; i--) {
-    if (data[i] && data[i].length >= 4 && String(data[i][1]).trim() === cleanId) {
-      return data[i][3] || "";
+  var cache = CacheService.getScriptCache();
+  var cacheKey = "class_announce_" + cleanClassId;
+  var cached = cache.get(cacheKey);
+  if (cached !== null) return cached;
+  
+  try {
+    var ss = getClassSpreadsheet();
+    var sheet = ss.getSheetByName('Thông báo lớp');
+    if (!sheet) return "";
+    
+    var data = sheet.getDataRange().getValues(); // Dùng getValues() để đọc nhanh
+    if (data.length <= 1) {
+      cache.put(cacheKey, "", 600);
+      return "";
     }
+    
+    var headers = data[0];
+    var colClassId = headers.indexOf("Mã lớp");
+    var colText = headers.indexOf("Nội dung thông báo");
+    
+    if (colClassId === -1) colClassId = (headers.indexOf("Mã lớp") !== -1) ? headers.indexOf("Mã lớp") : 0;
+    if (colText === -1) colText = (headers.indexOf("Nội dung thông báo") !== -1) ? headers.indexOf("Nội dung thông báo") : 2;
+    
+    // Nếu có cả "Mã thông báo" đứng đầu (5 cột)
+    if (headers[0] === "Mã thông báo" || headers.indexOf("Mã thông báo") !== -1) {
+      colClassId = headers.indexOf("Mã lớp") !== -1 ? headers.indexOf("Mã lớp") : 1;
+      colText = headers.indexOf("Nội dung thông báo") !== -1 ? headers.indexOf("Nội dung thông báo") : 3;
+    }
+    
+    // Quét từ dưới lên để lấy thông báo mới nhất
+    for (var i = data.length - 1; i >= 1; i--) {
+      if (data[i] && data[i].length > Math.max(colClassId, colText) && String(data[i][colClassId]).trim() === cleanClassId) {
+        var val = data[i][colText] ? String(data[i][colText]).trim() : "";
+        cache.put(cacheKey, val, 600);
+        return val;
+      }
+    }
+    cache.put(cacheKey, "", 600);
+    return "";
+  } catch(e) {
+    return "";
   }
-  return "";
 }
 
 function saveClassAnnouncement(classId, className, text) {
   try {
     var ss = getClassSpreadsheet();
-    var sheet = getOrCreateClassAnnouncementSheet(ss);
+    var sheet = ss.getSheetByName('Thông báo lớp');
+    if (!sheet) {
+      initClassSpreadsheetSchema(ss);
+      sheet = ss.getSheetByName('Thông báo lớp');
+    }
+    
+    var data = sheet.getDataRange().getValues();
+    var headers = data[0];
+    
+    var colClassId = headers.indexOf("Mã lớp");
+    var colText = headers.indexOf("Nội dung thông báo");
+    var colClassName = headers.indexOf("Tên lớp");
+    var colTime = headers.indexOf("Thời gian tạo") !== -1 ? headers.indexOf("Thời gian tạo") : headers.indexOf("Thời gian cập nhật");
+    var colId = headers.indexOf("Mã thông báo");
+    
+    if (colClassId === -1) colClassId = 1;
+    if (colText === -1) colText = 3;
+    if (colClassName === -1) colClassName = 2;
+    if (colTime === -1) colTime = 4;
+    
     var cleanId = String(classId || "").trim();
     var nowStr = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), "dd/MM/yyyy HH:mm");
     
-    sheet.appendRow(["ANN_" + new Date().getTime(), cleanId, className || "", text || "", nowStr]);
+    // Ghi đè dòng thông báo cũ của lớp đó nếu đã có, hoặc tạo mới dòng nếu chưa có
+    var foundIndex = -1;
+    for (var i = 1; i < data.length; i++) {
+      if (data[i] && data[i].length > colClassId && String(data[i][colClassId]).trim() === cleanId) {
+        foundIndex = i + 1;
+        break;
+      }
+    }
+    
+    if (foundIndex !== -1) {
+      sheet.getRange(foundIndex, colText + 1).setValue(text || "");
+      sheet.getRange(foundIndex, colTime + 1).setValue(nowStr);
+    } else {
+      var newRow = [];
+      if (colId !== -1) newRow[colId] = "ANN_" + new Date().getTime();
+      newRow[colClassId] = cleanId;
+      newRow[colClassName] = className || "";
+      newRow[colText] = text || "";
+      newRow[colTime] = nowStr;
+      
+      // Đảm bảo không có ô undefined gây lỗi appendRow
+      for (var idx = 0; idx < Math.max(colClassId, colClassName, colText, colTime, colId) + 1; idx++) {
+        if (newRow[idx] === undefined) newRow[idx] = "";
+      }
+      sheet.appendRow(newRow);
+    }
+    
+    // Xóa cache
+    clearClassCache(classId, "announce");
     SpreadsheetApp.flush();
     return { success: true };
   } catch(e) {
@@ -1457,6 +1645,9 @@ function restoreClassItem(type, itemId, className) {
       for (var i = 1; i < dataS.length; i++) {
         if (String(dataS[i][0]).trim() === String(itemId).trim()) {
           sheetS.getRange(i + 1, 9).setValue("");
+          var classId = dataS[i][2];
+          if (classId) clearClassCache(classId, "students");
+          SpreadsheetApp.flush();
           return { success: true };
         }
       }
@@ -1469,6 +1660,9 @@ function restoreClassItem(type, itemId, className) {
       for (var j = 1; j < dataL.length; j++) {
         if (String(dataL[j][0]).trim() === String(itemId).trim()) {
           sheetL.getRange(j + 1, 13).setValue(""); // Hủy ngày xóa (Cột 13)
+          var classId = dataL[j][1];
+          if (classId) clearClassCache(classId, "logs");
+          SpreadsheetApp.flush();
           return { success: true };
         }
       }
@@ -1532,58 +1726,7 @@ function updateTutorAccount(phone, name, pin) {
   return updateTutorAccountInfo(phone, name, pin);
 }
 
-// Lưu thông báo nhanh cho Lớp học vào Sheet 'Thông báo lớp'
-function saveClassAnnouncement(classId, className, text) {
-  try {
-    var ss = getClassSpreadsheet();
-    var sheet = ss.getSheetByName('Thông báo lớp');
-    if (!sheet) {
-      initClassSpreadsheetSchema(ss);
-      sheet = ss.getSheetByName('Thông báo lớp');
-    }
-    
-    var data = sheet.getDataRange().getDisplayValues();
-    var found = false;
-    var nowStr = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), "dd/MM/yyyy HH:mm");
-    
-    for (var i = 1; i < data.length; i++) {
-      if (String(data[i][0]).trim() === String(classId).trim()) {
-        sheet.getRange(i + 1, 3).setValue(text);
-        sheet.getRange(i + 1, 4).setValue(nowStr);
-        found = true;
-        break;
-      }
-    }
-    
-    if (!found) {
-      sheet.appendRow([classId, className, text, nowStr]);
-    }
-    
-    SpreadsheetApp.flush();
-    return { success: true };
-  } catch (e) {
-    return { success: false, error: e.toString() };
-  }
-}
-
-// Lấy thông báo nhanh của Lớp học từ Sheet 'Thông báo lớp'
-function getClassAnnouncement(classId) {
-  try {
-    var ss = getClassSpreadsheet();
-    var sheet = ss.getSheetByName('Thông báo lớp');
-    if (!sheet) return "";
-    
-    var data = sheet.getDataRange().getDisplayValues();
-    for (var i = 1; i < data.length; i++) {
-      if (String(data[i][0]).trim() === String(classId).trim()) {
-        return data[i][2] || "";
-      }
-    }
-    return "";
-  } catch (e) {
-    return "";
-  }
-}
+// Đã xóa trùng lặp getClassAnnouncement 3
 
 // Tra cứu dữ liệu cho Học sinh / Phụ huynh thuộc hệ thống Lớp học
 function traCuuDuLieuHocSinhLop(phone, csRow, ss) {

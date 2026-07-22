@@ -1403,6 +1403,21 @@
             }
         }
 
+        function saveCurrentClassToSessionCache() {
+            var cls = currentClasses[activeClassIndex];
+            if (!cls) return;
+            
+            var inputEl = document.getElementById("classQuickAnnouncementInput");
+            var cachedData = {
+                activeClass: cls,
+                students: activeStudents,
+                lessonLogs: activeClassLessonLogs,
+                homeworkList: activeClassHomework,
+                announcement: inputEl ? inputEl.value : ""
+            };
+            sessionStorage.setItem("class_cache_" + cls.classId, JSON.stringify(cachedData));
+        }
+
         function selectClass(idx) {
             if (idx < 0 || idx >= currentClasses.length) {
                 renderEmptyClassState();
@@ -1411,7 +1426,40 @@
             activeClassIndex = idx;
             closeClassInvoice();
 
-            // Làm sạch ngay dữ liệu cũ để tránh chồng lấn hiển thị
+            var cls = currentClasses[idx];
+            var cacheKey = "class_cache_" + cls.classId;
+            var cached = sessionStorage.getItem(cacheKey);
+            
+            if (cached) {
+                try {
+                    var data = JSON.parse(cached);
+                    activeStudents = data.students || [];
+                    activeClassLessonLogs = data.lessonLogs || [];
+                    activeClassHomework = data.homeworkList || [];
+                    
+                    renderDashboardUI();
+                    
+                    var inputEl = document.getElementById("classQuickAnnouncementInput");
+                    if (inputEl) inputEl.value = data.announcement || "";
+                    
+                    renderRosterAndEvalGrid();
+                    renderClassLessonLogsTableUI();
+                    renderClassHomeworkListUI();
+                } catch(e) {
+                    console.error("Lỗi đọc cache local:", e);
+                    clearAndShowClassSpinners();
+                }
+            } else {
+                clearAndShowClassSpinners();
+            }
+
+            var phone = (currentTutorData && currentTutorData.tutorPhone) ? currentTutorData.tutorPhone : "";
+            if (phone) {
+                loadClassDetailDataOnly(phone, cls.classId);
+            }
+        }
+
+        function clearAndShowClassSpinners() {
             activeStudents = [];
             activeClassLessonLogs = [];
             activeClassHomework = [];
@@ -1426,12 +1474,6 @@
             if (hwBody) hwBody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:#A6ADCE; padding:20px;"><i class="fa-solid fa-circle-notch fa-spin"></i> Đang tải bài tập...</td></tr>';
 
             renderDashboardUI();
-
-            var cls = currentClasses[idx];
-            var phone = (currentTutorData && currentTutorData.tutorPhone) ? currentTutorData.tutorPhone : "";
-            if (phone) {
-                loadClassDetailDataOnly(phone, cls.classId);
-            }
         }
 
         function loadClassDetailDataOnly(phone, requestedClassId) {
@@ -1440,9 +1482,13 @@
                     if (res && res.activeClass && res.activeClass.classId === requestedClassId) {
                         activeStudents = res.students || [];
                         activeClassLessonLogs = res.lessonLogs || [];
+                        activeClassHomework = res.homeworkList || [];
+                        
+                        // Cập nhật bộ nhớ cache local
+                        sessionStorage.setItem("class_cache_" + requestedClassId, JSON.stringify(res));
+
                         var inputEl = document.getElementById("classQuickAnnouncementInput");
                         if (inputEl) inputEl.value = res.announcement || "";
-                        activeClassHomework = res.homeworkList || [];
 
                         renderRosterAndEvalGrid();
                         renderClassLessonLogsTableUI();
