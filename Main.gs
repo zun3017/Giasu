@@ -211,13 +211,13 @@ function loginSystem(phone, pin, childName) {
           return {
             role: 'student',
             thongBao: "Đăng nhập thành công",
-            data: traCuuDuLieuHocSinh(phone, target.rowData, ss)
+            data: traCuuDuLieuHocSinh(phone, target.rowData, ssMain)
           };
         } else {
           return {
             role: 'student',
             thongBao: "Đăng nhập thành công",
-            data: traCuuDuLieuHocSinhLop(phone, target.rowData, ss)
+            data: traCuuDuLieuHocSinhLop(phone, target.rowData, ssClass)
           };
         }
       }
@@ -237,19 +237,19 @@ function loginSystem(phone, pin, childName) {
       return {
         role: 'student',
         thongBao: "Đăng nhập thành công",
-        data: traCuuDuLieuHocSinh(phone, single.rowData, ss)
+        data: traCuuDuLieuHocSinh(phone, single.rowData, ssMain)
       };
     } else {
       return {
         role: 'student',
         thongBao: "Đăng nhập thành công",
-        data: traCuuDuLieuHocSinhLop(phone, single.rowData, ss)
+        data: traCuuDuLieuHocSinhLop(phone, single.rowData, ssClass)
       };
     }
   }
 
   // Nếu không truyền PIN và không tìm thấy học sinh
-  var sheetAdmin = ss.getSheetByName('Mã admin');
+  var sheetAdmin = ssMain.getSheetByName('Mã admin');
   if (sheetAdmin) {
     var dataAdmin = sheetAdmin.getDataRange().getDisplayValues();
     for (var i = 1; i < dataAdmin.length; i++) {
@@ -260,7 +260,7 @@ function loginSystem(phone, pin, childName) {
     }
   }
   
-  var sheetGS = ss.getSheetByName('Mã gia sư');
+  var sheetGS = ssMain.getSheetByName('Mã gia sư');
   if (sheetGS) {
     var dataGS = sheetGS.getDataRange().getDisplayValues();
     for (var i = 1; i < dataGS.length; i++) {
