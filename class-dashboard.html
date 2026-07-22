@@ -1049,6 +1049,71 @@
             }
         }
 
+        function showToast(message, type) {
+            if (!type) type = 'info';
+            var container = document.getElementById('toastContainer');
+            if (!container) {
+                container = document.createElement('div');
+                container.id = 'toastContainer';
+                container.style.position = 'fixed';
+                container.style.top = '25px';
+                container.style.right = '25px';
+                container.style.zIndex = '999999';
+                container.style.display = 'flex';
+                container.style.flexDirection = 'column';
+                container.style.gap = '10px';
+                container.style.pointerEvents = 'none';
+                document.body.appendChild(container);
+            }
+            
+            var toast = document.createElement('div');
+            toast.style.padding = '14px 24px';
+            toast.style.borderRadius = '14px';
+            toast.style.color = '#FFF';
+            toast.style.fontSize = '14px';
+            toast.style.fontWeight = '600';
+            toast.style.boxShadow = '0 10px 30px rgba(0,0,0,0.5)';
+            toast.style.pointerEvents = 'auto';
+            toast.style.fontFamily = "'Inter', sans-serif";
+            toast.style.display = 'flex';
+            toast.style.alignItems = 'center';
+            toast.style.gap = '10px';
+            toast.style.borderWidth = '1px';
+            toast.style.borderStyle = 'solid';
+            toast.style.backdropFilter = 'blur(15px)';
+            toast.style.transition = 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
+            toast.style.transform = 'translateX(120%)';
+            toast.style.opacity = '0';
+            
+            if (type === 'success') {
+                toast.style.background = 'rgba(16, 185, 129, 0.95)';
+                toast.style.borderColor = '#10B981';
+                toast.innerHTML = '<i class="fa-solid fa-circle-check" style="font-size: 16px;"></i> ' + message;
+            } else if (type === 'error') {
+                toast.style.background = 'rgba(239, 68, 68, 0.95)';
+                toast.style.borderColor = '#EF4444';
+                toast.innerHTML = '<i class="fa-solid fa-circle-xmark" style="font-size: 16px;"></i> ' + message;
+            } else {
+                toast.style.background = 'rgba(142, 77, 255, 0.95)';
+                toast.style.borderColor = '#8E4DFF';
+                toast.innerHTML = '<i class="fa-solid fa-circle-info" style="font-size: 16px;"></i> ' + message;
+            }
+            
+            container.appendChild(toast);
+            toast.offsetHeight; // force reflow
+            
+            toast.style.transform = 'translateX(0)';
+            toast.style.opacity = '1';
+            
+            setTimeout(function() {
+                toast.style.transform = 'translateX(120%)';
+                toast.style.opacity = '0';
+                setTimeout(function() {
+                    toast.remove();
+                }, 300);
+            }, 3200);
+        }
+
         document.addEventListener("DOMContentLoaded", function() {
 
             // Đọc dữ liệu giáo viên từ sessionStorage hoặc localStorage
@@ -1203,7 +1268,7 @@
             var pin = document.getElementById("accTutorPin").value.trim();
 
             if (!name || !phone) {
-                alert("Vui lòng nhập đầy đủ Họ tên và Số điện thoại!");
+                showToast("Vui lòng nhập đầy đủ Họ tên và Số điện thoại!", "error");
                 return;
             }
 
@@ -1452,7 +1517,7 @@
             var schedule = document.getElementById("newClassSchedule").value.trim();
             var feeType = document.getElementById("newClassFeeType").value;
 
-            if (!name) { alert("Vui lòng nhập tên lớp học!"); return; }
+            if (!name) { showToast("Vui lòng nhập tên lớp học!", "error"); return; }
 
             var phone = (currentTutorData && currentTutorData.tutorPhone) 
                 ? currentTutorData.tutorPhone 
@@ -1463,7 +1528,7 @@
                 : (sessionStorage.getItem("userCode") || localStorage.getItem("userCode") || "");
 
             if (!phone && !tutorCode) {
-                alert("Không tìm thấy thông tin đăng nhập của giáo viên. Vui lòng đăng nhập lại!");
+                showToast("Không tìm thấy thông tin đăng nhập của giáo viên. Vui lòng đăng nhập lại!", "error");
                 window.location.href = "class-login.html";
                 return;
             }
@@ -1539,7 +1604,7 @@
         function openEditClassModal() {
             var cls = currentClasses[activeClassIndex];
             if (!cls) {
-                alert("Vui lòng tạo hoặc chọn lớp học trước khi sửa!");
+                showToast("Vui lòng tạo hoặc chọn lớp học trước khi sửa!", "error");
                 return;
             }
             document.getElementById("editClassName").value = cls.className;
@@ -1557,7 +1622,7 @@
             var schedule = document.getElementById("editClassSchedule").value.trim();
             var feeType = document.getElementById("editClassFeeType").value;
 
-            if (!name) { alert("Vui lòng nhập tên lớp!"); return; }
+            if (!name) { showToast("Vui lòng nhập tên lớp!", "error"); return; }
 
             cls.className = name;
             cls.subject = subject;
@@ -1573,7 +1638,7 @@
         function confirmDeleteCurrentClass() {
             var cls = currentClasses[activeClassIndex];
             if (!cls) {
-                alert("Vui lòng tạo hoặc chọn lớp học trước khi xóa!");
+                showToast("Vui lòng tạo hoặc chọn lớp học trước khi xóa!", "error");
                 return;
             }
             if (confirm("Bạn có chắc chắn muốn xóa lớp " + cls.className + " không?")) {
@@ -1594,7 +1659,7 @@
         function saveNewStudent() {
             var cls = currentClasses[activeClassIndex];
             if (!cls) {
-                alert("Vui lòng tạo hoặc chọn lớp học trước khi thêm học sinh!");
+                showToast("Vui lòng tạo hoặc chọn lớp học trước khi thêm học sinh!", "error");
                 return;
             }
 
@@ -1605,7 +1670,7 @@
             var homeworkCode = document.getElementById("newStudentHomeworkCode").value.trim();
             var feeType = document.getElementById("newStudentFeeType").value;
 
-            if (!name) { alert("Vui lòng nhập họ và tên học sinh!"); return; }
+            if (!name) { showToast("Vui lòng nhập họ và tên học sinh!", "error"); return; }
 
             // OPTIMISTIC UI: Thêm vào mảng & re-render ngay 0.01s!
             var stId = "HS_LH_" + new Date().getTime().toString().slice(-6);
@@ -1697,7 +1762,7 @@
             var feeType = document.getElementById("editStudentFeeType").value;
 
             if (!name || !parentPhone || !fee) {
-                alert("Vui lòng nhập đầy đủ các trường bắt buộc!");
+                showToast("Vui lòng nhập đầy đủ các trường bắt buộc!", "error");
                 return;
             }
 
@@ -1706,7 +1771,7 @@
                     closeModal("editClassStudentModal");
                     loadStudentsForActiveClass();
                 } else {
-                    alert("Lỗi cập nhật: " + (res.error || "Chưa xác định"));
+                    showToast("Lỗi cập nhật: " + (res.error || "Chưa xác định"), "error");
                 }
             }).updateClassStudent(studentId, name, parentPhone, parentName, fee, homeworkCode, feeType);
         }
@@ -1767,7 +1832,7 @@
 
             var cls = currentClasses[activeClassIndex];
             if (!cls) {
-                alert("Vui lòng tạo hoặc chọn lớp học trước khi thêm buổi học!");
+                showToast("Vui lòng tạo hoặc chọn lớp học trước khi thêm buổi học!", "error");
                 return;
             }
 
@@ -1919,7 +1984,7 @@
             var generalNote = document.getElementById("logGeneralNote").value.trim();
 
             if (!studyDate) {
-                alert("Vui lòng nhập ngày học!");
+                showToast("Vui lòng nhập ngày học!", "error");
                 return;
             }
 
@@ -2063,7 +2128,7 @@
         function saveClassQuickAnnouncement() {
             var cls = currentClasses[activeClassIndex];
             if (!cls) {
-                alert("Vui lòng chọn hoặc tạo lớp học trước!");
+                showToast("Vui lòng chọn hoặc tạo lớp học trước!", "error");
                 return;
             }
             var text = document.getElementById("classQuickAnnouncementInput").value.trim();
@@ -2376,13 +2441,13 @@
                 } else {
                     showSyncToast('error');
                     checkbox.checked = !isPaid;
-                    alert("Lỗi đồng bộ: " + (res.error || "Không xác định"));
+                    showToast("Lỗi đồng bộ: " + (res.error || "Không xác định"), "error");
                 }
             }).withFailureHandler(function(err) {
                 showSyncToast('error');
                 checkbox.disabled = false;
                 checkbox.checked = !isPaid;
-                alert("Lỗi kết nối: " + err.toString());
+                showToast("Lỗi kết nối: " + err.toString(), "error");
             }).updateClassStudentPaymentStatus(logId, activeInvoiceStudentId, isPaid);
         }
 
@@ -2460,7 +2525,7 @@
         function submitClassAssignedHomework() {
             var cls = currentClasses[activeClassIndex];
             if (!cls) {
-                alert("Vui lòng tạo hoặc chọn lớp học trước!");
+                showToast("Vui lòng tạo hoặc chọn lớp học trước!", "error");
                 return;
             }
 
@@ -2469,7 +2534,7 @@
             var link = document.getElementById("classHwLink").value.trim();
 
             if (!title) {
-                alert("Vui lòng nhập tên bài tập!");
+                showToast("Vui lòng nhập tên bài tập!", "error");
                 return;
             }
 
@@ -2603,7 +2668,7 @@
                     loadClassDashboardData(phone, null, code);
                 } else {
                     showSyncToast('error');
-                    alert("Lỗi phục hồi: " + (res.error || "Thất bại"));
+                    showToast("Lỗi phục hồi: " + (res.error || "Thất bại"), "error");
                 }
             }).restoreClassItem(type, itemId, className);
         }
@@ -2617,7 +2682,7 @@
                     openTrashModal();
                 } else {
                     showSyncToast('error');
-                    alert("Lỗi xóa: " + (res.error || "Thất bại"));
+                    showToast("Lỗi xóa: " + (res.error || "Thất bại"), "error");
                 }
             }).purgeClassItem(type, itemId, className);
         }
