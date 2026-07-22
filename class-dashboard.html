@@ -3181,7 +3181,19 @@
 
                     var debtColor = studentDebt > 0 ? '#EF4444' : '#10B981';
                     var checkboxHtml = studentDebt > 0 ? '<input type="checkbox" class="tuition-student-cb" value="' + student.studentId + '" style="transform: scale(1.2); cursor:pointer;">' : '';
-                    var actionBtn = studentDebt > 0 ? '<button onclick="markStudentTuitionPaid(\'' + student.studentId + '\')" style="padding: 6px 12px; background: rgba(239, 68, 68, 0.15); border: 1px solid #EF4444; border-radius: 8px; color: #EF4444; font-weight: bold; cursor: pointer; font-size: 12px;" title="Click để xác nhận đã thu tiền học sinh này"><i class="fa-solid fa-bell"></i> Chưa thu</button>' : '<span style="color:#10B981; font-size:12px; font-weight:bold;"><i class="fa-solid fa-circle-check"></i> Hoàn thành</span>';
+                    
+                    var actionBtn = '';
+                    if (studentDebt > 0) {
+                        actionBtn = '<button onclick="markStudentTuitionPaid(\'' + student.studentId + '\')" style="padding: 6px 12px; background: rgba(239, 68, 68, 0.15); border: 1px solid #EF4444; border-radius: 8px; color: #EF4444; font-weight: bold; cursor: pointer; font-size: 12px;" title="Click để xác nhận đã thu tiền học sinh này"><i class="fa-solid fa-bell"></i> Chưa thu</button>';
+                    } else {
+                        window.tuitionUndoHistory = window.tuitionUndoHistory || {};
+                        if (window.tuitionUndoHistory[student.studentId] && window.tuitionUndoHistory[student.studentId].length > 0) {
+                            actionBtn = '<span style="color:#10B981; font-size:12px; font-weight:bold; margin-right:8px;"><i class="fa-solid fa-circle-check"></i> Hoàn thành</span>' +
+                                        '<button onclick="undoStudentTuitionPaid(\'' + student.studentId + '\')" style="padding: 4px 8px; background: rgba(245, 158, 11, 0.15); border: 1px solid #F59E0B; border-radius: 6px; color: #F59E0B; cursor: pointer; font-size: 11px;" title="Hoàn tác (Undo) thao tác thu tiền vừa rồi"><i class="fa-solid fa-rotate-left"></i> Lùi lại</button>';
+                        } else {
+                            actionBtn = '<span style="color:#10B981; font-size:12px; font-weight:bold;"><i class="fa-solid fa-circle-check"></i> Hoàn thành</span>';
+                        }
+                    }
 
                     tbody.innerHTML += '<tr>' +
                         '<td style="text-align:center;">' + checkboxHtml + '</td>' +
@@ -3401,6 +3413,10 @@
                             log.studentNotes[studentId].paid = true;
                         }
                     });
+                    
+                    window.tuitionUndoHistory = window.tuitionUndoHistory || {};
+                    window.tuitionUndoHistory[studentId] = logIdsToUpdate;
+                    
                     renderTuitionOverviewUI();
                     renderClassLessonLogsTableUI();
                     showToast("Thu học phí thành công!", "success");
@@ -3412,6 +3428,35 @@
                 showSyncToast('error');
                 showToast("Lỗi kết nối: " + err.toString(), "error");
             }).updateClassStudentPaymentStatusBulk(logIdsToUpdate, studentId, true);
+        }
+
+        function undoStudentTuitionPaid(studentId) {
+            var logIdsToRevert = window.tuitionUndoHistory ? window.tuitionUndoHistory[studentId] : null;
+            if (!logIdsToRevert || logIdsToRevert.length === 0) return;
+            
+            showSyncToast('pending');
+            google.script.run.withSuccessHandler(function(res) {
+                if (res && res.success) {
+                    showSyncToast('success');
+                    activeClassLessonLogs.forEach(function(log) {
+                        if (logIdsToRevert.includes(log.logId)) {
+                            if (log.studentNotes && log.studentNotes[studentId]) {
+                                log.studentNotes[studentId].paid = false;
+                            }
+                        }
+                    });
+                    delete window.tuitionUndoHistory[studentId];
+                    renderTuitionOverviewUI();
+                    renderClassLessonLogsTableUI();
+                    showToast("Đã hoàn tác thao tác thu tiền!", "success");
+                } else {
+                    showSyncToast('error');
+                    showToast("Lỗi đồng bộ: " + (res.error || "Không xác định"), "error");
+                }
+            }).withFailureHandler(function(err) {
+                showSyncToast('error');
+                showToast("Lỗi kết nối: " + err.toString(), "error");
+            }).updateClassStudentPaymentStatusBulk(logIdsToRevert, studentId, false);
         }
 
         // Thu tiền hàng loạt nhiều học sinh
@@ -3444,7 +3489,11 @@
                 google.script.run.withSuccessHandler(function(res) {
                     if (res && res.success) {
                         showSyncToast('success');
+                        window.tuitionUndoHistory = window.tuitionUndoHistory || {};
                         updates.forEach(function(u) {
+                            if (!window.tuitionUndoHistory[u.studentId]) window.tuitionUndoHistory[u.studentId] = [];
+                            window.tuitionUndoHistory[u.studentId].push(u.logId);
+                            
                             activeClassLessonLogs.forEach(function(log) {
                                 if (log.logId === u.logId) {
                                     if (!log.studentNotes) log.studentNotes = {};
