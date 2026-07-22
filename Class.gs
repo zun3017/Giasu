@@ -1635,22 +1635,31 @@ function getClassTrashItems(tutorPhone, tutorCode) {
     }
   }
 
-  // 2. Quét nhật ký đã bị soft delete trong 'Nhật ký buổi học'
-  var sheetLogs = ss.getSheetByName('Nhật ký buổi học');
-  if (sheetLogs) {
-    var dataL = sheetLogs.getDataRange().getDisplayValues();
-    for (var j = 1; j < dataL.length; j++) {
-      var rowL = dataL[j];
-      var delAtLog = (rowL.length > 12) ? String(rowL[12]).trim() : "";
-      if (delAtLog !== "") {
-        items.push({
-          type: 'lessonLog',
-          id: rowL[0] || "",
-          name: "Buổi học ngày " + (rowL[4] || "-"),
-          className: rowL[2] || rowL[1] || "",
-          detail: "Tuần: " + (rowL[3] || "-") + " | Lớp: " + (rowL[2] || "-"),
-          deletedAt: delAtLog
-        });
+  // 2. Quét nhật ký đã bị soft delete trong các trang tính Lớp học cụ thể
+  var sheetClasses = ss.getSheetByName('Danh sách lớp học');
+  if (sheetClasses) {
+    var classData = sheetClasses.getDataRange().getDisplayValues();
+    for (var c = 1; c < classData.length; c++) {
+      var classNameVal = classData[c][1];
+      if (classNameVal) {
+        var sheetL = ss.getSheetByName(String(classNameVal).trim());
+        if (sheetL) {
+          var dataL = sheetL.getDataRange().getDisplayValues();
+          for (var j = 1; j < dataL.length; j++) {
+            var rowL = dataL[j];
+            var delAtLog = (rowL.length > 12) ? String(rowL[12]).trim() : "";
+            if (delAtLog !== "") {
+              items.push({
+                type: 'lessonLog',
+                id: rowL[0] || "",
+                name: "Buổi học ngày " + (rowL[4] || "-"),
+                className: classNameVal,
+                detail: "Tuần: " + (rowL[3] || "-") + " | Lớp: " + classNameVal,
+                deletedAt: delAtLog
+              });
+            }
+          }
+        }
       }
     }
   }
@@ -1673,12 +1682,13 @@ function restoreClassItem(type, itemId, className) {
       }
     }
   } else if (type === 'lessonLog') {
-    var sheetL = ss.getSheetByName('Nhật ký buổi học');
+    var targetSheetName = className ? String(className).trim() : 'Nhật ký học tập lớp';
+    var sheetL = ss.getSheetByName(targetSheetName);
     if (sheetL) {
       var dataL = sheetL.getDataRange().getDisplayValues();
       for (var j = 1; j < dataL.length; j++) {
         if (String(dataL[j][0]).trim() === String(itemId).trim()) {
-          sheetL.getRange(j + 1, 13).setValue("");
+          sheetL.getRange(j + 1, 13).setValue(""); // Hủy ngày xóa (Cột 13)
           return { success: true };
         }
       }
@@ -1702,7 +1712,8 @@ function purgeClassItem(type, itemId, className) {
       }
     }
   } else if (type === 'lessonLog') {
-    var sheetL = ss.getSheetByName('Nhật ký buổi học');
+    var targetSheetName = className ? String(className).trim() : 'Nhật ký học tập lớp';
+    var sheetL = ss.getSheetByName(targetSheetName);
     if (sheetL) {
       var dataL = sheetL.getDataRange().getDisplayValues();
       for (var j = dataL.length - 1; j >= 1; j--) {
