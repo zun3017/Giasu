@@ -2031,7 +2031,7 @@
             if (titleEl) titleEl.innerHTML = '<i class="fa-solid fa-pen-to-square" style="color: #FFD23F;"></i> Chỉnh sửa nhật ký buổi học';
 
             document.getElementById("logWeekNum").value = log.weekNum || "1";
-            document.getElementById("logStudyDate").value = log.studyDate || "";
+            document.getElementById("logStudyDate").value = formatClassStudyDate(log.studyDate) || "";
             document.getElementById("logSubject").value = log.subject || "Toán học";
             document.getElementById("logStatus").value = log.status || "Có mặt";
             document.getElementById("logHwEval").value = log.hwEval || "Hoàn thành";
@@ -2231,6 +2231,23 @@
             );
         }
 
+        function formatClassStudyDate(dateVal) {
+            if (!dateVal || dateVal === '-') return '-';
+            var s = String(dateVal).trim();
+            if (!s) return '-';
+            
+            if (s.includes('T') || (s.includes('-') && s.length > 7)) {
+                var d = new Date(s);
+                if (!isNaN(d.getTime())) {
+                    var dd = String(d.getDate()).padStart(2, '0');
+                    var mm = String(d.getMonth() + 1).padStart(2, '0');
+                    var yyyy = d.getFullYear();
+                    return dd + '/' + mm + '/' + yyyy;
+                }
+            }
+            return s;
+        }
+
         function renderClassLessonLogsTableUI() {
             var cls = currentClasses[activeClassIndex];
             var tbody = document.getElementById("classLessonLogsTbody");
@@ -2263,7 +2280,7 @@
 
                 return '<tr>' +
                     '<td style="text-align:center; color:#A6ADCE; font-weight:600;">' + (log.weekNum || '-') + '</td>' +
-                    '<td style="font-weight:700; color:#FFF; white-space:nowrap;">' + (log.studyDate || '-') + '</td>' +
+                    '<td style="font-weight:700; color:#FFF; white-space:nowrap;">' + formatClassStudyDate(log.studyDate) + '</td>' +
                     '<td style="color:#C4B5FD; font-weight:600;">' + (log.subject || '-') + '</td>' +
                     '<td style="color:#FFF; line-height:1.5;">' + noteDisplay + '</td>' +
                     '<td>' + hwBadge + '</td>' +
