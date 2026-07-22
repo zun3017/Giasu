@@ -197,6 +197,7 @@ function xacThucMaBaiTap(ma) {
 
   try {
     var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var ssClass = getClassSpreadsheet(); // Mở Sheet lớp học
     
     // 1. Quét tìm học sinh 1-1 trước
     var sheetHS = ss.getSheetByName('Mã học sinh');
@@ -217,11 +218,11 @@ function xacThucMaBaiTap(ma) {
       }
     }
     
-    // 2. Nếu không tìm thấy, quét tiếp trong Học sinh lớp học
-    if (foundRow === -1) {
-      var sheetCS = ss.getSheetByName('Học sinh lớp học');
+    // 2. Nếu không tìm thấy, quét tiếp trong Học sinh lớp học (trên sheet lớp)
+    if (foundRow === -1 && ssClass) {
+      var sheetCS = ssClass.getSheetByName('Học sinh lớp học');
       if (sheetCS) {
-        var dataCS = getSheetDisplayValuesCached('Học sinh lớp học');
+        var dataCS = sheetCS.getDataRange().getDisplayValues();
         for (var i = 1; i < dataCS.length; i++) {
           if (dataCS[i].length > 7 && normalizeMa(dataCS[i][7]) === normalizeMa(cleanMa)) {
             foundRow = i;
@@ -242,41 +243,46 @@ function xacThucMaBaiTap(ma) {
     var submissions = [];
     var assignedList = [];
     
-    if (isClassStudent) {
-      // Đọc lịch sử bài nộp của lớp học nhóm từ sheet 'Bài tập nộp lớp'
-      var sheetSub = ss.getSheetByName('Bài tập nộp lớp');
-      if (sheetSub) {
-        var dataSub = sheetSub.getDataRange().getDisplayValues();
-        for (var j = 1; j < dataSub.length; j++) {
-          if (dataSub[j].length >= 8 && dataSub[j][4] === studentId) {
-            submissions.push({
-              timestamp: dataSub[j][7] || "",
-              studentName: dataSub[j][5] || "",
-              lessonName: dataSub[j][2] || "",
-              fileUrl: dataSub[j][6] || "",
-              ma: cleanMa,
-              submissionDate: dataSub[j][7].split(" ")[0] || "",
-              status: "Active",
-              rowIndex: j + 1
-            });
-          }
-        }
-      }
+    if (isClassStudent && ssClass) {
+      // Đọc lịch sử bài nộp của lớp học nhóm từ sheet 'Học sinh nộp bài lớp học'
+      var sheetSub = ssClass.getSheetByName('Học sinh nộp bài lớp học');
+      var hwTitleMap = {};
+      var sheetHwList = ssClass.getSheetByName('Bài tập lớp học');
       
-      // Đọc danh sách bài tập được giao cho lớp từ sheet 'Bài tập lớp'
-      var sheetHwList = ss.getSheetByName('Bài tập lớp');
       if (sheetHwList) {
         var dataHwList = sheetHwList.getDataRange().getDisplayValues();
         for (var k = 1; k < dataHwList.length; k++) {
-          if (dataHwList[k].length >= 8 && dataHwList[k][1] === classId) {
+          hwTitleMap[dataHwList[k][0]] = dataHwList[k][3]; // Mã bài tập -> Tên bài tập
+          
+          var hwClassId = dataHwList[k][1] ? String(dataHwList[k][1]).trim() : "";
+          if (hwClassId === classId || hwClassId === "") {
             assignedList.push({
               rowIndex: k + 1,
               timestamp: dataHwList[k][4] || "",
               studentName: studentName,
               title: dataHwList[k][3],
               releaseDate: dataHwList[k][4],
-              fileUrl: dataHwList[k][5] || "",
-              externalLink: dataHwList[k][7] || ""
+              fileUrl: dataHwList[k][6] || "",
+              externalLink: dataHwList[k][5] || ""
+            });
+          }
+        }
+      }
+      
+      if (sheetSub) {
+        var dataSub = sheetSub.getDataRange().getDisplayValues();
+        for (var j = 1; j < dataSub.length; j++) {
+          if (dataSub[j].length >= 11 && dataSub[j][3] === studentId) {
+            var hwIdVal = dataSub[j][1];
+            submissions.push({
+              timestamp: dataSub[j][10] || "",
+              studentName: dataSub[j][4] || "",
+              lessonName: hwTitleMap[hwIdVal] || hwIdVal || "Bài tập lớp học",
+              fileUrl: dataSub[j][6] || "",
+              ma: cleanMa,
+              submissionDate: dataSub[j][10] ? dataSub[j][10].split(" ")[0] : "",
+              status: "Active",
+              rowIndex: j + 1
             });
           }
         }
@@ -362,33 +368,36 @@ function uploadHomeworkFiles(ma, studentName, lessonName, filesList) {
   try {
     var ss = SpreadsheetApp.getActiveSpreadsheet();
     
-    // Kiểm tra xem có phải học sinh lớp học nhóm không (quét linh hoạt mọi cột)
+    // Kiểm tra xem có phải học sinh lớp học nhóm không
     var isClassStudent = false;
     var classId = "";
     var studentId = "";
     var rawMa = String(ma || "").trim().toLowerCase();
     var normMa = normalizePhone(ma);
     
-    var sheetCS = ss.getSheetByName('Học sinh lớp học');
-    if (sheetCS) {
-      var dataCS = getSheetDisplayValuesCached('Học sinh lớp học');
-      for (var i = 1; i < dataCS.length; i++) {
-        if (!dataCS[i] || dataCS[i].length < 1) continue;
-        var isMatch = false;
-        for (var col = 0; col < dataCS[i].length; col++) {
-          var val = String(dataCS[i][col] || "").trim();
-          if (val === "") continue;
-          if (val.toLowerCase() === rawMa || (normMa !== "" && normalizePhone(val) === normMa)) {
-            isMatch = true;
+    var ssClass = getClassSpreadsheet();
+    if (ssClass) {
+      var sheetCS = ssClass.getSheetByName('Học sinh lớp học');
+      if (sheetCS) {
+        var dataCS = sheetCS.getDataRange().getDisplayValues();
+        for (var i = 1; i < dataCS.length; i++) {
+          if (!dataCS[i] || dataCS[i].length < 1) continue;
+          var isMatch = false;
+          for (var col = 0; col < dataCS[i].length; col++) {
+            var val = String(dataCS[i][col] || "").trim();
+            if (val === "") continue;
+            if (val.toLowerCase() === rawMa || (normMa !== "" && normalizePhone(val) === normMa)) {
+              isMatch = true;
+              break;
+            }
+          }
+          if (isMatch) {
+            studentId = dataCS[i][0];
+            studentName = studentName || dataCS[i][1];
+            classId = dataCS[i][2];
+            isClassStudent = true;
             break;
           }
-        }
-        if (isMatch) {
-          studentId = dataCS[i][0];
-          studentName = studentName || dataCS[i][1];
-          classId = dataCS[i][2];
-          isClassStudent = true;
-          break;
         }
       }
     }
@@ -458,30 +467,55 @@ function uploadHomeworkFiles(ma, studentName, lessonName, filesList) {
     }
     
     if (isClassStudent) {
-      var sheetSub = initClassHomeworkSubmissionSheet(ss);
-      var subId = "SUB_LH_" + new Date().getTime();
-      sheetSub.appendRow([
-        subId,
-        lessonName, // Mã bài tập / Tên bài tập
-        lessonName, // Tên bài học
-        classId,
-        studentId,
-        studentName,
-        fileUrl,
-        dateString
-      ]);
-      
-      clearSheetCache('Bài tập nộp lớp');
-      clearHomeworkPortalCache(ma);
-      
-      return {
-        success: true,
-        fileUrl: fileUrl,
-        submissionDate: shortDateString,
-        timestamp: dateString,
-        status: "Active",
-        rowIndex: sheetSub.getLastRow()
-      };
+      if (ssClass) {
+        var sheetSub = ssClass.getSheetByName('Học sinh nộp bài lớp học');
+        if (!sheetSub) {
+          sheetSub = ssClass.insertSheet('Học sinh nộp bài lớp học');
+          sheetSub.appendRow(["Mã nộp bài", "Mã bài tập", "Mã lớp", "Mã học sinh", "Tên học sinh", "SĐT Phụ huynh", "Link bài nộp", "Trạng thái chấm", "Điểm số", "Nhận xét Giáo viên", "Thời gian nộp"]);
+          sheetSub.getRange(1, 1, 1, 11).setFontWeight("bold").setBackground("#8E4DFF").setFontColor("#FFFFFF");
+          sheetSub.setFrozenRows(1);
+        }
+        
+        var subId = "SUB_LH_" + new Date().getTime();
+        
+        // Lấy SĐT Phụ huynh
+        var parentPhone = "";
+        var sheetCS = ssClass.getSheetByName('Học sinh lớp học');
+        if (sheetCS) {
+          var dataCS = sheetCS.getDataRange().getDisplayValues();
+          for (var i = 1; i < dataCS.length; i++) {
+            if (dataCS[i][0] === studentId) {
+              parentPhone = dataCS[i][3] || "";
+              break;
+            }
+          }
+        }
+        
+        sheetSub.appendRow([
+          subId,
+          lessonName,       // Mã bài tập
+          classId,          // Mã lớp
+          studentId,        // Mã học sinh
+          studentName,      // Tên học sinh
+          parentPhone,      // SĐT Phụ huynh
+          fileUrl,          // Link bài nộp
+          "Chưa chấm",      // Trạng thái chấm
+          "",               // Điểm số
+          "",               // Nhận xét Giáo viên
+          dateString        // Thời gian nộp
+        ]);
+        
+        clearHomeworkPortalCache(ma);
+        
+        return {
+          success: true,
+          fileUrl: fileUrl,
+          submissionDate: shortDateString,
+          timestamp: dateString,
+          status: "Active",
+          rowIndex: sheetSub.getLastRow()
+        };
+      }
     } else {
       var sheetHW = initHomeworkSheet(ss);
       var hwHeaders = getHeaderIndices(sheetHW);
@@ -542,8 +576,8 @@ function editHomeworkFile(rowIndex, lessonName, fileBase64OrList, fileName, mime
     var ss = SpreadsheetApp.getActiveSpreadsheet();
     var r = parseInt(rowIndex);
 
-    // Thử xem dòng r thuộc sheet 'Bài tập nộp lớp' hay 'Bài tập'
-    var sheetSub = ss.getSheetByName('Bài tập nộp lớp');
+    var ssClass = getClassSpreadsheet();
+    var sheetSub = ssClass ? ssClass.getSheetByName('Học sinh nộp bài lớp học') : null;
     var sheetHW = initHomeworkSheet(ss);
     
     var targetSheet = sheetHW;
@@ -563,9 +597,9 @@ function editHomeworkFile(rowIndex, lessonName, fileBase64OrList, fileName, mime
       return { error: "Vị trí dòng không hợp lệ." };
     }
     
-    var studentName = isClass ? data[r - 1][5] : data[r - 1][1];
+    var studentName = isClass ? data[r - 1][4] : data[r - 1][1];
     var oldUrl = isClass ? data[r - 1][6] : data[r - 1][3];
-    var colLessonIdx = isClass ? 2 : 2;
+    var colLessonIdx = isClass ? 1 : 2;
     
     targetSheet.getRange(r, colLessonIdx + 1).setValue(lessonName);
     var fileUrl = oldUrl;
@@ -659,35 +693,57 @@ function editHomeworkFile(rowIndex, lessonName, fileBase64OrList, fileName, mime
 function deleteHomeworkFile(rowIndex) {
   try {
     var ss = SpreadsheetApp.getActiveSpreadsheet();
-    var sheetHW = initHomeworkSheet(ss);
-    var hwHeaders = getHeaderIndices(sheetHW);
     var r = parseInt(rowIndex);
     
-    var data = sheetHW.getDataRange().getValues();
+    var ssClass = getClassSpreadsheet();
+    var sheetSub = ssClass ? ssClass.getSheetByName('Học sinh nộp bài lớp học') : null;
+    var sheetHW = initHomeworkSheet(ss);
+    
+    var targetSheet = sheetHW;
+    var isClass = false;
+    var data = getSheetDisplayValuesCached('Bài tập');
+    
+    if (sheetSub) {
+      var dataSub = sheetSub.getDataRange().getDisplayValues();
+      if (!isNaN(r) && r >= 2 && r <= dataSub.length) {
+        targetSheet = sheetSub;
+        data = dataSub;
+        isClass = true;
+      }
+    }
+    
     if (isNaN(r) || r < 2 || r > data.length) {
       return { error: "Vị trí dòng không hợp lệ." };
     }
     
-    var colDateIdx = hwHeaders["Ngày nộp"] !== undefined ? hwHeaders["Ngày nộp"] : 5;
-    var colStatusIdx = hwHeaders["Trạng thái nộp"] !== undefined ? hwHeaders["Trạng thái nộp"] : 6;
-    var colMaIdx = hwHeaders["Mã bài tập"] !== undefined ? hwHeaders["Mã bài tập"] : 4;
-    
-    var now = new Date();
-    var todayStr = Utilities.formatDate(now, Session.getScriptTimeZone(), "dd/MM/yyyy");
-    var submissionDateStr = sheetHW.getRange(r, colDateIdx + 1).getDisplayValue().trim();
-    var ma = data[r - 1][colMaIdx];
-    
-    if (submissionDateStr !== todayStr) {
-      return { error: "Đã quá hạn xóa bài tập (chỉ được xóa trong ngày nộp)." };
+    if (isClass) {
+      var ma = data[r - 1][1]; // Mã bài tập hoặc số điện thoại phụ huynh
+      targetSheet.deleteRow(r);
+      clearHomeworkPortalCache(ma);
+      return { success: true };
+    } else {
+      var hwHeaders = getHeaderIndices(sheetHW);
+      var colDateIdx = hwHeaders["Ngày nộp"] !== undefined ? hwHeaders["Ngày nộp"] : 5;
+      var colStatusIdx = hwHeaders["Trạng thái nộp"] !== undefined ? hwHeaders["Trạng thái nộp"] : 6;
+      var colMaIdx = hwHeaders["Mã bài tập"] !== undefined ? hwHeaders["Mã bài tập"] : 4;
+      
+      var now = new Date();
+      var todayStr = Utilities.formatDate(now, Session.getScriptTimeZone(), "dd/MM/yyyy");
+      var submissionDateStr = sheetHW.getRange(r, colDateIdx + 1).getDisplayValue().trim();
+      var ma = data[r - 1][colMaIdx];
+      
+      if (submissionDateStr !== todayStr) {
+        return { error: "Đã quá hạn xóa bài tập (chỉ được xóa trong ngày nộp)." };
+      }
+      
+      sheetHW.getRange(r, colStatusIdx + 1).setValue("Deleted").setFontFamily("Arial");
+      writeTrashLog(ss, "Bài tập", "Xóa bài tập tạm thời", data[r - 1]);
+      
+      clearSheetCache('Bài tập');
+      clearHomeworkPortalCache(ma);
+      
+      return { success: true };
     }
-    
-    sheetHW.getRange(r, colStatusIdx + 1).setValue("Deleted").setFontFamily("Arial");
-    writeTrashLog(ss, "Bài tập", "Xóa bài tập tạm thời", data[r - 1]);
-    
-    clearSheetCache('Bài tập');
-    clearHomeworkPortalCache(ma);
-    
-    return { success: true };
   } catch (e) {
     return { error: "Lỗi hệ thống: " + e.toString() };
   }
@@ -697,10 +753,21 @@ function deleteHomeworkFile(rowIndex) {
 function restoreHomeworkFile(rowIndex) {
   try {
     var ss = SpreadsheetApp.getActiveSpreadsheet();
-    var sheetHW = initHomeworkSheet(ss);
-    var hwHeaders = getHeaderIndices(sheetHW);
     var r = parseInt(rowIndex);
     
+    var ssClass = getClassSpreadsheet();
+    var sheetSub = ssClass ? ssClass.getSheetByName('Học sinh nộp bài lớp học') : null;
+    
+    // Nếu là Học sinh lớp học và đã bị xóa dòng, không khôi phục được nữa
+    if (sheetSub) {
+      var dataSub = sheetSub.getDataRange().getDisplayValues();
+      if (!isNaN(r) && r >= 2 && r <= dataSub.length) {
+        return { error: "Không hỗ trợ khôi phục bài nộp lớp học trực tiếp, vui lòng nộp lại bài tập." };
+      }
+    }
+    
+    var sheetHW = initHomeworkSheet(ss);
+    var hwHeaders = getHeaderIndices(sheetHW);
     var data = sheetHW.getDataRange().getValues();
     if (isNaN(r) || r < 2 || r > data.length) {
       return { error: "Vị trí dòng không hợp lệ." };

@@ -53,14 +53,14 @@ function initClassSpreadsheetSchema(ss) {
 
   // 4. Sheet 'Bài tập lớp học'
   var sHw = ss.getSheetByName('Bài tập lớp học');
-  var homeworkHeaders = ["Mã bài tập", "Mã lớp", "Tên lớp", "Tên bài tập", "Ngày giao", "Link đính kèm", "URL File đính kèm"];
+  var homeworkHeaders = ["Mã bài tập", "Mã lớp", "Tên lớp", "Tên bài tập", "Ngày giao", "Link đính kèm", "URL File đính kèm", "Tên file"];
   if (!sHw) {
     sHw = ss.insertSheet('Bài tập lớp học');
     sHw.appendRow(homeworkHeaders);
-    sHw.getRange(1, 1, 1, 7).setFontWeight("bold").setBackground("#8E4DFF").setFontColor("#FFFFFF");
+    sHw.getRange(1, 1, 1, 8).setFontWeight("bold").setBackground("#8E4DFF").setFontColor("#FFFFFF");
     sHw.setFrozenRows(1);
   } else {
-    sHw.getRange(1, 1, 1, 7).setValues([homeworkHeaders]).setFontWeight("bold").setBackground("#8E4DFF").setFontColor("#FFFFFF");
+    sHw.getRange(1, 1, 1, 8).setValues([homeworkHeaders]).setFontWeight("bold").setBackground("#8E4DFF").setFontColor("#FFFFFF");
     sHw.setFrozenRows(1);
   }
 
@@ -1136,99 +1136,7 @@ function getClassAnnouncement(classId) {
   return "";
 }
 
-// === QUẢN LÝ BÀI TẬP LỚP HỌC ===
-
-function saveClassHomework(classId, className, title, releaseDate, fileData, link) {
-  var ss = getClassSpreadsheet();
-  var sheet = ss.getSheetByName('Bài tập lớp');
-  if (!sheet) {
-    sheet = ss.insertSheet('Bài tập lớp');
-    sheet.appendRow(["Mã bài tập", "Mã lớp", "Tên lớp", "Tên bài tập", "Ngày phát hành", "File đính kèm (URL)", "Tên file", "Link bài tập"]);
-    sheet.getRange(1, 1, 1, 8).setFontWeight("bold").setBackground("#8E4DFF").setFontColor("#FFFFFF");
-  }
-  
-  var hwId = "HW_LH_" + new Date().getTime();
-  var fileUrl = "";
-  var fileName = "";
-  
-  if (fileData && fileData.base64) {
-    try {
-      var folderName = "VibeCode_Homework_Class";
-      var folders = DriveApp.getFoldersByName(folderName);
-      var folder = folders.hasNext() ? folders.next() : DriveApp.createFolder(folderName);
-      
-      var blob = Utilities.newBlob(Utilities.base64Decode(fileData.base64), fileData.mimeType, fileData.fileName);
-      var file = folder.createFile(blob);
-      file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
-      fileUrl = file.getUrl();
-      fileName = fileData.fileName;
-    } catch(e) {
-      console.error("Lỗi upload file bài tập:", e);
-    }
-  }
-  
-  sheet.appendRow([
-    hwId,
-    classId || "",
-    className || "",
-    title || "",
-    releaseDate || new Date().toLocaleDateString('vi-VN'),
-    fileUrl,
-    fileName,
-    link || ""
-  ]);
-  
-  return { success: true, hwId: hwId, fileUrl: fileUrl, fileName: fileName };
-}
-
-function getClassHomeworkList(classId, className) {
-  var ss = getClassSpreadsheet();
-  var sheet = ss.getSheetByName('Bài tập lớp');
-  if (!sheet) return [];
-  
-  var data = sheet.getDataRange().getDisplayValues();
-  var cleanClassId = String(classId || "").trim();
-  var cleanClassName = String(className || "").trim();
-  var list = [];
-  
-  for (var i = 1; i < data.length; i++) {
-    if (data[i].length >= 5 && data[i][0] !== "") {
-      var rClassId = String(data[i][1] || "").trim();
-      var rClassName = String(data[i][2] || "").trim();
-      
-      if (rClassId === cleanClassId || rClassName === cleanClassName) {
-        list.push({
-          hwId: data[i][0],
-          classId: data[i][1],
-          className: data[i][2],
-          title: data[i][3],
-          releaseDate: data[i][4],
-          fileUrl: data[i][5] || "",
-          fileName: data[i][6] || "",
-          link: data[i][7] || ""
-        });
-      }
-    }
-  }
-  
-  list.reverse();
-  return list;
-}
-
-function deleteClassHomework(hwId) {
-  var ss = getClassSpreadsheet();
-  var sheet = ss.getSheetByName('Bài tập lớp');
-  if (!sheet) return { success: false };
-  
-  var data = sheet.getDataRange().getDisplayValues();
-  for (var i = 1; i < data.length; i++) {
-    if (data[i][0] === hwId) {
-      sheet.deleteRow(i + 1);
-      break;
-    }
-  }
-  return { success: true };
-}
+// === ĐÃ XÓA TRÙNG LẶP HÀM BÀI TẬP 1 ===
 
 // Đồng bộ trạng thái đóng học phí của học sinh lớp học trong JSON
 function updateClassStudentPaymentStatus(logId, studentId, isPaid) {
@@ -1280,26 +1188,36 @@ function updateClassStudentPaymentStatus(logId, studentId, isPaid) {
   }
 }
 
-// Lấy danh sách các bài nộp của cả lớp từ sheet Bài tập nộp lớp
 function getClassSubmissions(classId) {
   var ss = getClassSpreadsheet();
-  var sheet = ss.getSheetByName('Bài tập nộp lớp');
+  var sheet = ss.getSheetByName('Học sinh nộp bài lớp học');
   var submissions = [];
   if (!sheet) return submissions;
   
+  // Tạo bản đồ Mã bài tập -> Tên bài tập
+  var hwTitleMap = {};
+  var sheetHw = ss.getSheetByName('Bài tập lớp học');
+  if (sheetHw) {
+    var dataHw = sheetHw.getDataRange().getDisplayValues();
+    for (var k = 1; k < dataHw.length; k++) {
+      hwTitleMap[dataHw[k][0]] = dataHw[k][3]; // Mã bài tập -> Tên bài tập
+    }
+  }
+
   var data = sheet.getDataRange().getDisplayValues();
   var cleanClassId = String(classId || "").trim();
   for (var i = 1; i < data.length; i++) {
-    if (data[i].length >= 8 && String(data[i][3]).trim() === cleanClassId) {
+    if (data[i].length >= 11 && String(data[i][2]).trim() === cleanClassId) {
+      var hwIdVal = data[i][1];
       submissions.push({
         subId: data[i][0],
-        hwId: data[i][1],
-        title: data[i][2],
-        classId: data[i][3],
-        studentId: data[i][4],
-        studentName: data[i][5],
+        hwId: hwIdVal,
+        title: hwTitleMap[hwIdVal] || hwIdVal || "Bài tập lớp học",
+        classId: data[i][2],
+        studentId: data[i][3],
+        studentName: data[i][4],
         fileUrl: data[i][6],
-        submittedAt: data[i][7]
+        submittedAt: data[i][10]
       });
     }
   }
@@ -1312,13 +1230,15 @@ function getClassSubmissions(classId) {
 function getOrCreateClassHomeworkSheet(ss) {
   if (!ss) ss = getClassSpreadsheet();
   var sheet = ss.getSheetByName('Bài tập lớp học');
-  var homeworkHeaders = ["Mã bài tập", "Mã lớp", "Tên lớp", "Tên bài tập", "Ngày giao", "Link đính kèm", "URL File đính kèm"];
+  var homeworkHeaders = ["Mã bài tập", "Mã lớp", "Tên lớp", "Tên bài tập", "Ngày giao", "Link đính kèm", "URL File đính kèm", "Tên file"];
   if (!sheet) {
     sheet = ss.insertSheet('Bài tập lớp học');
     sheet.appendRow(homeworkHeaders);
-    sheet.getRange(1, 1, 1, 7).setFontWeight("bold").setBackground("#8E4DFF").setFontColor("#FFFFFF");
+    sheet.getRange(1, 1, 1, 8).setFontWeight("bold").setBackground("#8E4DFF").setFontColor("#FFFFFF");
+    sheet.setFrozenRows(1);
   } else {
-    sheet.getRange(1, 1, 1, 7).setValues([homeworkHeaders]).setFontWeight("bold").setBackground("#8E4DFF").setFontColor("#FFFFFF");
+    sheet.getRange(1, 1, 1, 8).setValues([homeworkHeaders]).setFontWeight("bold").setBackground("#8E4DFF").setFontColor("#FFFFFF");
+    sheet.setFrozenRows(1);
   }
   return sheet;
 }
@@ -1345,7 +1265,8 @@ function getClassHomeworkList(classId, className) {
           title: data[i][3],
           releaseDate: data[i][4] || "",
           link: data[i][5] || "",
-          fileUrl: data[i][6] || ""
+          fileUrl: data[i][6] || "",
+          fileName: data[i].length > 7 ? data[i][7] || "" : ""
         });
       }
     }
@@ -1354,15 +1275,42 @@ function getClassHomeworkList(classId, className) {
   return list;
 }
 
-function saveClassHomework(classId, className, title, releaseDate, fileUrl, link) {
+function saveClassHomework(classId, className, title, releaseDate, fileData, link) {
   try {
     var ss = getClassSpreadsheet();
     var sheet = getOrCreateClassHomeworkSheet(ss);
-    var hwId = "HW_" + new Date().getTime().toString().slice(-6);
+    var hwId = "HW_LH_" + new Date().getTime();
+    var fileUrl = "";
+    var fileName = "";
     
-    sheet.appendRow([hwId, classId || "", className || "", title || "Bài tập mới", releaseDate || "", link || "", fileUrl || ""]);
+    if (fileData && fileData.base64) {
+      try {
+        var folderName = "VibeCode_Homework_Class";
+        var folders = DriveApp.getFoldersByName(folderName);
+        var folder = folders.hasNext() ? folders.next() : DriveApp.createFolder(folderName);
+        
+        var blob = Utilities.newBlob(Utilities.base64Decode(fileData.base64), fileData.mimeType, fileData.fileName);
+        var file = folder.createFile(blob);
+        file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+        fileUrl = file.getUrl();
+        fileName = fileData.fileName;
+      } catch(uploadErr) {
+        console.error("Lỗi upload file bài tập:", uploadErr);
+      }
+    }
+    
+    sheet.appendRow([
+      hwId,
+      classId || "",
+      className || "",
+      title || "Bài tập mới",
+      releaseDate || new Date().toLocaleDateString('vi-VN'),
+      link || "",
+      fileUrl,
+      fileName
+    ]);
     SpreadsheetApp.flush();
-    return { success: true, hwId: hwId };
+    return { success: true, hwId: hwId, fileUrl: fileUrl, fileName: fileName };
   } catch(e) {
     return { success: false, error: e.toString() };
   }
