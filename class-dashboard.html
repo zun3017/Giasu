@@ -998,7 +998,7 @@
     <!-- Sync Toast Badge giống Dành cho Gia Sư -->
     <div id="syncToast" class="sync-toast" style="display:none;"></div>
 
-    <script src="js/api.js?v=1.8.5"></script>
+    <script src="js/api.js?v=1.8.6"></script>
     <script>
         var currentTutorData = null;
         var currentClasses = [];
@@ -1493,38 +1493,56 @@
 
             if (!name) { alert("Vui lòng nhập họ và tên học sinh!"); return; }
 
+            // OPTIMISTIC UI: Thêm vào mảng & re-render ngay 0.01s!
+            var stId = "HS_LH_" + new Date().getTime().toString().slice(-6);
+            var newStudentObj = {
+                studentId: stId,
+                studentName: name,
+                classId: cls.classId,
+                parentPhone: parentPhone,
+                parentName: parentName,
+                fee: fee,
+                homeworkCode: homeworkCode,
+                feeType: feeType || "",
+                joinDate: new Date().toLocaleDateString('vi-VN')
+            };
+
+            activeStudents.push(newStudentObj);
+            closeModal("addStudentModal");
+            document.getElementById("newStudentParentName").value = "";
+            document.getElementById("newStudentName").value = "";
+            document.getElementById("newStudentParentPhone").value = "";
+            document.getElementById("newStudentFee").value = "";
+            document.getElementById("newStudentHomeworkCode").value = "";
+
+            renderRosterAndEvalGrid();
             showSyncToast('pending');
-            google.script.run.withSuccessHandler(function(res) {
-                showSyncToast('success');
-                var stId = (res && res.studentId) ? res.studentId : ("HS_LH_" + new Date().getTime().toString().slice(-6));
-                activeStudents.push({
-                    studentId: stId,
-                    studentName: name,
-                    classId: cls.classId,
-                    parentPhone: parentPhone,
-                    parentName: parentName,
-                    fee: fee,
-                    homeworkCode: homeworkCode,
-                    feeType: feeType || "",
-                    joinDate: new Date().toLocaleDateString('vi-VN')
-                });
-                closeModal("addStudentModal");
-                document.getElementById("newStudentParentName").value = "";
-                document.getElementById("newStudentName").value = "";
-                document.getElementById("newStudentParentPhone").value = "";
-                document.getElementById("newStudentFee").value = "";
-                document.getElementById("newStudentHomeworkCode").value = "";
-                document.getElementById("newStudentFeeType").value = "";
-                renderRosterAndEvalGrid();
-            }).addClassStudent(cls.classId, name, parentPhone, parentName, fee, homeworkCode, feeType);
+
+            google.script.run
+                .withSuccessHandler(function(res) {
+                    showSyncToast('success');
+                    if (res && res.studentId) {
+                        newStudentObj.studentId = res.studentId;
+                        renderRosterAndEvalGrid();
+                    }
+                })
+                .withFailureHandler(function(err) {
+                    showSyncToast('error');
+                    console.error("Lỗi lưu học sinh:", err);
+                })
+                .saveClassStudent(cls.classId, cls.className, name, parentPhone, parentName, fee, homeworkCode, feeType);
         }
 
         function removeStudent(studentId) {
-            if (confirm("Bạn có chắc chắn muốn chuyển học sinh này vào thùng rác không? (Có thể khôi phục lại từ thùng rác).")) {
-                showSyncToast('pending');
-                google.script.run.withSuccessHandler(function() { showSyncToast('success'); }).removeClassStudent(studentId);
+            if (confirm("Bạn có chắc chắn muốn chuyển học sinh này vào thùng rác không?")) {
+                // OPTIMISTIC UI: Xóa khỏi danh sách & render ngay lập tức!
                 activeStudents = activeStudents.filter(function(st) { return st.studentId !== studentId; });
                 renderRosterAndEvalGrid();
+                showSyncToast('pending');
+                google.script.run
+                    .withSuccessHandler(function() { showSyncToast('success'); })
+                    .withFailureHandler(function(err) { showSyncToast('error'); })
+                    .deleteClassStudent(studentId);
             }
         }
 
@@ -1554,7 +1572,7 @@
             openModal("editClassStudentModal");
         }
 
-        // 2. Lưu sửa thông tin học sinh
+        // 2. Lưu sửa thông tin học sinh (Optimistic UI)
         function saveEditClassStudent() {
             var studentId = document.getElementById("editStudentId").value;
             var name = document.getElementById("editStudentName").value.trim();
