@@ -31,10 +31,14 @@ function initClassSpreadsheetSchema(ss) {
 
   // 2. Sheet 'Học sinh lớp học'
   var sStudents = ss.getSheetByName('Học sinh lớp học');
+  var studentHeaders = ["Mã học sinh", "Tên học sinh", "Mã lớp", "SĐT Phụ huynh", "Ngày tham gia", "Tên phụ huynh", "Học phí/buổi", "Mã bài tập", "Ngày xóa", "Loại học phí"];
   if (!sStudents) {
     sStudents = ss.insertSheet('Học sinh lớp học');
-    sStudents.appendRow(["Mã học sinh", "Tên học sinh", "SĐT Phụ huynh", "Mã lớp", "Tên lớp", "Ngày nhập học", "Trạng thái", "Ghi chú", "Ngày xóa"]);
-    sStudents.getRange(1, 1, 1, 9).setFontWeight("bold").setBackground("#8E4DFF").setFontColor("#FFFFFF");
+    sStudents.appendRow(studentHeaders);
+    sStudents.getRange(1, 1, 1, 10).setFontWeight("bold").setBackground("#8E4DFF").setFontColor("#FFFFFF");
+    sStudents.setFrozenRows(1);
+  } else {
+    sStudents.getRange(1, 1, 1, 10).setValues([studentHeaders]).setFontWeight("bold").setBackground("#8E4DFF").setFontColor("#FFFFFF");
     sStudents.setFrozenRows(1);
   }
 
