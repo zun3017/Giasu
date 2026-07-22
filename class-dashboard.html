@@ -228,12 +228,12 @@
             top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0, 0, 0, 0.75);
             backdrop-filter: blur(8px);
-            z-index: 999;
+            z-index: 99999 !important;
             display: none;
             justify-content: center;
             align-items: center;
             padding: 20px;
-            pointer-events: none;
+            pointer-events: none !important;
         }
 
         .modal-overlay.active {
@@ -998,7 +998,7 @@
     <!-- Sync Toast Badge giống Dành cho Gia Sư -->
     <div id="syncToast" class="sync-toast" style="display:none;"></div>
 
-    <script src="js/api.js?v=1.8.7"></script>
+    <script src="js/api.js?v=1.8.8"></script>
     <script>
         var currentTutorData = null;
         var currentClasses = [];
@@ -1430,7 +1430,10 @@
 
         function openEditClassModal() {
             var cls = currentClasses[activeClassIndex];
-            if (!cls) return;
+            if (!cls) {
+                alert("Vui lòng tạo hoặc chọn lớp học trước khi sửa!");
+                return;
+            }
             document.getElementById("editClassName").value = cls.className;
             document.getElementById("editClassSubject").value = cls.subject || "";
             document.getElementById("editClassSchedule").value = cls.schedule || "";
@@ -1461,7 +1464,10 @@
 
         function confirmDeleteCurrentClass() {
             var cls = currentClasses[activeClassIndex];
-            if (!cls) return;
+            if (!cls) {
+                alert("Vui lòng tạo hoặc chọn lớp học trước khi xóa!");
+                return;
+            }
             if (confirm("Bạn có chắc chắn muốn xóa lớp " + cls.className + " không?")) {
                 showSyncToast('pending');
                 google.script.run.withSuccessHandler(function() { showSyncToast('success'); }).deleteClass(cls.classId, cls.className);
