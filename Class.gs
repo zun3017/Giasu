@@ -104,19 +104,34 @@ function initClassSpreadsheetSchema(ss) {
     sAnnounce.setFrozenRows(1);
   }
 
-  // 8. Sheet 'Nhật ký chung' (Centralized Database thay thế hàng chục tab nhỏ)
+  // 8. Sheet 'Nhật ký chung' (Database tập trung cho tất cả nhật ký học tập)
   var sLogs = ss.getSheetByName('Nhật ký chung');
   if (!sLogs) {
     sLogs = ss.insertSheet('Nhật ký chung');
-    sLogs.setFrozenRows(0); // Không cần đóng băng vì mỗi lớp có block riêng
+    sLogs.setFrozenRows(0);
   }
 
-  // 9. Sheet 'Đánh giá chung'
-  var sEval = ss.getSheetByName('Đánh giá chung');
-  if (!sEval) {
-    sEval = ss.insertSheet('Đánh giá chung');
-    sEval.setFrozenRows(0);
-  }
+  // 9. Dọn dẹp tự động các Sheet rác thừa cũ (như 'Đánh giá chung', hoặc các Sheet tự tạo theo tên lớp riêng lẻ)
+  try {
+    var validSheets = [
+      'Danh sách lớp học', 'Học sinh lớp học', 'Bài tập lớp học', 
+      'Học sinh nộp bài lớp học', 'Ý kiến Phụ huynh lớp học', 
+      'Thông báo lớp', 'Nhật ký chung', 'Thùng rác', 'Lịch học lớp'
+    ];
+    var allSheets = ss.getSheets();
+    if (allSheets.length > 1) {
+      allSheets.forEach(function(sh) {
+        var sName = sh.getName().trim();
+        if (validSheets.indexOf(sName) === -1) {
+          try {
+            ss.deleteSheet(sh);
+            Logger.log("Đã xóa sheet rác: " + sName);
+          } catch(err) {}
+        }
+      });
+    }
+  } catch(e) {}
+
   schemaInitialized = true;
 }
 
@@ -974,7 +989,7 @@ function saveClassScheduleItem(tutorPhone, className, mon, tue, wed, thu, fri, s
 
 function getOrCreateClassLessonLogSheet(ss, className) {
   if (!ss) ss = getClassSpreadsheet();
-  var sheetName = className ? String(className).trim() : 'Nhật ký học tập lớp';
+  var sheetName = 'Nhật ký chung';
   var sheet = ss.getSheetByName(sheetName);
   var logHeaders = [
     "Mã nhật ký",
