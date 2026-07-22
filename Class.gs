@@ -265,7 +265,13 @@ function getClassList(tutorPhone, tutorCode, ssParam) {
   var data = null;
   
   if (cachedCls) {
-    try { data = JSON.parse(cachedCls); } catch(e){}
+    try { 
+      data = JSON.parse(cachedCls);
+      if (!Array.isArray(data) || data.length <= 1) {
+        data = null;
+        cache.remove(clsCacheKey);
+      }
+    } catch(e){ data = null; cache.remove(clsCacheKey); }
   }
   
   if (!data || !Array.isArray(data) || data.length <= 1) {
@@ -279,8 +285,10 @@ function getClassList(tutorPhone, tutorCode, ssParam) {
     }
     data = sheetClasses.getDataRange().getValues();
     try {
-      var clsStr = JSON.stringify(data);
-      if (clsStr.length < 95000 && data.length > 1) cache.put(clsCacheKey, clsStr, 300);
+      if (data && data.length > 1) {
+        var clsStr = JSON.stringify(data);
+        if (clsStr.length < 95000) cache.put(clsCacheKey, clsStr, 180);
+      }
     } catch(e) {}
   }
   var allClasses = [];

@@ -1285,8 +1285,9 @@
                             activeClassIndex = currentClasses.findIndex(function(c) { return c.classId === requestedClassId; });
                         } else if (res.activeClass) {
                             activeClassIndex = currentClasses.findIndex(function(c) { return c.classId === res.activeClass.classId; });
-                        } else if (activeClassIndex >= currentClasses.length) {
-                            activeClassIndex = -1;
+                        }
+                        if (activeClassIndex < 0 || activeClassIndex >= currentClasses.length) {
+                            activeClassIndex = 0;
                         }
 
                         activeStudents = res.students || [];
@@ -1298,20 +1299,37 @@
                         activeClassHomework = res.homeworkList || [];
 
                         renderDashboardUI();
-                    } else if (currentClasses && currentClasses.length > 0) {
-                        renderDashboardUI();
                     } else {
-                        currentClasses = [];
+                        var savedData = sessionStorage.getItem("classTutorData") || localStorage.getItem("classTutorData");
+                        if (savedData) {
+                            try {
+                                var parsed = JSON.parse(savedData);
+                                if (parsed && parsed.classes && parsed.classes.length > 0) {
+                                    currentClasses = parsed.classes;
+                                    if (activeClassIndex < 0 || activeClassIndex >= currentClasses.length) activeClassIndex = 0;
+                                    renderDashboardUI();
+                                    return;
+                                }
+                            } catch(e) {}
+                        }
                         renderEmptyClassState();
                     }
                 })
                 .withFailureHandler(function(err) {
                     console.error("Lỗi tải dữ liệu tổng lớp học:", err);
-                    if (currentClasses && currentClasses.length > 0) {
-                        renderDashboardUI();
-                    } else {
-                        renderEmptyClassState();
+                    var savedData = sessionStorage.getItem("classTutorData") || localStorage.getItem("classTutorData");
+                    if (savedData) {
+                        try {
+                            var parsed = JSON.parse(savedData);
+                            if (parsed && parsed.classes && parsed.classes.length > 0) {
+                                currentClasses = parsed.classes;
+                                if (activeClassIndex < 0 || activeClassIndex >= currentClasses.length) activeClassIndex = 0;
+                                renderDashboardUI();
+                                return;
+                            }
+                        } catch(e) {}
                     }
+                    renderEmptyClassState();
                 })
                 .getClassDashboardData(phone || "", requestedClassId, tutorCode);
         }
