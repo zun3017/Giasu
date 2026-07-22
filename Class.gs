@@ -406,6 +406,23 @@ function addClassStudent(classId, studentName, parentPhone, parentName, fee, hom
   };
 }
 
+// Aliases cho các hàm CRUD Học sinh & Lớp học
+function saveClassStudent(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8) {
+  if (typeof arg2 === 'string' && arguments.length >= 8) {
+    return addClassStudent(arg1, arg3, arg4, arg5, arg6, arg7, arg8);
+  } else {
+    return addClassStudent(arg1, arg2, arg3, arg4, arg5, arg6, arg7);
+  }
+}
+
+function deleteClassStudent(studentId) {
+  return removeClassStudent(studentId);
+}
+
+function saveClass(tutorPhone, className, subject, schedule, feeType, tutorCode) {
+  return createClass(tutorPhone, className, subject, schedule, feeType, tutorCode);
+}
+
 // Chỉnh sửa thông tin Học sinh Lớp học
 function updateClassStudent(studentId, studentName, parentPhone, parentName, fee, homeworkCode, feeType) {
   var ss = getClassSpreadsheet();
