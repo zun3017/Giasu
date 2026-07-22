@@ -554,6 +554,12 @@ var currentStudentName = "";
             var maHS = sessionStorage.getItem('userPhone') || "";
             var tenHocSinh = currentStudentName;
             
+            var data = null;
+            try { data = JSON.parse(sessionStorage.getItem('dashboardData') || localStorage.getItem('dashboardData')); } catch(e){}
+            var isClass = data ? !!data.isClass : false;
+            var classId = data ? data.classId : "";
+            var className = data ? (data.className || "Lớp học") : "";
+            
             btn.disabled = true;
             btn.innerHTML = 'Đang gửi... <i class="fa-solid fa-circle-notch fa-spin"></i>';
             msg.style.display = 'none';
@@ -583,5 +589,5 @@ var currentStudentName = "";
                     msg.className = "feedback-message-status error";
                     msg.style.display = "block";
                 })
-                .guiPhanHoi(maHS, tenHocSinh, content);
+                .guiPhanHoi(maHS, tenHocSinh, content, isClass, classId, className);
         }

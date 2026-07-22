@@ -2031,6 +2031,8 @@ function traCuuDuLieuHocSinhLop(phone, csRow, ss) {
 
   var ketQua = {
     timThay: true,
+    isClass: true,
+    classId: classId,
     tenHocSinh: studentName,
     thongBaoHocSinh: thongBaoText,
     lichSuHocTap: [],

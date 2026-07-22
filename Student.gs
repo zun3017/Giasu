@@ -125,8 +125,23 @@ function clearStudentCache(phone) {
 }
 
 // Gửi ý kiến phản hồi của phụ huynh
-function guiPhanHoi(maHS, tenHocSinh, noiDung) {
+function guiPhanHoi(maHS, tenHocSinh, noiDung, isClass, classId, className) {
   try {
+    if (isClass) {
+      var ssClass = getClassSpreadsheet();
+      var sheetName = "Ý kiến Phụ huynh lớp học";
+      var sFeedback = ssClass.getSheetByName(sheetName);
+      if (!sFeedback) {
+        sFeedback = ssClass.insertSheet(sheetName);
+        sFeedback.appendRow(["Mã ý kiến", "Mã lớp", "SĐT Phụ huynh", "Tên học sinh", "Nội dung đóng góp", "Thời gian gửi"]);
+        sFeedback.getRange(1, 1, 1, 6).setFontWeight("bold").setBackground("#8E4DFF").setFontColor("#FFFFFF");
+      }
+      var feedbackId = "YKIEN_" + new Date().getTime();
+      sFeedback.appendRow([feedbackId, classId, "'" + maHS, tenHocSinh, noiDung, new Date()]);
+      return { thanhCong: true };
+    }
+
+    // Logic cũ cho gia sư 1 kèm 1
     var ss = SpreadsheetApp.getActiveSpreadsheet();
     var sheetName = "Ý kiến phụ huynh";
     var sheet = ss.getSheetByName(sheetName);
@@ -139,10 +154,7 @@ function guiPhanHoi(maHS, tenHocSinh, noiDung) {
     
     sheet.appendRow([new Date(), "'" + maHS, tenHocSinh, noiDung]);
     
-    // Xóa bộ nhớ đệm liên quan đến danh sách phản hồi của gia sư phụ trách học sinh này
     var cache = CacheService.getScriptCache();
-    // Chúng ta không biết gia sư nào phụ trách học sinh này ngay lúc này, nên xóa hết feedback cache của gia sư
-    // Hoặc tìm SĐT gia sư từ sheet Mã học sinh và xóa cache cụ thể của gia sư đó
     var sheetHS = ss.getSheetByName('Mã học sinh');
     if (sheetHS) {
       var dataHS = getSheetDisplayValuesCached('Mã học sinh');
@@ -161,6 +173,8 @@ function guiPhanHoi(maHS, tenHocSinh, noiDung) {
     return { thanhCong: true };
   } catch (error) {
     return { thanhCong: false, thongBao: error.toString() };
+  }
+};
   }
 }
 
