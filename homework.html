@@ -1528,17 +1528,12 @@
             }
         })();
 
-        // Tự động khôi phục trạng thái đăng nhập khi làm mới trang
+        // Lưu giữ mã bài tập trên ô nhập (không tự động đăng nhập để tránh hiểu nhầm)
         window.addEventListener('DOMContentLoaded', function() {
             var savedCode = sessionStorage.getItem('currentHwCode');
             if (savedCode) {
-                document.getElementById('loadingText').style.display = 'block';
-                google.script.run
-                    .withSuccessHandler(showHomeworkDashboard)
-                    .withFailureHandler(function(err) {
-                        document.getElementById('loadingText').style.display = 'none';
-                    })
-                    .xacThucMaBaiTap(savedCode);
+                var inputEl = document.getElementById('maInput');
+                if (inputEl) inputEl.value = savedCode;
             }
         });
     </script>
