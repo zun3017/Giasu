@@ -1415,6 +1415,46 @@ function getClassHomeworkList(classId, className, ssParam) {
   return list;
 }
 
+// Lấy Tên Gia sư từ Mã lớp học
+function getTutorNameByClassId(classId, ssClassParam) {
+  try {
+    var ssClass = ssClassParam || getClassSpreadsheet();
+    var sheetClasses = ssClass ? ssClass.getSheetByName('Danh sách lớp học') : null;
+    if (!sheetClasses) return "Giáo viên không tên";
+    
+    var dataC = sheetClasses.getDataRange().getDisplayValues();
+    var tutorIdOrPhone = "";
+    for (var i = 1; i < dataC.length; i++) {
+      if (dataC[i][0] === classId) {
+        tutorIdOrPhone = String(dataC[i][2] || "").trim();
+        break;
+      }
+    }
+    
+    if (!tutorIdOrPhone) return "Giáo viên không tên";
+    
+    var normPhone = normalizePhone(tutorIdOrPhone);
+    var normCode = tutorIdOrPhone.toLowerCase();
+    
+    var ssMain = SpreadsheetApp.getActiveSpreadsheet();
+    var sheetGS = ssMain.getSheetByName('Mã gia sư');
+    if (!sheetGS) return "Giáo viên không tên";
+    
+    var dataGS = sheetGS.getDataRange().getDisplayValues();
+    for (var j = 1; j < dataGS.length; j++) {
+      var gsPhone = normalizePhone(dataGS[j][4] || "");
+      var gsCode = String(dataGS[j][8] || "").trim().toLowerCase();
+      if ((normPhone !== "" && gsPhone === normPhone) || 
+          (normCode !== "" && gsCode === normCode)) {
+        return dataGS[j][2] || "Giáo viên không tên";
+      }
+    }
+  } catch (e) {
+    console.error("Lỗi getTutorNameByClassId:", e);
+  }
+  return "Giáo viên không tên";
+}
+
 function saveClassHomework(classId, className, title, releaseDate, fileData, link) {
   try {
     var ss = getClassSpreadsheet();
@@ -1428,9 +1468,13 @@ function saveClassHomework(classId, className, title, releaseDate, fileData, lin
         var parentFolderId = "1hloyK1wJcq5944hgvfmCu5YYmKXR12qM";
         var parentFolder = DriveApp.getFolderById(parentFolderId);
         
+        var tutorName = getTutorNameByClassId(classId, ss);
+        var tutorFolders = parentFolder.getFoldersByName(tutorName);
+        var tutorFolder = tutorFolders.hasNext() ? tutorFolders.next() : parentFolder.createFolder(tutorName);
+
         var classFolderName = className || "Lớp học không tên";
-        var classFolders = parentFolder.getFoldersByName(classFolderName);
-        var classFolder = classFolders.hasNext() ? classFolders.next() : parentFolder.createFolder(classFolderName);
+        var classFolders = tutorFolder.getFoldersByName(classFolderName);
+        var classFolder = classFolders.hasNext() ? classFolders.next() : tutorFolder.createFolder(classFolderName);
         
         var blob = Utilities.newBlob(Utilities.base64Decode(fileData.base64), fileData.mimeType, fileData.fileName);
         var file = classFolder.createFile(blob);

@@ -433,11 +433,15 @@ function uploadHomeworkFiles(ma, studentName, lessonName, filesList) {
     
     var baseFolder = parentFolder;
     if (isClassStudent) {
-      var classFolders = parentFolder.getFoldersByName(className);
+      var tutorName = getTutorNameByClassId(classId, ssClass);
+      var tutorFolders = parentFolder.getFoldersByName(tutorName);
+      var tutorFolder = tutorFolders.hasNext() ? tutorFolders.next() : parentFolder.createFolder(tutorName);
+
+      var classFolders = tutorFolder.getFoldersByName(className);
       if (classFolders.hasNext()) {
         baseFolder = classFolders.next();
       } else {
-        baseFolder = parentFolder.createFolder(className);
+        baseFolder = tutorFolder.createFolder(className);
       }
     }
 
