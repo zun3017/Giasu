@@ -2230,3 +2230,45 @@ function updateMultipleStudentsPaymentStatus(updates) {
     lock.releaseLock();
   }
 }
+
+// Lấy danh sách ý kiến đóng góp từ Phụ huynh cho Giáo viên lớp học
+function getClassTutorFeedback(tutorPhone, tutorCode) {
+  try {
+    var ss = getClassSpreadsheet();
+    var sheet = ss.getSheetByName('Ý kiến Phụ huynh lớp học');
+    if (!sheet) return [];
+    
+    var data = sheet.getDataRange().getDisplayValues();
+    if (data.length <= 1) return [];
+    
+    var result = [];
+    for (var i = 1; i < data.length; i++) {
+      var row = data[i];
+      if (!row || row.length < 5) continue;
+      
+      var feedbackId = row[0] || "";
+      var classId = row[1] || "";
+      var parentPhone = row[2] || "";
+      var studentName = row[3] || "Học sinh";
+      var content = row[4] || "";
+      var timestamp = row[5] || "";
+      
+      if (!content || content.trim() === "") continue;
+      
+      result.push({
+        feedbackId: feedbackId,
+        classId: classId,
+        studentPhone: parentPhone,
+        studentName: studentName,
+        content: content,
+        timestamp: timestamp
+      });
+    }
+    
+    result.reverse(); // Đưa phản hồi mới nhất lên đầu
+    return result;
+  } catch(e) {
+    Logger.log("Lỗi getClassTutorFeedback: " + e.toString());
+    return [];
+  }
+}
