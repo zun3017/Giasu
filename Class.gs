@@ -42,6 +42,22 @@ function clearClassCache(classId, type) {
     cache.remove("class_hw_" + cleanClassId);
     cache.remove("class_announce_" + cleanClassId);
   }
+  
+  // Đồng bộ xóa cache của tất cả học sinh trong lớp để Phụ huynh nhận được dữ liệu mới (Thông báo, Bài tập, Nhật ký, vv)
+  if (type === "logs" || type === "hw" || type === "announcement" || !type) {
+    try {
+      var students = getClassStudents(cleanClassId);
+      if (students && students.length > 0) {
+        students.forEach(function(st) {
+          if (st.parentPhone && typeof clearStudentCache === 'function') {
+            clearStudentCache(st.parentPhone);
+          }
+        });
+      }
+    } catch(e) {
+      Logger.log("Lỗi xóa cache học sinh lớp: " + e.toString());
+    }
+  }
 }
 
 // Hàm tự động khởi tạo 6 trang tính chuẩn màu cho Google Sheet Lớp học nhóm nếu chưa có

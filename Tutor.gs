@@ -1,4 +1,4 @@
-// Lấy dữ liệu tổng quan cho Gia sư
+﻿// Lấy dữ liệu tổng quan cho Gia sư
 function getTutorDashboardData(tutorPhone, gsRow, ss) {
   // Cập nhật ngày hoạt động cuối cùng của Gia sư ngầm
   updateTutorLastActive(ss, tutorPhone);
@@ -116,17 +116,32 @@ function clearTutorCache(tutorPhone) {
 }
 
 // Hàm dọn dẹp cache cho các buổi học của một học sinh cụ thể
-function clearCachesForStudent(studentPhone) {
+function clearCachesForStudent(studentPhone, studentName) {
   var normS = normalizePhone(studentPhone);
-  clearStudentCache(normS);
+  var dataHS = getSheetDisplayValuesCached('Mã học sinh');
+  
+  if (!normS && studentName) {
+    var targetName = String(studentName).trim().toLowerCase();
+    for (var i = 1; i < dataHS.length; i++) {
+      if (String(dataHS[i][2]).trim().toLowerCase() === targetName) {
+        normS = normalizePhone(dataHS[i][3]);
+        break;
+      }
+    }
+  }
+
+  if (normS) {
+    clearStudentCache(normS);
+  }
   
   // Tìm gia sư phụ trách để xóa cache gia sư tương ứng
   var tutorPhone = "";
-  var dataHS = getSheetDisplayValuesCached('Mã học sinh');
-  for (var i = 1; i < dataHS.length; i++) {
-    if (normalizePhone(dataHS[i][3]) === normS) {
-      tutorPhone = dataHS[i][6];
-      break;
+  if (normS) {
+    for (var i = 1; i < dataHS.length; i++) {
+      if (normalizePhone(dataHS[i][3]) === normS) {
+        tutorPhone = dataHS[i][6];
+        break;
+      }
     }
   }
   if (tutorPhone) {
@@ -301,7 +316,7 @@ function capNhatThongBaoHocSinh(studentPhone, thongBao) {
     
     // Clear cache
     clearSheetCache('Mã học sinh');
-    clearCachesForStudent(studentPhone);
+    clearCachesForStudent(studentPhone, typeof studentName !== "undefined" ? studentName : null);
     
     return { success: true };
   } catch (e) {
@@ -389,7 +404,7 @@ function themBuoiHoc(studentPhone, studentName, tuan, ngayDay, monHoc, noiDung, 
     
     // Clear caches
     clearSheetCache('Bảng đánh giá học tập ');
-    clearCachesForStudent(studentPhone);
+    clearCachesForStudent(studentPhone, typeof studentName !== "undefined" ? studentName : null);
     
     return { success: true };
   } catch (e) {
@@ -411,6 +426,7 @@ function suaBuoiHoc(rowIndex, tuan, ngayDay, monHoc, noiDung, danhGiaBTVN, diemD
     
     // Đọc SĐT học sinh từ dòng trước khi ghi đè để dọn dẹp cache
     var studentPhone = sheetDG.getRange(r, 1).getDisplayValue();
+    var studentName = sheetDG.getRange(r, 2).getDisplayValue();
     
     sheetDG.getRange(r, 3).setValue(tuan);
     sheetDG.getRange(r, 4).setValue(ngayDay);
@@ -433,9 +449,7 @@ function suaBuoiHoc(rowIndex, tuan, ngayDay, monHoc, noiDung, danhGiaBTVN, diemD
     
     // Clear caches
     clearSheetCache('Bảng đánh giá học tập ');
-    if (studentPhone) {
-      clearCachesForStudent(studentPhone);
-    }
+    clearCachesForStudent(studentPhone, typeof studentName !== "undefined" ? studentName : null);
     
     return { success: true };
   } catch (e) {
@@ -580,7 +594,7 @@ function xoaHocSinhTamThoi(tutorPhone, studentPhone) {
     
     // Clear caches
     clearSheetCache('Mã học sinh');
-    clearCachesForStudent(studentPhone);
+    clearCachesForStudent(studentPhone, typeof studentName !== "undefined" ? studentName : null);
     
     return { success: true };
   } catch (e) {
@@ -617,7 +631,7 @@ function khoiPhucHocSinh(tutorPhone, studentPhone) {
     
     // Clear caches
     clearSheetCache('Mã học sinh');
-    clearCachesForStudent(studentPhone);
+    clearCachesForStudent(studentPhone, typeof studentName !== "undefined" ? studentName : null);
     
     return { success: true };
   } catch (e) {
@@ -640,16 +654,15 @@ function xoaBuoiHoc(rowIndex) {
     }
     
     var studentPhone = sheetDG.getRange(r, 1).getDisplayValue();
+    var studentName = sheetDG.getRange(r, 2).getDisplayValue();
     
-    sheetDG.getRange(r, 1).setValue(""); // Xóa số điện thoại ở cột A để đánh dấu dòng trống
-    sheetDG.getRange(r, 3, 1, 10).setValue(""); // Xóa sạch dữ liệu từ cột C đến cột L
+    // Xóa toàn bộ dữ liệu từ cột 1 đến cột 12 (tránh để sót cột Tên học sinh khiến logic tự động lấy bị nhầm)
+    sheetDG.getRange(r, 1, 1, 12).setValue(""); 
     sheetDG.getRange(r, 1, 1, 12).setFontFamily("Arial");
     
     // Clear caches
     clearSheetCache('Bảng đánh giá học tập ');
-    if (studentPhone) {
-      clearCachesForStudent(studentPhone);
-    }
+    clearCachesForStudent(studentPhone, typeof studentName !== "undefined" ? studentName : null);
     
     return { success: true };
   } catch (e) {
@@ -684,7 +697,7 @@ function capNhatDongHocPhiBuoiHoc(rowIndices) {
     // Clear caches
     clearSheetCache('Bảng đánh giá học tập ');
     for (var phone in clearedPhones) {
-      clearCachesForStudent(phone);
+      clearCachesForStudent(phone, null);
     }
     
     return { success: true };
@@ -741,7 +754,7 @@ function capNhatNhieuDongHocPhi(paidRowIndices, unpaidRowIndices) {
     // Clear caches
     clearSheetCache('Bảng đánh giá học tập ');
     for (var phone in clearedPhones) {
-      clearCachesForStudent(phone);
+      clearCachesForStudent(phone, null);
     }
     
     return { success: true };

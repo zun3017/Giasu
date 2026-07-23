@@ -28,6 +28,19 @@
         <!-- Khung Thông Báo -->
         <div id="khuVucThongBao"></div>
         
+        <!-- Khung Phản Hồi Phụ Huynh -->
+        <div class="result-section" id="khuVucPhanHoiPhuHuynh" style="margin-top: 20px;">
+            <h4><i class="fa-regular fa-comment-dots"></i> Phản hồi từ Phụ huynh</h4>
+            <div class="feedback-form-container">
+                <textarea id="feedbackInput" placeholder="Nhập ý kiến đóng góp hoặc phản hồi của phụ huynh gửi cho gia sư tại đây..." rows="3"></textarea>
+                <button onclick="guiPhanHoiPhuHuynh()" id="btnSubmitFeedback" class="btn-submit-feedback">
+                    Gửi phản hồi <i class="fa-regular fa-paper-plane"></i>
+                </button>
+            </div>
+            <p id="feedbackMessage" class="feedback-message-status"></p>
+        </div>
+
+        
         <!-- Bảng Tóm Tắt Kết Quả -->
         <div class="summary-grid">
             <!-- Thẻ Nộp bài tập -->
@@ -117,18 +130,6 @@
             </div>
         </div>
 
-        <!-- Khung Phản Hồi Phụ Huynh -->
-        <div class="result-section">
-            <h4><i class="fa-regular fa-comment-dots"></i> Phản hồi từ Phụ huynh</h4>
-            <div class="feedback-form-container">
-                <textarea id="feedbackInput" placeholder="Nhập ý kiến đóng góp hoặc phản hồi của phụ huynh gửi cho gia sư tại đây..." rows="3"></textarea>
-                <button onclick="guiPhanHoiPhuHuynh()" id="btnSubmitFeedback" class="btn-submit-feedback">
-                    Gửi phản hồi <i class="fa-regular fa-paper-plane"></i>
-                </button>
-            </div>
-            <p id="feedbackMessage" class="feedback-message-status"></p>
-        </div>
-        
         <button onclick="quayLai()" class="btn-back"><i class="fa-solid fa-arrow-left"></i> Trở Về Màn Hình Chính</button>
     </div>
 
