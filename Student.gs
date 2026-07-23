@@ -127,8 +127,35 @@ function clearStudentCache(phone) {
 // Gửi ý kiến phản hồi của phụ huynh
 function guiPhanHoi(maHS, tenHocSinh, noiDung, isClass, classId, className) {
   try {
-    if (isClass) {
-      var ssClass = getClassSpreadsheet();
+    var ssClass = (typeof getClassSpreadsheet === 'function') ? getClassSpreadsheet() : null;
+    
+    // TỰ ĐỘNG KIỂM TRA: Nếu không có cờ isClass từ frontend, tự dò trong sheet 'Học sinh lớp học'
+    var isClassStudent = !!isClass;
+    var targetClassId = classId || "";
+    
+    if (ssClass && !isClassStudent) {
+      var sheetClassStudents = ssClass.getSheetByName('Học sinh lớp học');
+      if (sheetClassStudents) {
+        var dataCS = sheetClassStudents.getDataRange().getDisplayValues();
+        var normHS = (typeof normalizePhone === 'function') ? normalizePhone(maHS) : String(maHS).trim();
+        for (var i = 1; i < dataCS.length; i++) {
+          if (!dataCS[i] || dataCS[i].length < 1) continue;
+          var csId = String(dataCS[i][0] || "").trim();
+          var csName = String(dataCS[i][1] || "").trim();
+          var csClassId = String(dataCS[i][2] || "").trim();
+          var csParentPhone = (typeof normalizePhone === 'function') ? normalizePhone(dataCS[i][3] || "") : String(dataCS[i][3]).trim();
+          
+          if (csId === maHS || csName === tenHocSinh || (normHS && csParentPhone === normHS)) {
+            isClassStudent = true;
+            if (!targetClassId) targetClassId = csClassId;
+            break;
+          }
+        }
+      }
+    }
+
+    // NẾU LÀ PHỤ HUYNH LỚP HỌC -> LƯU VÀO FILE LỚP HỌC
+    if (isClassStudent && ssClass) {
       var sheetName = "Ý kiến Phụ huynh lớp học";
       var sFeedback = ssClass.getSheetByName(sheetName);
       if (!sFeedback) {
@@ -137,11 +164,11 @@ function guiPhanHoi(maHS, tenHocSinh, noiDung, isClass, classId, className) {
         sFeedback.getRange(1, 1, 1, 6).setFontWeight("bold").setBackground("#8E4DFF").setFontColor("#FFFFFF");
       }
       var feedbackId = "YKIEN_" + new Date().getTime();
-      sFeedback.appendRow([feedbackId, classId, "'" + maHS, tenHocSinh, noiDung, new Date()]);
+      sFeedback.appendRow([feedbackId, targetClassId, "'" + maHS, tenHocSinh, noiDung, new Date()]);
       return { thanhCong: true };
     }
 
-    // Logic cũ cho gia sư 1 kèm 1
+    // NẾU LÀ GIA SƯ 1 KÈM 1 -> LƯU VÀO FILE TỔNG (MAIN)
     var ss = SpreadsheetApp.getActiveSpreadsheet();
     var sheetName = "Ý kiến phụ huynh";
     var sheet = ss.getSheetByName(sheetName);
@@ -173,8 +200,6 @@ function guiPhanHoi(maHS, tenHocSinh, noiDung, isClass, classId, className) {
     return { thanhCong: true };
   } catch (error) {
     return { thanhCong: false, thongBao: error.toString() };
-  }
-};
   }
 }
 
