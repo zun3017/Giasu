@@ -228,6 +228,8 @@ function loginClassSystem(phone, pin) {
     tutorPhone: phone,
     tutorName: teacherName,
     tutorCode: tutorCode,
+    tutorPin: truePin,
+    pin: truePin,
     qrUrl: qrUrl,
     qrCodeUrl: qrUrl,
     classes: classes
@@ -802,6 +804,7 @@ function loginClassSystem(phone, pin) {
   var tutorName = "Giáo viên Lớp học";
   var accountType = "Cả hai";
   var qrUrl = "";
+  var tutorPin = "";
   var found = false;
   
   var dataGS = getSheetDisplayValuesCached('Mã gia sư');
@@ -809,6 +812,7 @@ function loginClassSystem(phone, pin) {
     if (dataGS[i].length > 2 && normalizePhone(dataGS[i][2]) === normPhone) {
       found = true;
       tutorName = dataGS[i][1];
+      tutorPin = (dataGS[i].length > 3 && dataGS[i][3] !== null) ? String(dataGS[i][3]).trim() : "";
       qrUrl = (dataGS[i].length > 4 && dataGS[i][4] !== null) ? String(dataGS[i][4]).trim() : "";
       accountType = (dataGS[i].length > 10 && dataGS[i][10].trim() !== "") ? dataGS[i][10].trim() : "Cả hai";
       break;
@@ -828,6 +832,8 @@ function loginClassSystem(phone, pin) {
     accountType: accountType,
     tutorName: tutorName,
     tutorPhone: phone,
+    tutorPin: tutorPin,
+    pin: tutorPin,
     qrUrl: qrUrl,
     qrCodeUrl: qrUrl,
     classes: classes
