@@ -210,6 +210,7 @@ function loginClassSystem(phone, pin) {
 
       teacherName = dataGS[i][1] || teacherName;
       tutorCode = dataGS[i][0] || "";
+      var qrUrl = (dataGS[i].length > 4 && dataGS[i][4] !== null) ? String(dataGS[i][4]).trim() : "";
       break;
     }
   }
@@ -227,6 +228,8 @@ function loginClassSystem(phone, pin) {
     tutorPhone: phone,
     tutorName: teacherName,
     tutorCode: tutorCode,
+    qrUrl: qrUrl,
+    qrCodeUrl: qrUrl,
     classes: classes
   };
 }
@@ -798,6 +801,7 @@ function loginClassSystem(phone, pin) {
   // Lấy dữ liệu tên giáo viên và phân quyền từ danh sách Gia sư
   var tutorName = "Giáo viên Lớp học";
   var accountType = "Cả hai";
+  var qrUrl = "";
   var found = false;
   
   var dataGS = getSheetDisplayValuesCached('Mã gia sư');
@@ -805,6 +809,7 @@ function loginClassSystem(phone, pin) {
     if (dataGS[i].length > 2 && normalizePhone(dataGS[i][2]) === normPhone) {
       found = true;
       tutorName = dataGS[i][1];
+      qrUrl = (dataGS[i].length > 4 && dataGS[i][4] !== null) ? String(dataGS[i][4]).trim() : "";
       accountType = (dataGS[i].length > 10 && dataGS[i][10].trim() !== "") ? dataGS[i][10].trim() : "Cả hai";
       break;
     }
@@ -823,6 +828,8 @@ function loginClassSystem(phone, pin) {
     accountType: accountType,
     tutorName: tutorName,
     tutorPhone: phone,
+    qrUrl: qrUrl,
+    qrCodeUrl: qrUrl,
     classes: classes
   };
 }
