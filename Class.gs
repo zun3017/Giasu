@@ -2080,14 +2080,27 @@ function traCuuDuLieuHocSinhLop(phone, csRow, ss) {
                   }
                 }
               }
+              if (!sData && typeof pObj === 'object') {
+                var keys = Object.keys(pObj);
+                if (keys.length === 1) {
+                  sData = pObj[keys[0]];
+                }
+              }
               if (sData) {
                 if (sData.attendance) privateAtt = sData.attendance;
-                if (sData.privateNote) privateNote = sData.privateNote + (generalNote ? " (" + generalNote + ")" : "");
-                if (sData.entryTest !== undefined && sData.entryTest !== null && String(sData.entryTest).trim() !== "") {
-                  entryTest = String(sData.entryTest).trim();
+                if (sData.privateNote !== undefined && sData.privateNote !== null) {
+                  var pN = String(sData.privateNote).trim();
+                  if (pN !== "") privateNote = pN + (generalNote ? " (" + generalNote + ")" : "");
                 }
-                if (sData.termTest !== undefined && sData.termTest !== null && String(sData.termTest).trim() !== "") {
-                  termTest = String(sData.termTest).trim();
+                
+                var eVal = (sData.entryTest !== undefined && sData.entryTest !== null && String(sData.entryTest).trim() !== "") ? sData.entryTest : (sData.entryScore !== undefined ? sData.entryScore : sData.entry);
+                if (eVal !== undefined && eVal !== null && String(eVal).trim() !== "") {
+                  entryTest = String(eVal).trim();
+                }
+
+                var tVal = (sData.termTest !== undefined && sData.termTest !== null && String(sData.termTest).trim() !== "") ? sData.termTest : (sData.termScore !== undefined ? sData.termScore : sData.term);
+                if (tVal !== undefined && tVal !== null && String(tVal).trim() !== "") {
+                  termTest = String(tVal).trim();
                 }
               }
             }
