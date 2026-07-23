@@ -408,6 +408,19 @@
             </div>
         </div>
 
+        <!-- Thẻ Ý kiến Phụ huynh riêng biệt (đặt ngay dưới Thông báo nhanh cho phụ huynh) -->
+        <div class="card-box" style="margin-top: 20px; margin-bottom: 25px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
+                <h3 style="color: #38BDF8; font-size: 17px; font-weight: 800; margin: 0; display: flex; align-items: center; gap: 10px;">
+                    <i class="fa-regular fa-comment-dots" style="color: #38BDF8;"></i> Danh sách ý kiến đóng góp từ Phụ huynh
+                </h3>
+                <button onclick="loadClassParentFeedback()" style="padding: 7px 18px; background: rgba(56, 189, 248, 0.15); border: 1px solid #38BDF8; border-radius: 12px; color: #38BDF8; font-size: 13px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 6px; box-shadow: 0 4px 12px rgba(56, 189, 248, 0.15);"><i class="fa-solid fa-rotate"></i> Tải lại</button>
+            </div>
+            <div id="classParentFeedbackContainer" style="background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 20px; min-height: 120px;">
+                <div style="text-align: center; color: #A6ADCE; padding: 30px;"><i class="fa-solid fa-circle-notch fa-spin"></i> Đang tải ý kiến phụ huynh...</div>
+            </div>
+        </div>
+
         <!-- Section Bài tập cho Lớp học (Chuẩn 100% Ảnh 3) -->
         <div class="card-box" style="margin-top: 25px; margin-bottom: 25px;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; flex-wrap: wrap; gap: 10px;">
@@ -423,9 +436,6 @@
                 </button>
                 <button id="classHwTabSubmitBtn" onclick="switchClassHwTab('submit')" style="padding: 9px 20px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; color: #A6ADCE; font-weight: 600; font-size: 13.5px; cursor: pointer; display: flex; align-items: center; gap: 8px;">
                     <i class="fa-solid fa-graduation-cap"></i> Học sinh nộp bài
-                </button>
-                <button id="classHwTabFeedbackBtn" onclick="switchClassHwTab('feedback')" style="padding: 9px 20px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; color: #A6ADCE; font-weight: 600; font-size: 13.5px; cursor: pointer; display: flex; align-items: center; gap: 8px;">
-                    <i class="fa-regular fa-comment-dots" style="color: #38BDF8;"></i> Ý kiến Phụ huynh
                 </button>
             </div>
 
@@ -518,19 +528,6 @@
                             <tr><td colspan="5" style="text-align:center; color:#A6ADCE; padding: 25px;">Chưa có học sinh nào nộp bài tập.</td></tr>
                         </tbody>
                     </table>
-                </div>
-            </div>
-
-            <!-- Tab 3: Ý kiến Phụ huynh -->
-            <div id="classHwTabContentFeedback" style="display: none;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                    <h4 style="color: #38BDF8; font-size: 15px; font-weight: 800; margin: 0; display: flex; align-items: center; gap: 8px;">
-                        <i class="fa-regular fa-comment-dots"></i> Danh sách ý kiến đóng góp từ Phụ huynh
-                    </h4>
-                    <button onclick="loadClassParentFeedback()" style="padding: 6px 14px; background: rgba(56, 189, 248, 0.15); border: 1px solid #38BDF8; border-radius: 12px; color: #38BDF8; font-size: 12.5px; font-weight: bold; cursor: pointer;"><i class="fa-solid fa-rotate"></i> Tải lại</button>
-                </div>
-                <div id="classParentFeedbackContainer" style="background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 20px; min-height: 150px;">
-                    <div style="text-align: center; color: #A6ADCE; padding: 30px;"><i class="fa-solid fa-circle-notch fa-spin"></i> Đang tải ý kiến phụ huynh...</div>
                 </div>
             </div>
         </div>
@@ -1388,6 +1385,7 @@
             renderClassLessonLogsTableUI();
             renderClassHomeworkListUI();
             renderTuitionOverviewUI();
+            loadClassParentFeedback();
         }
 
         function openTutorAccountModal() {
