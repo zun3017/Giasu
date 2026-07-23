@@ -2366,3 +2366,45 @@ function getClassAnnouncement(classId) {
     return "";
   }
 }
+
+// Lấy phản hồi từ phụ huynh cho giáo viên lớp học
+function getClassTutorFeedback(tutorPhone, tutorCode) {
+  try {
+    var ssClass = getClassSpreadsheet();
+    if (!ssClass) return [];
+
+    // 1. Lấy danh sách các mã lớp học của giáo viên này
+    var classList = getClassList(tutorPhone, tutorCode);
+    if (!classList || classList.length === 0) return [];
+    
+    var tutorClassIds = [];
+    for (var i = 0; i < classList.length; i++) {
+      tutorClassIds.push(String(classList[i].classId).trim());
+    }
+
+    var sheetFeedback = ssClass.getSheetByName('Ý kiến Phụ huynh lớp học');
+    if (!sheetFeedback) return [];
+
+    var dataFB = sheetFeedback.getDataRange().getDisplayValues();
+    var feedbacks = [];
+    
+    // Quét từ dưới lên để lấy ý kiến mới nhất
+    for (var j = dataFB.length - 1; j >= 1; j--) {
+      var fbClassId = String(dataFB[j][1]).trim(); // Cột B: Mã lớp
+      
+      if (tutorClassIds.indexOf(fbClassId) !== -1) {
+        feedbacks.push({
+          timestamp: dataFB[j][5], // Cột F: Thời gian gửi
+          studentPhone: String(dataFB[j][2]).replace(/'/g, ''), // Cột C: SĐT Phụ huynh
+          studentName: dataFB[j][3], // Cột D: Tên học sinh
+          content: dataFB[j][4] // Cột E: Nội dung đóng góp
+        });
+      }
+    }
+    
+    return feedbacks;
+  } catch (e) {
+    Logger.log("Lỗi getClassTutorFeedback: " + e.toString());
+    return [];
+  }
+}
