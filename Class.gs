@@ -2070,11 +2070,26 @@ function traCuuDuLieuHocSinhLop(phone, csRow, ss) {
         if (studentNotesRaw && studentNotesRaw.trim() !== "") {
           try {
             var pObj = JSON.parse(studentNotesRaw);
-            if (pObj && pObj[studentId]) {
-              if (pObj[studentId].attendance) privateAtt = pObj[studentId].attendance;
-              if (pObj[studentId].privateNote) privateNote = pObj[studentId].privateNote + (generalNote ? " (" + generalNote + ")" : "");
-              if (pObj[studentId].entryTest) entryTest = pObj[studentId].entryTest;
-              if (pObj[studentId].termTest) termTest = pObj[studentId].termTest;
+            if (pObj) {
+              var sData = pObj[studentId] || pObj[String(studentId).trim()] || pObj[studentName];
+              if (!sData) {
+                for (var kKey in pObj) {
+                  if (kKey === String(studentId).trim() || kKey.toLowerCase() === String(studentName).toLowerCase()) {
+                    sData = pObj[kKey];
+                    break;
+                  }
+                }
+              }
+              if (sData) {
+                if (sData.attendance) privateAtt = sData.attendance;
+                if (sData.privateNote) privateNote = sData.privateNote + (generalNote ? " (" + generalNote + ")" : "");
+                if (sData.entryTest !== undefined && sData.entryTest !== null && String(sData.entryTest).trim() !== "") {
+                  entryTest = String(sData.entryTest).trim();
+                }
+                if (sData.termTest !== undefined && sData.termTest !== null && String(sData.termTest).trim() !== "") {
+                  termTest = String(sData.termTest).trim();
+                }
+              }
             }
           } catch(e){}
         }
