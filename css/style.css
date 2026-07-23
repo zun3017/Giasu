@@ -1951,12 +1951,16 @@
             #tutorHwUploadAreaDesktop { display: block !important; }
             #demoHwUploadAreaMobile { display: none !important; }
             #demoHwUploadAreaDesktop { display: block !important; }
+            #classHwUploadAreaMobile { display: none !important; }
+            #classHwUploadAreaDesktop { display: block !important; }
         }
         @media (max-width: 768px) {
             #tutorHwUploadAreaMobile { display: block !important; }
             #tutorHwUploadAreaDesktop { display: none !important; }
             #demoHwUploadAreaMobile { display: block !important; }
             #demoHwUploadAreaDesktop { display: none !important; }
+            #classHwUploadAreaMobile { display: block !important; }
+            #classHwUploadAreaDesktop { display: none !important; }
         }
 
 

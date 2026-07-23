@@ -165,6 +165,7 @@ function guiPhanHoi(maHS, tenHocSinh, noiDung, isClass, classId, className) {
       }
       var feedbackId = "YKIEN_" + new Date().getTime();
       sFeedback.appendRow([feedbackId, targetClassId, "'" + maHS, tenHocSinh, noiDung, new Date()]);
+      cleanupOldFeedback(sFeedback, 5);
       return { thanhCong: true };
     }
 
@@ -180,6 +181,7 @@ function guiPhanHoi(maHS, tenHocSinh, noiDung, isClass, classId, className) {
     }
     
     sheet.appendRow([new Date(), "'" + maHS, tenHocSinh, noiDung]);
+    cleanupOldFeedback(sheet, 0);
     
     var cache = CacheService.getScriptCache();
     var sheetHS = ss.getSheetByName('Mã học sinh');
@@ -416,26 +418,42 @@ function uploadHomeworkFiles(ma, studentName, lessonName, filesList) {
     
     var ssClass = getClassSpreadsheet();
     if (ssClass) {
-      var sheetCS = ssClass.getSheetByName('Học sinh lớp học');
-      if (sheetCS) {
-        var dataCS = sheetCS.getDataRange().getDisplayValues();
-        for (var i = 1; i < dataCS.length; i++) {
-          if (!dataCS[i] || dataCS[i].length < 1) continue;
-          var isMatch = false;
-          for (var col = 0; col < dataCS[i].length; col++) {
-            var val = String(dataCS[i][col] || "").trim();
-            if (val === "") continue;
-            if (val.toLowerCase() === rawMa || (normMa !== "" && normalizePhone(val) === normMa)) {
-              isMatch = true;
-              break;
-            }
-          }
-          if (isMatch) {
-            studentId = dataCS[i][0];
-            studentName = studentName || dataCS[i][1];
-            classId = dataCS[i][2];
+      // 1. Kiểm tra xem ma có phải là Mã bài tập lớp học không
+      var sheetHW = ssClass.getSheetByName('Bài tập lớp học');
+      if (sheetHW) {
+        var dataHW = sheetHW.getDataRange().getDisplayValues();
+        for (var h = 1; h < dataHW.length; h++) {
+          if (String(dataHW[h][0]).trim().toLowerCase() === rawMa) {
+            classId = dataHW[h][1];
             isClassStudent = true;
             break;
+          }
+        }
+      }
+
+      // 2. Nếu không phải Mã bài tập, thử tìm xem có phải Mã học sinh lớp học không
+      if (!isClassStudent) {
+        var sheetCS = ssClass.getSheetByName('Học sinh lớp học');
+        if (sheetCS) {
+          var dataCS = sheetCS.getDataRange().getDisplayValues();
+          for (var i = 1; i < dataCS.length; i++) {
+            if (!dataCS[i] || dataCS[i].length < 1) continue;
+            var isMatch = false;
+            for (var col = 0; col < dataCS[i].length; col++) {
+              var val = String(dataCS[i][col] || "").trim();
+              if (val === "") continue;
+              if (val.toLowerCase() === rawMa || (normMa !== "" && normalizePhone(val) === normMa)) {
+                isMatch = true;
+                break;
+              }
+            }
+            if (isMatch) {
+              studentId = dataCS[i][0];
+              studentName = studentName || dataCS[i][1];
+              classId = dataCS[i][2];
+              isClassStudent = true;
+              break;
+            }
           }
         }
       }

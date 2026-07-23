@@ -157,29 +157,29 @@
                 if (dataStr) data = JSON.parse(dataStr);
             } catch(e) {}
 
-            if (!data || role !== 'student') {
-                var phone = sessionStorage.getItem('userPhone') || localStorage.getItem('userPhone');
-                var studentName = sessionStorage.getItem('selectedStudentName') || localStorage.getItem('selectedStudentName');
-                if (phone) {
-                    google.script.run.withSuccessHandler(function(res) {
-                        if (res && res.role === 'student' && res.data && res.data.timThay) {
-                            sessionStorage.setItem('userRole', 'student');
-                            sessionStorage.setItem('dashboardData', JSON.stringify(res.data));
-                            localStorage.setItem('userRole', 'student');
-                            localStorage.setItem('dashboardData', JSON.stringify(res.data));
-                            renderStudentView(res.data);
-                        } else {
-                            window.location.href = 'student-login.html';
-                        }
-                    }).withFailureHandler(function() {
-                        window.location.href = 'student-login.html';
-                    }).loginSystem(phone, "", studentName);
-                    return;
-                }
-                window.location.href = 'student-login.html';
-                return;
+            if (data && role === 'student') {
+                renderStudentView(data);
             }
-            renderStudentView(data);
+
+            var phone = sessionStorage.getItem('userPhone') || localStorage.getItem('userPhone');
+            var studentName = sessionStorage.getItem('selectedStudentName') || localStorage.getItem('selectedStudentName');
+            if (phone) {
+                google.script.run.withSuccessHandler(function(res) {
+                    if (res && res.role === 'student' && res.data && res.data.timThay) {
+                        sessionStorage.setItem('userRole', 'student');
+                        sessionStorage.setItem('dashboardData', JSON.stringify(res.data));
+                        localStorage.setItem('userRole', 'student');
+                        localStorage.setItem('dashboardData', JSON.stringify(res.data));
+                        renderStudentView(res.data);
+                    } else if (!data) {
+                        window.location.href = 'student-login.html';
+                    }
+                }).withFailureHandler(function() {
+                    if (!data) window.location.href = 'student-login.html';
+                }).loginSystem(phone, "", studentName);
+            } else if (!data) {
+                window.location.href = 'student-login.html';
+            }
         });
     </script>
 </body>

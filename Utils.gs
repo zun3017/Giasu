@@ -465,3 +465,29 @@ function onEdit(e) {
   }
 }
 
+
+// Xóa phản hồi cũ hơn 10 ngày
+function cleanupOldFeedback(sheet, dateColumnIndex) {
+  try {
+    if (!sheet) return;
+    var data = sheet.getDataRange().getValues();
+    if (data.length <= 1) return;
+    
+    var tenDaysAgo = new Date();
+    tenDaysAgo.setDate(tenDaysAgo.getDate() - 10);
+    
+    for (var i = data.length - 1; i >= 1; i--) {
+      var dateVal = data[i][dateColumnIndex];
+      if (dateVal instanceof Date) {
+        if (dateVal < tenDaysAgo) {
+          sheet.deleteRow(i + 1);
+        }
+      } else if (typeof dateVal === 'string' && dateVal.length > 0) {
+        var parsedDate = new Date(dateVal);
+        if (!isNaN(parsedDate.getTime()) && parsedDate < tenDaysAgo) {
+          sheet.deleteRow(i + 1);
+        }
+      }
+    }
+  } catch(e) {}
+}

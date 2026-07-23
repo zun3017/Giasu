@@ -1983,6 +1983,15 @@ function switchTutorHwTab(tabName) {
         tabContentAssign.style.display = 'block';
         tabContentSubmit.style.display = 'none';
         
+        var dateInput = document.getElementById("assignHwReleaseDate");
+        if (dateInput && !dateInput.value) {
+            var now = new Date();
+            var d = String(now.getDate()).padStart(2, '0');
+            var m = String(now.getMonth() + 1).padStart(2, '0');
+            var y = now.getFullYear();
+            dateInput.value = d + "/" + m + "/" + y;
+        }
+        
         loadTutorAssignedHomework();
     } else {
         tabAssignBtn.classList.remove('active');

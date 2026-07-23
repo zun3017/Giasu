@@ -1104,6 +1104,7 @@ function getTutorFeedback(tutorPhone) {
     var sheetFeedback = ss.getSheetByName('Ý kiến phụ huynh');
     var feedbacks = [];
     if (sheetFeedback) {
+      cleanupOldFeedback(sheetFeedback, 0);
       var dataFB = sheetFeedback.getDataRange().getDisplayValues(); // Phản hồi không cache nguyên sheet vì ít dòng nhưng cần lấy real-time
       for (var j = dataFB.length - 1; j >= 1; j--) {
         var studentPhone = normalizePhone(dataFB[j][1]);

@@ -49,8 +49,9 @@ function clearClassCache(classId, type) {
       var students = getClassStudents(cleanClassId);
       if (students && students.length > 0) {
         students.forEach(function(st) {
-          if (st.parentPhone && typeof clearStudentCache === 'function') {
-            clearStudentCache(st.parentPhone);
+          if (typeof clearStudentCache === 'function') {
+            if (st.parentPhone) clearStudentCache(st.parentPhone);
+            if (st.studentId) clearStudentCache(st.studentId);
           }
         });
       }
@@ -1179,8 +1180,8 @@ function getClassLessonLogs(classId, className, ssParam) {
 // Xóa tạm Nhật ký buổi học vào Thùng rác (Soft Delete)
 function deleteClassLessonLog(logId, className) {
   var ss = getClassSpreadsheet();
-  var sheet = null;
-  if (className && String(className).trim() !== '') {
+  var sheet = ss.getSheetByName('Nhật ký chung');
+  if (!sheet && className && String(className).trim() !== '') {
     sheet = ss.getSheetByName(String(className).trim());
   }
   if (!sheet) {
@@ -1194,8 +1195,8 @@ function deleteClassLessonLog(logId, className) {
     var data = sheet.getDataRange().getDisplayValues();
     for (var i = 1; i < data.length; i++) {
       if (String(data[i][0]).trim() === String(logId).trim()) {
-        sheet.getRange(i + 1, 13).setValue(nowStr);
         var classId = data[i][1];
+        sheet.deleteRow(i + 1);
         if (classId) clearClassCache(classId, "logs");
         SpreadsheetApp.flush();
         found = true;
@@ -1213,8 +1214,8 @@ function deleteClassLessonLog(logId, className) {
       if (data.length > 1 && data[0].length >= 13 && String(data[0][0]).trim() === "Mã nhật ký") {
         for (var i = 1; i < data.length; i++) {
           if (String(data[i][0]).trim() === String(logId).trim()) {
-            sh.getRange(i + 1, 13).setValue(nowStr);
             var classId = data[i][1];
+            sh.deleteRow(i + 1);
             if (classId) clearClassCache(classId, "logs");
             SpreadsheetApp.flush();
             found = true;
@@ -1413,14 +1414,14 @@ function getClassSubmissions(classId) {
 function getOrCreateClassHomeworkSheet(ss) {
   if (!ss) ss = getClassSpreadsheet();
   var sheet = ss.getSheetByName('Bài tập lớp học');
-  var homeworkHeaders = ["Mã bài tập", "Mã lớp", "Tên lớp", "Tên bài tập", "Ngày giao", "Link đính kèm", "URL File đính kèm", "Tên file"];
+  var homeworkHeaders = ["Mã bài tập", "Mã lớp", "Tên lớp", "Tên bài tập", "Ngày giao", "Link đính kèm", "URL File đính kèm", "Tên file", "Trạng thái xóa", "Ngày xóa"];
   if (!sheet) {
     sheet = ss.insertSheet('Bài tập lớp học');
     sheet.appendRow(homeworkHeaders);
-    sheet.getRange(1, 1, 1, 8).setFontWeight("bold").setBackground("#8E4DFF").setFontColor("#FFFFFF");
+    sheet.getRange(1, 1, 1, 10).setFontWeight("bold").setBackground("#8E4DFF").setFontColor("#FFFFFF");
     sheet.setFrozenRows(1);
   } else {
-    sheet.getRange(1, 1, 1, 8).setValues([homeworkHeaders]).setFontWeight("bold").setBackground("#8E4DFF").setFontColor("#FFFFFF");
+    sheet.getRange(1, 1, 1, 10).setValues([homeworkHeaders]).setFontWeight("bold").setBackground("#8E4DFF").setFontColor("#FFFFFF");
     sheet.setFrozenRows(1);
   }
   return sheet;
@@ -1452,6 +1453,8 @@ function getClassHomeworkList(classId, className, ssParam) {
     if (data[i] && data[i].length >= 4 && data[i][0] !== "") {
       var rowClassId = String(data[i][1] || "").trim();
       var rowClassName = String(data[i][2] || "").trim().toLowerCase();
+      
+      if (data[i].length > 8 && String(data[i][8]).trim() === "Deleted") continue;
       
       if ((cleanClassId !== "" && rowClassId === cleanClassId) || (cleanName !== "" && rowClassName === cleanName) || (cleanClassId === "" && cleanName === "")) {
         var releaseDateVal = "";
@@ -1512,11 +1515,14 @@ function getTutorNameByClassId(classId, ssClassParam) {
     
     var dataGS = sheetGS.getDataRange().getDisplayValues();
     for (var j = 1; j < dataGS.length; j++) {
-      var gsPhone = normalizePhone(dataGS[j][4] || "");
+      var gsPhone = normalizePhone(dataGS[j][2] || "");
       var gsCode = String(dataGS[j][8] || "").trim().toLowerCase();
+      var gsName = String(dataGS[j][1] || "").trim().toLowerCase();
+      
       if ((normPhone !== "" && gsPhone === normPhone) || 
-          (normCode !== "" && gsCode === normCode)) {
-        return dataGS[j][2] || "Giáo viên không tên";
+          (normCode !== "" && gsCode === normCode) ||
+          (normCode !== "" && gsName === normCode)) {
+        return dataGS[j][1] || "Giáo viên không tên";
       }
     }
   } catch (e) {
@@ -1525,18 +1531,28 @@ function getTutorNameByClassId(classId, ssClassParam) {
   return "Giáo viên không tên";
 }
 
-function saveClassHomework(classId, className, title, releaseDate, fileData, link) {
+function saveClassHomework(classId, className, title, releaseDate, fileBase64, fileName, mimeType, link) {
   try {
     var ss = getClassSpreadsheet();
     var sheet = getOrCreateClassHomeworkSheet(ss);
     var hwId = "HW_LH_" + new Date().getTime();
     var fileUrl = "";
-    var fileName = "";
+    var fName = fileName || "";
     
-    if (fileData && fileData.base64) {
+    if (fileBase64 && fName) {
       try {
         var parentFolderId = "1hloyK1wJcq5944hgvfmCu5YYmKXR12qM";
-        var parentFolder = DriveApp.getFolderById(parentFolderId);
+        var parentFolder;
+        try {
+          parentFolder = DriveApp.getFolderById(parentFolderId);
+        } catch(err) {
+          var folders = DriveApp.getRootFolder().getFoldersByName("BÀI TẬP LỚP HỌC");
+          if (folders.hasNext()) {
+            parentFolder = folders.next();
+          } else {
+            parentFolder = DriveApp.getRootFolder().createFolder("BÀI TẬP LỚP HỌC");
+          }
+        }
         
         var tutorName = getTutorNameByClassId(classId, ss);
         var tutorFolders = parentFolder.getFoldersByName(tutorName);
@@ -1546,29 +1562,26 @@ function saveClassHomework(classId, className, title, releaseDate, fileData, lin
         var classFolders = tutorFolder.getFoldersByName(classFolderName);
         var classFolder = classFolders.hasNext() ? classFolders.next() : tutorFolder.createFolder(classFolderName);
         
-        var blob = Utilities.newBlob(Utilities.base64Decode(fileData.base64), fileData.mimeType, fileData.fileName);
-        var file = classFolder.createFile(blob);
-        file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
-        fileUrl = file.getUrl();
-        fileName = fileData.fileName;
-      } catch(uploadErr) {
-        console.error("Lỗi upload file bài tập:", uploadErr);
+        var decodedData = Utilities.base64Decode(fileBase64);
+        var blob = Utilities.newBlob(decodedData, mimeType || "application/octet-stream", fName);
+        var driveFile = classFolder.createFile(blob);
+        
+        try {
+          driveFile.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+        } catch(shareErr) {
+          Logger.log("Không thể chia sẻ file công khai do quyền: " + shareErr);
+        }
+        fileUrl = driveFile.getUrl();
+      } catch(e) {
+        Logger.log("Lỗi upload file: " + e.toString());
+        return { success: false, error: "Lỗi upload file: " + e.toString() };
       }
     }
     
-    sheet.appendRow([
-      hwId,
-      classId || "",
-      className || "",
-      title || "Bài tập mới",
-      releaseDate || new Date().toLocaleDateString('vi-VN'),
-      link || "",
-      fileUrl,
-      fileName
-    ]);
+    sheet.appendRow([hwId, classId, className, title, releaseDate, link || "", fileUrl, fName, "", ""]);
     clearClassCache(classId, "hw");
     SpreadsheetApp.flush();
-    return { success: true, hwId: hwId, fileUrl: fileUrl, fileName: fileName };
+    return { success: true, hwId: hwId, fileUrl: fileUrl, fileName: fName };
   } catch(e) {
     return { success: false, error: e.toString() };
   }
@@ -1584,13 +1597,147 @@ function deleteClassHomework(hwId) {
     for (var i = 1; i < data.length; i++) {
       if (String(data[i][0]).trim() === cleanId) {
         var classId = data[i][1];
-        sheet.deleteRow(i + 1);
+        var now = new Date();
+        var dateString = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), "yyyy-MM-dd HH:mm:ss");
+        sheet.getRange(i + 1, 9).setValue("Deleted");
+        sheet.getRange(i + 1, 10).setValue(dateString);
         if (classId) clearClassCache(classId, "hw");
         SpreadsheetApp.flush();
         return { success: true };
       }
     }
     return { success: false, error: "Không tìm thấy bài tập để xóa." };
+  } catch(e) {
+    return { success: false, error: e.toString() };
+  }
+}
+
+function editClassHomework(hwId, title, releaseDate, link, fileBase64, fileName, mimeType) {
+  try {
+    var ss = getClassSpreadsheet();
+    var sheet = getOrCreateClassHomeworkSheet(ss);
+    var data = sheet.getDataRange().getDisplayValues();
+    var cleanId = String(hwId || "").trim();
+    
+    for (var i = 1; i < data.length; i++) {
+      if (String(data[i][0]).trim() === cleanId) {
+        var classId = data[i][1];
+        var className = data[i][2];
+        
+        sheet.getRange(i + 1, 4).setValue(title);
+        sheet.getRange(i + 1, 5).setValue(releaseDate);
+        sheet.getRange(i + 1, 6).setValue(link || "");
+        
+        if (fileBase64 && fileName) {
+          try {
+            var parentFolderId = "1hloyK1wJcq5944hgvfmCu5YYmKXR12qM";
+            var parentFolder;
+            try {
+              parentFolder = DriveApp.getFolderById(parentFolderId);
+            } catch(err) {
+              var folders = DriveApp.getRootFolder().getFoldersByName("BÀI TẬP LỚP HỌC");
+              if (folders.hasNext()) {
+                parentFolder = folders.next();
+              } else {
+                parentFolder = DriveApp.getRootFolder().createFolder("BÀI TẬP LỚP HỌC");
+              }
+            }
+            var tutorName = getTutorNameByClassId(classId, ss);
+            var tutorFolders = parentFolder.getFoldersByName(tutorName);
+            var tutorFolder = tutorFolders.hasNext() ? tutorFolders.next() : parentFolder.createFolder(tutorName);
+            var classFolderName = className || "Lớp học không tên";
+            var classFolders = tutorFolder.getFoldersByName(classFolderName);
+            var classFolder = classFolders.hasNext() ? classFolders.next() : tutorFolder.createFolder(classFolderName);
+            
+            var decodedData = Utilities.base64Decode(fileBase64);
+            var blob = Utilities.newBlob(decodedData, mimeType || "application/octet-stream", fileName);
+            var driveFile = classFolder.createFile(blob);
+            
+            try {
+              driveFile.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+            } catch(shareErr) {
+              Logger.log("Không thể chia sẻ file công khai do quyền: " + shareErr);
+            }
+            
+            sheet.getRange(i + 1, 7).setValue(driveFile.getUrl());
+            sheet.getRange(i + 1, 8).setValue(fileName);
+          } catch(e) {
+            Logger.log("Lỗi sửa upload file: " + e.toString());
+            return { success: false, error: "Lỗi upload file: " + e.toString() };
+          }
+        }
+        
+        if (classId) clearClassCache(classId, "hw");
+        SpreadsheetApp.flush();
+        return { success: true };
+      }
+    }
+    return { success: false, error: "Không tìm thấy bài tập để sửa." };
+  } catch(e) {
+    return { success: false, error: e.toString() };
+  }
+}
+
+function getDeletedClassHomeworkList(classId) {
+  var ss = getClassSpreadsheet();
+  var sheet = getOrCreateClassHomeworkSheet(ss);
+  var data = sheet.getDataRange().getDisplayValues();
+  var cleanClassId = String(classId || "").trim();
+  var list = [];
+  
+  for (var i = 1; i < data.length; i++) {
+    if (data[i].length > 8 && String(data[i][8]).trim() === "Deleted" && String(data[i][1]).trim() === cleanClassId) {
+      list.push({
+        hwId: String(data[i][0]).trim(),
+        title: String(data[i][3]).trim(),
+        deleteDate: data[i][9] ? String(data[i][9]).trim() : ""
+      });
+    }
+  }
+  list.reverse();
+  return list;
+}
+
+function restoreClassHomework(hwId) {
+  try {
+    var ss = getClassSpreadsheet();
+    var sheet = getOrCreateClassHomeworkSheet(ss);
+    var data = sheet.getDataRange().getDisplayValues();
+    var cleanId = String(hwId || "").trim();
+    
+    for (var i = 1; i < data.length; i++) {
+      if (String(data[i][0]).trim() === cleanId) {
+        var classId = data[i][1];
+        sheet.getRange(i + 1, 9).setValue("");
+        sheet.getRange(i + 1, 10).setValue("");
+        if (classId) clearClassCache(classId, "hw");
+        SpreadsheetApp.flush();
+        return { success: true };
+      }
+    }
+    return { success: false, error: "Không tìm thấy bài tập." };
+  } catch(e) {
+    return { success: false, error: e.toString() };
+  }
+}
+
+function purgeClassHomework(hwId) {
+  try {
+    var ss = getClassSpreadsheet();
+    var sheet = getOrCreateClassHomeworkSheet(ss);
+    var data = sheet.getDataRange().getDisplayValues();
+    var cleanId = String(hwId || "").trim();
+    
+    for (var i = 1; i < data.length; i++) {
+      if (String(data[i][0]).trim() === cleanId) {
+        var classId = data[i][1];
+        sheet.deleteRow(i + 1);
+        if (classId) clearClassCache(classId, "hw");
+        SpreadsheetApp.flush();
+        return { success: true };
+      }
+    }
+    return { success: false, error: "Không tìm thấy bài tập." };
   } catch(e) {
     return { success: false, error: e.toString() };
   }
@@ -1849,6 +1996,7 @@ function getClassTutorFeedback(tutorPhone, tutorCode) {
     }
   }
 
+  cleanupOldFeedback(sheetFeedback, 0);
   var dataFB = sheetFeedback.getDataRange().getDisplayValues();
   for (var j = dataFB.length - 1; j >= 1; j--) {
     if (dataFB[j].length >= 4 && dataFB[j][0] !== "") {
@@ -1873,6 +2021,20 @@ function getClassTutorFeedback(tutorPhone, tutorCode) {
 function getClassTrashItems(tutorPhone, tutorCode) {
   var ss = getClassSpreadsheet();
   var items = [];
+  var now = new Date();
+
+  function isOlderThan10Days(dateStr) {
+    if (!dateStr) return false;
+    var parts = String(dateStr).trim().split(" ");
+    var dParts = parts[0].split("/");
+    if (dParts.length < 3) return false;
+    var day = parseInt(dParts[0], 10);
+    var month = parseInt(dParts[1], 10) - 1;
+    var year = parseInt(dParts[2], 10);
+    var delDate = new Date(year, month, day);
+    var diffTime = now.getTime() - delDate.getTime();
+    return (diffTime / (1000 * 60 * 60 * 24)) > 10;
+  }
 
   // 1. Quét học sinh đã bị soft delete trong 'Học sinh lớp học'
   var sheetStudents = ss.getSheetByName('Học sinh lớp học');
@@ -1881,7 +2043,7 @@ function getClassTrashItems(tutorPhone, tutorCode) {
     for (var i = 1; i < dataS.length; i++) {
       var row = dataS[i];
       var deletedAt = (row.length > 8) ? String(row[8]).trim() : "";
-      if (deletedAt !== "") {
+      if (deletedAt !== "" && !isOlderThan10Days(deletedAt)) {
         items.push({
           type: 'student',
           id: row[0] || "",
@@ -1890,35 +2052,6 @@ function getClassTrashItems(tutorPhone, tutorCode) {
           detail: "Lớp: " + (row[4] || row[3] || "-") + " | SĐT PH: " + (row[2] || "-"),
           deletedAt: deletedAt
         });
-      }
-    }
-  }
-
-  // 2. Quét nhật ký đã bị soft delete trong các trang tính Lớp học cụ thể
-  var sheetClasses = ss.getSheetByName('Danh sách lớp học');
-  if (sheetClasses) {
-    var classData = sheetClasses.getDataRange().getDisplayValues();
-    for (var c = 1; c < classData.length; c++) {
-      var classNameVal = classData[c][1];
-      if (classNameVal) {
-        var sheetL = ss.getSheetByName(String(classNameVal).trim());
-        if (sheetL) {
-          var dataL = sheetL.getDataRange().getDisplayValues();
-          for (var j = 1; j < dataL.length; j++) {
-            var rowL = dataL[j];
-            var delAtLog = (rowL.length > 12) ? String(rowL[12]).trim() : "";
-            if (delAtLog !== "") {
-              items.push({
-                type: 'lessonLog',
-                id: rowL[0] || "",
-                name: "Buổi học ngày " + (rowL[4] || "-"),
-                className: classNameVal,
-                detail: "Tuần: " + (rowL[3] || "-") + " | Lớp: " + classNameVal,
-                deletedAt: delAtLog
-              });
-            }
-          }
-        }
       }
     }
   }
@@ -2362,26 +2495,7 @@ function saveClassAnnouncement(classId, className, text) {
   }
 }
 
-function getClassAnnouncement(classId) {
-  try {
-    var ss = getClassSpreadsheet();
-    var sheet = ss.getSheetByName('Thông báo lớp');
-    if (!sheet) return "";
-    
-    var data = sheet.getDataRange().getDisplayValues();
-    var cleanClassId = String(classId || "").trim();
-    
-    for (var i = 1; i < data.length; i++) {
-      if (String(data[i][1] || "").trim() === cleanClassId) {
-        return data[i][3] || "";
-      }
-    }
-    return "";
-  } catch (e) {
-    Logger.log("Lỗi getClassAnnouncement: " + e.toString());
-    return "";
-  }
-}
+
 
 // Lấy phản hồi từ phụ huynh cho giáo viên lớp học
 function getClassTutorFeedback(tutorPhone, tutorCode) {
@@ -2401,6 +2515,7 @@ function getClassTutorFeedback(tutorPhone, tutorCode) {
     var sheetFeedback = ssClass.getSheetByName('Ý kiến Phụ huynh lớp học');
     if (!sheetFeedback) return [];
 
+    cleanupOldFeedback(sheetFeedback, 5);
     var dataFB = sheetFeedback.getDataRange().getDisplayValues();
     var feedbacks = [];
     

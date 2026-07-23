@@ -534,6 +534,8 @@
             position: relative;
             transform: scale(0.9);
             transition: all 0.3s;
+            max-height: 90vh;
+            overflow-y: auto;
         }
 
         .modal-overlay.active {
@@ -1418,38 +1420,33 @@
                     
                     // Xây dựng lại mảng tutorScheduleSheetData từ danh sách Lớp học
                     tutorScheduleSheetData = [];
-                    google.script.run.withSuccessHandler(function(classList) {
-                        var listToUse = (classList && Array.isArray(classList) && classList.length > 0) ? classList : [];
-                        listToUse.forEach(function(cls, idx) {
-                            var cName = (cls.className || cls.name || "").trim();
-                            if (!cName) return;
-                            var s = schedMap[cName] || { mon: "", tue: "", wed: "", thu: "", fri: "", sat: "", sun: "" };
-                            let savedColor = localStorage.getItem('class_color_' + cName) || PRESET_COLORS[idx % PRESET_COLORS.length];
-                            
-                            tutorScheduleSheetData.push({
-                                studentName: cName,
-                                className: cName,
-                                color: savedColor,
-                                mon: s.mon || '',
-                                tue: s.tue || '',
-                                wed: s.wed || '',
-                                thu: s.thu || '',
-                                fri: s.fri || '',
-                                sat: s.sat || '',
-                                sun: s.sun || ''
-                            });
+                    // Tối ưu hóa: Dùng trực tiếp danh sách lớp học đã lưu ở bộ nhớ đệm thay vì gọi server lần 2
+                    var listToUse = (tutorDataGlobal && tutorDataGlobal.classes && Array.isArray(tutorDataGlobal.classes)) ? tutorDataGlobal.classes : [];
+                    listToUse.forEach(function(cls, idx) {
+                        var cName = (cls.className || cls.name || "").trim();
+                        if (!cName) return;
+                        var s = schedMap[cName] || { mon: "", tue: "", wed: "", thu: "", fri: "", sat: "", sun: "" };
+                        let savedColor = localStorage.getItem('class_color_' + cName) || PRESET_COLORS[idx % PRESET_COLORS.length];
+                        
+                        tutorScheduleSheetData.push({
+                            studentName: cName,
+                            className: cName,
+                            color: savedColor,
+                            mon: s.mon || '',
+                            tue: s.tue || '',
+                            wed: s.wed || '',
+                            thu: s.thu || '',
+                            fri: s.fri || '',
+                            sat: s.sat || '',
+                            sun: s.sun || ''
                         });
-                        loadStudentOptions();
-                        renderSheetTable();
-                        if (onSuccess) onSuccess();
-                    }).getClassList(userPhone);
-                    return;
+                    });
                     
-                    // Nạp lại dropdown và bảng Sheets giả lập
                     loadStudentOptions();
                     renderSheetTable();
-                    
                     if (onSuccess) onSuccess();
+                    
+
                 })
                 .withFailureHandler(function(err) {
                     console.error("Lỗi lấy thời khóa biểu từ Sheets:", err);
