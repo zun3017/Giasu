@@ -2272,3 +2272,69 @@ function getClassTutorFeedback(tutorPhone, tutorCode) {
     return [];
   }
 }
+
+// === QUẢN LÝ THÔNG BÁO LỚP HỌC ===
+
+function saveClassAnnouncement(classId, className, text) {
+  try {
+    var ss = getClassSpreadsheet();
+    var sheetName = "Thông báo lớp";
+    var sheet = ss.getSheetByName(sheetName);
+    var headers = ["Mã thông báo", "Mã lớp", "Tên lớp", "Nội dung thông báo", "Thời gian cập nhật"];
+    
+    if (!sheet) {
+      sheet = ss.insertSheet(sheetName);
+      sheet.appendRow(headers);
+      sheet.getRange(1, 1, 1, 5).setFontWeight("bold").setBackground("#8E4DFF").setFontColor("#FFFFFF");
+    }
+    
+    var data = sheet.getDataRange().getDisplayValues();
+    var cleanClassId = String(classId || "").trim();
+    var targetRowIndex = -1;
+    
+    for (var i = 1; i < data.length; i++) {
+      if (String(data[i][1] || "").trim() === cleanClassId) {
+        targetRowIndex = i + 1;
+        break;
+      }
+    }
+    
+    var nowStr = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), "dd/MM/yyyy HH:mm:ss");
+    
+    if (targetRowIndex > 0) {
+      sheet.getRange(targetRowIndex, 4).setValue(text || "");
+      sheet.getRange(targetRowIndex, 5).setValue(nowStr);
+    } else {
+      var annId = "TB_" + new Date().getTime();
+      sheet.appendRow([annId, cleanClassId, className || "", text || "", nowStr]);
+    }
+    
+    clearClassCache(cleanClassId, "announcement");
+    SpreadsheetApp.flush();
+    return { success: true };
+  } catch (e) {
+    Logger.log("Lỗi saveClassAnnouncement: " + e.toString());
+    return { success: false, error: e.toString() };
+  }
+}
+
+function getClassAnnouncement(classId) {
+  try {
+    var ss = getClassSpreadsheet();
+    var sheet = ss.getSheetByName('Thông báo lớp');
+    if (!sheet) return "";
+    
+    var data = sheet.getDataRange().getDisplayValues();
+    var cleanClassId = String(classId || "").trim();
+    
+    for (var i = 1; i < data.length; i++) {
+      if (String(data[i][1] || "").trim() === cleanClassId) {
+        return data[i][3] || "";
+      }
+    }
+    return "";
+  } catch (e) {
+    Logger.log("Lỗi getClassAnnouncement: " + e.toString());
+    return "";
+  }
+}
