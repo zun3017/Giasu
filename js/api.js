@@ -1,4 +1,4 @@
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyiJzC7dV6Bq5-E7O7U2pAfg68vFcgI0pdAuEP2UxXgwfuRYiiVFddbaiQK8_dlFPmu/exec';
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxyJTFDxj8d_vveltQ1Z8h9TBeX623Y0D3XpLMF8fHwQz7KXTTjzjr3nC2DsICtcXWI/exec';
 
         // Chỉ tạo Shim giả lập nếu chạy ngoài môi trường Google Apps Script (ví dụ trên GitHub Pages)
         if (typeof google === 'undefined' || typeof google.script === 'undefined' || typeof google.script.run === 'undefined') {
