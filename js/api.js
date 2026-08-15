@@ -24,7 +24,10 @@ const APP_CONFIG = {
         ADMINS: 'gs_admins'
     },
     // URL Google Apps Script Web App của bạn để tự động lưu bài nộp vào Google Drive
-    DRIVE_UPLOAD_URL: 'https://script.google.com/macros/s/AKfycbzx_WVglUnQJt-waxC3irwQiGAP81G7SamjQZgsKRfBAbWPOUFbqLykMNB6x60tMim-/exec'
+    DRIVE_UPLOAD_URL: 'https://script.google.com/macros/s/AKfycbzx_WVglUnQJt-waxC3irwQiGAP81G7SamjQZgsKRfBAbWPOUFbqLykMNB6x60tMim-/exec',
+    SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbwMd3AhilGhuVcLvaCJCt0sPNdmfWuIZtlkGi_dV1F0fpGJYUP-80q0zGmGdluextNB/exec',
+    HOMEWORK_DRIVE_FOLDER: 'https://drive.google.com/drive/folders/1cGu7nt0K0paWCg-9nlHgqxVp0I_6h8M8?usp=drive_link',
+    ASSIGNMENT_DRIVE_FOLDER: 'https://drive.google.com/drive/folders/11z6CIwULBhR6CKcUzhvHDaTMjiUA7Iiu?usp=drive_link'
 };
 
 const HEADERS = {
