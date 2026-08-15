@@ -874,8 +874,7 @@
             var errorMsg = document.getElementById('error');
 
             if (res.timThay) {
-                sessionStorage.setItem('currentHwCode', res.ma);
-                currentHW = res; // lưu trữ dữ liệu phiên
+                currentHW = res; // lưu trữ dữ liệu phiên hiện tại trong bộ nhớ trang
 
                 // Ẩn UI chính
                 document.getElementById('mainScreen').style.display = 'none';
@@ -1614,18 +1613,9 @@
             }
         })();
 
-        // Tự động khôi phục trạng thái đăng nhập khi làm mới trang
+        // Xóa sạch mã phiên cũ nếu có khi tải trang để luôn luôn hiển thị màn hình nhập mã
         window.addEventListener('DOMContentLoaded', function() {
-            var savedCode = sessionStorage.getItem('currentHwCode');
-            if (savedCode) {
-                document.getElementById('loadingText').style.display = 'block';
-                google.script.run
-                    .withSuccessHandler(showHomeworkDashboard)
-                    .withFailureHandler(function(err) {
-                        document.getElementById('loadingText').style.display = 'none';
-                    })
-                    .xacThucMaBaiTap(savedCode);
-            }
+            sessionStorage.removeItem('currentHwCode');
         });
     </script>
 </body>
