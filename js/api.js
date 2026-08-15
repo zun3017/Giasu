@@ -741,11 +741,12 @@ class GoogleScriptRunInstance {
                         studentName: s.student_name,
                         lessonName: s.lesson_name,
                         fileUrl: s.file_url,
-                        timestamp: s.submitted_at,
-                        status: s.status,
-                        score: s.score,
-                        comment: s.comment,
-                        rowIndex: idx + 1
+                        timestamp: s.submitted_at || s.submission_date || "",
+                        submissionDate: s.submission_date || s.submitted_at || "",
+                        status: s.status || "Active",
+                        score: s.score || "-",
+                        comment: s.comment || "",
+                        rowIndex: s.submission_id
                     }));
                     
                     result = {
@@ -763,6 +764,7 @@ class GoogleScriptRunInstance {
                 const [ma, studentName, lessonName, filesList] = args;
                 const subId = `SUB_GS_${Date.now()}`;
                 const nowStr = new Date().toLocaleString('vi-VN');
+                const todayStr = new Date().toLocaleDateString('vi-VN');
                 let fileUrl = "";
                 
                 // Nếu đã cấu hình Google Apps Script Web App cũ, gọi trực tiếp hàm uploadHomeworkFiles trong Student.gs
@@ -807,7 +809,7 @@ class GoogleScriptRunInstance {
                     lesson_name: lessonName || "Bài làm gia sư",
                     file_url: fileUrl || 'https://drive.google.com/',
                     submitted_at: nowStr,
-                    submission_date: new Date().toLocaleDateString('vi-VN'),
+                    submission_date: todayStr,
                     status: 'Active'
                 }]);
                 result = { success: true, fileUrl: fileUrl };
@@ -824,7 +826,17 @@ class GoogleScriptRunInstance {
             
             else if (functionName === 'deleteHomeworkFile') {
                 const [rowIndex] = args;
-                await supaDelete(APP_CONFIG.TABLES.SUBMISSIONS, `submission_id=eq.${encodeURIComponent(rowIndex)}`);
+                await supaPatch(APP_CONFIG.TABLES.SUBMISSIONS, `submission_id=eq.${encodeURIComponent(rowIndex)}`, {
+                    status: 'Deleted'
+                });
+                result = { success: true };
+            }
+            
+            else if (functionName === 'restoreHomeworkFile') {
+                const [rowIndex] = args;
+                await supaPatch(APP_CONFIG.TABLES.SUBMISSIONS, `submission_id=eq.${encodeURIComponent(rowIndex)}`, {
+                    status: 'Active'
+                });
                 result = { success: true };
             }
             
