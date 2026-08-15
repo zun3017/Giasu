@@ -609,7 +609,43 @@ class GoogleScriptRunInstance {
             else if (functionName === 'uploadAssignedHomework' || functionName === 'assignHomework') {
                 const [tutorPhone, studentName, title, releaseDate, fileBase64, fileName, mimeType, maBaiTap, externalLink] = args;
                 const hwId = `HW_GS_${Date.now()}`;
-                const fileUrl = fileBase64 || externalLink || "";
+                let fileUrl = externalLink || "";
+                
+                // Nếu Gia sư có đính kèm file và đã cấu hình Google Apps Script Web App, lưu file thẳng vào Google Drive
+                if (APP_CONFIG.DRIVE_UPLOAD_URL && fileBase64) {
+                    try {
+                        let driveRes = await fetch(APP_CONFIG.DRIVE_UPLOAD_URL, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                            body: JSON.stringify({
+                                functionName: 'uploadHomeworkFiles',
+                                arguments: [
+                                    maBaiTap || tutorPhone || 'DE_GIA_SU',
+                                    studentName || 'Giao bài tập',
+                                    title || 'Đề bài tập',
+                                    [{
+                                        fileName: fileName || (`${title || "De_BaiTap"}.pdf`),
+                                        mimeType: mimeType || 'application/pdf',
+                                        fileBase64: fileBase64
+                                    }]
+                                ]
+                            })
+                        });
+                        let driveData = await driveRes.json();
+                        let resObj = driveData.result || driveData;
+                        if (resObj && resObj.success && resObj.fileUrl) {
+                            fileUrl = resObj.fileUrl;
+                        }
+                    } catch (driveErr) {
+                        console.warn("Lỗi tải đề bài lên Google Drive, chuyển sang lưu trữ an toàn:", driveErr);
+                    }
+                }
+                
+                // Fallback nếu chưa lưu được qua Drive
+                if (!fileUrl && fileBase64) {
+                    const mime = mimeType || "application/octet-stream";
+                    fileUrl = `data:${mime};base64,${fileBase64}`;
+                }
                 
                 await supaPost(APP_CONFIG.TABLES.HOMEWORK, [{
                     hw_id: hwId,
