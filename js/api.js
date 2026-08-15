@@ -729,26 +729,24 @@ class GoogleScriptRunInstance {
                 const nowStr = new Date().toLocaleString('vi-VN');
                 let fileUrl = "";
                 
-                // Nếu đã cấu hình Google Drive Web App Uploader, ưu tiên tải thẳng lên Google Drive
+                // Nếu đã cấu hình Google Apps Script Web App cũ, gọi trực tiếp hàm uploadHomeworkFiles trong Student.gs
                 if (APP_CONFIG.DRIVE_UPLOAD_URL && filesList && filesList.length > 0 && filesList[0].fileBase64) {
                     try {
                         let driveRes = await fetch(APP_CONFIG.DRIVE_UPLOAD_URL, {
                             method: 'POST',
                             headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                             body: JSON.stringify({
-                                fileBase64: filesList[0].fileBase64,
-                                fileName: filesList[0].fileName || (`${studentName || "HocSinh"}_${lessonName || "BaiTap"}.pdf`),
-                                mimeType: filesList[0].mimeType || 'application/pdf',
-                                studentName: studentName || 'Học sinh',
-                                lessonName: lessonName || 'Bài làm'
+                                functionName: 'uploadHomeworkFiles',
+                                arguments: [ma, studentName, lessonName, filesList]
                             })
                         });
                         let driveData = await driveRes.json();
-                        if (driveData && driveData.success && driveData.fileUrl) {
-                            fileUrl = driveData.fileUrl;
+                        let resObj = driveData.result || driveData;
+                        if (resObj && resObj.success && resObj.fileUrl) {
+                            fileUrl = resObj.fileUrl;
                         }
                     } catch (driveErr) {
-                        console.warn("Lỗi tải lên Google Drive Web App, chuyển sang lưu trữ an toàn:", driveErr);
+                        console.warn("Lỗi gọi Apps Script Web App cũ, chuyển sang lưu trữ an toàn:", driveErr);
                     }
                 }
                 
