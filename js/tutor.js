@@ -2615,28 +2615,96 @@ function loadStudentSubmissions() {
 }
 
 // 13. Render bảng bài nộp học sinh với phân trang hiển thị
-// Hàm tiện ích parse ngày/giờ dạng DD/MM/YYYY HH:mm:ss hoặc các chuẩn khác về timestamp
+// Hàm tiện ích parse ngày/giờ chuẩn xác cho tất cả định dạng: ISO, DD/MM/YYYY, HH:mm:ss DD/MM/YYYY
 function parseDateTimeString(str) {
     if (!str) return 0;
+    if (typeof str === 'number') return str;
+    str = String(str).trim();
+    
+    // 1. Thử parse trực tiếp ISO hoặc tiêu chuẩn
     let d = new Date(str);
     if (!isNaN(d.getTime())) return d.getTime();
     
-    let parts = str.split(' ');
-    let dateParts = parts[0].split('/');
-    if (dateParts.length === 3) {
-        let day = parseInt(dateParts[0]);
-        let month = parseInt(dateParts[1]) - 1;
-        let year = parseInt(dateParts[2]);
-        let hour = 0, min = 0, sec = 0;
-        if (parts[1]) {
-            let timeParts = parts[1].split(':');
-            hour = parseInt(timeParts[0] || 0);
-            min = parseInt(timeParts[1] || 0);
-            sec = parseInt(timeParts[2] || 0);
+    // 2. Thử tách các thành phần ngày và giờ
+    let parts = str.split(/\s+/);
+    let timePart = "";
+    let datePart = "";
+    
+    if (parts.length >= 2) {
+        if (parts[0].indexOf(':') !== -1) {
+            timePart = parts[0];
+            datePart = parts[1];
+        } else {
+            datePart = parts[0];
+            timePart = parts[1];
         }
-        return new Date(year, month, day, hour, min, sec).getTime();
+    } else {
+        if (parts[0].indexOf(':') !== -1) {
+            timePart = parts[0];
+        } else {
+            datePart = parts[0];
+        }
     }
-    return 0;
+    
+    let year = 1970, month = 0, day = 1;
+    let hour = 0, min = 0, sec = 0;
+    
+    // Phân tích datePart
+    if (datePart.indexOf('/') !== -1) {
+        let dp = datePart.split('/');
+        if (dp.length === 3) {
+            if (dp[0].length === 4) { // YYYY/MM/DD
+                year = parseInt(dp[0]);
+                month = parseInt(dp[1]) - 1;
+                day = parseInt(dp[2]);
+            } else { // DD/MM/YYYY
+                day = parseInt(dp[0]);
+                month = parseInt(dp[1]) - 1;
+                year = parseInt(dp[2]);
+            }
+        }
+    } else if (datePart.indexOf('-') !== -1) {
+        let dp = datePart.split('-');
+        if (dp.length === 3) {
+            if (dp[0].length === 4) { // YYYY-MM-DD
+                year = parseInt(dp[0]);
+                month = parseInt(dp[1]) - 1;
+                day = parseInt(dp[2]);
+            } else { // DD-MM-YYYY
+                day = parseInt(dp[0]);
+                month = parseInt(dp[1]) - 1;
+                year = parseInt(dp[2]);
+            }
+        }
+    }
+    
+    // Phân tích timePart
+    if (timePart && timePart.indexOf(':') !== -1) {
+        let tp = timePart.split(':');
+        hour = parseInt(tp[0] || 0);
+        min = parseInt(tp[1] || 0);
+        sec = parseInt(tp[2] || 0);
+    }
+    
+    let parsed = new Date(year, month, day, hour, min, sec);
+    return isNaN(parsed.getTime()) ? 0 : parsed.getTime();
+}
+
+// Hàm chuẩn hóa hiển thị ngày giờ chuẩn Việt Nam (HH:mm:ss DD/MM/YYYY)
+function formatVNDateTime(str) {
+    if (!str) return "-";
+    let ts = parseDateTimeString(str);
+    if (!ts || ts === 0) return str;
+    
+    let d = new Date(ts);
+    let day = String(d.getDate()).padStart(2, '0');
+    let month = String(d.getMonth() + 1).padStart(2, '0');
+    let year = d.getFullYear();
+    let hours = String(d.getHours()).padStart(2, '0');
+    let minutes = String(d.getMinutes()).padStart(2, '0');
+    let seconds = String(d.getSeconds()).padStart(2, '0');
+    
+    return hours + ":" + minutes + ":" + seconds + " " + day + "/" + month + "/" + year;
 }
 
 function renderStudentSubmissionsList() {
@@ -2660,7 +2728,6 @@ function renderStudentSubmissionsList() {
     var totalCount = sortedList.length;
     var showList = sortedList.slice(0, submissionsLimit);
 
-
     tableBody.innerHTML = "";
     var mobileHtml = "";
     
@@ -2674,11 +2741,13 @@ function renderStudentSubmissionsList() {
         var dlText = isFolder ? '<i class="fa-solid fa-folder-arrow-down"></i> Tải cả thư mục' : (isZip ? '<i class="fa-solid fa-file-zipper"></i> Tải bài nộp (ZIP)' : '<i class="fa-solid fa-cloud-arrow-down"></i> Tải về');
         var downloadBtn = item.fileUrl ? '<a href="' + getGoogleDriveDownloadUrl(item.fileUrl) + '" target="_blank" download class="action-btn-hw" style="color:#10B981; border-color:rgba(16,185,129,0.3); background:rgba(16,185,129,0.1); padding: 4px 14px; text-decoration: none;">' + dlText + '</a>' : '<span style="color:#A6ADCE;">N/A</span>';
         
+        var displayTime = formatVNDateTime(item.timestamp);
+        
         // Desktop Row
         tableBody.innerHTML += 
             '<tr>' +
-                '<td style="color:#A6ADCE;">' + item.timestamp + '</td>' +
-                '<td style="color:#FFF; font-weight:500;">' + item.lessonName + '</td>' +
+                '<td style="color:#A6ADCE; font-weight:500;">' + displayTime + '</td>' +
+                '<td style="color:#FFF; font-weight:600;">' + item.lessonName + '</td>' +
                 '<td>' + fileLink + '</td>' +
                 '<td>' + downloadBtn + '</td>' +
             '</tr>';
@@ -2688,14 +2757,14 @@ function renderStudentSubmissionsList() {
         mobileHtml += "  <div class='accordion-header' onclick='toggleTutorSubmittedHwAccordion(" + idx + ")'>";
         mobileHtml += "    <div class='accordion-header-title'>";
         mobileHtml += "      <span>" + item.lessonName + "</span>";
-        mobileHtml += "      <span class='accordion-header-date'>" + item.timestamp + "</span>";
+        mobileHtml += "      <span class='accordion-header-date'>" + displayTime + "</span>";
         mobileHtml += "    </div>";
         mobileHtml += "    <div class='accordion-header-status'>";
         mobileHtml += "      <i class='fa-solid fa-chevron-down' id='submit-hw-chevron-" + idx + "'></i>";
         mobileHtml += "    </div>";
         mobileHtml += "  </div>";
         mobileHtml += "  <div class='accordion-body' id='submit-hw-body-" + idx + "' style='display: none;'>";
-        mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Thời gian nộp</span><span class='accordion-body-val'>" + item.timestamp + "</span></div>";
+        mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Thời gian nộp</span><span class='accordion-body-val' style='color:#FFD23F; font-weight:600;'>" + displayTime + "</span></div>";
         mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>File nộp bài</span><span class='accordion-body-val'>" + fileLink + "</span></div>";
         mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Tải về</span><span class='accordion-body-val'>" + downloadBtn + "</span></div>";
         mobileHtml += "  </div>";
