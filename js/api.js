@@ -24,7 +24,7 @@ const APP_CONFIG = {
         ADMINS: 'gs_admins'
     },
     // URL Google Apps Script Web App của bạn để tự động lưu bài nộp vào Google Drive
-    DRIVE_UPLOAD_URL: 'https://script.google.com/macros/s/AKfycbwiX32O0XElBv2QizaQdNgn9a7JwjPL8piow2qLDV0bzeF2o_Xy82o_DEhNpMH0ibNn/exec'
+    DRIVE_UPLOAD_URL: 'https://script.google.com/macros/s/AKfycbzx_WVglUnQJt-waxC3irwQiGAP81G7SamjQZgsKRfBAbWPOUFbqLykMNB6x60tMim-/exec'
 };
 
 const HEADERS = {
