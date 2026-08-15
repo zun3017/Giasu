@@ -22,7 +22,9 @@ const APP_CONFIG = {
         SUBMISSIONS: 'gs_submissions',
         FEEDBACKS: 'gs_feedbacks',
         ADMINS: 'gs_admins'
-    }
+    },
+    // Dán URL Google Apps Script Web App (từ file DriveUploader.gs) vào đây để tự động lưu file vào Google Drive miễn phí 15GB
+    DRIVE_UPLOAD_URL: ''
 };
 
 const HEADERS = {
@@ -727,15 +729,41 @@ class GoogleScriptRunInstance {
                 const nowStr = new Date().toLocaleString('vi-VN');
                 let fileUrl = "";
                 
-                if (filesList && filesList.length > 0) {
-                    if (filesList[0].url) {
-                        fileUrl = filesList[0].url;
-                    } else if (filesList[0].fileBase64) {
-                        const mime = filesList[0].mimeType || "application/octet-stream";
-                        fileUrl = `data:${mime};base64,${filesList[0].fileBase64}`;
+                // Nếu đã cấu hình Google Drive Web App Uploader, ưu tiên tải thẳng lên Google Drive
+                if (APP_CONFIG.DRIVE_UPLOAD_URL && filesList && filesList.length > 0 && filesList[0].fileBase64) {
+                    try {
+                        let driveRes = await fetch(APP_CONFIG.DRIVE_UPLOAD_URL, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                            body: JSON.stringify({
+                                fileBase64: filesList[0].fileBase64,
+                                fileName: filesList[0].fileName || (`${studentName || "HocSinh"}_${lessonName || "BaiTap"}.pdf`),
+                                mimeType: filesList[0].mimeType || 'application/pdf',
+                                studentName: studentName || 'Học sinh',
+                                lessonName: lessonName || 'Bài làm'
+                            })
+                        });
+                        let driveData = await driveRes.json();
+                        if (driveData && driveData.success && driveData.fileUrl) {
+                            fileUrl = driveData.fileUrl;
+                        }
+                    } catch (driveErr) {
+                        console.warn("Lỗi tải lên Google Drive Web App, chuyển sang lưu trữ an toàn:", driveErr);
                     }
-                } else if (typeof filesList === 'string') {
-                    fileUrl = filesList;
+                }
+                
+                // Fallback nếu chưa cấu hình Google Drive Web App hoặc không dùng Drive
+                if (!fileUrl) {
+                    if (filesList && filesList.length > 0) {
+                        if (filesList[0].url) {
+                            fileUrl = filesList[0].url;
+                        } else if (filesList[0].fileBase64) {
+                            const mime = filesList[0].mimeType || "application/octet-stream";
+                            fileUrl = `data:${mime};base64,${filesList[0].fileBase64}`;
+                        }
+                    } else if (typeof filesList === 'string') {
+                        fileUrl = filesList;
+                    }
                 }
                 
                 await supaPost(APP_CONFIG.TABLES.SUBMISSIONS, [{
