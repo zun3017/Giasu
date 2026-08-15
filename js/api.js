@@ -726,8 +726,17 @@ class GoogleScriptRunInstance {
                 const subId = `SUB_GS_${Date.now()}`;
                 const nowStr = new Date().toLocaleString('vi-VN');
                 let fileUrl = "";
-                if (filesList && filesList.length > 0 && filesList[0].url) fileUrl = filesList[0].url;
-                else if (typeof filesList === 'string') fileUrl = filesList;
+                
+                if (filesList && filesList.length > 0) {
+                    if (filesList[0].url) {
+                        fileUrl = filesList[0].url;
+                    } else if (filesList[0].fileBase64) {
+                        const mime = filesList[0].mimeType || "application/octet-stream";
+                        fileUrl = `data:${mime};base64,${filesList[0].fileBase64}`;
+                    }
+                } else if (typeof filesList === 'string') {
+                    fileUrl = filesList;
+                }
                 
                 await supaPost(APP_CONFIG.TABLES.SUBMISSIONS, [{
                     submission_id: subId,

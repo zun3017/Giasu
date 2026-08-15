@@ -2707,6 +2707,56 @@ function formatVNDateTime(str) {
     return hours + ":" + minutes + ":" + seconds + " " + day + "/" + month + "/" + year;
 }
 
+var currentSortedSubmissions = [];
+
+function downloadSubmissionFileByIndex(idx) {
+    var item = currentSortedSubmissions[idx] || studentSubmissionsGlobal[idx];
+    if (!item || !item.fileUrl) {
+        showToast("Không tìm thấy file bài nộp!", "error");
+        return;
+    }
+    var fileUrl = item.fileUrl;
+    if (fileUrl.startsWith('data:')) {
+        var a = document.createElement('a');
+        a.href = fileUrl;
+        var ext = ".pdf";
+        if (fileUrl.startsWith("data:image/png")) ext = ".png";
+        else if (fileUrl.startsWith("data:image/jpeg") || fileUrl.startsWith("data:image/jpg")) ext = ".jpg";
+        else if (fileUrl.startsWith("data:application/zip")) ext = ".zip";
+        else if (fileUrl.startsWith("data:application/pdf")) ext = ".pdf";
+        else if (fileUrl.startsWith("data:application/vnd.openxmlformats") || fileUrl.startsWith("data:application/msword")) ext = ".docx";
+        
+        var rawName = (item.studentName || "HocSinh") + "_" + (item.lessonName || "BaiTap");
+        a.download = rawName.replace(/[^a-zA-Z0-9_\u00C0-\u024F\u1E00-\u1EFF]/g, "_") + ext;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        showToast("Đang tải file bài nộp về máy...", "success");
+    } else {
+        var finalUrl = getGoogleDriveDownloadUrl(fileUrl);
+        window.open(finalUrl, '_blank');
+    }
+}
+
+function viewSubmissionFileByIndex(idx) {
+    var item = currentSortedSubmissions[idx] || studentSubmissionsGlobal[idx];
+    if (!item || !item.fileUrl) {
+        showToast("Không tìm thấy file bài nộp!", "error");
+        return;
+    }
+    var fileUrl = item.fileUrl;
+    if (fileUrl.startsWith('data:image/') || fileUrl.startsWith('data:application/pdf')) {
+        var win = window.open();
+        if (win) {
+            win.document.write('<!DOCTYPE html><html><head><title>' + (item.lessonName || "Bài nộp") + '</title><style>body{margin:0;background:#0f0c29;display:flex;justify-content:center;align-items:center;min-height:100vh;}</style></head><body>' +
+                (fileUrl.startsWith('data:image/') ? '<img src="' + fileUrl + '" style="max-width:100%;max-height:100vh;object-fit:contain;">' : '<iframe src="' + fileUrl + '" style="width:100vw;height:100vh;border:none;"></iframe>') +
+                '</body></html>');
+        }
+    } else {
+        window.open(fileUrl, '_blank');
+    }
+}
+
 function renderStudentSubmissionsList() {
     var tableBody = document.getElementById('studentSubmissionsTableBody');
     var mobileContainer = document.getElementById('submittedHwMobile');
@@ -2725,6 +2775,7 @@ function renderStudentSubmissionsList() {
     var sortedList = studentSubmissionsGlobal.slice().sort(function(a, b) {
         return parseDateTimeString(b.timestamp) - parseDateTimeString(a.timestamp);
     });
+    currentSortedSubmissions = sortedList;
     var totalCount = sortedList.length;
     var showList = sortedList.slice(0, submissionsLimit);
 
@@ -2734,12 +2785,14 @@ function renderStudentSubmissionsList() {
     showList.forEach(function(item, idx) {
         var isFolder = item.fileUrl && (item.fileUrl.indexOf("/folders/") !== -1 || item.fileUrl.indexOf("/drive/folders/") !== -1);
         var isZip = item.fileUrl && (item.fileUrl.toLowerCase().indexOf(".zip") !== -1 || item.fileUrl.indexOf("/file/d/") !== -1);
+        var isDataUrl = item.fileUrl && item.fileUrl.startsWith("data:");
         
-        var viewText = isFolder ? '<i class="fa-solid fa-folder-open"></i> Xem thư mục' : (isZip ? '<i class="fa-solid fa-file-zipper"></i> Tải bài nộp (ZIP)' : '<i class="fa-solid fa-image"></i> Xem file nộp');
-        var fileLink = item.fileUrl ? '<a href="' + (isZip ? getGoogleDriveDownloadUrl(item.fileUrl) : item.fileUrl) + '" target="_blank" style="color:#FFD23F; font-weight:600; text-decoration:none;">' + viewText + '</a>' : '<span style="color:#A6ADCE;">Không có file</span>';
+        var viewText = isFolder ? '<i class="fa-solid fa-folder-open"></i> Xem thư mục' : (isZip ? '<i class="fa-solid fa-file-zipper"></i> Tải bài nộp (ZIP)' : (isDataUrl ? '<i class="fa-solid fa-file-lines"></i> Xem bài nộp' : '<i class="fa-solid fa-image"></i> Xem file nộp'));
         
-        var dlText = isFolder ? '<i class="fa-solid fa-folder-arrow-down"></i> Tải cả thư mục' : (isZip ? '<i class="fa-solid fa-file-zipper"></i> Tải bài nộp (ZIP)' : '<i class="fa-solid fa-cloud-arrow-down"></i> Tải về');
-        var downloadBtn = item.fileUrl ? '<a href="' + getGoogleDriveDownloadUrl(item.fileUrl) + '" target="_blank" download class="action-btn-hw" style="color:#10B981; border-color:rgba(16,185,129,0.3); background:rgba(16,185,129,0.1); padding: 4px 14px; text-decoration: none;">' + dlText + '</a>' : '<span style="color:#A6ADCE;">N/A</span>';
+        var fileLink = item.fileUrl ? '<a href="javascript:void(0)" onclick="viewSubmissionFileByIndex(' + idx + ')" style="color:#FFD23F; font-weight:600; text-decoration:none;">' + viewText + '</a>' : '<span style="color:#A6ADCE;">Không có file</span>';
+        
+        var dlText = isFolder ? '<i class="fa-solid fa-folder-arrow-down"></i> Tải cả thư mục' : (isZip ? '<i class="fa-solid fa-file-zipper"></i> Tải ZIP' : '<i class="fa-solid fa-cloud-arrow-down"></i> Tải về');
+        var downloadBtn = item.fileUrl ? '<button onclick="downloadSubmissionFileByIndex(' + idx + ')" class="action-btn-hw" style="color:#10B981; border-color:rgba(16,185,129,0.3); background:rgba(16,185,129,0.1); padding: 4px 14px; cursor: pointer; border-radius: 6px; display: inline-flex; align-items: center; gap: 6px;">' + dlText + '</button>' : '<span style="color:#A6ADCE;">N/A</span>';
         
         var displayTime = formatVNDateTime(item.timestamp);
         
