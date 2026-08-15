@@ -43,7 +43,7 @@
         <!-- Bảng Tóm Tắt Kết Quả -->
         <div class="summary-grid">
             <!-- Thẻ BÀI TẬP -->
-            <a href="homework.html" class="summary-card" style="text-decoration: none; cursor: pointer; border: 1px solid rgba(255, 210, 63, 0.3); background: linear-gradient(135deg, rgba(255,210,63,0.08) 0%, rgba(20,16,68,0.9) 100%); transition: all 0.3s;" onmouseover="this.style.borderColor='#FFD23F'; this.style.transform='translateY(-2px)'" onmouseout="this.style.borderColor='rgba(255,210,63,0.3)'; this.style.transform='none'">
+            <a href="javascript:void(0)" onclick="goToHomeworkPortal()" class="summary-card" style="text-decoration: none; cursor: pointer; border: 1px solid rgba(255, 210, 63, 0.3); background: linear-gradient(135deg, rgba(255,210,63,0.08) 0%, rgba(20,16,68,0.9) 100%); transition: all 0.3s;" onmouseover="this.style.borderColor='#FFD23F'; this.style.transform='translateY(-2px)'" onmouseout="this.style.borderColor='rgba(255,210,63,0.3)'; this.style.transform='none'">
                 <div class="summary-icon" style="background: linear-gradient(135deg, #FFD23F, #FF8C00); box-shadow: 0 0 20px rgba(255,210,63,0.4);"><i class="fa-solid fa-file-arrow-up"></i></div>
                 <div class="summary-info">
                     <span class="summary-label" style="color: #FFD23F; font-weight: 700;">BÀI TẬP</span>
@@ -169,6 +169,15 @@
             }
             renderStudentView(data);
         });
+
+        function goToHomeworkPortal() {
+            var phone = sessionStorage.getItem('userPhone') || '';
+            if (phone) {
+                window.location.href = 'homework.html?code=' + encodeURIComponent(phone);
+            } else {
+                window.location.href = 'homework.html?new=1';
+            }
+        }
     </script>
 </body>
 </html>

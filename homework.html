@@ -874,7 +874,13 @@
             var errorMsg = document.getElementById('error');
 
             if (res.timThay) {
-                currentHW = res; // lưu trữ dữ liệu phiên hiện tại trong bộ nhớ trang
+                sessionStorage.setItem('currentHwCode', res.ma);
+                try {
+                    if (window.location.search.includes('new=1')) {
+                        window.history.replaceState({}, document.title, window.location.pathname);
+                    }
+                } catch(e) {}
+                currentHW = res; // lưu trữ dữ liệu phiên
 
                 // Ẩn UI chính
                 document.getElementById('mainScreen').style.display = 'none';
@@ -1613,9 +1619,28 @@
             }
         })();
 
-        // Xóa sạch mã phiên cũ nếu có khi tải trang để luôn luôn hiển thị màn hình nhập mã
+        // Tự động khôi phục phiên làm việc khi Tải lại trang (F5) để không bị văng
         window.addEventListener('DOMContentLoaded', function() {
-            sessionStorage.removeItem('currentHwCode');
+            var urlParams = new URLSearchParams(window.location.search);
+            var isNew = urlParams.get('new') === '1';
+            var paramCode = urlParams.get('code') || urlParams.get('ma');
+
+            if (isNew) {
+                // Người dùng click nút BÀI TẬP trên menu để đăng nhập mới -> xóa phiên cũ
+                sessionStorage.removeItem('currentHwCode');
+                return;
+            }
+
+            var codeToLoad = paramCode || sessionStorage.getItem('currentHwCode');
+            if (codeToLoad) {
+                document.getElementById('loadingText').style.display = 'block';
+                google.script.run
+                    .withSuccessHandler(showHomeworkDashboard)
+                    .withFailureHandler(function(err) {
+                        document.getElementById('loadingText').style.display = 'none';
+                    })
+                    .xacThucMaBaiTap(codeToLoad);
+            }
         });
     </script>
 </body>
