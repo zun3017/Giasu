@@ -2592,21 +2592,18 @@ function loadStudentSubmissions() {
     tableBody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:#A6ADCE; padding: 15px;"><i class="fa-solid fa-spinner fa-spin"></i> Đang tải danh sách bài nộp...</td></tr>';
     document.getElementById('submissionViewMoreBtnContainer').style.display = 'none';
     
-    var ma = currentTutorStudent.maBaiTap || "";
-    if (ma === "") {
-        tableBody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:#A6ADCE; padding: 15px;">Học sinh chưa có Mã bài tập nên không thể kiểm tra bài nộp!</td></tr>';
-        return;
-    }
+    var ma = currentTutorStudent.maBaiTap || currentTutorStudent.phone || "";
+    var stName = currentTutorStudent.name || "";
     
     google.script.run
         .withSuccessHandler(function(res) {
-            if (res.error) {
+            if (res && res.error) {
                 showToast("Lỗi: " + res.error, "error");
                 tableBody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:#EF4444; padding: 15px;">Lỗi tải dữ liệu!</td></tr>';
                 return;
             }
             
-            studentSubmissionsGlobal = res.submissions || [];
+            studentSubmissionsGlobal = (res && res.submissions) ? res.submissions : (Array.isArray(res) ? res : []);
             submissionsLimit = 5; // Reset limit về 5
             renderStudentSubmissionsList();
         })
@@ -2614,7 +2611,7 @@ function loadStudentSubmissions() {
             showToast("Lỗi: " + err.toString(), "error");
             tableBody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:#EF4444; padding: 15px;">Lỗi kết nối server!</td></tr>';
         })
-        .getStudentSubmissionsForTutor(ma);
+        .getStudentSubmissionsForTutor(ma, stName);
 }
 
 // 13. Render bảng bài nộp học sinh với phân trang hiển thị
