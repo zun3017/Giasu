@@ -568,38 +568,59 @@ class GoogleScriptRunInstance {
             // 5. BÀI TẬP GIA SƯ
             // ==========================================
             else if (functionName === 'getAssignedHomework') {
-                const [studentName, tutorPhone] = args;
+                const studentName = String(args[0] || "").trim();
+                const tutorPhone = String(args[1] || "").trim();
+                const normTutor = normalizePhone(tutorPhone);
+                
                 let hws = await supaGet(APP_CONFIG.TABLES.HOMEWORK, `select=*`);
-                let filtered = hws.filter(h => !h.deleted_date && (
-                    (!tutorPhone || normalizePhone(h.tutor_phone) === normalizePhone(tutorPhone)) ||
-                    (!studentName || h.student_name === studentName)
-                ));
-                result = filtered.map((h, idx) => ({
-                    rowIndex: h.hw_id,
-                    studentName: h.student_name,
-                    title: h.hw_name,
-                    releaseDate: h.release_date,
-                    fileUrl: h.file_url,
-                    externalLink: h.external_link,
-                    status: h.status
-                }));
+                let matchStudent = (h) => {
+                    if (!studentName) return true;
+                    return h.student_name && h.student_name.trim().toLowerCase() === studentName.toLowerCase();
+                };
+                
+                let active = hws.filter(h => !h.deleted_date && matchStudent(h));
+                let trash = hws.filter(h => !!h.deleted_date && matchStudent(h));
+                
+                result = {
+                    success: true,
+                    activeList: active.map((h, idx) => ({
+                        rowIndex: h.hw_id,
+                        studentName: h.student_name,
+                        title: h.hw_name,
+                        releaseDate: h.release_date || "",
+                        fileUrl: h.file_url || "",
+                        externalLink: h.external_link || "",
+                        status: h.status || "Active"
+                    })),
+                    trashList: trash.map((h, idx) => ({
+                        rowIndex: h.hw_id,
+                        studentName: h.student_name,
+                        title: h.hw_name,
+                        releaseDate: h.release_date || "",
+                        fileUrl: h.file_url || "",
+                        externalLink: h.external_link || "",
+                        deletedDate: h.deleted_date || ""
+                    }))
+                };
             }
             
             else if (functionName === 'uploadAssignedHomework' || functionName === 'assignHomework') {
                 const [tutorPhone, studentName, title, releaseDate, fileBase64, fileName, mimeType, maBaiTap, externalLink] = args;
                 const hwId = `HW_GS_${Date.now()}`;
+                const fileUrl = fileBase64 || externalLink || "";
+                
                 await supaPost(APP_CONFIG.TABLES.HOMEWORK, [{
                     hw_id: hwId,
                     student_name: studentName,
                     hw_name: title,
                     release_date: releaseDate || new Date().toLocaleDateString('vi-VN'),
-                    file_url: typeof fileBase64 === 'string' && fileBase64.startsWith('http') ? fileBase64 : "",
+                    file_url: fileUrl,
                     homework_code: maBaiTap || "",
                     tutor_phone: tutorPhone || "",
                     external_link: externalLink || "",
                     status: 'Active'
                 }]);
-                result = { success: true, hwId: hwId };
+                result = { success: true, hwId: hwId, fileUrl: fileUrl };
             }
             
             else if (functionName === 'deleteAssignedHomework') {
