@@ -1,0 +1,7 @@
+# Ignore database and backend code for security
+Code.gs
+Data.xlsx
+*.xlsx
+*.gs
+lớp học/
+lớp học
