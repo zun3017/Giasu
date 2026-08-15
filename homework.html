@@ -973,6 +973,60 @@
         // 3. Render danh sách các file bài tập đã nộp
         var hwDisplayLimit = 5; // Số bài hiện mặc định
 
+        function parseHwDateTimeString(str) {
+            if (!str) return 0;
+            if (typeof str === 'number') return str;
+            str = String(str).trim();
+            let d = new Date(str);
+            if (!isNaN(d.getTime())) return d.getTime();
+            
+            let parts = str.split(/\s+/);
+            let timePart = "";
+            let datePart = "";
+            if (parts.length >= 2) {
+                if (parts[0].indexOf(':') !== -1) { timePart = parts[0]; datePart = parts[1]; }
+                else { datePart = parts[0]; timePart = parts[1]; }
+            } else {
+                if (parts[0].indexOf(':') !== -1) timePart = parts[0];
+                else datePart = parts[0];
+            }
+            
+            let year = 1970, month = 0, day = 1, hour = 0, min = 0, sec = 0;
+            if (datePart.indexOf('/') !== -1) {
+                let dp = datePart.split('/');
+                if (dp.length === 3) {
+                    if (dp[0].length === 4) { year = parseInt(dp[0]); month = parseInt(dp[1]) - 1; day = parseInt(dp[2]); }
+                    else { day = parseInt(dp[0]); month = parseInt(dp[1]) - 1; year = parseInt(dp[2]); }
+                }
+            } else if (datePart.indexOf('-') !== -1) {
+                let dp = datePart.split('-');
+                if (dp.length === 3) {
+                    if (dp[0].length === 4) { year = parseInt(dp[0]); month = parseInt(dp[1]) - 1; day = parseInt(dp[2]); }
+                    else { day = parseInt(dp[0]); month = parseInt(dp[1]) - 1; year = parseInt(dp[2]); }
+                }
+            }
+            if (timePart && timePart.indexOf(':') !== -1) {
+                let tp = timePart.split(':');
+                hour = parseInt(tp[0] || 0); min = parseInt(tp[1] || 0); sec = parseInt(tp[2] || 0);
+            }
+            let parsed = new Date(year, month, day, hour, min, sec);
+            return isNaN(parsed.getTime()) ? 0 : parsed.getTime();
+        }
+
+        function formatHwVNDateTime(str) {
+            if (!str) return "-";
+            let ts = parseHwDateTimeString(str);
+            if (!ts || ts === 0) return str;
+            let d = new Date(ts);
+            let day = String(d.getDate()).padStart(2, '0');
+            let month = String(d.getMonth() + 1).padStart(2, '0');
+            let year = d.getFullYear();
+            let hours = String(d.getHours()).padStart(2, '0');
+            let minutes = String(d.getMinutes()).padStart(2, '0');
+            let seconds = String(d.getSeconds()).padStart(2, '0');
+            return hours + ":" + minutes + ":" + seconds + " " + day + "/" + month + "/" + year;
+        }
+
         function renderHomeworkList(showAll) {
             var body = document.getElementById('homeworkListBody');
             var mobileContainer = document.getElementById('homeworkMobileList');
@@ -999,8 +1053,10 @@
             }
 
             if (currentHW.submissions && currentHW.submissions.length > 0) {
-                // Đảo ngược: bài nộp mới nhất lên đầu
-                var sortedList = currentHW.submissions.slice().reverse();
+                // Sắp xếp chính xác: bài nộp mới nhất luôn ở trên đầu
+                var sortedList = currentHW.submissions.slice().sort(function(a, b) {
+                    return parseHwDateTimeString(b.timestamp) - parseHwDateTimeString(a.timestamp);
+                });
                 var totalCount = sortedList.length;
                 var limit = showAll ? totalCount : hwDisplayLimit;
                 var visibleList = sortedList.slice(0, limit);
@@ -1019,8 +1075,10 @@
                         }
                     }
 
+                    var displayTime = formatHwVNDateTime(item.timestamp);
+
                     var rowHtml = "<tr>";
-                    rowHtml += "<td>" + item.timestamp + "</td>";
+                    rowHtml += "<td style='color:#A6ADCE; font-weight:500;'>" + displayTime + "</td>";
                     rowHtml += "<td><strong style='color:#FFF;'>" + item.lessonName + "</strong></td>";
                     rowHtml += "<td><a href='" + finalUrl + "' target='_blank' style='color:#FFD23F; font-weight:600; text-decoration:none;'>" + viewText + "</a></td>";
 
