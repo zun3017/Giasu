@@ -617,19 +617,32 @@ class GoogleScriptRunInstance {
             }
             
             else if (functionName === 'getStudentSubmissionsForTutor') {
-                const [maBaiTap] = args;
+                const maBaiTap = String(args[0] || "").trim();
+                const studentName = String(args[1] || "").trim();
+                const norm = normalizePhone(maBaiTap);
+                
                 let subs = await supaGet(APP_CONFIG.TABLES.SUBMISSIONS, `select=*`);
-                let matched = subs.filter(s => s.homework_code === maBaiTap || normalizePhone(s.homework_code) === normalizePhone(maBaiTap));
-                result = matched.map((s, idx) => ({
-                    rowIndex: s.submission_id,
-                    studentName: s.student_name,
-                    lessonName: s.lesson_name,
-                    fileUrl: s.file_url,
-                    timestamp: s.submitted_at,
-                    status: s.status,
-                    score: s.score,
-                    comment: s.comment
-                }));
+                let matched = subs.filter(s => {
+                    let sCode = String(s.homework_code || "").trim();
+                    let sNorm = normalizePhone(sCode);
+                    let matchCode = (norm && sNorm === norm) || (maBaiTap && sCode === maBaiTap);
+                    let matchName = (studentName && s.student_name && s.student_name.trim().toLowerCase() === studentName.toLowerCase());
+                    return matchCode || matchName;
+                });
+                
+                result = {
+                    success: true,
+                    submissions: matched.map((s, idx) => ({
+                        rowIndex: s.submission_id,
+                        studentName: s.student_name,
+                        lessonName: s.lesson_name,
+                        fileUrl: s.file_url,
+                        timestamp: s.submitted_at || s.submission_date || "",
+                        status: s.status || "Active",
+                        score: s.score || "-",
+                        comment: s.comment || ""
+                    }))
+                };
             }
             
             else if (functionName === 'xacThucMaBaiTap') {
@@ -842,7 +855,7 @@ async function getTutorDashboardDataInternal(tutorPhone) {
         name: s.student_name,
         parentName: s.parent_name || "",
         tuition: s.tuition_fee || 0,
-        maBaiTap: s.homework_id || "",
+        maBaiTap: s.homework_id || s.student_id || s.parent_phone || "",
         thongBao: s.announcement || ""
     }));
     
@@ -852,7 +865,7 @@ async function getTutorDashboardDataInternal(tutorPhone) {
         parentName: s.parent_name || "",
         tuition: s.tuition_fee || 0,
         deletedDate: s.deleted_date || "Gần đây",
-        maBaiTap: s.homework_id || "",
+        maBaiTap: s.homework_id || s.student_id || s.parent_phone || "",
         thongBao: s.announcement || ""
     }));
     
