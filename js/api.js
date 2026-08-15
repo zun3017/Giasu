@@ -552,17 +552,29 @@ class GoogleScriptRunInstance {
             
             else if (functionName === 'xoaHocSinhTamThoi' || functionName === 'deleteTutorStudent') {
                 const [tutorPhone, studentPhone] = args;
-                const p = studentPhone || tutorPhone;
-                await supaPatch(APP_CONFIG.TABLES.STUDENTS, `student_id=eq.${encodeURIComponent(p)}`, {
-                    deleted_date: new Date().toLocaleDateString('vi-VN')
-                });
+                const p = String(studentPhone || tutorPhone || "").trim();
+                const norm = normalizePhone(p);
+                let students = await supaGet(APP_CONFIG.TABLES.STUDENTS, `select=*`);
+                let target = students.find(s => s.student_id === p || normalizePhone(s.student_id) === norm || normalizePhone(s.parent_phone) === norm || normalizePhone(s.homework_id) === norm);
+                if (target) {
+                    await supaPatch(APP_CONFIG.TABLES.STUDENTS, `student_id=eq.${encodeURIComponent(target.student_id)}`, {
+                        deleted_date: new Date().toLocaleDateString('vi-VN')
+                    });
+                }
                 result = { success: true };
             }
             
             else if (functionName === 'khoiPhucHocSinh' || functionName === 'restoreTutorStudent') {
                 const [tutorPhone, studentPhone] = args;
-                const p = studentPhone || tutorPhone;
-                await supaPatch(APP_CONFIG.TABLES.STUDENTS, `student_id=eq.${encodeURIComponent(p)}`, { deleted_date: null });
+                const p = String(studentPhone || tutorPhone || "").trim();
+                const norm = normalizePhone(p);
+                let students = await supaGet(APP_CONFIG.TABLES.STUDENTS, `select=*`);
+                let target = students.find(s => s.student_id === p || normalizePhone(s.student_id) === norm || normalizePhone(s.parent_phone) === norm || normalizePhone(s.homework_id) === norm);
+                if (target) {
+                    await supaPatch(APP_CONFIG.TABLES.STUDENTS, `student_id=eq.${encodeURIComponent(target.student_id)}`, {
+                        deleted_date: null
+                    });
+                }
                 result = { success: true };
             }
             
@@ -575,10 +587,12 @@ class GoogleScriptRunInstance {
                 const normTutor = normalizePhone(tutorPhone);
                 
                 let hws = await supaGet(APP_CONFIG.TABLES.HOMEWORK, `select=*`);
-                let matchStudent = (h) => {
-                    if (!studentName) return true;
-                    return h.student_name && h.student_name.trim().toLowerCase() === studentName.toLowerCase();
-                };
+                
+                function matchStudent(h) {
+                    let matchTutor = !normTutor || normalizePhone(h.tutor_phone) === normTutor || String(h.tutor_phone).trim() === tutorPhone;
+                    let matchName = !studentName || (h.student_name && h.student_name.trim().toLowerCase() === studentName.toLowerCase());
+                    return matchTutor && matchName;
+                }
                 
                 let active = hws.filter(h => !h.deleted_date && matchStudent(h));
                 let trash = hws.filter(h => !!h.deleted_date && matchStudent(h));
@@ -601,6 +615,7 @@ class GoogleScriptRunInstance {
                         releaseDate: h.release_date || "",
                         fileUrl: h.file_url || "",
                         externalLink: h.external_link || "",
+                        deletedTime: h.deleted_date || "",
                         deletedDate: h.deleted_date || ""
                     }))
                 };
@@ -659,6 +674,53 @@ class GoogleScriptRunInstance {
                     status: 'Active'
                 }]);
                 result = { success: true, hwId: hwId, fileUrl: fileUrl };
+            }
+            
+            else if (functionName === 'editAssignedHomework' || functionName === 'updateAssignedHomework') {
+                const [hwId, title, releaseDate, fileBase64, fileName, mimeType, externalLink] = args;
+                let updateData = {
+                    hw_name: title,
+                    release_date: releaseDate || new Date().toLocaleDateString('vi-VN')
+                };
+                if (externalLink !== undefined) updateData.external_link = externalLink;
+                
+                // Nếu có file mới, upload lên Google Drive
+                if (APP_CONFIG.DRIVE_UPLOAD_URL && fileBase64) {
+                    try {
+                        let driveRes = await fetch(APP_CONFIG.DRIVE_UPLOAD_URL, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                            body: JSON.stringify({
+                                functionName: 'uploadHomeworkFiles',
+                                arguments: [
+                                    'DE_GIA_SU',
+                                    'Giao bài tập',
+                                    title || 'Đề bài tập',
+                                    [{
+                                        fileName: fileName || (`${title || "De_BaiTap"}.pdf`),
+                                        mimeType: mimeType || 'application/pdf',
+                                        fileBase64: fileBase64
+                                    }]
+                                ]
+                            })
+                        });
+                        let driveData = await driveRes.json();
+                        let resObj = driveData.result || driveData;
+                        if (resObj && resObj.success && resObj.fileUrl) {
+                            updateData.file_url = resObj.fileUrl;
+                        }
+                    } catch (driveErr) {
+                        console.warn("Lỗi cập nhật file lên Drive:", driveErr);
+                        const mime = mimeType || "application/octet-stream";
+                        updateData.file_url = `data:${mime};base64,${fileBase64}`;
+                    }
+                } else if (fileBase64) {
+                    const mime = mimeType || "application/octet-stream";
+                    updateData.file_url = `data:${mime};base64,${fileBase64}`;
+                }
+                
+                await supaPatch(APP_CONFIG.TABLES.HOMEWORK, `hw_id=eq.${encodeURIComponent(hwId)}`, updateData);
+                result = { success: true };
             }
             
             else if (functionName === 'deleteAssignedHomework') {
@@ -915,6 +977,35 @@ class GoogleScriptRunInstance {
             else if (functionName === 'khoiPhucGiaSu' || functionName === 'restoreTutor') {
                 const [tutorPhone] = args;
                 await supaPatch(APP_CONFIG.TABLES.TUTORS, `tutor_id=eq.${encodeURIComponent(tutorPhone)}`, { deleted_date: null });
+                result = { success: true };
+            }
+            
+            else if (functionName === 'adminLuuHocSinh' || functionName === 'adminSaveStudent') {
+                const [oldPhone, parentName, studentName, phone, tuition, tutorPhone] = args;
+                const p = phone || oldPhone;
+                
+                let students = await supaGet(APP_CONFIG.TABLES.STUDENTS, `select=*`);
+                let existing = students.find(s => s.student_id === oldPhone || normalizePhone(s.student_id) === normalizePhone(oldPhone));
+                
+                if (existing) {
+                    await supaPatch(APP_CONFIG.TABLES.STUDENTS, `student_id=eq.${encodeURIComponent(existing.student_id)}`, {
+                        student_name: studentName,
+                        parent_name: parentName,
+                        parent_phone: phone,
+                        tutor_phone: tutorPhone || existing.tutor_phone,
+                        tuition_fee: parseFloat(tuition) || 0
+                    });
+                } else {
+                    await supaPost(APP_CONFIG.TABLES.STUDENTS, [{
+                        student_id: p,
+                        student_name: studentName,
+                        parent_name: parentName,
+                        parent_phone: phone,
+                        tutor_phone: tutorPhone,
+                        tuition_fee: parseFloat(tuition) || 0,
+                        homework_id: p
+                    }]);
+                }
                 result = { success: true };
             }
             
