@@ -23,8 +23,8 @@ const APP_CONFIG = {
         FEEDBACKS: 'gs_feedbacks',
         ADMINS: 'gs_admins'
     },
-    // Dán URL Google Apps Script Web App (từ file DriveUploader.gs) vào đây để tự động lưu file vào Google Drive miễn phí 15GB
-    DRIVE_UPLOAD_URL: ''
+    // URL Google Apps Script Web App của bạn để tự động lưu bài nộp vào Google Drive
+    DRIVE_UPLOAD_URL: 'https://script.google.com/macros/s/AKfycbwiX32O0XElBv2QizaQdNgn9a7JwjPL8piow2qLDV0bzeF2o_Xy82o_DEhNpMH0ibNn/exec'
 };
 
 const HEADERS = {
