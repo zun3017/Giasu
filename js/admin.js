@@ -1076,7 +1076,7 @@ var pinVerifyAction = "deleteStudent";
         // --- Cải tiến Admin quản lý Phí thuê Web và Marquee ---
         function confirmQuickPaid(phone, name) {
             showCustomConfirm("Xác nhận đã nhận tiền thuê Web của gia sư " + name + " cho chu kỳ này và tự động gia hạn thêm 1 tháng?", function() {
-                showToast("Đang gửi xác nhận lên Google Sheets...", "info");
+                showToast("Đang cập nhật lên hệ thống...", "info");
                 google.script.run
                     .withSuccessHandler(function(res) {
                         if (res.error) {
