@@ -1162,7 +1162,7 @@ function formatScheduleCell(val) {
                 })
                 .withFailureHandler(function(err) {
                     showSyncToast('error');
-                    showToast("Lỗi kết nối máy chủ Google", "error");
+                    showToast("Lỗi kết nối máy chủ hệ thống", "error");
                     refreshTutorStudentHistory();
                 })
                 .capNhatNhieuDongHocPhi(payIndices, unpayIndices);
@@ -1774,7 +1774,7 @@ function formatScheduleCell(val) {
 
         function deleteStudentBackend() {
             if (!currentTutorStudent) return;
-            showCustomConfirm("Xác nhận đưa học sinh " + currentTutorStudent.name + " vào thùng rác? Học sinh sẽ ẩn khỏi danh sách và bị xóa vĩnh viễn trên sheet sau 10 ngày.", function() {
+            showCustomConfirm("Xác nhận đưa học sinh " + currentTutorStudent.name + " vào thùng rác? Học sinh sẽ ẩn khỏi danh sách và tự động dọn dẹp sau 10 ngày.", function() {
                 google.script.run
                     .withSuccessHandler(function(res) {
                         if (res.error) {

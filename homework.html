@@ -1509,7 +1509,7 @@
             document.getElementById('btnCancelEdit').style.display = 'inline-flex';
             
             var statusTxt = document.getElementById('uploadStatusText');
-            statusTxt.innerText = "Bạn đang sửa bài tập dòng số " + rowIndex + ". Nhập tên bài mới hoặc chọn file khác nếu muốn thay thế file.";
+            statusTxt.innerText = "Bạn đang chỉnh sửa bài tập: " + (lessonName || "") + ". Nhập tên bài mới hoặc chọn file khác nếu muốn thay thế file.";
             statusTxt.style.color = "#FFD23F";
             statusTxt.style.display = "block";
             
@@ -1527,7 +1527,7 @@
 
         // 8. Xóa bài tập tạm thời
         function deleteHomework(rowIndex) {
-            showCustomConfirm("Bạn có chắc chắn muốn xóa bài tập đã nộp này không? (Bài tập sẽ được đưa vào thùng rác trên Sheets).", function() {
+            showCustomConfirm("Bạn có chắc chắn muốn xóa bài tập đã nộp này không? (Bài tập sẽ được chuyển vào thùng rác hệ thống).", function() {
                 google.script.run
                     .withSuccessHandler(function(res) {
                         if (res.error) {
