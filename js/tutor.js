@@ -2293,8 +2293,8 @@ function renderAssignedHwList(list, showAll) {
 
         var actionsHtml = 
             '<div style="display:flex; gap:8px; justify-content:center; align-items:center;">' +
-                '<button onclick="startEditAssignedHw(' + item.rowIndex + ', \'' + item.title.replace(/'/g, "\\'") + '\', \'' + item.releaseDate + '\')" class="action-btn-hw-icon action-btn-hw-edit" title="Chỉnh sửa"><i class="fa-solid fa-pen-to-square"></i></button>' +
-                '<button onclick="deleteAssignedHomework(' + item.rowIndex + ')" class="action-btn-hw-icon action-btn-hw-delete" title="Xóa tạm thời"><i class="fa-solid fa-trash-can"></i></button>' +
+                '<button onclick="startEditAssignedHw(\'' + item.rowIndex + '\', \'' + item.title.replace(/'/g, "\\'") + '\', \'' + item.releaseDate + '\')" class="action-btn-hw-icon action-btn-hw-edit" title="Chỉnh sửa"><i class="fa-solid fa-pen-to-square"></i></button>' +
+                '<button onclick="deleteAssignedHomework(\'' + item.rowIndex + '\')" class="action-btn-hw-icon action-btn-hw-delete" title="Xóa tạm thời"><i class="fa-solid fa-trash-can"></i></button>' +
             '</div>';
             
         // Desktop Row
@@ -2322,8 +2322,8 @@ function renderAssignedHwList(list, showAll) {
         mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Đính kèm</span><span class='accordion-body-val'>" + attachmentsMobileHtml + "</span></div>";
         mobileHtml += "    <div class='accordion-body-row' style='margin-top: 5px;'><span class='accordion-body-label'>Thao tác</span>";
         mobileHtml += "      <span class='accordion-body-val' style='display:inline-flex; gap:10px;'>";
-        mobileHtml += "        <button onclick=\"startEditAssignedHw(" + item.rowIndex + ", '" + item.title.replace(/'/g, "\\'") + "', '" + item.releaseDate + "')\" class='action-btn-hw' style='border-color:#F59E0B; color:#F59E0B; cursor:pointer;'><i class='fa-solid fa-pen-to-square'></i> Sửa</button>";
-        mobileHtml += "        <button onclick='deleteAssignedHomework(" + item.rowIndex + ")' class='action-btn-hw' style='border-color:#EF4444; color:#EF4444; cursor:pointer;'><i class='fa-solid fa-trash-can'></i> Xóa</button>";
+        mobileHtml += "        <button onclick=\"startEditAssignedHw('" + item.rowIndex + "', '" + item.title.replace(/'/g, "\\'") + "', '" + item.releaseDate + "')\" class='action-btn-hw' style='border-color:#F59E0B; color:#F59E0B; cursor:pointer;'><i class='fa-solid fa-pen-to-square'></i> Sửa</button>";
+        mobileHtml += "        <button onclick=\"deleteAssignedHomework('" + item.rowIndex + "')\" class='action-btn-hw' style='border-color:#EF4444; color:#EF4444; cursor:pointer;'><i class='fa-solid fa-trash-can'></i> Xóa</button>";
         mobileHtml += "      </span>";
         mobileHtml += "    </div>";
         mobileHtml += "  </div>";
@@ -2556,7 +2556,7 @@ function renderTutorHwTrashList(list) {
     tableBody.innerHTML = "";
     list.forEach(function(item) {
         var actionsHtml = 
-            '<button onclick="restoreAssignedHomework(' + item.rowIndex + ')" class="action-btn-hw" style="color:#10B981; border-color:rgba(16,185,129,0.3); background:rgba(16,185,129,0.1); padding: 4px 14px;"><i class="fa-solid fa-trash-arrow-up"></i> Khôi phục</button>';
+            '<button onclick="restoreAssignedHomework(\'' + item.rowIndex + '\')" class="action-btn-hw" style="color:#10B981; border-color:rgba(16,185,129,0.3); background:rgba(16,185,129,0.1); padding: 4px 14px;"><i class="fa-solid fa-trash-arrow-up"></i> Khôi phục</button>';
             
         tableBody.innerHTML += 
             '<tr>' +
