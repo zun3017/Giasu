@@ -1027,6 +1027,34 @@
             return hours + ":" + minutes + ":" + seconds + " " + day + "/" + month + "/" + year;
         }
 
+        function isSubmissionWithinToday(itemTimestamp, submissionDateStr) {
+            if (!itemTimestamp && !submissionDateStr) return false;
+            var now = new Date();
+            var dd = String(now.getDate()).padStart(2, '0');
+            var mm = String(now.getMonth() + 1).padStart(2, '0');
+            var yyyy = now.getFullYear();
+            var todayFormatted = dd + "/" + mm + "/" + yyyy;
+            var todayAlt = now.getDate() + "/" + (now.getMonth() + 1) + "/" + yyyy;
+            
+            var sDate = String(submissionDateStr || "");
+            if (sDate.indexOf(todayFormatted) !== -1 || sDate.indexOf(todayAlt) !== -1) {
+                return true;
+            }
+            
+            var ts = parseHwDateTimeString(itemTimestamp || submissionDateStr);
+            if (ts && ts > 0) {
+                var d = new Date(ts);
+                if (d.getDate() === now.getDate() && d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()) {
+                    return true;
+                }
+                var diffHours = (now.getTime() - ts) / (1000 * 60 * 60);
+                if (diffHours >= 0 && diffHours < 24) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
         function renderHomeworkList(showAll) {
             var body = document.getElementById('homeworkListBody');
             var mobileContainer = document.getElementById('homeworkMobileList');
@@ -1091,8 +1119,8 @@
                     }
                     rowHtml += "<td>" + statusBadge + "</td>";
 
-                    var isToday = (item.submissionDate === todayStr);
-                    var isRowLocked = !isToday;
+                    var isRowLocked = !isSubmissionWithinToday(item.timestamp, item.submissionDate);
+                    var rowKey = item.rowIndex || item.subId;
 
                     rowHtml += "<td style='text-align: center; vertical-align: middle;'>";
                     var actionsHtml = "";
@@ -1103,15 +1131,15 @@
                         mobileActionsHtml = '<span class="lock-badge"><i class="fa-solid fa-lock"></i> Khóa sửa/xóa</span>';
                     } else {
                         if (statusStr === "Deleted") {
-                            actionsHtml = '<button onclick="restoreHomework(' + item.rowIndex + ')" class="action-btn-hw btn-restore" style="padding: 4px 14px;"><i class="fa-solid fa-trash-arrow-up"></i> Khôi phục</button>';
-                            mobileActionsHtml = '<button onclick="restoreHomework(' + item.rowIndex + ')" class="action-btn-hw btn-restore" style="padding: 4px 14px; width: 100%; justify-content: center;"><i class="fa-solid fa-trash-arrow-up"></i> Khôi phục</button>';
+                            actionsHtml = '<button onclick="restoreHomework(\'' + rowKey + '\')" class="action-btn-hw btn-restore" style="padding: 4px 14px;"><i class="fa-solid fa-trash-arrow-up"></i> Khôi phục</button>';
+                            mobileActionsHtml = '<button onclick="restoreHomework(\'' + rowKey + '\')" class="action-btn-hw btn-restore" style="padding: 4px 14px; width: 100%; justify-content: center;"><i class="fa-solid fa-trash-arrow-up"></i> Khôi phục</button>';
                         } else {
-                            actionsHtml = '<button onclick="editHomework(' + item.rowIndex + ', \'' + item.lessonName.replace(/'/g, "\\'") + '\')" class="action-btn-hw btn-edit" style="padding: 4px 12px; margin-right: 6px;"><i class="fa-solid fa-pen-to-square"></i> Sửa</button>';
-                            actionsHtml += '<button onclick="deleteHomework(' + item.rowIndex + ')" class="action-btn-hw btn-delete" style="padding: 4px 12px;"><i class="fa-solid fa-trash-can"></i> Xóa</button>';
+                            actionsHtml = '<button onclick="editHomework(\'' + rowKey + '\', \'' + item.lessonName.replace(/'/g, "\\'") + '\')" class="action-btn-hw btn-edit" style="padding: 4px 12px; margin-right: 6px;"><i class="fa-solid fa-pen-to-square"></i> Sửa</button>';
+                            actionsHtml += '<button onclick="deleteHomework(\'' + rowKey + '\')" class="action-btn-hw btn-delete" style="padding: 4px 12px;"><i class="fa-solid fa-trash-can"></i> Xóa</button>';
 
                             mobileActionsHtml = '<div style="display: flex; gap: 8px;">';
-                            mobileActionsHtml += '  <button onclick="editHomework(' + item.rowIndex + ', \'' + item.lessonName.replace(/'/g, "\\'") + '\')" class="action-btn-hw btn-edit" style="padding: 4px 12px; flex: 1; justify-content: center;"><i class="fa-solid fa-pen-to-square"></i> Sửa</button>';
-                            mobileActionsHtml += '  <button onclick="deleteHomework(' + item.rowIndex + ')" class="action-btn-hw btn-delete" style="padding: 4px 12px; flex: 1; justify-content: center;"><i class="fa-solid fa-trash-can"></i> Xóa</button>';
+                            mobileActionsHtml += '  <button onclick="editHomework(\'' + rowKey + '\', \'' + item.lessonName.replace(/'/g, "\\'") + '\')" class="action-btn-hw btn-edit" style="padding: 4px 12px; flex: 1; justify-content: center;"><i class="fa-solid fa-pen-to-square"></i> Sửa</button>';
+                            mobileActionsHtml += '  <button onclick="deleteHomework(\'' + rowKey + '\')" class="action-btn-hw btn-delete" style="padding: 4px 12px; flex: 1; justify-content: center;"><i class="fa-solid fa-trash-can"></i> Xóa</button>';
                             mobileActionsHtml += '</div>';
                         }
                     }
