@@ -222,6 +222,32 @@
                 justify-content: center;
             }
         }
+        
+        @media (max-width: 480px) {
+            .header {
+                padding: 8px 10px;
+            }
+            .nav-container {
+                gap: 8px;
+            }
+            .nav-right {
+                display: grid;
+                grid-template-columns: repeat(4, 1fr);
+                gap: 5px;
+                width: 100%;
+            }
+            .nav-btn {
+                padding: 7px 4px;
+                font-size: 11px;
+                gap: 4px;
+                justify-content: center;
+                border-radius: 20px;
+                white-space: nowrap;
+            }
+            .nav-btn i {
+                font-size: 11px;
+            }
+        }
 
         /* ================= TRANG TRÍ 3D & ANIMATION ================= */
         .decor { position: absolute; z-index: 1; pointer-events: none; }
