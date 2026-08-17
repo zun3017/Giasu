@@ -241,6 +241,15 @@
                     </div>
                 </div>
 
+                <!-- Phản hồi từ Phụ huynh -->
+                <div class="result-section" style="background: rgba(0,0,0,0.4); padding: 20px; border-radius: 16px; margin-bottom: 20px; border: 1px solid rgba(142, 77, 255, 0.2);">
+                    <h4 style="color: #8E4DFF; margin: 0 0 15px 0; font-size: 15px; display: flex; align-items: center; gap: 10px; font-weight: 600;"><i class="fa-regular fa-comment-dots"></i> Phản hồi từ Phụ huynh</h4>
+                    <div style="display:flex; gap:12px; margin-top:10px; flex-wrap:wrap;">
+                        <textarea placeholder="Nhập ý kiến đóng góp hoặc phản hồi của phụ huynh gửi cho gia sư tại đây..." rows="2" style="flex:1; min-width:240px; background:#04020A; border:1px solid rgba(142, 77, 255, 0.3); border-radius:12px; padding:12px; color:#FFF; font-size:13px; outline:none; resize:none; font-family:sans-serif;"></textarea>
+                        <button class="btn-submit" style="padding:0 20px; height:45px; border-radius:12px; font-size:13px; font-weight:bold; background:linear-gradient(135deg, #8E4DFF 0%, #5B21B6 100%); color:#FFF; border:none; cursor:pointer; display:inline-flex; align-items:center; gap:8px;">Gửi phản hồi <i class="fa-regular fa-paper-plane"></i></button>
+                    </div>
+                </div>
+
                 <!-- Bảng Tóm Tắt Kết Quả -->
                 <div class="summary-grid">
                     <div class="summary-card">
@@ -408,16 +417,6 @@
                             }
                             return cardHtml;
                         })()}
-                    </div>
-                </div>
-
-
-                <!-- Phản hồi từ Phụ huynh -->
-                <div class="result-section" style="background: rgba(0,0,0,0.4); padding: 20px; border-radius: 16px; margin-bottom: 20px; border: 1px solid rgba(142, 77, 255, 0.2);">
-                    <h4 style="color: #8E4DFF; margin: 0 0 15px 0; font-size: 15px; display: flex; align-items: center; gap: 10px; font-weight: 600;"><i class="fa-regular fa-comment-dots"></i> Phản hồi từ Phụ huynh</h4>
-                    <div style="display:flex; gap:12px; margin-top:10px; flex-wrap:wrap;">
-                        <textarea placeholder="Nhập ý kiến đóng góp hoặc phản hồi của phụ huynh gửi cho gia sư tại đây..." rows="2" style="flex:1; min-width:240px; background:#04020A; border:1px solid rgba(142, 77, 255, 0.3); border-radius:12px; padding:12px; color:#FFF; font-size:13px; outline:none; resize:none; font-family:sans-serif;"></textarea>
-                        <button class="btn-submit" style="padding:0 20px; height:45px; border-radius:12px; font-size:13px; font-weight:bold; background:linear-gradient(135deg, #8E4DFF 0%, #5B21B6 100%); color:#FFF; border:none; cursor:pointer; display:inline-flex; align-items:center; gap:8px;">Gửi phản hồi <i class="fa-regular fa-paper-plane"></i></button>
                     </div>
                 </div>
 
