@@ -23,6 +23,12 @@
     return;
   }
 
+  // 3. CHỈ HIỂN THỊ TRÊN ĐIỆN THOẠI (Mobile / Tablet / Màn hình nhỏ <= 768px), ẨN HOÀN TOÀN TRÊN MÁY TÍNH
+  var isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || (window.innerWidth <= 768);
+  if (!isMobileDevice) {
+    return;
+  }
+
   // Kiểm tra nếu người dùng vừa mới bấm tắt thông báo gần đây (3 ngày)
   var dismissedTime = localStorage.getItem('giasu_pwa_dismissed');
   if (dismissedTime && (Date.now() - parseInt(dismissedTime, 10) < 3 * 24 * 60 * 60 * 1000)) {
@@ -32,7 +38,7 @@
   var deferredPrompt = null;
   var isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
 
-  // 3. Xây dựng giao diện Banner Cài đặt
+  // 4. Xây dựng giao diện Banner Cài đặt
   function createInstallBanner() {
     if (document.getElementById('pwaInstallBanner')) return;
 
