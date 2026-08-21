@@ -8,7 +8,8 @@
     window.addEventListener('load', function() {
       navigator.serviceWorker.register('./sw.js')
         .then(function(reg) {
-          // Service Worker registered successfully
+          // Tự động kiểm tra bản cập nhật mới ngay khi mở app
+          reg.update();
         })
         .catch(function(err) {
           console.warn('[PWA] Lỗi đăng ký Service Worker:', err);
