@@ -706,7 +706,7 @@
         </div>
     </div>
 
-    <script src="js/api.js?v=2.3.0"></script>
+    <script src="js/api.js?v=2.4.0"></script>
     <script>
         // --- Web App Notification and Confirmation Dialogs ---
         function showToast(message, type = 'info') {
@@ -1262,11 +1262,23 @@
                     return item.name === file.name && item.size === file.size;
                 });
                 if (!isDuplicate) {
+                    var mime = file.type;
+                    if (!mime) {
+                        var ext = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
+                        if (ext === '.jpg' || ext === '.jpeg') mime = 'image/jpeg';
+                        else if (ext === '.png') mime = 'image/png';
+                        else if (ext === '.webp') mime = 'image/webp';
+                        else if (ext === '.pdf') mime = 'application/pdf';
+                        else if (ext === '.docx') mime = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+                        else if (ext === '.doc') mime = 'application/msword';
+                        else mime = 'application/octet-stream';
+                    }
+
                     selectedFilesQueue.push({
                         fileObject: file,
                         name: file.name,
                         size: file.size,
-                        mimeType: file.type
+                        mimeType: mime
                     });
                     currentTotalSize += file.size;
                 }
