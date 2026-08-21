@@ -2707,53 +2707,226 @@ function formatVNDateTime(str) {
     return hours + ":" + minutes + ":" + seconds + " " + day + "/" + month + "/" + year;
 }
 
-var currentSortedSubmissions = [];
+var activeGradingSubId = "";
+var activeGradingStudentName = "";
+var activeGradingFileUrl = "";
 
-function downloadSubmissionFileByIndex(idx) {
-    var item = currentSortedSubmissions[idx] || studentSubmissionsGlobal[idx];
-    if (!item || !item.fileUrl) {
-        showToast("Không tìm thấy file bài nộp!", "error");
-        return;
-    }
-    var fileUrl = item.fileUrl;
-    if (fileUrl.startsWith('data:')) {
-        var a = document.createElement('a');
-        a.href = fileUrl;
-        var ext = ".pdf";
-        if (fileUrl.startsWith("data:image/png")) ext = ".png";
-        else if (fileUrl.startsWith("data:image/jpeg") || fileUrl.startsWith("data:image/jpg")) ext = ".jpg";
-        else if (fileUrl.startsWith("data:application/zip")) ext = ".zip";
-        else if (fileUrl.startsWith("data:application/pdf")) ext = ".pdf";
-        else if (fileUrl.startsWith("data:application/vnd.openxmlformats") || fileUrl.startsWith("data:application/msword")) ext = ".docx";
-        
-        var rawName = (item.studentName || "HocSinh") + "_" + (item.lessonName || "BaiTap");
-        a.download = rawName.replace(/[^a-zA-Z0-9_\u00C0-\u024F\u1E00-\u1EFF]/g, "_") + ext;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        showToast("Đang tải file bài nộp về máy...", "success");
+function openSubmissionPreviewModal(subId, studentName, fileUrl) {
+    activeGradingSubId = subId;
+    activeGradingStudentName = studentName;
+    activeGradingFileUrl = fileUrl;
+
+    var titleEl = document.getElementById('previewStudentNameTitle');
+    var iframe = document.getElementById('submissionPreviewIframe');
+    var extBtn = document.getElementById('btnPreviewExternalLink');
+    var spinner = document.getElementById('previewLoadingSpinner');
+    var gallery = document.getElementById('customGalleryContainer');
+
+    if (titleEl) titleEl.textContent = studentName || '';
+    if (extBtn) extBtn.href = fileUrl || '#';
+    if (spinner) spinner.style.display = 'block';
+
+    var modal = document.getElementById('previewSubmissionModal');
+    if (modal) modal.classList.add('active');
+
+    var previewUrl = fileUrl || '';
+    if (fileUrl) {
+        var fileMatch = fileUrl.match(/\/file\/d\/([^\/]+)/) || fileUrl.match(/id=([^&]+)/);
+        if (fileMatch && fileMatch[1]) {
+            previewUrl = 'https://drive.google.com/file/d/' + fileMatch[1] + '/preview';
+            if (iframe) {
+                iframe.style.display = 'block';
+                iframe.src = previewUrl;
+            }
+            if (gallery) gallery.style.display = 'none';
+        } else if (fileUrl.indexOf('/folders/') !== -1 || fileUrl.indexOf('/drive/folders/') !== -1) {
+            var folderMatch = fileUrl.match(/\/folders\/([^\/]+)/);
+            if (folderMatch && folderMatch[1]) {
+                if (iframe) iframe.style.display = 'none';
+                if (gallery) {
+                    gallery.style.display = 'grid';
+                    gallery.innerHTML = '';
+                }
+                if (typeof google !== 'undefined' && google.script && google.script.run && google.script.run.getDriveFolderImages) {
+                    google.script.run
+                        .withSuccessHandler(function(files) {
+                            if (spinner) spinner.style.display = 'none';
+                            if (!files || files.length === 0) {
+                                if (gallery) gallery.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; color: #A6ADCE; padding: 40px;">Thư mục bài làm không có file ảnh hoặc chưa cấp quyền. <br><a href="' + fileUrl + '" target="_blank" style="color:#FFD23F; text-decoration:none; margin-top:8px; display:inline-block;">Mở trực tiếp trên Google Drive →</a></div>';
+                                return;
+                            }
+                            var html = '';
+                            files.forEach(function(f) {
+                                if (f.isImage) {
+                                    html += '<div style="cursor:pointer; border-radius:8px; overflow:hidden; border:1px solid rgba(255,255,255,0.1); transition: transform 0.2s;" onclick="openLightbox(\'' + f.url.replace(/'/g, "\\'") + '\')" onmouseover="this.style.transform=\'scale(1.02)\'" onmouseout="this.style.transform=\'scale(1)\'">' +
+                                        '<img src="' + f.url + '" style="width:100%; height:200px; object-fit:cover; display:block;">' +
+                                        '<div style="padding:8px; background:rgba(0,0,0,0.6); color:#FFF; font-size:12px; text-align:center; text-overflow:ellipsis; overflow:hidden; white-space:nowrap;">' + f.name + '</div>' +
+                                        '</div>';
+                                } else {
+                                    html += '<div style="border-radius:8px; overflow:hidden; border:1px solid rgba(255,255,255,0.1); background:rgba(255,255,255,0.05); display:flex; flex-direction:column; align-items:center; justify-content:center; padding:15px;">' +
+                                        '<i class="fa-solid fa-file-lines" style="font-size:40px; color:#A5B4FC; margin-bottom:10px;"></i>' +
+                                        '<div style="color:#FFF; font-size:12px; text-align:center; text-overflow:ellipsis; overflow:hidden; white-space:nowrap; width:100%; margin-bottom:10px;">' + f.name + '</div>' +
+                                        '<a href="' + f.url + '" target="_blank" style="background:#8E4DFF; color:#FFF; padding:5px 10px; border-radius:5px; text-decoration:none; font-size:11px;">Mở File</a>' +
+                                        '</div>';
+                                }
+                            });
+                            if (gallery) gallery.innerHTML = html;
+                        })
+                        .withFailureHandler(function(err) {
+                            if (spinner) spinner.style.display = 'none';
+                            if (gallery) gallery.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; color: #EF4444; padding: 40px;">Lỗi tải ảnh thư mục: ' + err.toString() + '</div>';
+                        })
+                        .getDriveFolderImages(fileUrl);
+                } else {
+                    if (spinner) spinner.style.display = 'none';
+                    if (gallery) gallery.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; color: #A6ADCE; padding: 40px;"><p>Thư mục bài nộp học sinh</p><a href="' + fileUrl + '" target="_blank" style="color:#FFD23F; font-weight:bold; text-decoration:none; display:inline-block; margin-top:10px; padding:8px 16px; background:rgba(255,210,63,0.15); border:1px solid #FFD23F; border-radius:8px;"><i class="fa-solid fa-arrow-up-right-from-square"></i> Mở Thư Mục Google Drive</a></div>';
+                }
+                return;
+            }
+        } else if (fileUrl.startsWith('data:image/') || fileUrl.match(/\.(jpg|jpeg|png|webp|gif)($|\?)/i)) {
+            if (iframe) iframe.style.display = 'none';
+            if (gallery) {
+                gallery.style.display = 'grid';
+                if (spinner) spinner.style.display = 'none';
+                gallery.innerHTML = '<div style="grid-column: 1 / -1; text-align:center; cursor:pointer; padding: 15px;" onclick="openLightbox(\'' + fileUrl.replace(/'/g, "\\'") + '\')">' +
+                    '<img src="' + fileUrl + '" style="max-width:100%; max-height:65vh; object-fit:contain; border-radius:8px; box-shadow:0 5px 20px rgba(0,0,0,0.5);">' +
+                    '<div style="color:#A6ADCE; font-size:12px; margin-top:8px;"><i class="fa-solid fa-magnifying-glass-plus"></i> Nhấp vào ảnh để phóng to toàn màn hình</div>' +
+                    '</div>';
+            }
+            return;
+        } else if (fileUrl.startsWith('data:application/pdf')) {
+            if (iframe) {
+                iframe.style.display = 'block';
+                iframe.src = fileUrl;
+            }
+            if (gallery) gallery.style.display = 'none';
+        } else {
+            if (iframe) {
+                iframe.style.display = 'block';
+                iframe.src = previewUrl;
+            }
+            if (gallery) gallery.style.display = 'none';
+        }
     } else {
-        var finalUrl = getGoogleDriveDownloadUrl(fileUrl);
-        window.open(finalUrl, '_blank');
+        if (iframe) {
+            iframe.style.display = 'block';
+            iframe.src = '';
+        }
+        if (gallery) gallery.style.display = 'none';
     }
 }
 
-function viewSubmissionFileByIndex(idx) {
-    var item = currentSortedSubmissions[idx] || studentSubmissionsGlobal[idx];
-    if (!item || !item.fileUrl) {
-        showToast("Không tìm thấy file bài nộp!", "error");
+function closeSubmissionPreviewModal() {
+    var modal = document.getElementById('previewSubmissionModal');
+    if (modal) modal.classList.remove('active');
+    var iframe = document.getElementById('submissionPreviewIframe');
+    if (iframe) iframe.src = '';
+}
+
+function openLightbox(url) {
+    if (window.event) window.event.stopPropagation();
+    var img = document.getElementById('lightboxImg');
+    if (img) img.src = url;
+    var lb = document.getElementById('fullscreenLightbox');
+    if (lb) lb.style.display = 'flex';
+}
+
+function closeLightbox() {
+    var lb = document.getElementById('fullscreenLightbox');
+    if (lb) lb.style.display = 'none';
+    var img = document.getElementById('lightboxImg');
+    if (img) img.src = '';
+}
+
+function openGradeModalFromPreview() {
+    closeSubmissionPreviewModal();
+    var curSub = null;
+    if (studentSubmissionsGlobal) {
+        curSub = studentSubmissionsGlobal.find(function(s) {
+            return (s.subId && s.subId === activeGradingSubId) || (s.rowIndex && String(s.rowIndex) === String(activeGradingSubId));
+        });
+    }
+    openGradeModal(activeGradingSubId, activeGradingStudentName, curSub ? curSub.score : '', curSub ? curSub.comment : '');
+}
+
+function openGradeModal(subId, studentName, currentScore, currentComment) {
+    activeGradingSubId = subId;
+    activeGradingStudentName = studentName;
+
+    var nameInput = document.getElementById('gradeStudentNameInput');
+    var scoreInput = document.getElementById('gradeScoreInput');
+    var commentInput = document.getElementById('gradeCommentInput');
+
+    if (nameInput) nameInput.value = studentName || (currentTutorStudent ? currentTutorStudent.name : '') || '';
+    if (scoreInput) scoreInput.value = currentScore !== undefined && currentScore !== null ? currentScore : '';
+    if (commentInput) commentInput.value = currentComment !== undefined && currentComment !== null ? currentComment : '';
+
+    var modal = document.getElementById('tutorGradeModal');
+    if (modal) modal.classList.add('active');
+}
+
+function closeGradeModal() {
+    var modal = document.getElementById('tutorGradeModal');
+    if (modal) modal.classList.remove('active');
+}
+
+function saveTutorGrade() {
+    var scoreInput = document.getElementById('gradeScoreInput');
+    var commentInput = document.getElementById('gradeCommentInput');
+
+    var score = scoreInput ? scoreInput.value.trim() : '';
+    var comment = commentInput ? commentInput.value.trim() : '';
+
+    if (!score) {
+        showToast('Vui lòng nhập điểm số trước khi lưu!', 'warning');
         return;
     }
-    var fileUrl = item.fileUrl;
-    if (fileUrl.startsWith('data:image/') || fileUrl.startsWith('data:application/pdf')) {
-        var win = window.open();
-        if (win) {
-            win.document.write('<!DOCTYPE html><html><head><title>' + (item.lessonName || "Bài nộp") + '</title><style>body{margin:0;background:#0f0c29;display:flex;justify-content:center;align-items:center;min-height:100vh;}</style></head><body>' +
-                (fileUrl.startsWith('data:image/') ? '<img src="' + fileUrl + '" style="max-width:100%;max-height:100vh;object-fit:contain;">' : '<iframe src="' + fileUrl + '" style="width:100vw;height:100vh;border:none;"></iframe>') +
-                '</body></html>');
+
+    var scoreNum = parseFloat(score.replace(',', '.'));
+    if (isNaN(scoreNum) || scoreNum < 0 || scoreNum > 10) {
+        showToast('Điểm số phải từ 0 đến 10!', 'warning');
+        return;
+    }
+
+    var stName = activeGradingStudentName || (currentTutorStudent ? currentTutorStudent.name : '');
+
+    // Cập nhật Optimistic UI
+    var gradeWrap = document.getElementById('grade-wrapper-' + activeGradingSubId);
+    var mobileGradeWrap = document.getElementById('mobile-grade-wrapper-' + activeGradingSubId);
+    
+    var gradedHtml = '<span style="padding:4px 10px; background:rgba(255,210,63,0.15); border:1px solid #FFD23F; border-radius:8px; color:#FFD23F; font-size:12px; font-weight:700; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-star"></i> Điểm: ' + score + '</span>'
+        + ' <button onclick="openGradeModal(\'' + activeGradingSubId + '\',\'' + (stName || '').replace(/'/g, "\\'") + '\',\'' + score + '\',\'' + (comment || '').replace(/'/g, "\\'") + '\')" style="background:none; border:none; color:#A6ADCE; cursor:pointer; font-size:11px; margin-left:4px;" title="Sửa điểm"><i class="fa-solid fa-pen"></i></button>';
+
+    if (gradeWrap) gradeWrap.innerHTML = gradedHtml;
+    if (mobileGradeWrap) mobileGradeWrap.innerHTML = gradedHtml;
+
+    // Cập nhật mảng cache client
+    if (studentSubmissionsGlobal) {
+        for (var i = 0; i < studentSubmissionsGlobal.length; i++) {
+            var sItem = studentSubmissionsGlobal[i];
+            if ((sItem.subId && sItem.subId === activeGradingSubId) || (sItem.rowIndex && String(sItem.rowIndex) === String(activeGradingSubId)) || i === parseInt(activeGradingSubId, 10)) {
+                sItem.score = score;
+                sItem.comment = comment;
+                sItem.status = "Đã chấm";
+                break;
+            }
         }
-    } else {
-        window.open(fileUrl, '_blank');
+    }
+
+    closeGradeModal();
+    showToast('Đã lưu kết quả chấm điểm cho ' + (stName || 'học sinh') + ' thành công!', 'success');
+
+    if (typeof google !== 'undefined' && google.script && google.script.run && google.script.run.gradeSubmission) {
+        google.script.run
+            .withSuccessHandler(function(res) {
+                if (res && res.error) {
+                    showToast('Lỗi lưu điểm: ' + res.error, 'error');
+                }
+            })
+            .withFailureHandler(function(err) {
+                showToast('Lỗi mạng khi lưu điểm: ' + err.toString(), 'error');
+            })
+            .gradeSubmission(activeGradingSubId, score, comment);
     }
 }
 
@@ -2763,7 +2936,7 @@ function renderStudentSubmissionsList() {
     if (!tableBody) return;
     
     if (studentSubmissionsGlobal.length === 0) {
-        tableBody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:#A6ADCE; padding: 20px;"><i class="fa-solid fa-circle-info"></i> Học sinh này chưa nộp bài tập nào!</td></tr>';
+        tableBody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:#A6ADCE; padding: 20px;"><i class="fa-solid fa-circle-info"></i> Học sinh này chưa nộp bài tập nào!</td></tr>';
         if (mobileContainer) {
             mobileContainer.innerHTML = '<div style="text-align:center; color:#A6ADCE; padding: 20px; font-size: 13px;"><i class="fa-solid fa-circle-info"></i> Học sinh này chưa nộp bài tập nào!</div>';
         }
@@ -2781,28 +2954,54 @@ function renderStudentSubmissionsList() {
 
     tableBody.innerHTML = "";
     var mobileHtml = "";
+    var studentName = currentTutorStudent ? currentTutorStudent.name : "";
     
     showList.forEach(function(item, idx) {
+        var subId = item.subId || item.rowIndex || idx;
         var isFolder = item.fileUrl && (item.fileUrl.indexOf("/folders/") !== -1 || item.fileUrl.indexOf("/drive/folders/") !== -1);
         var isZip = item.fileUrl && (item.fileUrl.toLowerCase().indexOf(".zip") !== -1 || item.fileUrl.indexOf("/file/d/") !== -1);
         var isDataUrl = item.fileUrl && item.fileUrl.startsWith("data:");
         
-        var viewText = isFolder ? '<i class="fa-solid fa-folder-open"></i> Xem thư mục' : (isZip ? '<i class="fa-solid fa-file-zipper"></i> Tải bài nộp (ZIP)' : (isDataUrl ? '<i class="fa-solid fa-file-lines"></i> Xem bài nộp' : '<i class="fa-solid fa-image"></i> Xem file nộp'));
+        var viewBtn = item.fileUrl ? 
+            '<button onclick="openSubmissionPreviewModal(\'' + subId + '\',\'' + (studentName || item.studentName || '').replace(/'/g, "\\'") + '\',\'' + item.fileUrl.replace(/'/g, "\\'") + '\')" style="padding:6px 14px; background:rgba(99,102,241,0.15); border:1px solid #6366F1; border-radius:8px; color:#A5B4FC; font-size:13px; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; gap:6px;"><i class="fa-solid fa-file-lines"></i> Xem bài</button>' 
+            : '<span style="color:#A6ADCE;">Không có file</span>';
         
-        var fileLink = item.fileUrl ? '<a href="javascript:void(0)" onclick="viewSubmissionFileByIndex(' + idx + ')" style="color:#FFD23F; font-weight:600; text-decoration:none;">' + viewText + '</a>' : '<span style="color:#A6ADCE;">Không có file</span>';
-        
-        var dlText = isFolder ? '<i class="fa-solid fa-folder-arrow-down"></i> Tải cả thư mục' : (isZip ? '<i class="fa-solid fa-file-zipper"></i> Tải ZIP' : '<i class="fa-solid fa-cloud-arrow-down"></i> Tải về');
-        var downloadBtn = item.fileUrl ? '<button onclick="downloadSubmissionFileByIndex(' + idx + ')" class="action-btn-hw" style="color:#10B981; border-color:rgba(16,185,129,0.3); background:rgba(16,185,129,0.1); padding: 4px 14px; cursor: pointer; border-radius: 6px; display: inline-flex; align-items: center; gap: 6px;">' + dlText + '</button>' : '<span style="color:#A6ADCE;">N/A</span>';
+        var dlText = isFolder ? '<i class="fa-solid fa-folder-arrow-down"></i> Tải thư mục' : (isZip ? '<i class="fa-solid fa-file-zipper"></i> Tải ZIP' : '<i class="fa-solid fa-cloud-arrow-down"></i> Tải về');
+        var downloadBtn = item.fileUrl ? '<button onclick="downloadSubmissionFileByIndex(' + idx + ')" class="action-btn-hw" style="color:#10B981; border-color:rgba(16,185,129,0.3); background:rgba(16,185,129,0.1); padding: 5px 14px; cursor: pointer; border-radius: 8px; display: inline-flex; align-items: center; gap: 6px; font-weight:600;"><i class="fa-solid fa-download"></i> Tải</button>' : '<span style="color:#A6ADCE;">N/A</span>';
         
         var displayTime = formatVNDateTime(item.timestamp);
+        
+        // Grade Button / Badge
+        var scoreVal = item.score !== undefined && item.score !== null && String(item.score).trim() !== "" ? String(item.score).trim() : null;
+        var commentVal = item.comment || "";
+        
+        var gradeHtml = '<div id="grade-wrapper-' + subId + '" style="display:inline-flex; align-items:center; justify-content:center;">';
+        if (scoreVal) {
+            gradeHtml += '<span style="padding:4px 10px; background:rgba(255,210,63,0.15); border:1px solid #FFD23F; border-radius:8px; color:#FFD23F; font-size:12px; font-weight:700; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-star"></i> Điểm: ' + scoreVal + '</span>'
+                + ' <button onclick="openGradeModal(\'' + subId + '\',\'' + (studentName || item.studentName || '').replace(/'/g, "\\'") + '\',\'' + scoreVal + '\',\'' + commentVal.replace(/'/g, "\\'") + '\')" style="background:none; border:none; color:#A6ADCE; cursor:pointer; font-size:11px; margin-left:4px;" title="Sửa điểm"><i class="fa-solid fa-pen"></i></button>';
+        } else {
+            gradeHtml += '<button onclick="openGradeModal(\'' + subId + '\',\'' + (studentName || item.studentName || '').replace(/'/g, "\\'") + '\')" style="padding:6px 14px; background:rgba(249,115,22,0.15); border:1px solid #F97316; border-radius:8px; color:#FED7AA; font-size:13px; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; gap:6px;"><i class="fa-solid fa-pen"></i> Chấm điểm</button>';
+        }
+        gradeHtml += '</div>';
+
+        // Mobile Grade HTML
+        var mobileGradeHtml = '<div id="mobile-grade-wrapper-' + subId + '" style="display:inline-flex; align-items:center;">';
+        if (scoreVal) {
+            mobileGradeHtml += '<span style="padding:3px 8px; background:rgba(255,210,63,0.15); border:1px solid #FFD23F; border-radius:6px; color:#FFD23F; font-size:11.5px; font-weight:700;"><i class="fa-solid fa-star"></i> Điểm: ' + scoreVal + '</span>'
+                + ' <button onclick="openGradeModal(\'' + subId + '\',\'' + (studentName || item.studentName || '').replace(/'/g, "\\'") + '\',\'' + scoreVal + '\',\'' + commentVal.replace(/'/g, "\\'") + '\')" style="background:none; border:none; color:#A6ADCE; cursor:pointer; font-size:11px; margin-left:4px;" title="Sửa điểm"><i class="fa-solid fa-pen"></i></button>';
+        } else {
+            mobileGradeHtml += '<button onclick="openGradeModal(\'' + subId + '\',\'' + (studentName || item.studentName || '').replace(/'/g, "\\'") + '\')" style="padding:4px 10px; background:rgba(249,115,22,0.15); border:1px solid #F97316; border-radius:6px; color:#FED7AA; font-size:12px; font-weight:600; cursor:pointer;"><i class="fa-solid fa-pen"></i> Chấm điểm</button>';
+        }
+        mobileGradeHtml += '</div>';
         
         // Desktop Row
         tableBody.innerHTML += 
             '<tr>' +
                 '<td style="color:#A6ADCE; font-weight:500;">' + displayTime + '</td>' +
                 '<td style="color:#FFF; font-weight:600;">' + item.lessonName + '</td>' +
-                '<td>' + fileLink + '</td>' +
-                '<td>' + downloadBtn + '</td>' +
+                '<td>' + viewBtn + '</td>' +
+                '<td style="text-align: center;">' + gradeHtml + '</td>' +
+                '<td style="text-align: center;">' + downloadBtn + '</td>' +
             '</tr>';
             
         // Mobile Accordion Card
@@ -2812,13 +3011,20 @@ function renderStudentSubmissionsList() {
         mobileHtml += "      <span>" + item.lessonName + "</span>";
         mobileHtml += "      <span class='accordion-header-date'>" + displayTime + "</span>";
         mobileHtml += "    </div>";
-        mobileHtml += "    <div class='accordion-header-status'>";
+        mobileHtml += "    <div class='accordion-header-status' style='display:flex; align-items:center; gap:8px;'>";
+        if (scoreVal) {
+            mobileHtml += "      <span style='color:#FFD23F; font-size:12px; font-weight:700;'><i class='fa-solid fa-star'></i> " + scoreVal + "đ</span>";
+        }
         mobileHtml += "      <i class='fa-solid fa-chevron-down' id='submit-hw-chevron-" + idx + "'></i>";
         mobileHtml += "    </div>";
         mobileHtml += "  </div>";
         mobileHtml += "  <div class='accordion-body' id='submit-hw-body-" + idx + "' style='display: none;'>";
         mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Thời gian nộp</span><span class='accordion-body-val' style='color:#FFD23F; font-weight:600;'>" + displayTime + "</span></div>";
-        mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>File nộp bài</span><span class='accordion-body-val'>" + fileLink + "</span></div>";
+        mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Xem bài làm</span><span class='accordion-body-val'>" + viewBtn + "</span></div>";
+        mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Chấm điểm</span><span class='accordion-body-val'>" + mobileGradeHtml + "</span></div>";
+        if (commentVal) {
+            mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Nhận xét</span><span class='accordion-body-val' style='color:#E2D1FF; font-style:italic; font-size:12.5px;'>" + commentVal + "</span></div>";
+        }
         mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Tải về</span><span class='accordion-body-val'>" + downloadBtn + "</span></div>";
         mobileHtml += "  </div>";
         mobileHtml += "</div>";
@@ -2827,7 +3033,7 @@ function renderStudentSubmissionsList() {
     // Nút Xem thêm / Thu gọn cho cả desktop lẫn mobile
     if (totalCount > submissionsLimit) {
         var remaining = totalCount - submissionsLimit;
-        tableBody.innerHTML += '<tr><td colspan="4" style="text-align:center; padding:10px;">'
+        tableBody.innerHTML += '<tr><td colspan="5" style="text-align:center; padding:10px;">'
             + '<button onclick="loadMoreStudentSubmissions()" style="background:none; border:1px solid #4B5563; color:#FFD23F; padding:6px 20px; border-radius:8px; cursor:pointer; font-size:13px;">'
             + '<i class="fa-solid fa-chevron-down" style="margin-right:5px;"></i>Xem thêm ' + remaining + ' bài nộp cũ hơn'
             + '</button></td></tr>';
@@ -2837,7 +3043,7 @@ function renderStudentSubmissionsList() {
             + '</button></div>';
     } else if (submissionsLimit > 5 && totalCount <= submissionsLimit) {
         // Nút Thu gọn khi đang xem tất cả
-        tableBody.innerHTML += '<tr><td colspan="4" style="text-align:center; padding:10px;">'
+        tableBody.innerHTML += '<tr><td colspan="5" style="text-align:center; padding:10px;">'
             + '<button onclick="collapseStudentSubmissions()" style="background:none; border:1px solid #4B5563; color:#9CA3AF; padding:6px 20px; border-radius:8px; cursor:pointer; font-size:13px;">'
             + '<i class="fa-solid fa-chevron-up" style="margin-right:5px;"></i>Thu gọn'
             + '</button></td></tr>';
