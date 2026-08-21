@@ -24,8 +24,8 @@ const APP_CONFIG = {
         ADMINS: 'gs_admins'
     },
     // URL Google Apps Script Web App của bạn để tự động lưu bài nộp vào Google Drive
-    DRIVE_UPLOAD_URL: 'https://script.google.com/macros/s/AKfycbxRWqVRXIy5updxg-OrlZuiwedju_ZHlpWqUqLT9l96wtXg4mgFEaqeNMpEinVkfrY_/exec',
-    SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbxRWqVRXIy5updxg-OrlZuiwedju_ZHlpWqUqLT9l96wtXg4mgFEaqeNMpEinVkfrY_/exec',
+    DRIVE_UPLOAD_URL: 'https://script.google.com/macros/s/AKfycbwQZA0UlCibTKjuq0AIJM1kfQjKwPbiIKE7-VfDjpiizjU-gaxJBuYOLTKdTmnETjbd/exec',
+    SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbwQZA0UlCibTKjuq0AIJM1kfQjKwPbiIKE7-VfDjpiizjU-gaxJBuYOLTKdTmnETjbd/exec',
     HOMEWORK_DRIVE_FOLDER: 'https://drive.google.com/drive/folders/1cGu7nt0K0paWCg-9nlHgqxVp0I_6h8M8?usp=drive_link',
     ASSIGNMENT_DRIVE_FOLDER: 'https://drive.google.com/drive/folders/11z6CIwULBhR6CKcUzhvHDaTMjiUA7Iiu?usp=drive_link'
 };
@@ -854,7 +854,7 @@ class GoogleScriptRunInstance {
                         timestamp: s.submitted_at || s.submission_date || "",
                         submissionDate: s.submission_date || s.submitted_at || "",
                         status: s.status || "Active",
-                        score: s.score || "-",
+                        score: (s.score && s.score !== "-" && s.score !== "null") ? s.score : "",
                         comment: s.comment || "",
                         rowIndex: s.submission_id
                     }));

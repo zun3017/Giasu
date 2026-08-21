@@ -2810,59 +2810,8 @@ function openSubmissionPreviewModal(subId, studentName, fileUrl) {
             }
         }
 
-        var fileMatch = fileUrl.match(/\/file\/d\/([^\/]+)/) || fileUrl.match(/id=([^&]+)/);
-        if (fileMatch && fileMatch[1]) {
-            previewUrl = 'https://drive.google.com/file/d/' + fileMatch[1] + '/preview';
-            if (iframe) {
-                iframe.style.display = 'block';
-                iframe.src = previewUrl;
-            }
-            if (gallery) gallery.style.display = 'none';
-        } else if (fileUrl.indexOf('/folders/') !== -1 || fileUrl.indexOf('/drive/folders/') !== -1) {
-            var folderMatch = fileUrl.match(/\/folders\/([^\/]+)/);
-            if (folderMatch && folderMatch[1]) {
-                if (iframe) iframe.style.display = 'none';
-                if (gallery) {
-                    gallery.style.display = 'grid';
-                    gallery.innerHTML = '';
-                }
-                if (typeof google !== 'undefined' && google.script && google.script.run && google.script.run.getDriveFolderImages) {
-                    google.script.run
-                        .withSuccessHandler(function(files) {
-                            if (spinner) spinner.style.display = 'none';
-                            if (!files || files.length === 0) {
-                                if (gallery) gallery.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; color: #A6ADCE; padding: 40px;">Thư mục bài làm không có file ảnh hoặc chưa cấp quyền. <br><a href="' + fileUrl + '" target="_blank" style="color:#FFD23F; text-decoration:none; margin-top:8px; display:inline-block;">Mở trực tiếp trên Google Drive →</a></div>';
-                                return;
-                            }
-                            var html = '';
-                            files.forEach(function(f) {
-                                if (f.isImage) {
-                                    html += '<div style="cursor:pointer; border-radius:8px; overflow:hidden; border:1px solid rgba(255,255,255,0.1); transition: transform 0.2s;" onclick="openLightbox(\'' + f.url.replace(/'/g, "\\'") + '\')" onmouseover="this.style.transform=\'scale(1.02)\'" onmouseout="this.style.transform=\'scale(1)\'">' +
-                                        '<img src="' + f.url + '" style="width:100%; height:200px; object-fit:cover; display:block;">' +
-                                        '<div style="padding:8px; background:rgba(0,0,0,0.6); color:#FFF; font-size:12px; text-align:center; text-overflow:ellipsis; overflow:hidden; white-space:nowrap;">' + f.name + '</div>' +
-                                        '</div>';
-                                } else {
-                                    html += '<div style="border-radius:8px; overflow:hidden; border:1px solid rgba(255,255,255,0.1); background:rgba(255,255,255,0.05); display:flex; flex-direction:column; align-items:center; justify-content:center; padding:15px;">' +
-                                        '<i class="fa-solid fa-file-lines" style="font-size:40px; color:#A5B4FC; margin-bottom:10px;"></i>' +
-                                        '<div style="color:#FFF; font-size:12px; text-align:center; text-overflow:ellipsis; overflow:hidden; white-space:nowrap; width:100%; margin-bottom:10px;">' + f.name + '</div>' +
-                                        '<a href="' + f.url + '" target="_blank" style="background:#8E4DFF; color:#FFF; padding:5px 10px; border-radius:5px; text-decoration:none; font-size:11px;">Mở File</a>' +
-                                        '</div>';
-                                }
-                            });
-                            if (gallery) gallery.innerHTML = html;
-                        })
-                        .withFailureHandler(function(err) {
-                            if (spinner) spinner.style.display = 'none';
-                            if (gallery) gallery.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; color: #EF4444; padding: 40px;">Lỗi tải ảnh thư mục: ' + err.toString() + '</div>';
-                        })
-                        .getDriveFolderImages(fileUrl);
-                } else {
-                    if (spinner) spinner.style.display = 'none';
-                    if (gallery) gallery.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; color: #A6ADCE; padding: 40px;"><p>Thư mục bài nộp học sinh</p><a href="' + fileUrl + '" target="_blank" style="color:#FFD23F; font-weight:bold; text-decoration:none; display:inline-block; margin-top:10px; padding:8px 16px; background:rgba(255,210,63,0.15); border:1px solid #FFD23F; border-radius:8px;"><i class="fa-solid fa-arrow-up-right-from-square"></i> Mở Thư Mục Google Drive</a></div>';
-                }
-                return;
-            }
-        } else if (fileUrl.startsWith('data:image/') || fileUrl.match(/\.(jpg|jpeg|png|webp|gif)($|\?)/i)) {
+        // Trường hợp 2: Base64 trực tiếp hoặc link ảnh trực tiếp
+        if (fileUrl.startsWith('data:image/') || fileUrl.match(/\.(jpg|jpeg|png|webp|gif)($|\?)/i)) {
             if (iframe) iframe.style.display = 'none';
             if (gallery) {
                 gallery.style.display = 'grid';
@@ -2873,25 +2822,87 @@ function openSubmissionPreviewModal(subId, studentName, fileUrl) {
                     '</div>';
             }
             return;
-        } else if (fileUrl.startsWith('data:application/pdf')) {
-            if (iframe) {
-                iframe.style.display = 'block';
-                iframe.src = fileUrl;
+        }
+
+        // Trường hợp 3: Thư mục Drive hoặc file ZIP (.zip) trên Drive
+        var isFolder = fileUrl.indexOf('/folders/') !== -1 || fileUrl.indexOf('/drive/folders/') !== -1;
+        var isZip = fileUrl.toLowerCase().indexOf('.zip') !== -1;
+
+        if (isFolder || isZip) {
+            if (iframe) iframe.style.display = 'none';
+            if (gallery) {
+                gallery.style.display = 'grid';
+                gallery.innerHTML = '';
             }
+            if (typeof google !== 'undefined' && google.script && google.script.run && google.script.run.getDriveFolderImages) {
+                google.script.run
+                    .withSuccessHandler(function(files) {
+                        if (spinner) spinner.style.display = 'none';
+                        if (!files || files.length === 0) {
+                            if (gallery) gallery.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; color: #A6ADCE; padding: 40px;">Không tìm thấy file ảnh trong bài nộp hoặc chưa cấp quyền. <br><a href="' + fileUrl + '" target="_blank" style="color:#FFD23F; text-decoration:none; margin-top:8px; display:inline-block;"><i class="fa-solid fa-arrow-up-right-from-square"></i> Mở trực tiếp trên Google Drive →</a></div>';
+                            return;
+                        }
+                        var html = '';
+                        files.forEach(function(f) {
+                            if (f.isImage) {
+                                html += '<div style="cursor:pointer; border-radius:8px; overflow:hidden; border:1px solid rgba(255,255,255,0.1); transition: transform 0.2s;" onclick="openLightbox(\'' + f.url.replace(/'/g, "\\'") + '\')" onmouseover="this.style.transform=\'scale(1.02)\'" onmouseout="this.style.transform=\'scale(1)\'">' +
+                                    '<img src="' + f.url + '" style="width:100%; height:200px; object-fit:cover; display:block;">' +
+                                    '<div style="padding:8px; background:rgba(0,0,0,0.6); color:#FFF; font-size:12px; text-align:center; text-overflow:ellipsis; overflow:hidden; white-space:nowrap;">' + f.name + '</div>' +
+                                    '</div>';
+                            } else {
+                                html += '<div style="border-radius:8px; overflow:hidden; border:1px solid rgba(255,255,255,0.1); background:rgba(255,255,255,0.05); display:flex; flex-direction:column; align-items:center; justify-content:center; padding:15px;">' +
+                                    '<i class="fa-solid fa-file-lines" style="font-size:40px; color:#A5B4FC; margin-bottom:10px;"></i>' +
+                                    '<div style="color:#FFF; font-size:12px; text-align:center; text-overflow:ellipsis; overflow:hidden; white-space:nowrap; width:100%; margin-bottom:10px;">' + f.name + '</div>' +
+                                    '<a href="' + f.url + '" target="_blank" style="background:#8E4DFF; color:#FFF; padding:5px 10px; border-radius:5px; text-decoration:none; font-size:11px;">Mở File</a>' +
+                                    '</div>';
+                            }
+                        });
+                        if (gallery) gallery.innerHTML = html;
+                    })
+                    .withFailureHandler(function(err) {
+                        if (spinner) spinner.style.display = 'none';
+                        if (gallery) gallery.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; color: #EF4444; padding: 40px;">Lỗi tải ảnh bài nộp: ' + err.toString() + '</div>';
+                    })
+                    .getDriveFolderImages(fileUrl);
+            } else {
+                if (spinner) spinner.style.display = 'none';
+                if (gallery) gallery.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; color: #A6ADCE; padding: 40px;"><p>Bài nộp dạng thư mục / tệp nén của học sinh</p><a href="' + fileUrl + '" target="_blank" style="color:#FFD23F; font-weight:bold; text-decoration:none; display:inline-block; margin-top:10px; padding:8px 16px; background:rgba(255,210,63,0.15); border:1px solid #FFD23F; border-radius:8px;"><i class="fa-solid fa-arrow-up-right-from-square"></i> Mở trên Google Drive</a></div>';
+            }
+            return;
+        }
+
+        // Trường hợp 4: File Drive đơn lẻ (PDF hoặc link xem Drive thông thường)
+        var fileMatch = fileUrl.match(/\/file\/d\/([^\/]+)/) || fileUrl.match(/id=([^&]+)/);
+        if (fileMatch && fileMatch[1]) {
+            previewUrl = 'https://drive.google.com/file/d/' + fileMatch[1] + '/preview';
             if (gallery) gallery.style.display = 'none';
-        } else {
             if (iframe) {
                 iframe.style.display = 'block';
+                iframe.onload = function() { if (spinner) spinner.style.display = 'none'; };
                 iframe.src = previewUrl;
             }
+        } else if (fileUrl.startsWith('data:application/pdf')) {
             if (gallery) gallery.style.display = 'none';
+            if (iframe) {
+                iframe.style.display = 'block';
+                iframe.onload = function() { if (spinner) spinner.style.display = 'none'; };
+                iframe.src = fileUrl;
+            }
+        } else {
+            if (gallery) gallery.style.display = 'none';
+            if (iframe) {
+                iframe.style.display = 'block';
+                iframe.onload = function() { if (spinner) spinner.style.display = 'none'; };
+                iframe.src = previewUrl;
+            }
         }
     } else {
+        if (spinner) spinner.style.display = 'none';
+        if (gallery) gallery.style.display = 'none';
         if (iframe) {
             iframe.style.display = 'block';
             iframe.src = '';
         }
-        if (gallery) gallery.style.display = 'none';
     }
 }
 
@@ -3060,7 +3071,9 @@ function renderStudentSubmissionsList() {
         var displayTime = formatVNDateTime(item.timestamp);
         
         // Grade Button / Badge
-        var scoreVal = item.score !== undefined && item.score !== null && String(item.score).trim() !== "" ? String(item.score).trim() : null;
+        var rawScore = (item.score !== undefined && item.score !== null) ? String(item.score).trim() : "";
+        var isGraded = rawScore !== "" && rawScore !== "-" && rawScore !== "null" && rawScore !== "undefined";
+        var scoreVal = isGraded ? rawScore : null;
         var commentVal = item.comment || "";
         
         var gradeHtml = '<div id="grade-wrapper-' + subId + '" style="display:inline-flex; align-items:center; justify-content:center;">';
