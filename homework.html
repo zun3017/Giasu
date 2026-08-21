@@ -706,7 +706,7 @@
         </div>
     </div>
 
-    <script src="js/api.js?v=2.1.0"></script>
+    <script src="js/api.js?v=2.3.0"></script>
     <script>
         // --- Web App Notification and Confirmation Dialogs ---
         function showToast(message, type = 'info') {
@@ -1097,8 +1097,8 @@
                 var mobileHtml = "";
                 visibleList.forEach(function(item, idx) {
                     var isFolder = item.fileUrl && (item.fileUrl.indexOf("/folders/") !== -1 || item.fileUrl.indexOf("/drive/folders/") !== -1);
-                    var isZip = item.fileUrl && (item.fileUrl.toLowerCase().indexOf(".zip") !== -1 || item.fileUrl.indexOf("/file/d/") !== -1);
-                    var viewText = isFolder ? '<i class="fa-solid fa-folder-open"></i> Xem thư mục bài nộp' : (isZip ? '<i class="fa-solid fa-file-zipper"></i> Tải bài nộp (ZIP)' : '<i class="fa-solid fa-file-pdf"></i> Xem file bài nộp');
+                    var isZip = item.fileUrl && item.fileUrl.toLowerCase().indexOf(".zip") !== -1;
+                    var viewText = isFolder ? '<i class="fa-solid fa-folder-open"></i> Xem thư mục bài nộp' : (isZip ? '<i class="fa-solid fa-file-zipper"></i> Tải bài nộp (ZIP)' : '<i class="fa-solid fa-file-lines"></i> Xem bài nộp');
 
                     var finalUrl = item.fileUrl;
                     if (isZip && item.fileUrl) {
