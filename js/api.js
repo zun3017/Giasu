@@ -757,16 +757,31 @@ class GoogleScriptRunInstance {
                 result = {
                     success: true,
                     submissions: matched.map((s, idx) => ({
+                        subId: s.submission_id,
                         rowIndex: s.submission_id,
                         studentName: s.student_name,
                         lessonName: s.lesson_name,
                         fileUrl: s.file_url,
                         timestamp: s.submitted_at || s.submission_date || "",
                         status: s.status || "Active",
-                        score: s.score || "-",
+                        score: (s.score && s.score !== "-") ? s.score : "",
                         comment: s.comment || ""
                     }))
                 };
+            }
+            
+            else if (functionName === 'gradeSubmission') {
+                const [subId, score, comment] = args;
+                await supaPatch(APP_CONFIG.TABLES.SUBMISSIONS, `submission_id=eq.${encodeURIComponent(subId)}`, {
+                    score: score || "",
+                    comment: comment || "",
+                    status: "Đã chấm"
+                });
+                result = { success: true };
+            }
+            
+            else if (functionName === 'getDriveFolderImages') {
+                result = [];
             }
             
             else if (functionName === 'xacThucMaBaiTap') {
