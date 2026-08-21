@@ -1,0 +1,25 @@
+{
+  "name": "Gia Sư Giỏi - Quản Lý & Tra Cứu Học Tập 4.0",
+  "short_name": "Gia Sư",
+  "description": "Ứng dụng Quản lý Gia sư, Tra cứu học tập và Nộp bài tập 4.0",
+  "start_url": "index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0B0826",
+  "theme_color": "#0B0826",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "https://i.postimg.cc/66rKbPmb/trinh-duyet.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "https://i.postimg.cc/66rKbPmb/trinh-duyet.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
