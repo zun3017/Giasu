@@ -4,6 +4,24 @@
             padding: 0;
             box-sizing: border-box;
             font-family: 'Inter', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        html, body, button, a, input, select, textarea, [role="button"], .nav-btn, .btn-submit, .action-btn-hw {
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        button, a, .nav-btn, .btn-submit, .action-btn-hw, .btn-quick, .btn-restore, .btn-edit, .btn-delete {
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        /* Phản hồi chạm tức thì (Instant Touch Feedback 0ms) */
+        button:active, a:active, .nav-btn:active, .btn-submit:active, .action-btn-hw:active {
+            transform: scale(0.96) !important;
+            transition: transform 0.05s ease !important;
         }
 
         body {
