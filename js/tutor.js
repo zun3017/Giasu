@@ -2711,6 +2711,44 @@ var activeGradingSubId = "";
 var activeGradingStudentName = "";
 var activeGradingFileUrl = "";
 
+function downloadSubmissionFileByIndex(idx) {
+    var item = (currentSortedSubmissions && currentSortedSubmissions[idx]) || (studentSubmissionsGlobal && studentSubmissionsGlobal[idx]);
+    if (!item || !item.fileUrl) {
+        showToast("Không tìm thấy file bài nộp!", "error");
+        return;
+    }
+    var fileUrl = item.fileUrl;
+    if (fileUrl.startsWith('data:')) {
+        var a = document.createElement('a');
+        a.href = fileUrl;
+        var ext = ".pdf";
+        if (fileUrl.startsWith("data:image/png")) ext = ".png";
+        else if (fileUrl.startsWith("data:image/jpeg") || fileUrl.startsWith("data:image/jpg")) ext = ".jpg";
+        else if (fileUrl.startsWith("data:application/zip")) ext = ".zip";
+        else if (fileUrl.startsWith("data:application/pdf")) ext = ".pdf";
+        else if (fileUrl.startsWith("data:application/vnd.openxmlformats") || fileUrl.startsWith("data:application/msword")) ext = ".docx";
+        
+        var rawName = (item.studentName || "HocSinh") + "_" + (item.lessonName || "BaiTap");
+        a.download = rawName.replace(/[^a-zA-Z0-9_\u00C0-\u024F\u1E00-\u1EFF]/g, "_") + ext;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        showToast("Đang tải file bài nộp về máy...", "success");
+    } else {
+        var finalUrl = typeof getGoogleDriveDownloadUrl === 'function' ? getGoogleDriveDownloadUrl(fileUrl) : fileUrl;
+        window.open(finalUrl, '_blank');
+    }
+}
+
+function viewSubmissionFileByIndex(idx) {
+    var item = (currentSortedSubmissions && currentSortedSubmissions[idx]) || (studentSubmissionsGlobal && studentSubmissionsGlobal[idx]);
+    if (!item || !item.fileUrl) {
+        showToast("Không tìm thấy file bài nộp!", "error");
+        return;
+    }
+    openSubmissionPreviewModal(item.subId || item.rowIndex || idx, item.studentName || (currentTutorStudent ? currentTutorStudent.name : ''), item.fileUrl);
+}
+
 function openSubmissionPreviewModal(subId, studentName, fileUrl) {
     activeGradingSubId = subId;
     activeGradingStudentName = studentName;
@@ -2722,12 +2760,15 @@ function openSubmissionPreviewModal(subId, studentName, fileUrl) {
     var spinner = document.getElementById('previewLoadingSpinner');
     var gallery = document.getElementById('customGalleryContainer');
 
-    if (titleEl) titleEl.textContent = studentName || '';
+    if (titleEl) titleEl.textContent = studentName || (currentTutorStudent ? currentTutorStudent.name : '') || '';
     if (extBtn) extBtn.href = fileUrl || '#';
     if (spinner) spinner.style.display = 'block';
 
     var modal = document.getElementById('previewSubmissionModal');
-    if (modal) modal.classList.add('active');
+    if (modal) {
+        modal.style.display = 'flex';
+        modal.classList.add('active');
+    }
 
     var previewUrl = fileUrl || '';
     if (fileUrl) {
@@ -2818,7 +2859,10 @@ function openSubmissionPreviewModal(subId, studentName, fileUrl) {
 
 function closeSubmissionPreviewModal() {
     var modal = document.getElementById('previewSubmissionModal');
-    if (modal) modal.classList.remove('active');
+    if (modal) {
+        modal.style.display = 'none';
+        modal.classList.remove('active');
+    }
     var iframe = document.getElementById('submissionPreviewIframe');
     if (iframe) iframe.src = '';
 }
@@ -2862,12 +2906,18 @@ function openGradeModal(subId, studentName, currentScore, currentComment) {
     if (commentInput) commentInput.value = currentComment !== undefined && currentComment !== null ? currentComment : '';
 
     var modal = document.getElementById('tutorGradeModal');
-    if (modal) modal.classList.add('active');
+    if (modal) {
+        modal.style.display = 'flex';
+        modal.classList.add('active');
+    }
 }
 
 function closeGradeModal() {
     var modal = document.getElementById('tutorGradeModal');
-    if (modal) modal.classList.remove('active');
+    if (modal) {
+        modal.style.display = 'none';
+        modal.classList.remove('active');
+    }
 }
 
 function saveTutorGrade() {
