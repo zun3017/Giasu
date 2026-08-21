@@ -901,11 +901,22 @@ class GoogleScriptRunInstance {
                 // Fallback nếu chưa cấu hình Google Drive Web App hoặc không dùng Drive
                 if (!fileUrl) {
                     if (filesList && filesList.length > 0) {
-                        if (filesList[0].url) {
-                            fileUrl = filesList[0].url;
-                        } else if (filesList[0].fileBase64) {
-                            const mime = filesList[0].mimeType || "application/octet-stream";
-                            fileUrl = `data:${mime};base64,${filesList[0].fileBase64}`;
+                        if (filesList.length === 1) {
+                            if (filesList[0].url) {
+                                fileUrl = filesList[0].url;
+                            } else if (filesList[0].fileBase64) {
+                                const mime = filesList[0].mimeType || "image/jpeg";
+                                fileUrl = `data:${mime};base64,${filesList[0].fileBase64}`;
+                            }
+                        } else {
+                            fileUrl = JSON.stringify(filesList.map((f, fIdx) => {
+                                const mime = f.mimeType || "image/jpeg";
+                                return {
+                                    name: f.fileName || (`Ảnh ${fIdx + 1}`),
+                                    url: f.url || `data:${mime};base64,${f.fileBase64}`,
+                                    isImage: !mime.includes("pdf") && !mime.includes("zip")
+                                };
+                            }));
                         }
                     } else if (typeof filesList === 'string') {
                         fileUrl = filesList;

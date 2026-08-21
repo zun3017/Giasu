@@ -2772,6 +2772,44 @@ function openSubmissionPreviewModal(subId, studentName, fileUrl) {
 
     var previewUrl = fileUrl || '';
     if (fileUrl) {
+        // Trường hợp 1: Danh sách nhiều ảnh lưu dạng JSON mảng (Base64 hoặc link)
+        if (fileUrl.trim().startsWith('[') || fileUrl.trim().startsWith('{')) {
+            try {
+                var parsedFiles = JSON.parse(fileUrl);
+                if (!Array.isArray(parsedFiles)) parsedFiles = [parsedFiles];
+                if (parsedFiles.length > 0) {
+                    if (iframe) iframe.style.display = 'none';
+                    if (gallery) {
+                        gallery.style.display = 'grid';
+                        if (spinner) spinner.style.display = 'none';
+                        var html = '';
+                        parsedFiles.forEach(function(f, fIdx) {
+                            var fUrl = typeof f === 'string' ? f : (f.url || f.fileUrl || '');
+                            var fName = (typeof f === 'object' && f.name) ? f.name : ('Ảnh ' + (fIdx + 1));
+                            var isImg = (typeof f === 'object' && f.isImage !== undefined) ? f.isImage : (fUrl.startsWith('data:image/') || fUrl.match(/\.(jpg|jpeg|png|webp|gif)($|\?)/i));
+                            
+                            if (isImg) {
+                                html += '<div style="cursor:pointer; border-radius:8px; overflow:hidden; border:1px solid rgba(255,255,255,0.1); transition: transform 0.2s;" onclick="openLightbox(\'' + fUrl.replace(/'/g, "\\'") + '\')" onmouseover="this.style.transform=\'scale(1.02)\'" onmouseout="this.style.transform=\'scale(1)\'">' +
+                                    '<img src="' + fUrl + '" style="width:100%; height:200px; object-fit:cover; display:block;">' +
+                                    '<div style="padding:8px; background:rgba(0,0,0,0.6); color:#FFF; font-size:12px; text-align:center; text-overflow:ellipsis; overflow:hidden; white-space:nowrap;">' + fName + '</div>' +
+                                    '</div>';
+                            } else {
+                                html += '<div style="border-radius:8px; overflow:hidden; border:1px solid rgba(255,255,255,0.1); background:rgba(255,255,255,0.05); display:flex; flex-direction:column; align-items:center; justify-content:center; padding:15px;">' +
+                                    '<i class="fa-solid fa-file-lines" style="font-size:40px; color:#A5B4FC; margin-bottom:10px;"></i>' +
+                                    '<div style="color:#FFF; font-size:12px; text-align:center; text-overflow:ellipsis; overflow:hidden; white-space:nowrap; width:100%; margin-bottom:10px;">' + fName + '</div>' +
+                                    '<a href="' + fUrl + '" target="_blank" style="background:#8E4DFF; color:#FFF; padding:5px 10px; border-radius:5px; text-decoration:none; font-size:11px;">Mở File</a>' +
+                                    '</div>';
+                            }
+                        });
+                        gallery.innerHTML = html;
+                    }
+                    return;
+                }
+            } catch (e) {
+                console.warn("Lỗi parse fileUrl JSON:", e);
+            }
+        }
+
         var fileMatch = fileUrl.match(/\/file\/d\/([^\/]+)/) || fileUrl.match(/id=([^&]+)/);
         if (fileMatch && fileMatch[1]) {
             previewUrl = 'https://drive.google.com/file/d/' + fileMatch[1] + '/preview';
