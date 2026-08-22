@@ -83,11 +83,37 @@
         </div>
 
         <div class="schedule-section">
-            <h3><i class="fa-regular fa-calendar-alt"></i> Thời khóa biểu tổng hợp</h3>
-            <div style="margin-top: 15px; display: flex; justify-content: center; padding: 20px 0;">
-                <a href="tutor-calendar.html" class="modal-btn modal-btn-primary" style="width: auto; padding: 12px 28px; background: linear-gradient(135deg, #8E4DFF 0%, #5B21B6 100%); font-weight: bold; border-radius: 25px; display: inline-flex; align-items: center; gap: 10px; box-shadow: 0 4px 15px rgba(142,77,255,0.25); text-decoration: none; font-size: 14px; font-family: 'Inter', sans-serif;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
+                <h3 style="margin: 0; display: flex; align-items: center; gap: 8px;"><i class="fa-regular fa-calendar-alt" style="color: #8E4DFF;"></i> Thời khóa biểu tổng hợp</h3>
+                <a href="tutor-calendar.html" class="modal-btn modal-btn-primary" style="width: auto; padding: 8px 18px; background: linear-gradient(135deg, #8E4DFF 0%, #5B21B6 100%); font-weight: bold; border-radius: 20px; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 15px rgba(142,77,255,0.25); text-decoration: none; font-size: 13px; font-family: 'Inter', sans-serif;">
                     <i class="fa-solid fa-calendar-days"></i> Quản lý & Tạo thời khóa biểu
                 </a>
+            </div>
+            
+            <div class="table-wrapper desktop-table-view" style="margin-top: 10px; width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; border-radius: 12px;">
+                <table id="tutorScheduleTable" style="min-width: 700px; width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr>
+                            <th style="text-align: left; padding: 12px 14px; background: rgba(91, 46, 255, 0.15); color: #FFF; font-weight: 700;">Học sinh</th>
+                            <th style="text-align: center; padding: 12px 10px; background: rgba(91, 46, 255, 0.15); color: #FFF; font-weight: 700;">Thứ 2</th>
+                            <th style="text-align: center; padding: 12px 10px; background: rgba(91, 46, 255, 0.15); color: #FFF; font-weight: 700;">Thứ 3</th>
+                            <th style="text-align: center; padding: 12px 10px; background: rgba(91, 46, 255, 0.15); color: #FFF; font-weight: 700;">Thứ 4</th>
+                            <th style="text-align: center; padding: 12px 10px; background: rgba(91, 46, 255, 0.15); color: #FFF; font-weight: 700;">Thứ 5</th>
+                            <th style="text-align: center; padding: 12px 10px; background: rgba(91, 46, 255, 0.15); color: #FFF; font-weight: 700;">Thứ 6</th>
+                            <th style="text-align: center; padding: 12px 10px; background: rgba(91, 46, 255, 0.15); color: #FFF; font-weight: 700;">Thứ 7</th>
+                            <th style="text-align: center; padding: 12px 10px; background: rgba(91, 46, 255, 0.15); color: #FFF; font-weight: 700;">CN</th>
+                            <th style="text-align: center; padding: 12px 10px; background: rgba(91, 46, 255, 0.15); color: #FFF; font-weight: 700; width: 50px;">Sửa</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td colspan="9" style="text-align: center; color: rgba(255,255,255,0.3); padding: 20px;">Đang tải thời khóa biểu...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Mobile View -->
+            <div class="mobile-cards-view" id="tutorScheduleMobile" style="margin-top: 10px;">
+                <div style="text-align: center; color: rgba(255,255,255,0.3); padding: 15px;">Đang tải thời khóa biểu...</div>
             </div>
         </div>
 

@@ -6,9 +6,9 @@ var pinVerifyAction = "deleteStudent";
 
 function formatScheduleCell(val) {
     if (!val || val.trim() === "") {
-        return "-";
+        return "<span style='color: rgba(255,255,255,0.3); font-weight: normal;'>-</span>";
     }
-    return "<span style='color:#10B981; font-weight:500;'>" + val + "</span>";
+    return "<span style='color:#10B981; font-weight:600; font-size:13.5px; white-space:nowrap;'>" + val + "</span>";
 }
 
         function renderTutorView(data) {
@@ -73,15 +73,15 @@ function formatScheduleCell(val) {
                         
                         // Desktop Row
                         tableHtml += "<tr>" +
-                            "<td style='font-weight:bold; color:#FFD23F;'>" + st.name + "</td>" +
-                            "<td>" + formatScheduleCell(s.mon) + "</td>" +
-                            "<td>" + formatScheduleCell(s.tue) + "</td>" +
-                            "<td>" + formatScheduleCell(s.wed) + "</td>" +
-                            "<td>" + formatScheduleCell(s.thu) + "</td>" +
-                            "<td>" + formatScheduleCell(s.fri) + "</td>" +
-                            "<td>" + formatScheduleCell(s.sat) + "</td>" +
-                            "<td>" + formatScheduleCell(s.sun) + "</td>" +
-                            "<td><button onclick='openEditScheduleModal(\"" + st.name.replace(/'/g, "\\'").replace(/"/g, '&quot;') + "\", \"" + (s.mon||"") + "\", \"" + (s.tue||"") + "\", \"" + (s.wed||"") + "\", \"" + (s.thu||"") + "\", \"" + (s.fri||"") + "\", \"" + (s.sat||"") + "\", \"" + (s.sun||"") + "\")' class='btn-icon-edit' style='margin: 0; padding: 4px;' title='Sửa thời khóa biểu'><i class='fa-solid fa-pen-to-square'></i></button></td>" +
+                            "<td style='font-weight:700; color:#FFD23F; text-align: left; padding: 12px 14px; white-space: nowrap;'>" + st.name + "</td>" +
+                            "<td style='text-align: center; padding: 12px 10px;'>" + formatScheduleCell(s.mon) + "</td>" +
+                            "<td style='text-align: center; padding: 12px 10px;'>" + formatScheduleCell(s.tue) + "</td>" +
+                            "<td style='text-align: center; padding: 12px 10px;'>" + formatScheduleCell(s.wed) + "</td>" +
+                            "<td style='text-align: center; padding: 12px 10px;'>" + formatScheduleCell(s.thu) + "</td>" +
+                            "<td style='text-align: center; padding: 12px 10px;'>" + formatScheduleCell(s.fri) + "</td>" +
+                            "<td style='text-align: center; padding: 12px 10px;'>" + formatScheduleCell(s.sat) + "</td>" +
+                            "<td style='text-align: center; padding: 12px 10px;'>" + formatScheduleCell(s.sun) + "</td>" +
+                            "<td style='text-align: center; padding: 12px 10px;'><button onclick='openEditScheduleModal(\"" + st.name.replace(/'/g, "\\'").replace(/"/g, '&quot;') + "\", \"" + (s.mon||"") + "\", \"" + (s.tue||"") + "\", \"" + (s.wed||"") + "\", \"" + (s.thu||"") + "\", \"" + (s.fri||"") + "\", \"" + (s.sat||"") + "\", \"" + (s.sun||"") + "\")' class='btn-icon-edit' style='margin: 0 auto; padding: 6px 10px; display: inline-flex; align-items: center; justify-content: center;' title='Sửa thời khóa biểu'><i class='fa-solid fa-pen-to-square'></i></button></td>" +
                             "</tr>";
                             
                         // Mobile Card (Accordion)
@@ -1644,15 +1644,15 @@ function formatScheduleCell(val) {
                                 tutorDataGlobal.students.forEach(function(st) {
                                     var s = schedMap[st.name.trim()] || { mon: "", tue: "", wed: "", thu: "", fri: "", sat: "", sun: "" };
                                     table.innerHTML += "<tr>" +
-                                        "<td style='font-weight:bold; color:#FFD23F;'>" + st.name + "</td>" +
-                                        "<td>" + formatScheduleCell(s.mon) + "</td>" +
-                                        "<td>" + formatScheduleCell(s.tue) + "</td>" +
-                                        "<td>" + formatScheduleCell(s.wed) + "</td>" +
-                                        "<td>" + formatScheduleCell(s.thu) + "</td>" +
-                                        "<td>" + formatScheduleCell(s.fri) + "</td>" +
-                                        "<td>" + formatScheduleCell(s.sat) + "</td>" +
-                                        "<td>" + formatScheduleCell(s.sun) + "</td>" +
-                                        "<td><button onclick='openEditScheduleModal(\"" + st.name.replace(/'/g, "\\'").replace(/"/g, '&quot;') + "\", \"" + (s.mon||"") + "\", \"" + (s.tue||"") + "\", \"" + (s.wed||"") + "\", \"" + (s.thu||"") + "\", \"" + (s.fri||"") + "\", \"" + (s.sat||"") + "\", \"" + (s.sun||"") + "\")' class='btn-icon-edit' style='margin: 0; padding: 4px;' title='Sửa thời khóa biểu'><i class='fa-solid fa-pen-to-square'></i></button></td>" +
+                                        "<td style='font-weight:700; color:#FFD23F; text-align: left; padding: 12px 14px; white-space: nowrap;'>" + st.name + "</td>" +
+                                        "<td style='text-align: center; padding: 12px 10px;'>" + formatScheduleCell(s.mon) + "</td>" +
+                                        "<td style='text-align: center; padding: 12px 10px;'>" + formatScheduleCell(s.tue) + "</td>" +
+                                        "<td style='text-align: center; padding: 12px 10px;'>" + formatScheduleCell(s.wed) + "</td>" +
+                                        "<td style='text-align: center; padding: 12px 10px;'>" + formatScheduleCell(s.thu) + "</td>" +
+                                        "<td style='text-align: center; padding: 12px 10px;'>" + formatScheduleCell(s.fri) + "</td>" +
+                                        "<td style='text-align: center; padding: 12px 10px;'>" + formatScheduleCell(s.sat) + "</td>" +
+                                        "<td style='text-align: center; padding: 12px 10px;'>" + formatScheduleCell(s.sun) + "</td>" +
+                                        "<td style='text-align: center; padding: 12px 10px;'><button onclick='openEditScheduleModal(\"" + st.name.replace(/'/g, "\\'").replace(/"/g, '&quot;') + "\", \"" + (s.mon||"") + "\", \"" + (s.tue||"") + "\", \"" + (s.wed||"") + "\", \"" + (s.thu||"") + "\", \"" + (s.fri||"") + "\", \"" + (s.sat||"") + "\", \"" + (s.sun||"") + "\")' class='btn-icon-edit' style='margin: 0 auto; padding: 6px 10px; display: inline-flex; align-items: center; justify-content: center;' title='Sửa thời khóa biểu'><i class='fa-solid fa-pen-to-square'></i></button></td>" +
                                         "</tr>";
                                 });
                             }
