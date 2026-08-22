@@ -1,5 +1,5 @@
-// Gia Sư PWA Service Worker v1.1.0
-const CACHE_NAME = 'giasu-cache-v1.1.0';
+// Gia Sư PWA Service Worker v1.2.0
+const CACHE_NAME = 'giasu-cache-v1.2.0';
 const STATIC_ASSETS = [
   './manifest.json',
   'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap',
