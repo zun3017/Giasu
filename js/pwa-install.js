@@ -30,6 +30,25 @@
     return;
   }
 
+  // 4. CHỈ HIỂN THỊ BANNER Ở TRANG CHỦ (index.html), TUYỆT ĐỐI KHÔNG HIỂN THỊ Ở CÁC TRANG DASHBOARD, LOGIN, BÀI TẬP, LỊCH
+  var currentPath = (window.location.pathname || '').toLowerCase();
+  var isExcludedPage = currentPath.indexOf('dashboard') !== -1 || 
+                       currentPath.indexOf('login') !== -1 || 
+                       currentPath.indexOf('homework') !== -1 || 
+                       currentPath.indexOf('calendar') !== -1;
+
+  var isHomePage = !isExcludedPage && (
+    currentPath.endsWith('index.html') || 
+    currentPath.endsWith('/') || 
+    currentPath === '' || 
+    currentPath.slice(-1) === '/' ||
+    currentPath.indexOf('index') !== -1
+  );
+
+  if (!isHomePage) {
+    return;
+  }
+
   // Kiểm tra nếu người dùng vừa mới bấm tắt thông báo gần đây (3 ngày)
   var dismissedTime = localStorage.getItem('giasu_pwa_dismissed');
   if (dismissedTime && (Date.now() - parseInt(dismissedTime, 10) < 3 * 24 * 60 * 60 * 1000)) {
