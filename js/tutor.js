@@ -702,18 +702,28 @@ function formatScheduleCell(val) {
                 var lastLog = currentTutorStudent.logs[currentTutorStudent.logs.length - 1];
                 var lastWeekVal = parseInt(lastLog.tuan);
                 if (!isNaN(lastWeekVal)) {
-                    // Phân tích ngày của buổi học trước (DD/MM/YYYY)
+                    // Phân tích ngày của buổi học trước (hỗ trợ cả DD/MM, DD/MM/YYYY, YYYY-MM-DD)
                     var parseDate = function(str) {
                         if (!str) return null;
-                        var parts = str.split('/');
-                        if (parts.length !== 3) return null;
-                        return new Date(parts[2], parts[1] - 1, parts[0]);
+                        var s = String(str).trim().split(' ')[0];
+                        var mIso = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+                        if (mIso) return new Date(parseInt(mIso[1], 10), parseInt(mIso[2], 10) - 1, parseInt(mIso[3], 10));
+                        var mDmy = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+                        if (mDmy) return new Date(parseInt(mDmy[3], 10), parseInt(mDmy[2], 10) - 1, parseInt(mDmy[1], 10));
+                        var mDm = s.match(/^(\d{1,2})\/(\d{1,2})/);
+                        if (mDm) {
+                            var currentYear = new Date().getFullYear();
+                            return new Date(currentYear, parseInt(mDm[2], 10) - 1, parseInt(mDm[1], 10));
+                        }
+                        var d = new Date(s);
+                        return isNaN(d.getTime()) ? null : d;
                     };
                     // Lấy ngày Thứ Hai đầu tuần của 1 ngày bất kỳ
                     var getMonday = function(d) {
-                        var day = d.getDay();
-                        var diff = d.getDate() - day + (day === 0 ? -6 : 1);
-                        var monday = new Date(d);
+                        var date = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+                        var day = date.getDay();
+                        var diff = date.getDate() - day + (day === 0 ? -6 : 1);
+                        var monday = new Date(date);
                         monday.setDate(diff);
                         monday.setHours(0, 0, 0, 0);
                         return monday;
@@ -732,7 +742,7 @@ function formatScheduleCell(val) {
                             weekNum = lastWeekVal + 1;
                         }
                     } else {
-                        weekNum = lastWeekVal + 1;
+                        weekNum = lastWeekVal;
                     }
                 }
             }
