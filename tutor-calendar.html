@@ -55,6 +55,12 @@
             background: rgba(11, 8, 38, 0.85);
             border-bottom: 1px solid rgba(142, 77, 255, 0.2);
             padding: 12px 25px;
+            padding-top: calc(constant(safe-area-inset-top, 0px) + 12px);
+            padding-top: calc(env(safe-area-inset-top, 0px) + 12px);
+            padding-left: calc(constant(safe-area-inset-left, 0px) + 25px);
+            padding-left: calc(env(safe-area-inset-left, 0px) + 25px);
+            padding-right: calc(constant(safe-area-inset-right, 0px) + 25px);
+            padding-right: calc(env(safe-area-inset-right, 0px) + 25px);
             backdrop-filter: blur(25px);
         }
 

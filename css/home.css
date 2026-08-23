@@ -859,6 +859,12 @@
     }
     .footer-premium {
         padding: 40px 16px 25px 16px;
+        padding-bottom: calc(constant(safe-area-inset-bottom, 0px) + 25px);
+        padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 25px);
+        padding-left: calc(constant(safe-area-inset-left, 0px) + 16px);
+        padding-left: calc(env(safe-area-inset-left, 0px) + 16px);
+        padding-right: calc(constant(safe-area-inset-right, 0px) + 16px);
+        padding-right: calc(env(safe-area-inset-right, 0px) + 16px);
         margin-top: 50px;
     }
     .footer-top-grid {
