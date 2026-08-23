@@ -173,18 +173,28 @@
         // Tính toán các huy chương/huy hiệu vinh danh giống hệt trang thật
         let sumDG = 0, countDG = 0;
         let sumDK = 0, countDK = 0;
+        let countBuoiHoc = 0, countBuoiNghi = 0;
         if (student.logs && student.logs.length > 0) {
             student.logs.forEach(log => {
-                if (log.valDG !== null && log.valDG !== undefined && !isNaN(log.valDG)) {
-                    sumDG += parseFloat(log.valDG);
-                    countDG++;
-                }
-                if (log.valDK !== null && log.valDK !== undefined && !isNaN(log.valDK)) {
-                    sumDK += parseFloat(log.valDK);
-                    countDK++;
+                let tt = String(log.status || log.trangThai || "").toLowerCase();
+                let isAbsent = (tt.indexOf("hủy") !== -1 || tt.indexOf("nghỉ") !== -1 || tt.indexOf("vắng") !== -1);
+                if (isAbsent) {
+                    countBuoiNghi++;
+                } else {
+                    countBuoiHoc++;
+                    if (log.valDG !== null && log.valDG !== undefined && !isNaN(log.valDG)) {
+                        sumDG += parseFloat(log.valDG);
+                        countDG++;
+                    }
+                    if (log.valDK !== null && log.valDK !== undefined && !isNaN(log.valDK)) {
+                        sumDK += parseFloat(log.valDK);
+                        countDK++;
+                    }
                 }
             });
         }
+        student.buoiHoc = countBuoiHoc;
+        student.buoiNghi = countBuoiNghi;
         let avgDGVal = countDG > 0 ? (sumDG / countDG) : null;
         let avgDKVal = countDK > 0 ? (sumDK / countDK) : null;
         let strDG = avgDGVal !== null ? avgDGVal.toFixed(1) : "Chưa có";
@@ -1220,23 +1230,32 @@
             comment: comment
         };
 
+        let isAbsent = (status.indexOf("nghỉ") !== -1 || status.indexOf("hủy") !== -1 || status.indexOf("vắng") !== -1);
         if (isEdit) {
             student.logs[logIdx] = newLog;
         } else {
             student.logs.push(newLog);
-            student.buoiHoc += 1;
+            if (isAbsent) {
+                student.buoiNghi = (student.buoiNghi || 0) + 1;
+            } else {
+                student.buoiHoc = (student.buoiHoc || 0) + 1;
+            }
         }
 
         let sum = 0;
         let count = 0;
         student.logs.forEach(log => {
-            if (log.valDK !== null && !isNaN(log.valDK)) {
-                sum += log.valDK;
-                count++;
-            }
-            if (log.valDG !== null && !isNaN(log.valDG)) {
-                sum += log.valDG;
-                count++;
+            let logTt = String(log.status || log.trangThai || "").toLowerCase();
+            let logAbsent = (logTt.indexOf("nghỉ") !== -1 || logTt.indexOf("hủy") !== -1 || logTt.indexOf("vắng") !== -1);
+            if (!logAbsent) {
+                if (log.valDK !== null && !isNaN(log.valDK)) {
+                    sum += log.valDK;
+                    count++;
+                }
+                if (log.valDG !== null && !isNaN(log.valDG)) {
+                    sum += log.valDG;
+                    count++;
+                }
             }
         });
         if (count > 0) {
@@ -1267,7 +1286,13 @@
         const duplicated = Object.assign({}, log);
         duplicated.date = getTodayFormatted(); 
         student.logs.push(duplicated);
-        student.buoiHoc += 1;
+        let dupTt = String(duplicated.status || duplicated.trangThai || "").toLowerCase();
+        let dupAbsent = (dupTt.indexOf("nghỉ") !== -1 || dupTt.indexOf("hủy") !== -1 || dupTt.indexOf("vắng") !== -1);
+        if (dupAbsent) {
+            student.buoiNghi = (student.buoiNghi || 0) + 1;
+        } else {
+            student.buoiHoc = (student.buoiHoc || 0) + 1;
+        }
         
         renderTutorDemo();
         alert("Nhân bản thành công buổi học trong bản Demo!");
