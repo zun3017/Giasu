@@ -19,6 +19,13 @@
 
   // 2. Kiểm tra xem người dùng đã mở dưới dạng App Standalone chưa
   var isStandalone = window.matchMedia('(display-mode: standalone)').matches || (window.navigator.standalone === true);
+  var isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+  if (isStandalone) {
+    document.documentElement.classList.add('is-pwa-standalone');
+  }
+  if (isIOS) {
+    document.documentElement.classList.add('is-ios-device');
+  }
   if (isStandalone) {
     // Đang chạy trong App native -> Không hiển thị nút cài đặt
     return;
