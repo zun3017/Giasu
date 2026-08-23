@@ -93,74 +93,67 @@ var currentStudentName = "";
                 ketQua.lichSuHocTap.forEach(function(item) {
                     var parsedDate = null;
                     if (item.ngay) {
-                        var cleanStr = item.ngay.split(" ")[0].trim();
-                        var parts = cleanStr.split(/[-/]/);
-                        if (parts.length === 3) {
-                            var y, m;
-                            if (parts[0].length === 4) { // YYYY-MM-DD
-                                y = parseInt(parts[0], 10);
-                                m = parseInt(parts[1], 10) - 1;
-                            } else if (parts[2].length === 4) { // DD/MM/YYYY
-                                y = parseInt(parts[2], 10);
-                                m = parseInt(parts[1], 10) - 1;
+                        var rawDateStr = String(item.ngay || "").trim();
+                        var mIso = rawDateStr.match(/(\d{4})[-/.](\d{1,2})[-/.](\d{1,2})/);
+                        var mDmy = rawDateStr.match(/(\d{1,2})[-/.](\d{1,2})[-/.](\d{4})/);
+                        var mDm = rawDateStr.match(/(\d{1,2})[-/.](\d{1,2})/);
+
+                        if (mIso) {
+                            parsedDate = { year: parseInt(mIso[1], 10), month: parseInt(mIso[2], 10) - 1 };
+                        } else if (mDmy) {
+                            parsedDate = { year: parseInt(mDmy[3], 10), month: parseInt(mDmy[2], 10) - 1 };
+                        } else if (mDm) {
+                            parsedDate = { year: currentYear, month: parseInt(mDm[2], 10) - 1 };
+                        } else {
+                            var dateObj = new Date(rawDateStr);
+                            if (!isNaN(dateObj.getTime())) {
+                                parsedDate = { year: dateObj.getFullYear(), month: dateObj.getMonth() };
                             }
-                            if (!isNaN(y) && !isNaN(m)) {
-                                parsedDate = { year: y, month: m };
-                            }
-                        } else if (parts.length === 2) { // DD/MM (ví dụ: 3/7, 10/7)
-                            var m = parseInt(parts[1], 10) - 1;
-                            var y = currentYear; // Mặc định năm hiện tại
-                            if (!isNaN(y) && !isNaN(m)) {
-                                parsedDate = { year: y, month: m };
-                            }
-                        }
-                    }
-                    
-                    if (!parsedDate && item.ngay) {
-                        var dateObj = new Date(item.ngay);
-                        if (!isNaN(dateObj.getTime())) {
-                            parsedDate = { year: dateObj.getFullYear(), month: dateObj.getMonth() };
                         }
                     }
 
                     // Chỉ tính toán nếu buổi học nằm trong tháng hiện tại
                     if (parsedDate && parsedDate.year === currentYear && parsedDate.month === currentMonth) {
                         var tt = (item.trangThai || "").trim().toLowerCase();
-                        if (tt === "đã học" || tt === "học bù") {
-                            buoiHocThangNay++;
-                        } else if (tt.indexOf("hủy") !== -1 || tt.indexOf("nghỉ") !== -1) {
+                        var isAbsent = (tt.indexOf("hủy") !== -1 || tt.indexOf("nghỉ") !== -1 || tt.indexOf("vắng") !== -1);
+                        var isPresent = !isAbsent && (tt.indexOf("đã học") !== -1 || tt === "học bù" || tt === "đã bù" || tt === "có mặt" || tt === "có" || tt === "đi muộn" || tt === "" || tt === "đã dạy");
+
+                        if (isAbsent) {
                             buoiNghiThangNay++;
-                        }
+                        } else if (isPresent) {
+                            buoiHocThangNay++;
 
-                        // Điểm đầu giờ & định kì
-                        var scoreDG = parseFloat(item.diemDauGio);
-                        var scoreDK = parseFloat(item.diemDinhKi);
-                        if (!isNaN(scoreDG) && scoreDG >= 0 && scoreDG <= 10) {
-                            listDiemDauGioThangNay.push(scoreDG);
-                        }
-                        if (!isNaN(scoreDK) && scoreDK >= 0 && scoreDK <= 10) {
-                            listDiemDinhKiThangNay.push(scoreDK);
-                        }
+                            // Điểm đầu giờ & định kì (chỉ tính cho buổi đã học)
+                            var scoreDG = parseFloat(item.diemDauGio);
+                            var scoreDK = parseFloat(item.diemDinhKi);
+                            if (!isNaN(scoreDG) && scoreDG >= 0 && scoreDG <= 10) {
+                                listDiemDauGioThangNay.push(scoreDG);
+                            }
+                            if (!isNaN(scoreDK) && scoreDK >= 0 && scoreDK <= 10) {
+                                listDiemDinhKiThangNay.push(scoreDK);
+                            }
 
-                        // Đánh giá BTVN
-                        var btvnStr = (item.danhGiaBTVN || "").trim().toLowerCase();
-                        if (btvnStr !== "") {
-                            tongBTVNThangNay++;
-                            if (btvnStr.indexOf("hoàn thành") !== -1) {
-                                completedBTVNThangNay += 1.0;
-                            } else if (btvnStr.indexOf("thiếu") !== -1) {
-                                var match = btvnStr.match(/thiếu\s+(\d+)/);
-                                if (match) {
-                                    var missingCount = parseInt(match[1], 10);
-                                    var completedCount = 5 - missingCount;
-                                    if (completedCount < 0) completedCount = 0;
-                                    completedBTVNThangNay += (completedCount / 5.0);
-                                } else {
-                                    // Trường hợp ghi mỗi chữ "Thiếu" mà không ghi số lượng cụ thể
+                            // Đánh giá BTVN (chỉ tính cho buổi đã học)
+                            var btvnStr = (item.danhGiaBTVN || item.btvn || "").trim().toLowerCase();
+                            if (btvnStr !== "" && btvnStr !== "không có" && btvnStr !== "-" && btvnStr !== "chưa có") {
+                                tongBTVNThangNay++;
+                                if (btvnStr.indexOf("hoàn thành") !== -1 || btvnStr.indexOf("phụ huynh") !== -1 || btvnStr === "đạt" || btvnStr === "tốt") {
+                                    completedBTVNThangNay += 1.0;
+                                } else if (btvnStr.indexOf("thiếu") !== -1) {
+                                    var match = btvnStr.match(/thiếu\s+(\d+)/);
+                                    if (match) {
+                                        var missingCount = parseInt(match[1], 10);
+                                        var completedCount = 5 - missingCount;
+                                        if (completedCount < 0) completedCount = 0;
+                                        completedBTVNThangNay += (completedCount / 5.0);
+                                    } else {
+                                        completedBTVNThangNay += 0.0;
+                                    }
+                                } else if (btvnStr.indexOf("không làm") !== -1 || btvnStr.indexOf("chưa làm") !== -1 || btvnStr.indexOf("chưa nộp") !== -1) {
                                     completedBTVNThangNay += 0.0;
+                                } else {
+                                    completedBTVNThangNay += 1.0;
                                 }
-                            } else {
-                                completedBTVNThangNay += 0.0;
                             }
                         }
                     }
