@@ -83,8 +83,14 @@ var currentStudentName = "";
                 }
 
                 // Hàm nhận diện buổi nghỉ (chỉ dựa trên thẻ / trạng thái điểm danh do người dùng chọn)
-                function isAbsentSession(trangThai) {
-                    var normTt = normalizeStr(trangThai);
+                function isAbsentSession(statusOrItem) {
+                    var rawStatus = "";
+                    if (typeof statusOrItem === 'object' && statusOrItem !== null) {
+                        rawStatus = statusOrItem.trangThai || statusOrItem.chuyenCan || statusOrItem.attendance_status || statusOrItem.attendance || statusOrItem.status || "";
+                    } else {
+                        rawStatus = String(statusOrItem || "");
+                    }
+                    var normTt = normalizeStr(rawStatus);
 
                     // 1. Nếu là học bù / đã bù thì luôn tính là buổi có học
                     if (normTt.includes('hoc bu') || normTt.includes('da bu')) {
@@ -171,7 +177,7 @@ var currentStudentName = "";
 
                 ketQua.lichSuHocTap.forEach(function(item) {
                     var parsedDate = parseLessonDate(item.ngay);
-                    var isAbsent = isAbsentSession(item.trangThai);
+                    var isAbsent = isAbsentSession(item);
                     var isPresent = !isAbsent;
 
                     // Tổng hợp toàn bộ lịch sử (All-time)
@@ -473,7 +479,7 @@ var currentStudentName = "";
 
                     ketQua.lichSuHocTap.slice().reverse().forEach(function(item, idx) {
                         var styleStr = (idx >= 5) ? 'style="display: none;" class="history-row hidden-row"' : 'class="history-row"';
-                        var badgeHtml = getStatusBadge(item.trangThai);
+                        var badgeHtml = getStatusBadge(item);
                         
                         // Desktop Row
                         htmlLichSu += "<tr " + styleStr + ">";
