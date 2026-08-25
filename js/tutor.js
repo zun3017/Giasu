@@ -1314,10 +1314,9 @@ function formatScheduleCell(val) {
             if (totalBuoi > 0) {
                 var getStatusBadge = function(trangThai) {
                     var tt = (trangThai || "").trim().toLowerCase();
-                    if (tt === "đã học") return '<span class="status-badge badge-dahoc">Đã học</span>';
-                    if (tt === "học bù") return '<span class="status-badge badge-hocbu">Học bù</span>';
-                    if (tt.indexOf("hủy") !== -1 || tt.indexOf("nghỉ") !== -1) return '<span class="status-badge badge-nghi">Hủy/Nghỉ</span>';
-                    return '<span class="status-badge" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15); color: #FFF;">' + trangThai + '</span>';
+                    if (tt.indexOf("đã bù") !== -1 || tt === "học bù") return '<span class="status-badge badge-hocbu">Học bù</span>';
+                    if (tt.indexOf("hủy") !== -1 || tt.indexOf("nghỉ") !== -1 || tt.indexOf("vắng") !== -1 || tt.indexOf("off") !== -1 || tt.indexOf("không học") !== -1) return '<span class="status-badge badge-nghi">Hủy/Nghỉ</span>';
+                    return '<span class="status-badge badge-dahoc">Đã học</span>';
                 };
                 var getBtvnBadge = function(btvn) {
                     var bt = (btvn || "").trim().toLowerCase();
@@ -1345,7 +1344,8 @@ function formatScheduleCell(val) {
                     var isPaid = (item.tienDong || "").trim().toLowerCase().indexOf("đã đóng") !== -1;
                     var tt = (item.trangThai || "").trim().toLowerCase();
                     var isDaBu = (tt.indexOf("đã bù") !== -1 || tt === "học bù");
-                    var isPresent = (tt.indexOf("đã học") !== -1 || tt === "có mặt" || tt === "có");
+                    var isAbsent = !isDaBu && (tt.indexOf("hủy") !== -1 || tt.indexOf("nghỉ") !== -1 || tt.indexOf("vắng") !== -1 || tt.indexOf("off") !== -1 || tt.indexOf("không học") !== -1);
+                    var isPresent = !isAbsent;
                     
                     var chkHtml = "";
                     var mobileChkHtml = "";
