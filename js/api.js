@@ -372,15 +372,7 @@ class GoogleScriptRunInstance {
                 ));
                 
                 let rawLogs = matched.map((e, idx) => {
-                    let att = e.attendance_status;
-                    if (!att) {
-                        let nd = (e.lesson_content || "").toLowerCase();
-                        if (nd.includes("nghỉ") || nd.includes("hủy") || nd.includes("vắng")) {
-                            att = "Hủy/ nghỉ";
-                        } else {
-                            att = "Đã học";
-                        }
-                    }
+                    let att = e.attendance_status || "Đã học";
                     return {
                         rowIndex: e.eval_id,
                         evalId: e.eval_id,
