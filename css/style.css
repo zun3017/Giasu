@@ -2145,5 +2145,50 @@
             padding-top: max(52px, calc(env(safe-area-inset-top, 0px) + 14px)) !important;
         }
 
+        /* TOAST & NOTIFICATION NOTCH PROTECTION */
+        #toastContainer,
+        .toast-container {
+            position: fixed !important;
+            top: 24px;
+            right: 24px;
+            z-index: 999999 !important;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            pointer-events: none;
+            max-width: 480px;
+        }
 
+        @media (max-width: 768px) {
+            #toastContainer,
+            .toast-container {
+                top: max(60px, calc(env(safe-area-inset-top, 0px) + 18px)) !important;
+                left: 50% !important;
+                right: auto !important;
+                transform: translateX(-50%) !important;
+                width: calc(100% - 32px) !important;
+                max-width: 420px !important;
+                align-items: center !important;
+            }
+            #toastContainer > div,
+            .toast-container > div {
+                width: 100% !important;
+                box-sizing: border-box !important;
+                justify-content: center !important;
+                text-align: center !important;
+            }
+        }
 
+        @media all and (display-mode: standalone) {
+            #toastContainer,
+            .toast-container {
+                top: max(65px, calc(env(safe-area-inset-top, 0px) + 24px)) !important;
+            }
+        }
+
+        .is-pwa-standalone #toastContainer,
+        .is-pwa-standalone .toast-container,
+        .is-ios-device #toastContainer,
+        .is-ios-device .toast-container {
+            top: max(65px, calc(env(safe-area-inset-top, 0px) + 24px)) !important;
+        }
