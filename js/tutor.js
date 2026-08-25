@@ -350,7 +350,8 @@ function formatScheduleCell(val) {
                 var dateText = log.ngay || "";
                 var cleanStr = dateText.split(" ")[0].trim();
                 
-                var normTt = (log.trangThai || "").toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').trim();
+                var rawStatus = log.trangThai || log.chuyenCan || log.attendance_status || log.attendance || log.status || "";
+                var normTt = String(rawStatus).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').trim();
                 
                 // Chỉ xét duy nhất trạng thái thẻ điểm danh, KHÔNG xét từ khóa trong nội dung bài
                 var isDaBu = (normTt.includes("da bu") || normTt.includes("hoc bu"));
@@ -360,8 +361,11 @@ function formatScheduleCell(val) {
                     normTt.includes("vang") || 
                     normTt.includes("off") || 
                     normTt.includes("khong hoc") ||
-                    normTt === "v" ||
-                    normTt === "n"
+                    normTt.includes("chua hoc") ||
+                    normTt.includes("tam hoan") ||
+                    normTt === "v" || 
+                    normTt === "n" ||
+                    normTt === "x"
                 );
                 var isPresent = !isAbsent;
                 
@@ -1342,9 +1346,21 @@ function formatScheduleCell(val) {
                     var styleStr = (idx >= 5) ? 'style="display: none;" class="tutor-history-row tutor-hidden-row"' : 'class="tutor-history-row"';
                     
                     var isPaid = (item.tienDong || "").trim().toLowerCase().indexOf("đã đóng") !== -1;
-                    var tt = (item.trangThai || "").trim().toLowerCase();
-                    var isDaBu = (tt.indexOf("đã bù") !== -1 || tt === "học bù");
-                    var isAbsent = !isDaBu && (tt.indexOf("hủy") !== -1 || tt.indexOf("nghỉ") !== -1 || tt.indexOf("vắng") !== -1 || tt.indexOf("off") !== -1 || tt.indexOf("không học") !== -1);
+                    var rawStatus = item.trangThai || item.chuyenCan || item.attendance_status || item.attendance || item.status || "";
+                    var tt = String(rawStatus).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').trim();
+                    var isDaBu = (tt.indexOf("da bu") !== -1 || tt.indexOf("hoc bu") !== -1);
+                    var isAbsent = !isDaBu && (
+                        tt.indexOf("nghi") !== -1 || 
+                        tt.indexOf("huy") !== -1 || 
+                        tt.indexOf("vang") !== -1 || 
+                        tt.indexOf("off") !== -1 || 
+                        tt.indexOf("khong hoc") !== -1 ||
+                        tt.indexOf("chua hoc") !== -1 ||
+                        tt.indexOf("tam hoan") !== -1 ||
+                        tt === "v" || 
+                        tt === "n" || 
+                        tt === "x"
+                    );
                     var isPresent = !isAbsent;
                     
                     var chkHtml = "";
