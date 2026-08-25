@@ -72,52 +72,122 @@ var currentStudentName = "";
                         '</div>';
                 }
 
-                // --- 2. TÍNH TOÁN SỐ LIỆU TÓM TẮT THEO THÁNG HIỆN TẠI ---
+                // Hàm chuẩn hoá chuỗi loại bỏ dấu tiếng Việt để kiểm tra chính xác
+                function normalizeStr(str) {
+                    if (!str) return "";
+                    return String(str).toLowerCase()
+                        .normalize('NFD')
+                        .replace(/[\u0300-\u036f]/g, '')
+                        .replace(/đ/g, 'd')
+                        .trim();
+                }
+
+                // Hàm nhận diện thông minh buổi nghỉ (dựa trên trạng thái hoặc nội dung ghi chú của gia sư)
+                function isAbsentSession(trangThai, noiDung) {
+                    var normTt = normalizeStr(trangThai);
+                    var normNd = normalizeStr(noiDung);
+                    
+                    // 1. Kiểm tra trạng thái rõ ràng
+                    if (normTt.includes('nghi') || normTt.includes('huy') || normTt.includes('vang')) {
+                        if (normTt.includes('hoc bu') || normTt.includes('da bu')) {
+                            return false; // Là buổi học bù
+                        }
+                        return true;
+                    }
+                    
+                    // 2. Tự động phát hiện nếu gia sư ghi chú là nghỉ nhưng quên đổi dropdown trạng thái
+                    if (
+                        normNd.includes('xin nghi') ||
+                        normNd.includes('nghi hoc') ||
+                        normNd.includes('bao nghi') ||
+                        normNd.includes('hom nay nghi') ||
+                        normNd.includes('cho be nghi') ||
+                        normNd.includes('cho chau nghi') ||
+                        normNd.includes('mua bao nen nghi') ||
+                        normNd.includes('nghi mot buoi') ||
+                        normNd.includes('nghi 1 buoi') ||
+                        normNd.includes('nghi le') ||
+                        normNd.includes('nghi tet')
+                    ) {
+                        return true;
+                    }
+                    
+                    return false;
+                }
+
+                // Trích xuất ngày tháng linh hoạt từ mọi định dạng
+                function parseLessonDate(rawStr) {
+                    if (!rawStr) return null;
+                    var s = String(rawStr).trim();
+                    var mIso = s.match(/(\d{4})[-/.](\d{1,2})[-/.](\d{1,2})/);
+                    var mDmy = s.match(/(\d{1,2})[-/.](\d{1,2})[-/.](\d{4})/);
+                    var mDm = s.match(/(\d{1,2})[-/.](\d{1,2})/);
+                    if (mIso) return { year: parseInt(mIso[1], 10), month: parseInt(mIso[2], 10) - 1 };
+                    if (mDmy) return { year: parseInt(mDmy[3], 10), month: parseInt(mDmy[2], 10) - 1 };
+                    if (mDm) return { year: currentYear, month: parseInt(mDm[2], 10) - 1 };
+                    var d = new Date(s);
+                    return isNaN(d.getTime()) ? null : { year: d.getFullYear(), month: d.getMonth() };
+                }
+
+                // --- 2. TÍNH TOÁN SỐ LIỆU TÓM TẮT THEO THÁNG ---
                 var today = new Date();
                 var currentMonth = today.getMonth(); // 0 - 11
                 var currentYear = today.getFullYear();
                 
-                // Thiết lập nhãn động cho tháng hiện tại
+                var targetMonth = currentMonth;
+                var targetYear = currentYear;
+
+                // Kiểm tra xem có buổi học nào trong tháng hiện tại không
+                var hasCurrentMonthLogs = false;
+                for (var i = 0; i < ketQua.lichSuHocTap.length; i++) {
+                    var pDate = parseLessonDate(ketQua.lichSuHocTap[i].ngay);
+                    if (pDate && pDate.year === currentYear && pDate.month === currentMonth) {
+                        hasCurrentMonthLogs = true;
+                        break;
+                    }
+                }
+
+                // Nếu tháng hiện tại chưa có buổi nào nhưng trong quá khứ có buổi học, lấy tháng mới nhất có dữ liệu
+                if (!hasCurrentMonthLogs && ketQua.lichSuHocTap.length > 0) {
+                    for (var idx = ketQua.lichSuHocTap.length - 1; idx >= 0; idx--) {
+                        var pDate = parseLessonDate(ketQua.lichSuHocTap[idx].ngay);
+                        if (pDate) {
+                            targetMonth = pDate.month;
+                            targetYear = pDate.year;
+                            break;
+                        }
+                    }
+                }
+
+                // Thiết lập nhãn động cho tháng
                 var elLblBuoiHoc = document.getElementById('lblBuoiHoc');
-                if (elLblBuoiHoc) elLblBuoiHoc.innerText = "Số buổi đã học (Tháng " + (currentMonth + 1) + ")";
+                if (elLblBuoiHoc) elLblBuoiHoc.innerText = "Số buổi đã học (Tháng " + (targetMonth + 1) + ")";
                 var elLblBuoiNghi = document.getElementById('lblBuoiNghi');
-                if (elLblBuoiNghi) elLblBuoiNghi.innerText = "Số buổi nghỉ (Tháng " + (currentMonth + 1) + ")";
+                if (elLblBuoiNghi) elLblBuoiNghi.innerText = "Số buổi nghỉ (Tháng " + (targetMonth + 1) + ")";
 
                 var buoiHocThangNay = 0;
                 var buoiNghiThangNay = 0;
+                var totalPresentAllTime = 0;
+                var totalAbsentAllTime = 0;
                 var listDiemDauGioThangNay = [];
                 var listDiemDinhKiThangNay = [];
                 var tongBTVNThangNay = 0;
                 var completedBTVNThangNay = 0;
 
                 ketQua.lichSuHocTap.forEach(function(item) {
-                    var parsedDate = null;
-                    if (item.ngay) {
-                        var rawDateStr = String(item.ngay || "").trim();
-                        var mIso = rawDateStr.match(/(\d{4})[-/.](\d{1,2})[-/.](\d{1,2})/);
-                        var mDmy = rawDateStr.match(/(\d{1,2})[-/.](\d{1,2})[-/.](\d{4})/);
-                        var mDm = rawDateStr.match(/(\d{1,2})[-/.](\d{1,2})/);
+                    var parsedDate = parseLessonDate(item.ngay);
+                    var isAbsent = isAbsentSession(item.trangThai, item.noiDung);
+                    var isPresent = !isAbsent;
 
-                        if (mIso) {
-                            parsedDate = { year: parseInt(mIso[1], 10), month: parseInt(mIso[2], 10) - 1 };
-                        } else if (mDmy) {
-                            parsedDate = { year: parseInt(mDmy[3], 10), month: parseInt(mDmy[2], 10) - 1 };
-                        } else if (mDm) {
-                            parsedDate = { year: currentYear, month: parseInt(mDm[2], 10) - 1 };
-                        } else {
-                            var dateObj = new Date(rawDateStr);
-                            if (!isNaN(dateObj.getTime())) {
-                                parsedDate = { year: dateObj.getFullYear(), month: dateObj.getMonth() };
-                            }
-                        }
+                    // Tổng hợp toàn bộ lịch sử (All-time)
+                    if (isAbsent) {
+                        totalAbsentAllTime++;
+                    } else {
+                        totalPresentAllTime++;
                     }
 
-                    // Chỉ tính toán nếu buổi học nằm trong tháng hiện tại
-                    if (parsedDate && parsedDate.year === currentYear && parsedDate.month === currentMonth) {
-                        var tt = (item.trangThai || "").trim().toLowerCase();
-                        var isAbsent = (tt.indexOf("hủy") !== -1 || tt.indexOf("nghỉ") !== -1 || tt.indexOf("vắng") !== -1);
-                        var isPresent = !isAbsent && (tt.indexOf("đã học") !== -1 || tt === "học bù" || tt === "đã bù" || tt === "có mặt" || tt === "có" || tt === "đi muộn" || tt === "" || tt === "đã dạy");
-
+                    // Chỉ tính toán số liệu thẻ tóm tắt nếu buổi học nằm trong tháng mục tiêu
+                    if (parsedDate && parsedDate.year === targetYear && parsedDate.month === targetMonth) {
                         if (isAbsent) {
                             buoiNghiThangNay++;
                         } else if (isPresent) {
@@ -251,101 +321,140 @@ var currentStudentName = "";
                     // Dùng ngày thực tế thay vì số tuần
                     var rawDate = item.ngay || "";
                     // Chuẩn hoá: nếu ngày là dd/mm/yyyy thì lấy dd/mm
-                    var shortDate = rawDate;
-                    var dateParts = rawDate.match(/(\d{1,2})\/(\d{1,2})/);
-                    if (dateParts) shortDate = dateParts[1] + "/" + dateParts[2];
-                    labels.push(shortDate);
-
-                    var valDG = parseFloat(item.diemDauGio);
-                    var valDK = parseFloat(item.diemDinhKi);
-
-                    dataDauGio.push(!isNaN(valDG) && valDG >= 0 && valDG <= 10 ? valDG : null);
-                    dataDinhKi.push(!isNaN(valDK) && valDK >= 0 && valDK <= 10 ? valDK : null);
+                    var labelDate = rawDate;
+                    if (rawDate.includes('/')) {
+                        var p = rawDate.split('/');
+                        if (p.length >= 2) labelDate = p[0] + '/' + p[1];
+                    } else if (rawDate.includes('-')) {
+                        var p = rawDate.split('-');
+                        if (p.length >= 3) labelDate = p[2] + '/' + p[1];
+                    }
+                    
+                    labels.push(labelDate);
+                    
+                    var sDG = parseFloat(item.diemDauGio);
+                    dataDauGio.push((!isNaN(sDG) && sDG >= 0 && sDG <= 10) ? sDG : null);
+                    
+                    var sDK = parseFloat(item.diemDinhKi);
+                    dataDinhKi.push((!isNaN(sDK) && sDK >= 0 && sDK <= 10) ? sDK : null);
                 });
 
-                if (labels.length > 0) {
-                    var ctx = document.getElementById('diemChart').getContext('2d');
-                    currentChartInstance = new Chart(ctx, {
-                        type: 'line',
-                        data: {
-                            labels: labels,
-                            datasets: [
-                                {
-                                    label: 'Điểm đầu giờ',
-                                    data: dataDauGio,
-                                    borderColor: '#8E4DFF',
-                                    backgroundColor: 'rgba(142, 77, 255, 0.1)',
-                                    borderWidth: 2,
-                                    pointBackgroundColor: '#8E4DFF',
-                                    pointBorderColor: '#ffffff',
-                                    pointHoverRadius: 5,
-                                    tension: 0.3,
-                                    spanGaps: true
-                                },
-                                {
-                                    label: 'Điểm định kì',
-                                    data: dataDinhKi,
-                                    borderColor: '#FFD23F',
-                                    backgroundColor: 'rgba(255, 210, 63, 0.1)',
-                                    borderWidth: 2,
-                                    pointBackgroundColor: '#FFD23F',
-                                    pointBorderColor: '#ffffff',
-                                    pointHoverRadius: 5,
-                                    tension: 0.3,
-                                    spanGaps: true
+                // Khởi tạo Chart.js
+                var ctx = document.getElementById('diemChart').getContext('2d');
+                if (window.diemChartInstance) {
+                    window.diemChartInstance.destroy();
+                }
+
+                // Gradient fills
+                var gradPurple = ctx.createLinearGradient(0, 0, 0, 200);
+                gradPurple.addColorStop(0, 'rgba(142, 77, 255, 0.4)');
+                gradPurple.addColorStop(1, 'rgba(142, 77, 255, 0.0)');
+
+                var gradYellow = ctx.createLinearGradient(0, 0, 0, 200);
+                gradYellow.addColorStop(0, 'rgba(255, 210, 63, 0.4)');
+                gradYellow.addColorStop(1, 'rgba(255, 210, 63, 0.0)');
+
+                window.diemChartInstance = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [
+                            {
+                                label: 'Điểm đầu giờ',
+                                data: dataDauGio,
+                                borderColor: '#8E4DFF',
+                                backgroundColor: gradPurple,
+                                borderWidth: 3,
+                                fill: true,
+                                tension: 0.35,
+                                pointBackgroundColor: '#8E4DFF',
+                                pointBorderColor: '#FFF',
+                                pointBorderWidth: 2,
+                                pointRadius: 4,
+                                pointHoverRadius: 6,
+                                spanGaps: true
+                            },
+                            {
+                                label: 'Điểm định kì',
+                                data: dataDinhKi,
+                                borderColor: '#FFD23F',
+                                backgroundColor: gradYellow,
+                                borderWidth: 3,
+                                fill: true,
+                                tension: 0.35,
+                                pointBackgroundColor: '#FFD23F',
+                                pointBorderColor: '#FFF',
+                                pointBorderWidth: 2,
+                                pointRadius: 4,
+                                pointHoverRadius: 6,
+                                spanGaps: true
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false // Dùng custom HTML legend ở trên
+                            },
+                            tooltip: {
+                                mode: 'index',
+                                intersect: false,
+                                backgroundColor: 'rgba(11, 8, 38, 0.95)',
+                                titleColor: '#FFD23F',
+                                bodyColor: '#FFF',
+                                borderColor: '#8E4DFF',
+                                borderWidth: 1,
+                                padding: 10,
+                                displayColors: true,
+                                callbacks: {
+                                    title: function(context) {
+                                        return "Ngày: " + context[0].label;
+                                    },
+                                    label: function(context) {
+                                        var val = context.parsed.y;
+                                        if (val === null || isNaN(val)) return context.dataset.label + ": Chưa có";
+                                        return context.dataset.label + ": " + val + " điểm";
+                                    }
                                 }
-                            ]
+                            }
                         },
-                        options: {
-                            responsive: true,
-                            maintainAspectRatio: false,
-                            plugins: {
-                                legend: {
-                                    display: false
+                        scales: {
+                            x: {
+                                grid: {
+                                    color: 'rgba(255, 255, 255, 0.05)'
                                 },
-                                tooltip: {
-                                    backgroundColor: 'rgba(11, 8, 38, 0.95)',
-                                    titleColor: '#FFF',
-                                    bodyColor: '#A6ADCE',
-                                    titleFont: { family: 'Inter', weight: 'bold', size: 11 },
-                                    bodyFont: { family: 'Inter', size: 10 },
-                                    borderColor: '#8E4DFF',
-                                    borderWidth: 1
+                                ticks: {
+                                    color: '#A6ADCE',
+                                    font: { family: 'Inter', size: 11 }
                                 }
                             },
-                            scales: {
-                                x: {
-                                    grid: { color: 'rgba(255, 255, 255, 0.03)' },
-                                    ticks: {
-                                        color: '#A6ADCE',
-                                        font: { family: 'Inter', size: 9.5 },
-                                        maxRotation: 45,
-                                        minRotation: 0,
-                                        autoSkip: true,
-                                        maxTicksLimit: 12
-                                    }
+                            y: {
+                                min: 0,
+                                max: 10,
+                                grid: {
+                                    color: 'rgba(255, 255, 255, 0.05)'
                                 },
-                                y: {
-                                    min: 0,
-                                    max: 10,
-                                    grid: { color: 'rgba(255, 255, 255, 0.03)' },
-                                    ticks: { color: '#A6ADCE', font: { family: 'Inter', size: 9.5 }, stepSize: 2 }
+                                ticks: {
+                                    stepSize: 2,
+                                    color: '#A6ADCE',
+                                    font: { family: 'Inter', size: 11 }
                                 }
                             }
                         }
-                    });
-                }
+                    }
+                });
 
                 // Render Bảng Lịch sử & Mobile Accordion (Chỉ hiện tối đa 5 dòng đầu, phần còn lại ẩn đi để Xem thêm)
                 var htmlLichSu = "";
                 var totalBuoi = ketQua.lichSuHocTap.length;
                 if (totalBuoi > 0) {
-                    var getStatusBadge = function(trangThai) {
-                        var tt = (trangThai || "").trim().toLowerCase();
-                        if (tt === "đã học") return '<span class="status-badge badge-dahoc">Đã học</span>';
-                        if (tt === "học bù") return '<span class="status-badge badge-hocbu">Học bù</span>';
-                        if (tt.indexOf("hủy") !== -1 || tt.indexOf("nghỉ") !== -1) return '<span class="status-badge badge-nghi">Hủy/Nghỉ</span>';
-                        return '<span class="status-badge" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15); color: #FFF;">' + trangThai + '</span>';
+                    var getStatusBadge = function(trangThai, noiDung) {
+                        if (isAbsentSession(trangThai, noiDung)) return '<span class="status-badge badge-nghi">Hủy/Nghỉ</span>';
+                        var normTt = normalizeStr(trangThai);
+                        if (normTt.includes('hoc bu') || normTt.includes('da bu')) return '<span class="status-badge badge-hocbu">Học bù</span>';
+                        return '<span class="status-badge badge-dahoc">Đã học</span>';
                     };
                     var getBtvnBadge = function(btvn) {
                         var bt = (btvn || "").trim().toLowerCase();
@@ -353,6 +462,12 @@ var currentStudentName = "";
                         if (bt.indexOf("thiếu") !== -1) return '<span class="status-badge badge-thieu">' + btvn + '</span>';
                         return '<span class="status-badge" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15); color: #FFF;">' + btvn + '</span>';
                     };
+
+                    // Cập nhật tiêu đề Lịch sử có kèm tổng số buổi rõ ràng
+                    var historyHeaderEl = document.querySelector('#resultBox .result-section h4');
+                    if (historyHeaderEl && historyHeaderEl.innerHTML.includes('Lịch sử')) {
+                        historyHeaderEl.innerHTML = '<i class="fa-solid fa-clock-rotate-left"></i> Lịch sử Đánh giá Học tập <span style="font-size: 12px; color: #E2D1FF; font-weight: normal; margin-left: 8px;">(Tổng đã học: <b style="color:#10B981;">' + totalPresentAllTime + ' buổi</b> • Nghỉ: <b style="color:#F59E0B;">' + totalAbsentAllTime + ' buổi</b>)</span>';
+                    }
 
                     // 1. Desktop View (Table)
                     htmlLichSu += "<div class='desktop-table-view'>";
@@ -363,6 +478,7 @@ var currentStudentName = "";
 
                     ketQua.lichSuHocTap.slice().reverse().forEach(function(item, idx) {
                         var styleStr = (idx >= 5) ? 'style="display: none;" class="history-row hidden-row"' : 'class="history-row"';
+                        var badgeHtml = getStatusBadge(item.trangThai, item.noiDung);
                         
                         // Desktop Row
                         htmlLichSu += "<tr " + styleStr + ">";
@@ -373,7 +489,7 @@ var currentStudentName = "";
                         htmlLichSu += "<td>" + getBtvnBadge(item.danhGiaBTVN) + "</td>";
                         htmlLichSu += "<td>" + item.diemDauGio + "</td>";
                         htmlLichSu += "<td>" + item.diemDinhKi + "</td>";
-                        htmlLichSu += "<td>" + getStatusBadge(item.trangThai) + "</td>";
+                        htmlLichSu += "<td>" + badgeHtml + "</td>";
                         htmlLichSu += "</tr>";
 
                         // Mobile Row (Accordion Card)
@@ -385,7 +501,7 @@ var currentStudentName = "";
                         htmlMobile += "      <span class='accordion-header-date'>" + item.ngay + "</span>";
                         htmlMobile += "    </div>";
                         htmlMobile += "    <div class='accordion-header-status'>";
-                        htmlMobile += "      " + getStatusBadge(item.trangThai);
+                        htmlMobile += "      " + badgeHtml;
                         htmlMobile += "      <i class='fa-solid fa-chevron-down' id='chevron-" + idx + "'></i>";
                         htmlMobile += "    </div>";
                         htmlMobile += "  </div>";

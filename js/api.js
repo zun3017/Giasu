@@ -305,21 +305,32 @@ class GoogleScriptRunInstance {
                             evalsRaw = await supaGet(APP_CONFIG.TABLES.EVALUATIONS, `student_phone=eq.${encodeURIComponent(target.parent_phone)}&select=*`);
                         }
                         
-                        let rawLogs = evalsRaw.filter(e => !e.deleted_date).map((e, idx) => ({
-                            rowIndex: idx + 1,
-                            evalId: e.eval_id,
-                            tuan: e.week_num || "-",
-                            ngay: formatShortDate(e.study_date),
-                            mon: e.subject || "Toán học",
-                            noiDung: e.lesson_content || "",
-                            danhGiaBTVN: e.hw_eval || "Hoàn thành",
-                            btvn: e.hw_eval || "Hoàn thành",
-                            diemDauGio: cleanScore(e.entry_test),
-                            diemDinhKi: cleanScore(e.term_test),
-                            trangThai: e.attendance_status || "Đã học",
-                            tienDong: e.paid_status || "",
-                            ngayDongTien: e.paid_date || ""
-                        }));
+                        let rawLogs = evalsRaw.filter(e => !e.deleted_date).map((e, idx) => {
+                            let att = e.attendance_status;
+                            if (!att) {
+                                let nd = (e.lesson_content || "").toLowerCase();
+                                if (nd.includes("nghỉ") || nd.includes("hủy") || nd.includes("vắng")) {
+                                    att = "Hủy/ nghỉ";
+                                } else {
+                                    att = "Đã học";
+                                }
+                            }
+                            return {
+                                rowIndex: idx + 1,
+                                evalId: e.eval_id,
+                                tuan: e.week_num || "-",
+                                ngay: formatShortDate(e.study_date),
+                                mon: e.subject || "Toán học",
+                                noiDung: e.lesson_content || "",
+                                danhGiaBTVN: e.hw_eval || "Hoàn thành",
+                                btvn: e.hw_eval || "Hoàn thành",
+                                diemDauGio: cleanScore(e.entry_test),
+                                diemDinhKi: cleanScore(e.term_test),
+                                trangThai: att,
+                                tienDong: e.paid_status || "",
+                                ngayDongTien: e.paid_date || ""
+                            };
+                        });
                         let lichSuHocTap = sortLogsChronological(rawLogs);
                         
                         let hwsRaw = await supaGet(APP_CONFIG.TABLES.HOMEWORK, `select=*`);
@@ -368,21 +379,32 @@ class GoogleScriptRunInstance {
                     (studentName && e.student_name && e.student_name.toLowerCase() === studentName.toLowerCase())
                 ));
                 
-                let rawLogs = matched.map((e, idx) => ({
-                    rowIndex: e.eval_id,
-                    evalId: e.eval_id,
-                    tuan: e.week_num || "-",
-                    ngay: formatShortDate(e.study_date),
-                    mon: e.subject || "Toán học",
-                    noiDung: e.lesson_content || "",
-                    danhGiaBTVN: e.hw_eval || "Hoàn thành",
-                    btvn: e.hw_eval || "Hoàn thành",
-                    diemDauGio: cleanScore(e.entry_test),
-                    diemDinhKi: cleanScore(e.term_test),
-                    trangThai: e.attendance_status || "Đã học",
-                    tienDong: e.paid_status || "",
-                    ngayDongTien: e.paid_date || ""
-                }));
+                let rawLogs = matched.map((e, idx) => {
+                    let att = e.attendance_status;
+                    if (!att) {
+                        let nd = (e.lesson_content || "").toLowerCase();
+                        if (nd.includes("nghỉ") || nd.includes("hủy") || nd.includes("vắng")) {
+                            att = "Hủy/ nghỉ";
+                        } else {
+                            att = "Đã học";
+                        }
+                    }
+                    return {
+                        rowIndex: e.eval_id,
+                        evalId: e.eval_id,
+                        tuan: e.week_num || "-",
+                        ngay: formatShortDate(e.study_date),
+                        mon: e.subject || "Toán học",
+                        noiDung: e.lesson_content || "",
+                        danhGiaBTVN: e.hw_eval || "Hoàn thành",
+                        btvn: e.hw_eval || "Hoàn thành",
+                        diemDauGio: cleanScore(e.entry_test),
+                        diemDinhKi: cleanScore(e.term_test),
+                        trangThai: att,
+                        tienDong: e.paid_status || "",
+                        ngayDongTien: e.paid_date || ""
+                    };
+                });
                 
                 let logs = sortLogsChronological(rawLogs);
                 

@@ -347,21 +347,23 @@ function formatScheduleCell(val) {
             
             logsToProcess.forEach(function(log) {
                 if (!log) return;
-                var dateText = log.ngay || "";
-                var cleanStr = dateText.split(" ")[0].trim();
+                var normTt = (log.trangThai || "").toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').trim();
+                var normNd = (log.noiDung || "").toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').trim();
                 
-                var tt = (log.trangThai || "").trim().toLowerCase();
-                var isDaBu = (tt.indexOf("đã bù") !== -1 || tt === "học bù");
-                var isPresent = (tt.indexOf("đã học") !== -1 || tt === "có mặt" || tt === "có");
-                var isAbsent = (tt.indexOf("nghỉ") !== -1 || tt.indexOf("hủy") !== -1 || tt.indexOf("vắng") !== -1) && !isDaBu;
+                var isDaBu = (normTt.includes("da bu") || normTt.includes("hoc bu"));
+                var isAbsent = !isDaBu && (
+                    normTt.includes("nghi") || normTt.includes("huy") || normTt.includes("vang") ||
+                    normNd.includes("xin nghi") || normNd.includes("nghi hoc") || normNd.includes("bao nghi") || normNd.includes("hom nay nghi") || normNd.includes("cho be nghi")
+                );
+                var isPresent = !isAbsent;
                 
                 if (isDaBu) {
                     makeupClasses++;
-                } else if (isPresent) {
-                    presentClasses++;
                 } else if (isAbsent) {
                     absentClasses++;
                     absentDates.push(cleanStr);
+                } else {
+                    presentClasses++;
                 }
                 
                 var isPaid = (log.tienDong || "").trim().toLowerCase().indexOf("đã đóng") !== -1;
