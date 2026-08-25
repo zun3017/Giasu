@@ -82,36 +82,71 @@ var currentStudentName = "";
                         .trim();
                 }
 
-                // Hàm nhận diện thông minh buổi nghỉ (dựa trên trạng thái hoặc nội dung ghi chú của gia sư)
-                function isAbsentSession(trangThai, noiDung) {
+                // Hàm nhận diện thông minh buổi nghỉ (dựa trên trạng thái, nội dung, nhận xét riêng, bài tập)
+                function isAbsentSession(trangThai, noiDung, nhanXetRieng, danhGiaBTVN) {
                     var normTt = normalizeStr(trangThai);
                     var normNd = normalizeStr(noiDung);
-                    
-                    // 1. Kiểm tra trạng thái rõ ràng
-                    if (normTt.includes('nghi') || normTt.includes('huy') || normTt.includes('vang')) {
-                        if (normTt.includes('hoc bu') || normTt.includes('da bu')) {
-                            return false; // Là buổi học bù
-                        }
-                        return true;
+                    var normNx = normalizeStr(nhanXetRieng);
+                    var normBt = normalizeStr(danhGiaBTVN);
+                    var combinedText = (normNd + " " + normNx + " " + normBt).trim();
+
+                    // 1. Nếu là học bù / đã bù thì tính là buổi có học
+                    if (normTt.includes('hoc bu') || normTt.includes('da bu') || combinedText.includes('hoc bu') || combinedText.includes('da bu')) {
+                        return false;
                     }
-                    
-                    // 2. Tự động phát hiện nếu gia sư ghi chú là nghỉ nhưng quên đổi dropdown trạng thái
+
+                    // 2. Kiểm tra trạng thái điểm danh rõ ràng
                     if (
-                        normNd.includes('xin nghi') ||
-                        normNd.includes('nghi hoc') ||
-                        normNd.includes('bao nghi') ||
-                        normNd.includes('hom nay nghi') ||
-                        normNd.includes('cho be nghi') ||
-                        normNd.includes('cho chau nghi') ||
-                        normNd.includes('mua bao nen nghi') ||
-                        normNd.includes('nghi mot buoi') ||
-                        normNd.includes('nghi 1 buoi') ||
-                        normNd.includes('nghi le') ||
-                        normNd.includes('nghi tet')
+                        normTt.includes('nghi') ||
+                        normTt.includes('huy') ||
+                        normTt.includes('vang') ||
+                        normTt.includes('off') ||
+                        normTt.includes('khong hoc') ||
+                        normTt.includes('chua hoc') ||
+                        normTt.includes('tam hoan') ||
+                        normTt === 'v' ||
+                        normTt === 'n' ||
+                        normTt === 'x'
                     ) {
                         return true;
                     }
-                    
+
+                    // 3. Kiểm tra từ khóa nghỉ trong nội dung ghi chú / nhận xét / đánh giá
+                    if (combinedText) {
+                        var explicitAbsentPhrases = [
+                            'xin nghi', 'nghi hoc', 'bao nghi', 'hom nay nghi', 'cho be nghi', 'cho em nghi',
+                            'cho chau nghi', 'cho hoc sinh nghi', 'duoc nghi', 'tam nghi', 'nghi phep', 'nghi om',
+                            'nghi le', 'nghi tet', 'nghi 1 buoi', 'nghi mot buoi', 'nghi dot xuat', 'nghi co phep',
+                            'nghi khong phep', 'ban nghi', 'ban viec nghi', 'mua bao nghi', 'mua bao nen nghi',
+                            'nghi thi', 'trung lich thi', 'trung lich hoc', 'vang mat', 'vang co phep',
+                            'vang khong phep', 'bao vang', 'huy buoi', 'huy lop', 'huy hoc', 'khong hoc',
+                            'tam hoan', 'tam dung', 'chua hoc'
+                        ];
+
+                        for (var i = 0; i < explicitAbsentPhrases.length; i++) {
+                            if (combinedText.includes(explicitAbsentPhrases[i])) {
+                                return true;
+                            }
+                        }
+
+                        // Kiểm tra nếu chứa từ đơn "nghi", "vang", "huy", "off" độc lập
+                        // Loại trừ các từ ghép học thuật: suy nghi, nghien cuu, nghi luan, nghiem tuc, nghia la, dinh nghia, y nghia
+                        var cleanTextForNghi = combinedText
+                            .replace(/suy\s+nghi/g, '')
+                            .replace(/nghien\s+cuu/g, '')
+                            .replace(/nghi\s+luan/g, '')
+                            .replace(/nghiem\s+tuc/g, '')
+                            .replace(/nghiem\s+khac/g, '')
+                            .replace(/dinh\s+nghia/g, '')
+                            .replace(/y\s+nghia/g, '')
+                            .replace(/nghia\s+la/g, '')
+                            .replace(/khang\s+nghi/g, '');
+
+                        if (/(^|\s|\W)(nghi|vang|huy|off)(\s|\W|$)/.test(cleanTextForNghi)) {
+                            return true;
+                        }
+                    }
+
                     return false;
                 }
 
@@ -176,7 +211,7 @@ var currentStudentName = "";
 
                 ketQua.lichSuHocTap.forEach(function(item) {
                     var parsedDate = parseLessonDate(item.ngay);
-                    var isAbsent = isAbsentSession(item.trangThai, item.noiDung);
+                    var isAbsent = isAbsentSession(item.trangThai, item.noiDung, item.nhanXetRieng, item.danhGiaBTVN);
                     var isPresent = !isAbsent;
 
                     // Tổng hợp toàn bộ lịch sử (All-time)
@@ -450,8 +485,8 @@ var currentStudentName = "";
                 var htmlLichSu = "";
                 var totalBuoi = ketQua.lichSuHocTap.length;
                 if (totalBuoi > 0) {
-                    var getStatusBadge = function(trangThai, noiDung) {
-                        if (isAbsentSession(trangThai, noiDung)) return '<span class="status-badge badge-nghi">Hủy/Nghỉ</span>';
+                    var getStatusBadge = function(trangThai, noiDung, nhanXetRieng, danhGiaBTVN) {
+                        if (isAbsentSession(trangThai, noiDung, nhanXetRieng, danhGiaBTVN)) return '<span class="status-badge badge-nghi">Hủy/Nghỉ</span>';
                         var normTt = normalizeStr(trangThai);
                         if (normTt.includes('hoc bu') || normTt.includes('da bu')) return '<span class="status-badge badge-hocbu">Học bù</span>';
                         return '<span class="status-badge badge-dahoc">Đã học</span>';
@@ -478,7 +513,7 @@ var currentStudentName = "";
 
                     ketQua.lichSuHocTap.slice().reverse().forEach(function(item, idx) {
                         var styleStr = (idx >= 5) ? 'style="display: none;" class="history-row hidden-row"' : 'class="history-row"';
-                        var badgeHtml = getStatusBadge(item.trangThai, item.noiDung);
+                        var badgeHtml = getStatusBadge(item.trangThai, item.noiDung, item.nhanXetRieng, item.danhGiaBTVN);
                         
                         // Desktop Row
                         htmlLichSu += "<tr " + styleStr + ">";
