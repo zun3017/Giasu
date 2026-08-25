@@ -349,12 +349,26 @@ function formatScheduleCell(val) {
                 if (!log) return;
                 var normTt = (log.trangThai || "").toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').trim();
                 var normNd = (log.noiDung || "").toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').trim();
+                var normNx = (log.nhanXetRieng || log.nhanXet || "").toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').trim();
+                var normBt = (log.btvn || log.danhGiaBTVN || "").toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').trim();
+                var combinedText = (normNd + " " + normNx + " " + normBt).trim();
                 
-                var isDaBu = (normTt.includes("da bu") || normTt.includes("hoc bu"));
-                var isAbsent = !isDaBu && (
-                    normTt.includes("nghi") || normTt.includes("huy") || normTt.includes("vang") ||
-                    normNd.includes("xin nghi") || normNd.includes("nghi hoc") || normNd.includes("bao nghi") || normNd.includes("hom nay nghi") || normNd.includes("cho be nghi")
-                );
+                var isDaBu = (normTt.includes("da bu") || normTt.includes("hoc bu") || combinedText.includes("da bu") || combinedText.includes("hoc bu"));
+                var isExplicitAbsent = normTt.includes("nghi") || normTt.includes("huy") || normTt.includes("vang") || normTt.includes("off") || normTt.includes("khong hoc") || normTt === "v" || normTt === "n";
+                
+                var isAbsentInNotes = false;
+                if (combinedText) {
+                    var phrases = ['xin nghi', 'nghi hoc', 'bao nghi', 'hom nay nghi', 'cho be nghi', 'cho em nghi', 'cho chau nghi', 'duoc nghi', 'tam nghi', 'nghi phep', 'nghi om', 'nghi le', 'nghi tet', 'nghi 1 buoi', 'nghi mot buoi', 'nghi dot xuat', 'nghi co phep', 'ban nghi', 'ban viec nghi', 'mua bao nghi', 'mua bao nen nghi', 'nghi thi', 'vang mat', 'vang co phep', 'bao vang', 'huy buoi', 'huy lop', 'khong hoc', 'tam hoan'];
+                    for (var p = 0; p < phrases.length; p++) {
+                        if (combinedText.includes(phrases[p])) { isAbsentInNotes = true; break; }
+                    }
+                    if (!isAbsentInNotes) {
+                        var cleanText = combinedText.replace(/suy\s+nghi/g, '').replace(/nghien\s+cuu/g, '').replace(/nghi\s+luan/g, '').replace(/nghiem\s+tuc/g, '').replace(/dinh\s+nghia/g, '');
+                        if (/(^|\s|\W)(nghi|vang|huy|off)(\s|\W|$)/.test(cleanText)) { isAbsentInNotes = true; }
+                    }
+                }
+                
+                var isAbsent = !isDaBu && (isExplicitAbsent || isAbsentInNotes);
                 var isPresent = !isAbsent;
                 
                 if (isDaBu) {
