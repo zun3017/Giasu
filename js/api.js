@@ -306,15 +306,7 @@ class GoogleScriptRunInstance {
                         }
                         
                         let rawLogs = evalsRaw.filter(e => !e.deleted_date).map((e, idx) => {
-                            let att = e.attendance_status;
-                            if (!att) {
-                                let nd = (e.lesson_content || "").toLowerCase();
-                                if (nd.includes("nghỉ") || nd.includes("hủy") || nd.includes("vắng")) {
-                                    att = "Hủy/ nghỉ";
-                                } else {
-                                    att = "Đã học";
-                                }
-                            }
+                            let att = e.attendance_status || "Đã học";
                             return {
                                 rowIndex: idx + 1,
                                 evalId: e.eval_id,
