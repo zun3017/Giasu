@@ -365,7 +365,7 @@ function formatScheduleCell(val) {
             var totalPaid = 0;
             var totalUnpaid = 0;
             var unpaidLogs = [];
-            var lastPaidIndex = -1;
+            var allUnpaidLogs = [];
             
             for (var i = 0; i < logs.length; i++) {
                 var log = logs[i];
@@ -393,11 +393,13 @@ function formatScheduleCell(val) {
                 else if (isAbsent) totalAbsent++;
                 else totalPresent++;
                 
-                var isPaid = (log.tienDong || "").trim().toLowerCase().indexOf("đã đóng") !== -1;
+                var normPaid = String(log.tienDong || "").toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').trim();
+                var isPaid = normPaid.includes("da dong");
+                
                 if (isPaid) {
-                    lastPaidIndex = i;
                     if (isPresent || isDaBu) totalPaid += feePerClass;
                 } else {
+                    allUnpaidLogs.push(log);
                     if (isPresent || isDaBu) {
                         totalUnpaid++;
                         unpaidLogs.push(log);
@@ -417,46 +419,13 @@ function formatScheduleCell(val) {
             var elAtt = document.getElementById('tutorAttendance');
             if (elAtt) elAtt.innerText = totalAllClasses > 0 ? Math.round((totalPresent + totalMakeup) / totalAllClasses * 100) + "%" : "100%";
             
-        function parseLessonDate(rawStr) {
-            if (!rawStr) return null;
-            var s = String(rawStr).trim();
-            var mIso = s.match(/(\d{4})[-/.](\d{1,2})[-/.](\d{1,2})/);
-            var mDmy = s.match(/(\d{1,2})[-/.](\d{1,2})[-/.](\d{4})/);
-            var mDm = s.match(/(\d{1,2})[-/.](\d{1,2})/);
-            if (mIso) return { year: parseInt(mIso[1], 10), month: parseInt(mIso[2], 10) - 1 };
-            if (mDmy) return { year: parseInt(mDmy[3], 10), month: parseInt(mDmy[2], 10) - 1 };
-            if (mDm) return { year: (new Date()).getFullYear(), month: parseInt(mDm[2], 10) - 1 };
-            var d = new Date(s);
-            return isNaN(d.getTime()) ? null : { year: d.getFullYear(), month: d.getMonth() };
-        }
-
-        // 2. TÍNH TOÁN DÀNH RIÊNG CHO PHIẾU HỌC TẬP (KỲ HỌC HIỆN TẠI / CÁC BUỔI CHƯA ĐÓNG)
+            // 2. TÍNH TOÁN DÀNH RIÊNG CHO PHIẾU HỌC TẬP (CHỈ TỔNG HỢP CÁC BUỔI CHƯA ĐÓNG TIỀN)
             var invoiceLogs = [];
-            var targetMonth = (new Date()).getMonth();
-            var targetYear = (new Date()).getFullYear();
-            
-            if (logs.length > 0) {
-                for (var idx = logs.length - 1; idx >= 0; idx--) {
-                    var pDate = parseLessonDate(logs[idx].ngay);
-                    if (pDate) {
-                        targetMonth = pDate.month;
-                        targetYear = pDate.year;
-                        break;
-                    }
-                }
-            }
-
-            if (lastPaidIndex !== -1 && lastPaidIndex < logs.length - 1) {
-                invoiceLogs = logs.slice(lastPaidIndex + 1);
+            if (allUnpaidLogs.length > 0) {
+                invoiceLogs = allUnpaidLogs;
             } else {
-                // Lọc theo tháng mới nhất có dữ liệu (ví dụ Tháng 8)
-                invoiceLogs = logs.filter(function(l) {
-                    var p = parseLessonDate(l.ngay);
-                    return p && p.month === targetMonth && p.year === targetYear;
-                });
-                if (invoiceLogs.length === 0) {
-                    invoiceLogs = logs.slice(Math.max(0, logs.length - 10));
-                }
+                // Nếu tất cả buổi đều đã đóng tiền, hiển thị 10 buổi gần nhất
+                invoiceLogs = logs.slice(Math.max(0, logs.length - 10));
             }
             
             var invPresent = 0;
@@ -464,6 +433,7 @@ function formatScheduleCell(val) {
             var invMakeup = 0;
             var invAbsentDates = [];
             var invDoneHw = 0;
+            var invLateHw = 0;
             var invMissingHw = 0;
             var invMissingHwDates = [];
             var invBillableCount = 0;
@@ -505,11 +475,14 @@ function formatScheduleCell(val) {
                 var btvnRaw = (log.danhGiaBTVN || log.btvn || "").trim();
                 var btvn = btvnRaw.toLowerCase();
                 if (btvn) {
-                    if (btvn.indexOf("hoàn thành") !== -1 || btvn === "có" || btvn === "đạt" || btvn === "tốt" || btvn === "xuất sắc" || btvn.indexOf("phụ huynh") !== -1 || btvn.indexOf("nhắc") !== -1) {
-                        invDoneHw++;
-                    } else if (btvn.indexOf("thiếu") !== -1 || btvn.indexOf("không làm") !== -1 || btvn.indexOf("chưa làm") !== -1 || btvn.indexOf("chưa nộp") !== -1 || btvn.indexOf("chưa đạt") !== -1 || btvn === "không") {
+                    if (btvn.indexOf("trễ") !== -1 || btvn.indexOf("muộn") !== -1) {
+                        invLateHw++;
+                    }
+                    if (btvn.indexOf("thiếu") !== -1 || btvn.indexOf("không làm") !== -1 || btvn.indexOf("chưa làm") !== -1 || btvn.indexOf("chưa nộp") !== -1 || btvn.indexOf("chưa đạt") !== -1 || btvn === "không") {
                         invMissingHw++;
                         invMissingHwDates.push((cleanStr || ("Buổi " + (log.tuan || ""))) + " (" + btvnRaw + ")");
+                    } else if (btvn.indexOf("hoàn thành") !== -1 || btvn === "có" || btvn === "đạt" || btvn === "tốt" || btvn === "xuất sắc" || btvn.indexOf("phụ huynh") !== -1 || btvn.indexOf("nhắc") !== -1) {
+                        invDoneHw++;
                     } else {
                         invDoneHw++;
                     }
@@ -527,6 +500,8 @@ function formatScheduleCell(val) {
             
             var elHwDone = document.getElementById('invHwDone');
             if (elHwDone) elHwDone.innerText = invDoneHw + " buổi";
+            var elHwLate = document.getElementById('invHwLate');
+            if (elHwLate) elHwLate.innerText = invLateHw + " buổi";
             var elHwMiss = document.getElementById('invHwMiss');
             if (elHwMiss) elHwMiss.innerText = invMissingHw + " buổi";
             
@@ -540,7 +515,13 @@ function formatScheduleCell(val) {
             }
             
             var elMonth = document.getElementById('invMonthDisplay');
-            if (elMonth) elMonth.innerText = "TỔNG HỢP CÁC BUỔI ĐÃ HỌC";
+            if (elMonth) {
+                if (allUnpaidLogs.length > 0) {
+                    elMonth.innerText = "CÁC BUỔI CHƯA ĐÓNG HỌC PHÍ (" + invBillableCount + " BUỔI)";
+                } else {
+                    elMonth.innerText = "TỔNG HỢP CÁC BUỔI ĐÃ HỌC";
+                }
+            }
             
             var invTotalAmount = invBillableCount * feePerClass;
             var feeStr = feePerClass.toLocaleString('vi-VN');
