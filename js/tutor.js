@@ -351,6 +351,19 @@ function formatScheduleCell(val) {
             return isNaN(num) ? 0 : num;
         }
 
+        function parseLessonDate(rawStr) {
+            if (!rawStr) return null;
+            var s = String(rawStr).trim();
+            var mIso = s.match(/(\d{4})[-/.](\d{1,2})[-/.](\d{1,2})/);
+            var mDmy = s.match(/(\d{1,2})[-/.](\d{1,2})[-/.](\d{4})/);
+            var mDm = s.match(/(\d{1,2})[-/.](\d{1,2})/);
+            if (mIso) return { year: parseInt(mIso[1], 10), month: parseInt(mIso[2], 10) - 1 };
+            if (mDmy) return { year: parseInt(mDmy[3], 10), month: parseInt(mDmy[2], 10) - 1 };
+            if (mDm) return { year: (new Date()).getFullYear(), month: parseInt(mDm[2], 10) - 1 };
+            var d = new Date(s);
+            return isNaN(d.getTime()) ? null : { year: d.getFullYear(), month: d.getMonth() };
+        }
+
         // --- Render Invoice / Stats ---
         function renderInvoice() {
             if (!currentTutorStudent) return;
