@@ -528,6 +528,19 @@ function formatScheduleCell(val) {
                 }
             });
             
+            var elStudentName = document.getElementById('invStudentName');
+            if (elStudentName) elStudentName.innerText = (currentTutorStudent.ten || currentTutorStudent.student_name || currentTutorStudent.name || "Học sinh");
+            
+            var elMonth = document.getElementById('invMonthDisplay');
+            if (elMonth) {
+                elMonth.innerHTML = '<i class="fa-solid fa-calendar-days"></i> KỲ HỌC THÁNG ' + (targetMonth + 1);
+            }
+
+            var elAttBadge = document.getElementById('invAttTotalBadge');
+            if (elAttBadge) elAttBadge.innerText = invBillableCount + " Buổi";
+            var elHwBadge = document.getElementById('invHwTotalBadge');
+            if (elHwBadge) elHwBadge.innerText = invBillableCount + " Buổi";
+
             var elInvP = document.getElementById('invAttP');
             if (elInvP) elInvP.innerText = invPresent;
             var elInvA = document.getElementById('invAttA');
@@ -535,37 +548,34 @@ function formatScheduleCell(val) {
             var elInvB = document.getElementById('invAttB');
             if (elInvB) elInvB.innerText = invMakeup;
             var elInvDates = document.getElementById('invAbsentDates');
-            if (elInvDates) elInvDates.innerText = invAbsentDates.length > 0 ? "Vắng ngày: " + invAbsentDates.join(", ") : "Không có vắng";
+            if (elInvDates) {
+                elInvDates.innerHTML = '<div><span>Nghỉ phép:</span> ' + (invAbsentDates.length > 0 ? invAbsentDates.join(", ") : "Không có") + '</div>';
+            }
             
             var elHwDone = document.getElementById('invHwDone');
-            if (elHwDone) elHwDone.innerText = invDoneHw + " buổi";
+            if (elHwDone) elHwDone.innerText = invDoneHw;
             var elHwLate = document.getElementById('invHwLate');
-            if (elHwLate) elHwLate.innerText = invLateHw + " buổi";
+            if (elHwLate) elHwLate.innerText = invLateHw;
             var elHwMiss = document.getElementById('invHwMiss');
-            if (elHwMiss) elHwMiss.innerText = invMissingHw + " buổi";
+            if (elHwMiss) elHwMiss.innerText = invMissingHw;
             
             var elHwMissDates = document.getElementById('invHwMissDates');
             if (elHwMissDates) {
                 if (invMissingHwDates.length > 0) {
-                    elHwMissDates.innerHTML = "• " + invMissingHwDates.join("<br>• ");
+                    elHwMissDates.innerHTML = '<div><span>Thiếu bài:</span> ' + invMissingHwDates.join(", ") + '</div>';
                 } else {
-                    elHwMissDates.innerHTML = "• Không thiếu bài";
+                    elHwMissDates.innerHTML = '<div><span>Thiếu bài:</span> Không thiếu bài</div>';
                 }
-            }
-            
-            var elMonth = document.getElementById('invMonthDisplay');
-            if (elMonth) {
-                elMonth.innerText = "TỔNG HỢP CÁC BUỔI ĐÃ HỌC (THÁNG " + (targetMonth + 1) + ")";
             }
             
             var invTotalAmount = invBillableCount * feePerClass;
             var feeStr = feePerClass.toLocaleString('vi-VN');
             var totalStr = invTotalAmount.toLocaleString('vi-VN');
             
-            var elCalcText = document.getElementById('invFeeCalcText');
-            if (elCalcText) elCalcText.innerText = "Học phí (" + feeStr + "đ × " + invBillableCount + "):";
+            var elFeeUnitValue = document.getElementById('invFeeUnitValue');
+            if (elFeeUnitValue) elFeeUnitValue.innerText = feeStr + " VNĐ";
             var elCalcTotal = document.getElementById('invFeeCalcTotal');
-            if (elCalcTotal) elCalcTotal.innerText = totalStr + " VNĐ";
+            if (elCalcTotal) elCalcTotal.innerText = invBillableCount + " buổi";
             var elGrandTotal = document.getElementById('invGrandTotal');
             if (elGrandTotal) elGrandTotal.innerText = totalStr + " đ";
             
@@ -575,7 +585,7 @@ function formatScheduleCell(val) {
                 if (tutorDataGlobal && tutorDataGlobal.qrCode) {
                     qrImg.src = tutorDataGlobal.qrCode;
                     qrImg.style.display = "block";
-                    qrText.innerText = "Quét mã để thanh toán";
+                    qrText.innerHTML = '<i class="fa-solid fa-qrcode"></i> Quét VietQR';
                 } else {
                     qrImg.style.display = "none";
                     qrText.innerText = "Chưa có mã QR thanh toán";
@@ -583,11 +593,11 @@ function formatScheduleCell(val) {
             }
             
             // Update Textarea with prefilled text
-            var msg = "Dạ em chào anh/chị, em gửi anh chị phiếu học tập tổng hợp của bé " + currentTutorStudent.name + " ạ.\nTổng số buổi chưa đóng là " + invBillableCount + " buổi, thành tiền là " + totalStr + " VNĐ.\nAnh/chị quét mã QR trên phiếu để thanh toán giúp em nhé. Em cảm ơn ạ!";
+            var sName = currentTutorStudent.ten || currentTutorStudent.student_name || currentTutorStudent.name || "bé";
+            var msg = "Dạ em chào anh/chị, em gửi anh/chị phiếu học tập tổng kết của bé " + sName + " ạ. Học phí kỳ này là " + totalStr + " VNĐ (" + invBillableCount + " buổi). Anh/chị xem qua và quét mã QR chuyển khoản giúp em nhé ạ. Em cảm ơn anh/chị nhiều ạ!";
             var ta = document.getElementById('invTextarea');
             if (ta) {
-                ta.value = msg;
-                ta.innerText = msg;
+                ta.innerHTML = "Dạ em chào anh/chị, em gửi anh/chị phiếu học tập tổng kết của bé <b>" + sName + "</b> ạ. Học phí kỳ này là <b>" + totalStr + " VNĐ</b> (" + invBillableCount + " buổi). Anh/chị xem qua và quét mã QR chuyển khoản giúp em nhé ạ. Em cảm ơn anh/chị nhiều ạ!";
             }
 
             // Nạp danh sách checkbox buổi học chưa đóng vào modal / container
@@ -626,14 +636,12 @@ function formatScheduleCell(val) {
         
         function exportInvoice() {
             var invElement = document.getElementById('invoiceElement');
-            var ta = document.getElementById('invTextarea');
-            ta.style.border = "none";
-            ta.style.resize = "none";
+            var sName = (currentTutorStudent && (currentTutorStudent.ten || currentTutorStudent.student_name || currentTutorStudent.name)) || "HocSinh";
+            var cleanName = sName.replace(/\s+/g, '_');
             
-            html2canvas(invElement, { scale: 2, backgroundColor: "#FFFFFF", useCORS: true }).then(canvas => {
-                ta.style.border = "1px solid #E5E7EB"; 
+            html2canvas(invElement, { scale: 2.5, backgroundColor: "#FFFFFF", useCORS: true }).then(canvas => {
                 var link = document.createElement('a');
-                link.download = 'HoaDon_' + currentTutorStudent.name + '.png';
+                link.download = 'PhieuHocTap_' + cleanName + '.png';
                 link.href = canvas.toDataURL('image/png');
                 link.click();
             });
