@@ -419,12 +419,25 @@ function formatScheduleCell(val) {
             var elAtt = document.getElementById('tutorAttendance');
             if (elAtt) elAtt.innerText = totalAllClasses > 0 ? Math.round((totalPresent + totalMakeup) / totalAllClasses * 100) + "%" : "100%";
             
-            // 2. TÍNH TOÁN DÀNH RIÊNG CHO PHIẾU HỌC TẬP (CHỈ TỔNG HỢP CÁC BUỔI CHƯA ĐÓNG TIỀN)
-            var invoiceLogs = [];
-            if (allUnpaidLogs.length > 0) {
-                invoiceLogs = allUnpaidLogs;
-            } else {
-                // Nếu tất cả buổi đều đã đóng tiền, hiển thị 10 buổi gần nhất
+            // 2. TÍNH TOÁN DÀNH RIÊNG CHO PHIẾU HỌC TẬP (LỌC THEO THÁNG MỚI NHẤT CÓ DỮ LIỆU)
+            var targetMonth = (new Date()).getMonth();
+            var targetYear = (new Date()).getFullYear();
+            if (logs.length > 0) {
+                for (var idx = logs.length - 1; idx >= 0; idx--) {
+                    var pDate = parseLessonDate(logs[idx].ngay);
+                    if (pDate) {
+                        targetMonth = pDate.month;
+                        targetYear = pDate.year;
+                        break;
+                    }
+                }
+            }
+            
+            var invoiceLogs = logs.filter(function(l) {
+                var p = parseLessonDate(l.ngay);
+                return p && p.month === targetMonth && p.year === targetYear;
+            });
+            if (invoiceLogs.length === 0) {
                 invoiceLogs = logs.slice(Math.max(0, logs.length - 10));
             }
             
@@ -519,11 +532,7 @@ function formatScheduleCell(val) {
             
             var elMonth = document.getElementById('invMonthDisplay');
             if (elMonth) {
-                if (allUnpaidLogs.length > 0) {
-                    elMonth.innerText = "CÁC BUỔI CHƯA ĐÓNG HỌC PHÍ (" + invBillableCount + " BUỔI)";
-                } else {
-                    elMonth.innerText = "TỔNG HỢP CÁC BUỔI ĐÃ HỌC";
-                }
+                elMonth.innerText = "TỔNG HỢP CÁC BUỔI ĐÃ HỌC (THÁNG " + (targetMonth + 1) + ")";
             }
             
             var invTotalAmount = invBillableCount * feePerClass;
