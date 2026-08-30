@@ -24,8 +24,60 @@
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Global CSS -->
-    <link rel="stylesheet" href="css/style.css?v=3.1.0">
+    <link rel="stylesheet" href="css/style.css?v=3.3.0">
     <style>
+        /* ================= INVOICE STYLES (ALWAYS LOADED) ================= */
+        .invoice-wrapper {
+            background: #FFFFFF !important;
+            border-radius: 24px !important;
+            width: 100% !important;
+            max-width: 500px !important;
+            margin: 0 auto !important;
+            padding: 40px !important;
+            color: #000 !important;
+            position: relative !important;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5) !important;
+            font-family: 'Inter', sans-serif !important;
+        }
+        .inv-title { text-align: center !important; font-size: 28px !important; font-weight: 900 !important; color: #000 !important; letter-spacing: -0.5px !important; margin-bottom: 10px !important; }
+        .inv-box {
+            border: 1px solid #E5E7EB !important;
+            border-radius: 16px !important;
+            padding: 20px !important;
+            margin-bottom: 20px !important;
+            background: #FFFFFF !important;
+        }
+        .inv-student-info { display: flex !important; align-items: center !important; gap: 15px !important; }
+        .inv-student-icon { width: 50px !important; height: 50px !important; background: #F3F4F6 !important; border-radius: 12px !important; display: flex !important; align-items: center !important; justify-content: center !important; font-size: 24px !important; color: #000 !important; }
+        .inv-student-text h5 { font-size: 11px !important; color: #6B7280 !important; font-weight: 700 !important; margin-bottom: 4px !important; letter-spacing: 0.5px !important; margin-top:0 !important;}
+        .inv-student-text h3 { font-size: 22px !important; color: #000 !important; font-weight: 800 !important; margin:0 !important;}
+        .inv-grid-2 { display: grid !important; grid-template-columns: 1fr 1fr !important; gap: 20px !important; margin-bottom: 20px !important; }
+        .inv-stats-box { border: 1px solid #E5E7EB !important; border-radius: 16px !important; padding: 20px !important; background: #FFFFFF !important; }
+        .inv-stats-title { font-size: 11px !important; font-weight: 700 !important; color: #374151 !important; text-align: center !important; margin-bottom: 15px !important; letter-spacing: 0.5px !important;}
+        .inv-att-grid { display: grid !important; grid-template-columns: 1fr 1fr 1fr !important; gap: 5px !important; text-align: center !important; margin-bottom: 15px !important; }
+        .inv-att-label { font-size: 12px !important; font-weight: 700 !important; color: #374151 !important; margin-bottom: 8px !important; min-height: 32px !important; display: flex !important; align-items: flex-end !important; justify-content: center !important; }
+        .inv-att-val { font-size: 28px !important; font-weight: 900 !important; color: #000 !important; }
+        .inv-absent-dates { background: #F9FAFB !important; border: 1px solid #E5E7EB !important; border-radius: 10px !important; padding: 12px !important; font-size: 12px !important; color: #000 !important; font-weight: 600 !important; text-align: center !important; }
+        .inv-hw-list { font-size: 13px !important; font-weight: 700 !important; color: #000 !important; line-height: 2 !important; margin-bottom: 15px !important;}
+        .inv-hw-item { display: flex !important; justify-content: space-between !important; align-items: center !important; }
+        .inv-hw-item span:last-child { min-width: 60px !important; text-align: right !important; }
+        .inv-hw-dates { background: #F9FAFB !important; border: 1px solid #E5E7EB !important; border-radius: 10px !important; padding: 12px !important; font-size: 11px !important; color: #374151 !important; font-weight: 600 !important; line-height: 1.6 !important; }
+        .inv-fee-row { background: #F9FAFB !important; border: 1px solid #E5E7EB !important; border-radius: 30px !important; padding: 16px 25px !important; display: flex !important; justify-content: space-between !important; align-items: center !important; margin-bottom: 20px !important; }
+        .inv-fee-label { font-size: 13px !important; font-weight: 700 !important; color: #000 !important; }
+        .inv-fee-val { font-size: 16px !important; font-weight: 800 !important; color: #000 !important; }
+        .inv-payment-box { display: flex !important; flex-direction: column !important; gap: 20px !important; }
+        .inv-total-section { border: 1px solid #E5E7EB !important; border-radius: 16px !important; padding: 20px !important; background: #FFFFFF !important; }
+        .inv-total-title { font-size: 11px !important; font-weight: 700 !important; color: #374151 !important; margin-bottom: 8px !important; letter-spacing: 0.5px !important;}
+        .inv-total-amount { font-size: 26px !important; font-weight: 900 !important; color: #000 !important; margin-bottom: 15px !important; }
+        .inv-textarea { width: 100% !important; border: 1px solid #E5E7EB !important; background: #FFFFFF !important; padding: 12px !important; border-radius: 8px !important; font-size: 13px !important; font-family: 'Inter', sans-serif !important; font-weight: 600 !important; color: #000 !important; outline: none !important; overflow: hidden !important; min-height: 60px !important; line-height: 1.5 !important; white-space: pre-wrap !important;}
+        .inv-textarea:focus { border-color: #000 !important; }
+        .inv-qr-section { border: 1px dashed #D1D5DB !important; border-radius: 16px !important; padding: 20px !important; display: flex !important; flex-direction: column !important; align-items: center !important; justify-content: center !important; text-align: center !important; background: #FFFFFF !important;}
+        .inv-qr-img { width: auto !important; height: auto !important; border-radius: 12px !important; margin-bottom: 10px !important; max-width: 100% !important; max-height: 350px !important; object-fit: contain !important; box-shadow: 0 4px 12px rgba(0,0,0,0.05) !important;}
+        .inv-qr-text { font-size: 14px !important; color: #374151 !important; font-weight: 700 !important; }
+        .export-btn-container { text-align: center !important; margin-top: 20px !important; }
+        .btn-export { background: #FFF !important; color: #000 !important; border: none !important; padding: 12px 30px !important; border-radius: 30px !important; font-weight: 700 !important; font-size: 15px !important; cursor: pointer !important; transition: 0.3s !important; box-shadow: 0 10px 20px rgba(0,0,0,0.5) !important;}
+        .btn-export:hover { transform: translateY(-2px) !important; box-shadow: 0 15px 30px rgba(0,0,0,0.8) !important; }
+
         /* --- SYNC TOAST --- */
         .sync-toast {
             position: fixed;
