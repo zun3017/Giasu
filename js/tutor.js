@@ -472,19 +472,22 @@ function formatScheduleCell(val) {
                     invBillableCount++;
                 }
                 
-                var btvnRaw = (log.danhGiaBTVN || log.btvn || "").trim();
-                var btvn = btvnRaw.toLowerCase();
-                if (btvn) {
-                    if (btvn.indexOf("trễ") !== -1 || btvn.indexOf("muộn") !== -1) {
-                        invLateHw++;
-                    }
-                    if (btvn.indexOf("thiếu") !== -1 || btvn.indexOf("không làm") !== -1 || btvn.indexOf("chưa làm") !== -1 || btvn.indexOf("chưa nộp") !== -1 || btvn.indexOf("chưa đạt") !== -1 || btvn === "không") {
-                        invMissingHw++;
-                        invMissingHwDates.push((cleanStr || ("Buổi " + (log.tuan || ""))) + " (" + btvnRaw + ")");
-                    } else if (btvn.indexOf("hoàn thành") !== -1 || btvn === "có" || btvn === "đạt" || btvn === "tốt" || btvn === "xuất sắc" || btvn.indexOf("phụ huynh") !== -1 || btvn.indexOf("nhắc") !== -1) {
-                        invDoneHw++;
-                    } else {
-                        invDoneHw++;
+                // CHỈ TÍNH BÀI TẬP VỀ NHÀ CHO CÁC BUỔI CÓ HỌC (LÊN LỚP HOẶC HỌC BÙ) - CÁC BUỔI NGHỈ TUYỆT ĐỐI KHÔNG TÍNH ĐIỂM HOÀN THÀNH HOẶC THIẾU BÀI
+                if (isPresent || isDaBu) {
+                    var btvnRaw = (log.danhGiaBTVN || log.btvn || "").trim();
+                    var btvn = btvnRaw.toLowerCase();
+                    if (btvn) {
+                        if (btvn.indexOf("trễ") !== -1 || btvn.indexOf("muộn") !== -1) {
+                            invLateHw++;
+                        }
+                        if (btvn.indexOf("thiếu") !== -1 || btvn.indexOf("không làm") !== -1 || btvn.indexOf("chưa làm") !== -1 || btvn.indexOf("chưa nộp") !== -1 || btvn.indexOf("chưa đạt") !== -1 || btvn === "không") {
+                            invMissingHw++;
+                            invMissingHwDates.push((cleanStr || ("Buổi " + (log.tuan || ""))) + " (" + btvnRaw + ")");
+                        } else if (btvn.indexOf("hoàn thành") !== -1 || btvn === "có" || btvn === "đạt" || btvn === "tốt" || btvn === "xuất sắc" || btvn.indexOf("phụ huynh") !== -1 || btvn.indexOf("nhắc") !== -1) {
+                            invDoneHw++;
+                        } else {
+                            invDoneHw++;
+                        }
                     }
                 }
             });

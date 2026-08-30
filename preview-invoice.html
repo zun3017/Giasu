@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phiếu Học Tập & Báo Cáo Học Phí</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, sans-serif; }
+        body {
+            background: #09080E;
+            color: #FFFFFF;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 30px 15px;
+        }
+
+        .preview-controls {
+            margin-bottom: 22px;
+            text-align: center;
+        }
+        .preview-controls h2 {
+            font-size: 22px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #FFF, #C084FC);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 6px;
+        }
+        .preview-controls p {
+            color: #94A3B8;
+            font-size: 13.5px;
+            margin-bottom: 14px;
+        }
+        .btn-action {
+            background: linear-gradient(135deg, #7C3AED, #4F46E5);
+            color: #FFF;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 30px;
+            font-weight: 700;
+            font-size: 13.5px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 20px rgba(124, 58, 237, 0.4);
+            transition: all 0.25s ease;
+        }
+        .btn-action:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(124, 58, 237, 0.6);
+        }
+
+        /* ================== ULTRA-MODERN PREMIUM CARD ================== */
+        .ereceipt-card {
+            width: 100%;
+            max-width: 500px;
+            background: #FFFFFF;
+            color: #0F172A;
+            border-radius: 24px;
+            padding: 24px;
+            box-shadow: 0 30px 70px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Top decorative gradient */
+        .ereceipt-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 6px;
+            background: linear-gradient(90deg, #7C3AED, #3B82F6, #10B981);
+        }
+
+        /* Header section */
+        .receipt-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 15px;
+            border-bottom: 1px dashed #E2E8F0;
+        }
+        .receipt-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .brand-icon {
+            width: 46px;
+            height: 46px;
+            border-radius: 14px;
+            background: linear-gradient(135deg, #F3E8FF 0%, #EDE9FE 100%);
+            color: #7C3AED;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            box-shadow: inset 0 2px 4px rgba(255, 255, 255, 0.8), 0 2px 6px rgba(124, 58, 237, 0.15);
+        }
+        .brand-info h4 {
+            font-size: 10.5px;
+            font-weight: 800;
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
+            color: #64748B;
+            margin-bottom: 2px;
+        }
+        .brand-info h2 {
+            font-size: 20px;
+            font-weight: 800;
+            color: #0F172A;
+            letter-spacing: -0.3px;
+        }
+        .receipt-badge-col {
+            text-align: right;
+        }
+        .receipt-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            background: #F3E8FF;
+            color: #6D28D9;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 20px;
+            border: 1px solid rgba(109, 40, 217, 0.15);
+        }
+        .receipt-tag i { font-size: 10px; }
+        .receipt-code {
+            font-size: 10px;
+            color: #94A3B8;
+            font-weight: 600;
+            margin-top: 4px;
+        }
+
+        /* Section Title */
+        .section-label {
+            font-size: 10.5px;
+            font-weight: 800;
+            letter-spacing: 0.6px;
+            text-transform: uppercase;
+            color: #64748B;
+            margin: 14px 0 8px 0;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .section-label i { color: #7C3AED; font-size: 12px; }
+
+        /* Compact 2-column Grid for stats */
+        .stats-grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        .stat-card {
+            background: #F8FAFC;
+            border: 1px solid #E2E8F0;
+            border-radius: 14px;
+            padding: 10px 12px;
+            transition: all 0.2s ease;
+        }
+        .stat-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 11px;
+            font-weight: 700;
+            color: #334155;
+            margin-bottom: 6px;
+        }
+        .stat-pills {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
+        .pill-item {
+            flex: 1;
+            background: #FFFFFF;
+            border: 1px solid #E2E8F0;
+            border-radius: 10px;
+            padding: 4px 2px;
+            text-align: center;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+        }
+        .pill-val {
+            font-size: 16px;
+            font-weight: 800;
+            color: #0F172A;
+            line-height: 1.1;
+        }
+        .pill-lbl {
+            font-size: 9.5px;
+            color: #64748B;
+            font-weight: 600;
+            margin-top: 1px;
+        }
+        .stat-notes {
+            margin-top: 6px;
+            font-size: 10.5px;
+            color: #475569;
+            background: #FFFFFF;
+            border: 1px solid #E2E8F0;
+            border-radius: 8px;
+            padding: 5px 8px;
+            line-height: 1.4;
+            max-height: 48px;
+            overflow-y: auto;
+        }
+        .stat-notes span { font-weight: 700; color: #334155; }
+        .text-accent { color: #D97706; font-weight: 700; }
+        .text-success { color: #059669; font-weight: 700; }
+
+        /* Itemized Billing Breakdown */
+        .billing-box {
+            background: #F8FAFC;
+            border: 1px solid #E2E8F0;
+            border-radius: 14px;
+            padding: 12px 14px;
+            margin-top: 6px;
+        }
+        .bill-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+            color: #475569;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+        .bill-row b { color: #0F172A; }
+        .bill-row.total-row {
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px dashed #CBD5E1;
+            margin-bottom: 0;
+            color: #0F172A;
+        }
+        .bill-row.total-row span:first-child {
+            font-size: 12.5px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            color: #334155;
+        }
+        .bill-row.total-row span:last-child {
+            font-size: 20px;
+            font-weight: 900;
+            color: #6D28D9;
+            letter-spacing: -0.3px;
+        }
+
+        /* Bottom Grid: Note on left, Large QR on right (Side-by-side) */
+        .bottom-action-grid {
+            display: grid;
+            grid-template-columns: 1fr 165px;
+            gap: 12px;
+            margin-top: 12px;
+            align-items: stretch;
+        }
+        .note-box {
+            background: #F8FAFC;
+            border: 1px solid #E2E8F0;
+            border-radius: 16px;
+            padding: 12px 14px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .note-title {
+            font-size: 11px;
+            font-weight: 700;
+            color: #64748B;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .note-title i { color: #7C3AED; font-size: 13px; }
+        .note-content {
+            font-size: 11.5px;
+            color: #334155;
+            line-height: 1.5;
+            font-weight: 500;
+        }
+        .note-footer {
+            font-size: 10px;
+            color: #94A3B8;
+            margin-top: 8px;
+            font-style: italic;
+        }
+
+        /* Large QR Box */
+        .qr-box {
+            background: #F8FAFC;
+            border: 1px solid #E2E8F0;
+            border-radius: 16px;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+        .qr-image {
+            width: 140px;
+            height: 140px;
+            object-fit: contain;
+            border-radius: 12px;
+            background: #FFFFFF;
+            padding: 6px;
+            border: 1px solid #E2E8F0;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.04);
+        }
+        .qr-caption {
+            font-size: 10.5px;
+            font-weight: 700;
+            color: #475569;
+            margin-top: 6px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .qr-caption i { color: #7C3AED; }
+
+        /* Footer watermark */
+        .receipt-footer {
+            margin-top: 14px;
+            text-align: center;
+            font-size: 9px;
+            color: #94A3B8;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="preview-controls">
+        <h2>✨ Bản Xem Trước: Phiếu Học Tập Chuẩn E-Receipt (QR Code Lớn)</h2>
+        <p>Mã QR to rõ nét, dễ quét - Bố cục sang trọng, ngôn từ chuẩn mực</p>
+        <button class="btn-action" onclick="downloadPreview()"><i class="fa-solid fa-camera"></i> Lưu Ảnh Hóa Đơn (Test)</button>
+    </div>
+
+    <!-- ================= INVOICE COMPONENT ================= -->
+    <div id="invoiceCardElement" class="ereceipt-card">
+        
+        <!-- Header -->
+        <div class="receipt-header">
+            <div class="receipt-brand">
+                <div class="brand-icon">
+                    <i class="fa-solid fa-user-graduate"></i>
+                </div>
+                <div class="brand-info">
+                    <h4>HỌC SINH</h4>
+                    <h2 id="invStudentName">Gia Thái</h2>
+                </div>
+            </div>
+            <div class="receipt-badge-col">
+                <span class="receipt-tag" id="invMonthDisplay"><i class="fa-solid fa-sparkles"></i> KỲ HỌC HIỆN TẠI</span>
+                <div class="receipt-code">Mã HS: 0909799481</div>
+            </div>
+        </div>
+
+        <!-- Section 1: Study summary -->
+        <div class="section-label">
+            <i class="fa-solid fa-chart-simple"></i> KẾT QUẢ RÈN LUYỆN KỲ NÀY
+        </div>
+        <div class="stats-grid-2">
+            <!-- Box Chuyên cần -->
+            <div class="stat-card">
+                <div class="stat-card-header">
+                    <span><i class="fa-solid fa-calendar-check" style="color:#059669;"></i> Chuyên cần</span>
+                </div>
+                <div class="stat-pills">
+                    <div class="pill-item">
+                        <div class="pill-val text-success" id="invAttP">11</div>
+                        <div class="pill-lbl">Lên lớp</div>
+                    </div>
+                    <div class="pill-item">
+                        <div class="pill-val text-accent" id="invAttA">2</div>
+                        <div class="pill-lbl">Nghỉ phép</div>
+                    </div>
+                    <div class="pill-item">
+                        <div class="pill-val" id="invAttB">0</div>
+                        <div class="pill-lbl">Đã bù</div>
+                    </div>
+                </div>
+                <div class="stat-notes" id="invAbsentDates">
+                    <span>Nghỉ phép:</span> 13/07, 12/08
+                </div>
+            </div>
+
+            <!-- Box Bài tập về nhà -->
+            <div class="stat-card">
+                <div class="stat-card-header">
+                    <span><i class="fa-solid fa-book-bookmark" style="color:#7C3AED;"></i> Bài tập về nhà</span>
+                </div>
+                <div class="stat-pills">
+                    <div class="pill-item">
+                        <div class="pill-val text-success" id="invHwDone">10</div>
+                        <div class="pill-lbl">Đạt chuẩn</div>
+                    </div>
+                    <div class="pill-item">
+                        <div class="pill-val text-accent" id="invHwMiss">3</div>
+                        <div class="pill-lbl">Bổ sung</div>
+                    </div>
+                    <div class="pill-item">
+                        <div class="pill-val" id="invHwLate">0</div>
+                        <div class="pill-lbl">Nộp trễ</div>
+                    </div>
+                </div>
+                <div class="stat-notes" id="invHwMissDates">
+                    <span>Cần hoàn thiện:</span> 05/08, 19/08, 23/08
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 2: Billing Breakdown -->
+        <div class="section-label" style="margin-top: 12px;">
+            <i class="fa-solid fa-receipt"></i> CHI TIẾT HỌC PHÍ KỲ NÀY
+        </div>
+        <div class="billing-box">
+            <div class="bill-row">
+                <span id="invFeeUnitLabel">Đơn giá mỗi buổi học:</span>
+                <b id="invFeeUnitValue">225.000 VNĐ</b>
+            </div>
+            <div class="bill-row">
+                <span id="invFeeCalcText">Thời lượng học kỳ này:</span>
+                <b id="invFeeCalcTotal">11 buổi</b>
+            </div>
+            <div class="bill-row total-row">
+                <span>Tổng học phí kỳ này</span>
+                <span id="invGrandTotal">2.475.000 đ</span>
+            </div>
+        </div>
+
+        <!-- Section 3: Notes & Large QR Code Side-by-side -->
+        <div class="bottom-action-grid">
+            <div class="note-box">
+                <div>
+                    <div class="note-title"><i class="fa-regular fa-comment-dots"></i> Lời nhắn gửi phụ huynh</div>
+                    <div class="note-content" id="invTextarea" contenteditable="true">
+                        Dạ em chào anh/chị, em gửi anh/chị phiếu học tập tổng kết của bé <b>Gia Thái</b> ạ. Học phí kỳ này là <b>2.475.000 VNĐ</b> (11 buổi). Anh/chị xem qua và quét mã QR chuyển khoản giúp em nhé ạ. Em cảm ơn anh/chị nhiều ạ!
+                    </div>
+                </div>
+                <div class="note-footer">Đồng hành cùng sự tiến bộ của học sinh!</div>
+            </div>
+
+            <div class="qr-box">
+                <img src="https://i.postimg.cc/Zn8NjRbg/ma-qr-chuyen-khoan-ZN.jpg" id="invQrImg" class="qr-image" alt="QR Code" crossorigin="anonymous">
+                <div class="qr-caption" id="invQrText"><i class="fa-solid fa-qrcode"></i> Quét VietQR</div>
+            </div>
+        </div>
+
+        <!-- Footer watermark -->
+        <div class="receipt-footer">
+            HỆ THỐNG GIA SƯ 1-1 • PHIẾU BÁO CÁO ĐIỆN TỬ
+        </div>
+
+    </div>
+
+    <script>
+        function downloadPreview() {
+            var el = document.getElementById('invoiceCardElement');
+            html2canvas(el, { scale: 2.5, backgroundColor: "#FFFFFF", useCORS: true }).then(canvas => {
+                var link = document.createElement('a');
+                link.download = 'PhieuHocTap_GiaThai.png';
+                link.href = canvas.toDataURL("image/png");
+                link.click();
+            });
+        }
+    </script>
+</body>
+</html>
