@@ -20,63 +20,296 @@
         };
     </script>
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@600;700;800&display=swap" rel="stylesheet">
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Global CSS -->
-    <link rel="stylesheet" href="css/style.css?v=3.3.0">
+    <link rel="stylesheet" href="css/style.css?v=3.4.0">
     <style>
-        /* ================= INVOICE STYLES (ALWAYS LOADED) ================= */
-        .invoice-wrapper {
-            background: #FFFFFF !important;
-            border-radius: 24px !important;
+        /* ================= INVOICE STYLES (APPROVED E-RECEIPT) ================= */
+        .invoice-container {
             width: 100% !important;
             max-width: 500px !important;
             margin: 0 auto !important;
-            padding: 40px !important;
-            color: #000 !important;
-            position: relative !important;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.5) !important;
-            font-family: 'Inter', sans-serif !important;
-        }
-        .inv-title { text-align: center !important; font-size: 28px !important; font-weight: 900 !important; color: #000 !important; letter-spacing: -0.5px !important; margin-bottom: 10px !important; }
-        .inv-box {
-            border: 1px solid #E5E7EB !important;
-            border-radius: 16px !important;
-            padding: 20px !important;
-            margin-bottom: 20px !important;
             background: #FFFFFF !important;
+            color: #0F172A !important;
+            border-radius: 28px !important;
+            padding: 26px 24px 26px 24px !important;
+            box-shadow: 0 35px 80px -15px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(0, 0, 0, 0.04) !important;
+            position: relative !important;
+            overflow: hidden !important;
+            box-sizing: border-box !important;
+            font-family: 'Plus Jakarta Sans', -apple-system, sans-serif !important;
         }
-        .inv-student-info { display: flex !important; align-items: center !important; gap: 15px !important; }
-        .inv-student-icon { width: 50px !important; height: 50px !important; background: #F3F4F6 !important; border-radius: 12px !important; display: flex !important; align-items: center !important; justify-content: center !important; font-size: 24px !important; color: #000 !important; }
-        .inv-student-text h5 { font-size: 11px !important; color: #6B7280 !important; font-weight: 700 !important; margin-bottom: 4px !important; letter-spacing: 0.5px !important; margin-top:0 !important;}
-        .inv-student-text h3 { font-size: 22px !important; color: #000 !important; font-weight: 800 !important; margin:0 !important;}
-        .inv-grid-2 { display: grid !important; grid-template-columns: 1fr 1fr !important; gap: 20px !important; margin-bottom: 20px !important; }
-        .inv-stats-box { border: 1px solid #E5E7EB !important; border-radius: 16px !important; padding: 20px !important; background: #FFFFFF !important; }
-        .inv-stats-title { font-size: 11px !important; font-weight: 700 !important; color: #374151 !important; text-align: center !important; margin-bottom: 15px !important; letter-spacing: 0.5px !important;}
-        .inv-att-grid { display: grid !important; grid-template-columns: 1fr 1fr 1fr !important; gap: 5px !important; text-align: center !important; margin-bottom: 15px !important; }
-        .inv-att-label { font-size: 12px !important; font-weight: 700 !important; color: #374151 !important; margin-bottom: 8px !important; min-height: 32px !important; display: flex !important; align-items: flex-end !important; justify-content: center !important; }
-        .inv-att-val { font-size: 28px !important; font-weight: 900 !important; color: #000 !important; }
-        .inv-absent-dates { background: #F9FAFB !important; border: 1px solid #E5E7EB !important; border-radius: 10px !important; padding: 12px !important; font-size: 12px !important; color: #000 !important; font-weight: 600 !important; text-align: center !important; }
-        .inv-hw-list { font-size: 13px !important; font-weight: 700 !important; color: #000 !important; line-height: 2 !important; margin-bottom: 15px !important;}
-        .inv-hw-item { display: flex !important; justify-content: space-between !important; align-items: center !important; }
-        .inv-hw-item span:last-child { min-width: 60px !important; text-align: right !important; }
-        .inv-hw-dates { background: #F9FAFB !important; border: 1px solid #E5E7EB !important; border-radius: 10px !important; padding: 12px !important; font-size: 11px !important; color: #374151 !important; font-weight: 600 !important; line-height: 1.6 !important; }
-        .inv-fee-row { background: #F9FAFB !important; border: 1px solid #E5E7EB !important; border-radius: 30px !important; padding: 16px 25px !important; display: flex !important; justify-content: space-between !important; align-items: center !important; margin-bottom: 20px !important; }
-        .inv-fee-label { font-size: 13px !important; font-weight: 700 !important; color: #000 !important; }
-        .inv-fee-val { font-size: 16px !important; font-weight: 800 !important; color: #000 !important; }
-        .inv-payment-box { display: flex !important; flex-direction: column !important; gap: 20px !important; }
-        .inv-total-section { border: 1px solid #E5E7EB !important; border-radius: 16px !important; padding: 20px !important; background: #FFFFFF !important; }
-        .inv-total-title { font-size: 11px !important; font-weight: 700 !important; color: #374151 !important; margin-bottom: 8px !important; letter-spacing: 0.5px !important;}
-        .inv-total-amount { font-size: 26px !important; font-weight: 900 !important; color: #000 !important; margin-bottom: 15px !important; }
-        .inv-textarea { width: 100% !important; border: 1px solid #E5E7EB !important; background: #FFFFFF !important; padding: 12px !important; border-radius: 8px !important; font-size: 13px !important; font-family: 'Inter', sans-serif !important; font-weight: 600 !important; color: #000 !important; outline: none !important; overflow: hidden !important; min-height: 60px !important; line-height: 1.5 !important; white-space: pre-wrap !important;}
-        .inv-textarea:focus { border-color: #000 !important; }
-        .inv-qr-section { border: 1px dashed #D1D5DB !important; border-radius: 16px !important; padding: 20px !important; display: flex !important; flex-direction: column !important; align-items: center !important; justify-content: center !important; text-align: center !important; background: #FFFFFF !important;}
-        .inv-qr-img { width: auto !important; height: auto !important; border-radius: 12px !important; margin-bottom: 10px !important; max-width: 100% !important; max-height: 350px !important; object-fit: contain !important; box-shadow: 0 4px 12px rgba(0,0,0,0.05) !important;}
-        .inv-qr-text { font-size: 14px !important; color: #374151 !important; font-weight: 700 !important; }
-        .export-btn-container { text-align: center !important; margin-top: 20px !important; }
-        .btn-export { background: #FFF !important; color: #000 !important; border: none !important; padding: 12px 30px !important; border-radius: 30px !important; font-weight: 700 !important; font-size: 15px !important; cursor: pointer !important; transition: 0.3s !important; box-shadow: 0 10px 20px rgba(0,0,0,0.5) !important;}
-        .btn-export:hover { transform: translateY(-2px) !important; box-shadow: 0 15px 30px rgba(0,0,0,0.8) !important; }
+
+        .invoice-container::before {
+            content: '' !important;
+            position: absolute !important;
+            top: 0 !important; left: 0 !important; right: 0 !important;
+            height: 6px !important;
+            background: linear-gradient(90deg, #8E4DFF 0%, #3B82F6 50%, #10B981 100%) !important;
+        }
+
+        .inv-head {
+            display: flex !important;
+            align-items: center !important;
+            justify-content: space-between !important;
+            padding-bottom: 16px !important;
+            border-bottom: 1px dashed #E2E8F0 !important;
+        }
+        .inv-head-left {
+            display: flex !important;
+            align-items: center !important;
+            gap: 12px !important;
+        }
+        .inv-avatar {
+            width: 48px !important;
+            height: 48px !important;
+            border-radius: 15px !important;
+            background: linear-gradient(135deg, #7C3AED 0%, #5B21B6 100%) !important;
+            color: #FFFFFF !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            font-size: 24px !important;
+            box-shadow: 0 4px 12px rgba(124, 58, 237, 0.25) !important;
+        }
+        .inv-user-meta .inv-tag-mini {
+            font-size: 10.5px !important;
+            font-weight: 800 !important;
+            letter-spacing: 0.8px !important;
+            text-transform: uppercase !important;
+            color: #64748B !important;
+            display: block !important;
+            margin-bottom: 2px !important;
+        }
+        .inv-user-meta h2 {
+            font-size: 21px !important;
+            font-weight: 800 !important;
+            color: #0F172A !important;
+            letter-spacing: -0.4px !important;
+            line-height: 1.2 !important;
+            margin: 0 !important;
+        }
+        .inv-head-right {
+            text-align: right !important;
+        }
+        .inv-pill-status {
+            display: inline-flex !important;
+            align-items: center !important;
+            gap: 6px !important;
+            background: #F3E8FF !important;
+            color: #6D28D9 !important;
+            font-size: 11.5px !important;
+            font-weight: 800 !important;
+            padding: 6px 14px !important;
+            border-radius: 20px !important;
+            letter-spacing: 0.3px !important;
+            border: 1px solid rgba(109, 40, 217, 0.12) !important;
+        }
+
+        .inv-section-title {
+            font-size: 10.5px !important;
+            font-weight: 800 !important;
+            letter-spacing: 0.6px !important;
+            text-transform: uppercase !important;
+            color: #64748B !important;
+            margin: 14px 0 8px 0 !important;
+            display: flex !important;
+            align-items: center !important;
+            gap: 6px !important;
+        }
+        .inv-section-title i { color: #7C3AED !important; }
+
+        .metrics-grid {
+            display: grid !important;
+            grid-template-columns: 1fr 1fr !important;
+            gap: 10px !important;
+            align-items: stretch !important;
+        }
+        .metric-card {
+            background: #F8FAFC !important;
+            border: 1px solid #E2E8F0 !important;
+            border-radius: 16px !important;
+            padding: 12px !important;
+            display: flex !important;
+            flex-direction: column !important;
+            justify-content: space-between !important;
+            height: 100% !important;
+            box-sizing: border-box !important;
+        }
+        .metric-card-header {
+            display: flex !important;
+            align-items: center !important;
+            justify-content: space-between !important;
+            font-size: 11px !important;
+            font-weight: 700 !important;
+            color: #334155 !important;
+            margin-bottom: 8px !important;
+        }
+        .metric-card-header i { font-size: 13px !important; }
+
+        .metric-badges {
+            display: flex !important;
+            gap: 6px !important;
+            margin-bottom: 8px !important;
+        }
+        .m-badge {
+            flex: 1 !important;
+            background: #FFFFFF !important;
+            border: 1px solid #E2E8F0 !important;
+            border-radius: 10px !important;
+            padding: 5px 2px !important;
+            text-align: center !important;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.02) !important;
+        }
+        .m-num {
+            font-size: 17px !important;
+            font-weight: 800 !important;
+            line-height: 1.1 !important;
+            color: #0F172A !important;
+        }
+        .m-lbl {
+            font-size: 9.5px !important;
+            font-weight: 600 !important;
+            color: #64748B !important;
+            margin-top: 2px !important;
+        }
+
+        .metric-notes {
+            margin-top: auto !important;
+            font-size: 10px !important;
+            background: #FFFFFF !important;
+            border: 1px solid #E2E8F0 !important;
+            border-radius: 8px !important;
+            padding: 7px 8px !important;
+            line-height: 1.35 !important;
+            color: #475569 !important;
+            min-height: 48px !important;
+            display: flex !important;
+            align-items: center !important;
+            box-sizing: border-box !important;
+        }
+        .metric-notes span { font-weight: 700 !important; color: #1E293B !important; }
+        .text-green { color: #059669 !important; }
+        .text-amber { color: #D97706 !important; }
+        .text-red { color: #DC2626 !important; }
+        .text-purple { color: #7C3AED !important; }
+
+        .fee-card {
+            background: linear-gradient(135deg, #FAF5FF 0%, #F5F3FF 100%) !important;
+            border: 1px solid #E9D5FF !important;
+            border-radius: 16px !important;
+            padding: 14px 16px !important;
+            margin-top: 12px !important;
+        }
+        .fee-row {
+            display: flex !important;
+            justify-content: space-between !important;
+            align-items: center !important;
+            font-size: 12px !important;
+            color: #4B5563 !important;
+            margin-bottom: 6px !important;
+            font-weight: 500 !important;
+        }
+        .fee-row b { color: #1F2937 !important; }
+        .fee-row.grand-total {
+            margin-top: 8px !important;
+            padding-top: 8px !important;
+            border-top: 1px dashed #D8B4FE !important;
+            margin-bottom: 0 !important;
+            color: #0F172A !important;
+        }
+        .fee-row.grand-total .total-label {
+            font-size: 12.5px !important;
+            font-weight: 800 !important;
+            letter-spacing: 0.3px !important;
+            text-transform: uppercase !important;
+            color: #4C1D95 !important;
+        }
+        .fee-row.grand-total .total-val {
+            font-size: 22px !important;
+            font-weight: 900 !important;
+            color: #6D28D9 !important;
+            letter-spacing: -0.5px !important;
+            font-family: 'Space Grotesk', 'Plus Jakarta Sans', sans-serif !important;
+        }
+
+        .bottom-action-container {
+            display: grid !important;
+            grid-template-columns: 1fr 190px !important;
+            gap: 12px !important;
+            margin-top: 12px !important;
+            align-items: stretch !important;
+        }
+        .msg-box {
+            background: #F8FAFC !important;
+            border: 1px solid #E2E8F0 !important;
+            border-radius: 18px !important;
+            padding: 14px !important;
+            display: flex !important;
+            flex-direction: column !important;
+            justify-content: space-between !important;
+        }
+        .msg-header {
+            font-size: 11.5px !important;
+            font-weight: 700 !important;
+            color: #64748B !important;
+            display: flex !important;
+            align-items: center !important;
+            gap: 6px !important;
+            margin-bottom: 8px !important;
+        }
+        .msg-header i { color: #7C3AED !important; }
+        .msg-text {
+            font-size: 11.5px !important;
+            color: #334155 !important;
+            line-height: 1.55 !important;
+            font-weight: 500 !important;
+            outline: none !important;
+        }
+        .msg-footer {
+            font-size: 10px !important;
+            color: #94A3B8 !important;
+            margin-top: 8px !important;
+            font-style: italic !important;
+        }
+
+        .qr-card {
+            background: #FFFFFF !important;
+            border: 1.5px solid #E9D5FF !important;
+            border-radius: 18px !important;
+            padding: 10px 8px 8px 8px !important;
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: center !important;
+            justify-content: center !important;
+            text-align: center !important;
+            box-shadow: 0 4px 15px rgba(124, 58, 237, 0.06) !important;
+            background: linear-gradient(180deg, #FFFFFF 0%, #FAF5FF 100%) !important;
+        }
+        .qr-img {
+            width: 168px !important;
+            height: 168px !important;
+            object-fit: contain !important;
+            border-radius: 12px !important;
+            background: #FFFFFF !important;
+            padding: 4px !important;
+            border: 1px solid #E2E8F0 !important;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05) !important;
+        }
+        .qr-label {
+            font-size: 11px !important;
+            font-weight: 800 !important;
+            color: #6D28D9 !important;
+            margin-top: 6px !important;
+            display: flex !important;
+            align-items: center !important;
+            gap: 5px !important;
+            letter-spacing: 0.3px !important;
+        }
+        .btn-export { background: linear-gradient(135deg, #10B981 0%, #059669 100%) !important; color: #FFF !important; border: none !important; padding: 12px 30px !important; border-radius: 30px !important; font-weight: 700 !important; font-size: 15px !important; cursor: pointer !important; transition: 0.3s !important; box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4) !important; display: inline-flex !important; align-items: center !important; gap: 8px !important;}
+        .btn-export:hover { transform: translateY(-2px) !important; box-shadow: 0 10px 25px rgba(16, 185, 129, 0.6) !important; }
 
         /* --- SYNC TOAST --- */
         .sync-toast {
@@ -394,55 +627,110 @@
             <div id="invoiceCollapseContainer" style="display: none; margin-top: 20px;">
 
 
-                <div id="invoiceElement" class="invoice-wrapper">
-                    <div class="inv-title">PHIẾU HỌC TẬP</div>
-                    
-                    <div class="inv-box">
-                        <div class="inv-student-info">
-                            <div class="inv-student-icon"><i class="fa-solid fa-user-graduate"></i></div>
-                            <div class="inv-student-text">
-                                <h5>HỌC SINH</h5>
-                                <h3 id="invStudentName">Đoàn Thu Hương</h3>
-                                <div id="invMonthDisplay" style="font-size: 13px; color: #8E4DFF; font-weight: 700; margin-top: 6px; background: rgba(142,77,255,0.1); display: inline-block; padding: 4px 10px; border-radius: 12px;">THÁNG 5 • NĂM 2026</div>
+                <div id="invoiceElement" class="invoice-container">
+                    <!-- 1. Header -->
+                    <div class="inv-head">
+                        <div class="inv-head-left">
+                            <div class="inv-avatar">
+                                <i class="fa-solid fa-graduation-cap"></i>
+                            </div>
+                            <div class="inv-user-meta">
+                                <span class="inv-tag-mini">HỌC SINH</span>
+                                <h2 id="invStudentName">Gia Thái</h2>
+                            </div>
+                        </div>
+                        <div class="inv-head-right">
+                            <span class="inv-pill-status" id="invMonthDisplay"><i class="fa-solid fa-calendar-days"></i> KỲ HỌC THÁNG 8</span>
+                        </div>
+                    </div>
+
+                    <!-- 2. Section 1: Study Metrics -->
+                    <div class="inv-section-title">
+                        <i class="fa-solid fa-chart-pie"></i> TỔNG KẾT KẾT QUẢ KỲ NÀY
+                    </div>
+                    <div class="metrics-grid">
+                        <!-- Box Chuyên cần -->
+                        <div class="metric-card">
+                            <div class="metric-card-header">
+                                <span><i class="fa-solid fa-calendar-check text-green"></i> Chuyên cần</span>
+                                <span class="text-green font-bold" id="invAttTotalBadge">10 Buổi</span>
+                            </div>
+                            <div class="metric-badges">
+                                <div class="m-badge">
+                                    <div class="m-num text-green" id="invAttP">9</div>
+                                    <div class="m-lbl">Buổi học</div>
+                                </div>
+                                <div class="m-badge">
+                                    <div class="m-num text-amber" id="invAttA">3</div>
+                                    <div class="m-lbl">Nghỉ phép</div>
+                                </div>
+                                <div class="m-badge">
+                                    <div class="m-num text-purple" id="invAttB">1</div>
+                                    <div class="m-lbl">Đã bù</div>
+                                </div>
+                            </div>
+                            <div class="metric-notes" id="invAbsentDates">
+                                <div><span>Nghỉ phép:</span> 12/08, 24/08, 26/08</div>
+                            </div>
+                        </div>
+
+                        <!-- Box Bài tập về nhà -->
+                        <div class="metric-card">
+                            <div class="metric-card-header">
+                                <span><i class="fa-solid fa-book-open text-purple"></i> Bài tập về nhà</span>
+                                <span class="text-purple font-bold" id="invHwTotalBadge">10 Buổi</span>
+                            </div>
+                            <div class="metric-badges">
+                                <div class="m-badge">
+                                    <div class="m-num text-green" id="invHwDone">7</div>
+                                    <div class="m-lbl">Đủ bài</div>
+                                </div>
+                                <div class="m-badge">
+                                    <div class="m-num text-red" id="invHwMiss">3</div>
+                                    <div class="m-lbl">Thiếu bài</div>
+                                </div>
+                                <div class="m-badge">
+                                    <div class="m-num" id="invHwLate">0</div>
+                                    <div class="m-lbl">Nộp trễ</div>
+                                </div>
+                            </div>
+                            <div class="metric-notes" id="invHwMissDates">
+                                <div><span>Thiếu bài:</span> 05/08 (Thiếu 1 bài), 19/08 (Thiếu 1 bài), 23/08 (Thiếu)</div>
                             </div>
                         </div>
                     </div>
 
-                    <div class="inv-grid-2">
-                        <div class="inv-stats-box">
-                            <div class="inv-stats-title">LÊN LỚP & NGHỈ HỌC</div>
-                            <div class="inv-att-grid">
-                                <div><div class="inv-att-label">Buổi học</div><div class="inv-att-val" id="invAttP">0</div></div>
-                                <div><div class="inv-att-label">Buổi nghỉ</div><div class="inv-att-val" id="invAttA">0</div></div>
-                                <div><div class="inv-att-label">Đã bù</div><div class="inv-att-val" id="invAttB">0</div></div>
-                            </div>
-                            <div class="inv-absent-dates" id="invAbsentDates">Vắng ngày: Không có</div>
+                    <!-- 3. Section 2: Tuition Breakdown -->
+                    <div class="fee-card">
+                        <div class="fee-row">
+                            <span id="invFeeUnitLabel">Đơn giá mỗi buổi học:</span>
+                            <b id="invFeeUnitValue">225.000 VNĐ</b>
                         </div>
-                        <div class="inv-stats-box">
-                            <div class="inv-stats-title">BÀI TẬP VỀ NHÀ</div>
-                            <div class="inv-hw-list">
-                                <div class="inv-hw-item"><span><i class="fa-solid fa-check"></i> Đủ bài:</span><span id="invHwDone">7 buổi</span></div>
-                                <div class="inv-hw-item" style="color: #DC2626;"><span><i class="fa-regular fa-clock"></i> Nộp trễ:</span><span id="invHwLate">0 buổi</span></div>
-                                <div class="inv-hw-item"><span><i class="fa-solid fa-xmark"></i> Thiếu bài:</span><span id="invHwMiss">1 buổi</span></div>
-                            </div>
-                            <div class="inv-hw-dates" id="invHwMissDates">• Không thiếu bài</div>
+                        <div class="fee-row">
+                            <span id="invFeeCalcText">Thời lượng học kỳ này:</span>
+                            <b id="invFeeCalcTotal">10 buổi</b>
+                        </div>
+                        <div class="fee-row grand-total">
+                            <span class="total-label">Tổng học phí kỳ này</span>
+                            <span class="total-val" id="invGrandTotal">2.250.000 đ</span>
                         </div>
                     </div>
 
-                    <div class="inv-fee-row">
-                        <div class="inv-fee-label" id="invFeeCalcText">Học phí (75.000đ × 20):</div>
-                        <div class="inv-fee-val" id="invFeeCalcTotal">1.500.000 VNĐ</div>
-                    </div>
-
-                    <div class="inv-payment-box">
-                        <div class="inv-total-section">
-                            <div class="inv-total-title">TỔNG CẦN THANH TOÁN</div>
-                            <div class="inv-total-amount" id="invGrandTotal">1.500.000 đ</div>
-                            <div class="inv-textarea" id="invTextarea" contenteditable="true">ND: Học phí...</div>
+                    <!-- 4. Section 3: Note & Extra Large QR Code Side-by-Side -->
+                    <div class="bottom-action-container">
+                        <div class="msg-box">
+                            <div>
+                                <div class="msg-header"><i class="fa-regular fa-comment-dots"></i> Lời nhắn gửi phụ huynh</div>
+                                <div class="msg-text" id="invTextarea" contenteditable="true">
+                                    Dạ em chào anh/chị, em gửi anh/chị phiếu học tập tổng kết của bé <b>Gia Thái</b> ạ. Học phí kỳ này là <b>2.250.000 VNĐ</b> (10 buổi). Anh/chị xem qua và quét mã QR chuyển khoản giúp em nhé ạ. Em cảm ơn anh/chị nhiều ạ!
+                                </div>
+                            </div>
+                            <div class="msg-footer">Đồng hành cùng sự tiến bộ của học sinh!</div>
                         </div>
-                        <div class="inv-qr-section">
-                            <img src="" id="invQrImg" class="inv-qr-img" alt="QR" crossorigin="anonymous">
-                            <div class="inv-qr-text" id="invQrText">Quét mã để thanh toán</div>
+
+                        <div class="qr-card">
+                            <img src="" id="invQrImg" class="qr-img" alt="QR Code" crossorigin="anonymous">
+                            <div class="qr-label" id="invQrText"><i class="fa-solid fa-qrcode"></i> Quét VietQR</div>
                         </div>
                     </div>
                 </div>
