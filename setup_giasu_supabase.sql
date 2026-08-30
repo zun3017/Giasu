@@ -32,10 +32,12 @@ CREATE TABLE IF NOT EXISTS public.gs_students (
     parent_phone TEXT,
     tutor_phone TEXT,
     tuition_fee NUMERIC,
+    billing_type TEXT DEFAULT 'session',
     homework_id TEXT,
     announcement TEXT,
     deleted_date TEXT
 );
+ALTER TABLE public.gs_students ADD COLUMN IF NOT EXISTS billing_type TEXT DEFAULT 'session';
 ALTER TABLE public.gs_students DISABLE ROW LEVEL SECURITY;
 
 CREATE TABLE IF NOT EXISTS public.gs_evaluations (

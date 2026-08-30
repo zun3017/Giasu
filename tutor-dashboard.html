@@ -803,7 +803,20 @@
                 <input type="text" id="addStudentPhone" placeholder="SĐT phụ huynh làm mã tra cứu">
             </div>
             <div class="modal-form-group">
-                <label>Học phí / buổi (VNĐ)</label>
+                <label style="display: block; margin-bottom: 8px;">Hình thức thu học phí <span style="color: #EF4444;">*</span></label>
+                <div style="display: flex; gap: 10px;">
+                    <label style="flex: 1; display: flex; align-items: center; gap: 8px; padding: 9px 12px; background: rgba(255,255,255,0.03); border: 1px solid rgba(142,77,255,0.4); border-radius: 12px; cursor: pointer; color: #FFF; font-size: 13px; margin: 0;">
+                        <input type="radio" name="addStudentBillingType" id="addBillingSession" value="session" checked onchange="toggleBillingTypeLabel('add')" style="accent-color: #8E4DFF; cursor: pointer; width: 16px; height: 16px;">
+                        <span>Theo buổi</span>
+                    </label>
+                    <label style="flex: 1; display: flex; align-items: center; gap: 8px; padding: 9px 12px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; cursor: pointer; color: #FFF; font-size: 13px; margin: 0;">
+                        <input type="radio" name="addStudentBillingType" id="addBillingMonth" value="month" onchange="toggleBillingTypeLabel('add')" style="accent-color: #8E4DFF; cursor: pointer; width: 16px; height: 16px;">
+                        <span>Trọn gói tháng</span>
+                    </label>
+                </div>
+            </div>
+            <div class="modal-form-group">
+                <label id="addStudentTuitionLabel">Mức học phí / buổi (VNĐ)</label>
                 <input type="number" id="addStudentTuition" placeholder="Ví dụ: 200000">
             </div>
             <div class="modal-form-group">
@@ -838,7 +851,20 @@
                 <input type="text" id="editStudentPhone">
             </div>
             <div class="modal-form-group">
-                <label>Học phí / buổi (VNĐ)</label>
+                <label style="display: block; margin-bottom: 8px;">Hình thức thu học phí <span style="color: #EF4444;">*</span></label>
+                <div style="display: flex; gap: 10px;">
+                    <label style="flex: 1; display: flex; align-items: center; gap: 8px; padding: 9px 12px; background: rgba(255,255,255,0.03); border: 1px solid rgba(142,77,255,0.4); border-radius: 12px; cursor: pointer; color: #FFF; font-size: 13px; margin: 0;">
+                        <input type="radio" name="editStudentBillingType" id="editBillingSession" value="session" checked onchange="toggleBillingTypeLabel('edit')" style="accent-color: #8E4DFF; cursor: pointer; width: 16px; height: 16px;">
+                        <span>Theo buổi</span>
+                    </label>
+                    <label style="flex: 1; display: flex; align-items: center; gap: 8px; padding: 9px 12px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; cursor: pointer; color: #FFF; font-size: 13px; margin: 0;">
+                        <input type="radio" name="editStudentBillingType" id="editBillingMonth" value="month" onchange="toggleBillingTypeLabel('edit')" style="accent-color: #8E4DFF; cursor: pointer; width: 16px; height: 16px;">
+                        <span>Trọn gói tháng</span>
+                    </label>
+                </div>
+            </div>
+            <div class="modal-form-group">
+                <label id="editStudentTuitionLabel">Mức học phí / buổi (VNĐ)</label>
                 <input type="number" id="editStudentTuition">
             </div>
             <div class="modal-form-group">
@@ -1330,8 +1356,8 @@
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <script src="js/api.js?v=202608301720"></script>
-    <script src="js/tutor.js?v=202608301720"></script>
+    <script src="js/api.js?v=202608301730"></script>
+    <script src="js/tutor.js?v=202608301730"></script>
     <script>
         window.addEventListener('DOMContentLoaded', () => {
             var data = JSON.parse(sessionStorage.getItem('dashboardData'));
