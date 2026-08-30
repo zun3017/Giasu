@@ -378,7 +378,7 @@ function formatScheduleCell(val) {
             var totalPaid = 0;
             var totalUnpaid = 0;
             var unpaidLogs = [];
-            var allUnpaidLogs = [];
+            var lastPaidIndex = -1;
             
             for (var i = 0; i < logs.length; i++) {
                 var log = logs[i];
@@ -410,9 +410,9 @@ function formatScheduleCell(val) {
                 var isPaid = normPaid.includes("da dong");
                 
                 if (isPaid) {
+                    lastPaidIndex = i;
                     if (isPresent || isDaBu) totalPaid += feePerClass;
                 } else {
-                    allUnpaidLogs.push(log);
                     if (isPresent || isDaBu) {
                         totalUnpaid++;
                         unpaidLogs.push(log);
@@ -432,7 +432,7 @@ function formatScheduleCell(val) {
             var elAtt = document.getElementById('tutorAttendance');
             if (elAtt) elAtt.innerText = totalAllClasses > 0 ? Math.round((totalPresent + totalMakeup) / totalAllClasses * 100) + "%" : "100%";
             
-            // 2. TÍNH TOÁN DÀNH RIÊNG CHO PHIẾU HỌC TẬP (LỌC THEO THÁNG MỚI NHẤT CÓ DỮ LIỆU)
+            // 2. TÍNH TOÁN DÀNH RIÊNG CHO PHIẾU HỌC TẬP (ĐỢT HỌC CHƯA ĐÓNG HIỆN TẠI)
             var targetMonth = (new Date()).getMonth();
             var targetYear = (new Date()).getFullYear();
             if (logs.length > 0) {
@@ -445,12 +445,22 @@ function formatScheduleCell(val) {
                     }
                 }
             }
-            
-            var invoiceLogs = logs.filter(function(l) {
-                var p = parseLessonDate(l.ngay);
-                return p && p.month === targetMonth && p.year === targetYear;
-            });
-            if (invoiceLogs.length === 0) {
+
+            var invoiceLogs = [];
+            if (lastPaidIndex !== -1 && lastPaidIndex < logs.length - 1) {
+                // Lấy tất cả các buổi sau buổi đã đóng gần nhất
+                invoiceLogs = logs.slice(lastPaidIndex + 1);
+            } else if (lastPaidIndex === -1) {
+                // Nếu chưa có buổi nào đánh dấu đã đóng: Lấy theo tháng mới nhất có dữ liệu
+                invoiceLogs = logs.filter(function(l) {
+                    var p = parseLessonDate(l.ngay);
+                    return p && p.month === targetMonth && p.year === targetYear;
+                });
+                if (invoiceLogs.length === 0) {
+                    invoiceLogs = logs.slice(Math.max(0, logs.length - 10));
+                }
+            } else {
+                // Nếu tất cả buổi đã đóng: Hiển thị 10 buổi gần nhất
                 invoiceLogs = logs.slice(Math.max(0, logs.length - 10));
             }
             
