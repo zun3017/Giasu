@@ -1535,7 +1535,7 @@ function formatScheduleCell(val) {
                 logs.slice().reverse().forEach(function(item, idx) {
                     var styleStr = (idx >= 5) ? 'style="display: none;" class="tutor-history-row tutor-hidden-row"' : 'class="tutor-history-row"';
                     
-                    var isPaid = (item.tienDong || "").trim().toLowerCase().indexOf("đã đóng") !== -1;
+                    var isPaid = (item.tienDong || item.paid_status || "").toString().trim().toLowerCase().indexOf("đã đóng") !== -1 || (item.tienDong || item.paid_status || "").toString().trim().toLowerCase() === "true" || item.isPaid === true || item.paid === true;
                     var rawStatus = item.trangThai || item.chuyenCan || item.attendance_status || item.attendance || item.status || "";
                     var tt = String(rawStatus).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').trim();
                     var isDaBu = (tt.indexOf("da bu") !== -1 || tt.indexOf("hoc bu") !== -1);
