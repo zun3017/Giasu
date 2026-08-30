@@ -398,6 +398,7 @@ class GoogleScriptRunInstance {
                 result = { 
                     logs: logs,
                     tuition: stObj ? (stObj.tuition_fee || 0) : 0,
+                    billing_type: stObj ? (stObj.billing_type || 'session') : 'session',
                     parentName: stObj ? (stObj.parent_name || "") : "",
                     announcement: stObj ? (stObj.announcement || "") : ""
                 };
@@ -539,7 +540,7 @@ class GoogleScriptRunInstance {
             // 4. QUẢN LÝ HỌC SINH & THÙNG RÁC GIA SƯ
             // ==========================================
             else if (functionName === 'themHocSinhMoi' || functionName === 'saveTutorStudent') {
-                const [tutorPhone, phuHuynhName, studentName, studentPhone, tuition, maBaiTap, thongBao] = args;
+                const [tutorPhone, phuHuynhName, studentName, studentPhone, tuition, maBaiTap, thongBao, billingType] = args;
                 const sId = studentPhone || `HS_GS_${Date.now()}`;
                 await supaPost(APP_CONFIG.TABLES.STUDENTS, [{
                     student_id: sId,
@@ -548,6 +549,7 @@ class GoogleScriptRunInstance {
                     parent_phone: studentPhone || sId,
                     tutor_phone: tutorPhone || "",
                     tuition_fee: tuition ? Number(tuition) : null,
+                    billing_type: billingType || 'session',
                     homework_id: maBaiTap || sId,
                     announcement: thongBao || ""
                 }]);
@@ -555,12 +557,13 @@ class GoogleScriptRunInstance {
             }
             
             else if (functionName === 'suaThongTinHocSinh' || functionName === 'updateTutorStudent') {
-                const [oldPhone, phuHuynhName, studentName, studentPhone, tuition, maBaiTap, thongBao] = args;
+                const [oldPhone, phuHuynhName, studentName, studentPhone, tuition, maBaiTap, thongBao, billingType] = args;
                 await supaPatch(APP_CONFIG.TABLES.STUDENTS, `student_id=eq.${encodeURIComponent(oldPhone)}`, {
                     student_name: studentName,
                     parent_name: phuHuynhName || "",
                     parent_phone: studentPhone || oldPhone,
                     tuition_fee: tuition ? Number(tuition) : null,
+                    billing_type: billingType || 'session',
                     homework_id: maBaiTap || studentPhone || oldPhone,
                     announcement: thongBao || ""
                 });
@@ -1054,7 +1057,7 @@ class GoogleScriptRunInstance {
             }
             
             else if (functionName === 'adminLuuHocSinh' || functionName === 'adminSaveStudent') {
-                const [oldPhone, parentName, studentName, phone, tuition, tutorPhone] = args;
+                const [oldPhone, parentName, studentName, phone, tuition, tutorPhone, billingType] = args;
                 const p = phone || oldPhone;
                 
                 let students = await supaGet(APP_CONFIG.TABLES.STUDENTS, `select=*`);
@@ -1066,7 +1069,8 @@ class GoogleScriptRunInstance {
                         parent_name: parentName,
                         parent_phone: phone,
                         tutor_phone: tutorPhone || existing.tutor_phone,
-                        tuition_fee: parseFloat(tuition) || 0
+                        tuition_fee: parseFloat(tuition) || 0,
+                        billing_type: billingType || existing.billing_type || 'session'
                     });
                 } else {
                     await supaPost(APP_CONFIG.TABLES.STUDENTS, [{
@@ -1076,6 +1080,7 @@ class GoogleScriptRunInstance {
                         parent_phone: phone,
                         tutor_phone: tutorPhone,
                         tuition_fee: parseFloat(tuition) || 0,
+                        billing_type: billingType || 'session',
                         homework_id: p
                     }]);
                 }
@@ -1123,6 +1128,7 @@ async function getTutorDashboardDataInternal(tutorPhone) {
         name: s.student_name,
         parentName: s.parent_name || "",
         tuition: s.tuition_fee || 0,
+        billing_type: s.billing_type || 'session',
         maBaiTap: s.homework_id || s.student_id || s.parent_phone || "",
         thongBao: s.announcement || ""
     }));
@@ -1132,6 +1138,7 @@ async function getTutorDashboardDataInternal(tutorPhone) {
         name: s.student_name,
         parentName: s.parent_name || "",
         tuition: s.tuition_fee || 0,
+        billing_type: s.billing_type || 'session',
         deletedDate: s.deleted_date || "Gần đây",
         maBaiTap: s.homework_id || s.student_id || s.parent_phone || "",
         thongBao: s.announcement || ""

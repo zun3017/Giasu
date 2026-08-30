@@ -214,6 +214,9 @@ function formatScheduleCell(val) {
                         if (res && res.parentName) {
                             currentTutorStudent.parentName = res.parentName;
                         }
+                        if (res && res.billing_type) {
+                            currentTutorStudent.billing_type = res.billing_type;
+                        }
                         renderInvoice();
                         renderTutorChart(currentTutorStudent.logs);
                         renderTutorStudentHistory(currentTutorStudent.logs);
@@ -568,15 +571,30 @@ function formatScheduleCell(val) {
                 }
             }
             
-            var invTotalAmount = invBillableCount * feePerClass;
+            var billingType = currentTutorStudent.billing_type || currentTutorStudent.billingType || currentTutorStudent.billing_cycle || 'session';
+            var isMonthly = (billingType === 'month' || billingType === 'monthly');
+            
             var feeStr = feePerClass.toLocaleString('vi-VN');
+            var invTotalAmount = isMonthly ? feePerClass : (invBillableCount * feePerClass);
             var totalStr = invTotalAmount.toLocaleString('vi-VN');
             
+            var elFeeUnitLabel = document.getElementById('invFeeUnitLabel');
             var elFeeUnitValue = document.getElementById('invFeeUnitValue');
-            if (elFeeUnitValue) elFeeUnitValue.innerText = feeStr + " VNĐ";
+            var elCalcText = document.getElementById('invFeeCalcText');
             var elCalcTotal = document.getElementById('invFeeCalcTotal');
-            if (elCalcTotal) elCalcTotal.innerText = invBillableCount + " buổi";
             var elGrandTotal = document.getElementById('invGrandTotal');
+            
+            if (isMonthly) {
+                if (elFeeUnitLabel) elFeeUnitLabel.innerText = "Hình thức thu học phí:";
+                if (elFeeUnitValue) elFeeUnitValue.innerText = "Trọn gói theo tháng";
+                if (elCalcText) elCalcText.innerText = "Kỳ học phí:";
+                if (elCalcTotal) elCalcTotal.innerText = "Tháng " + (targetMonth + 1);
+            } else {
+                if (elFeeUnitLabel) elFeeUnitLabel.innerText = "Đơn giá mỗi buổi học:";
+                if (elFeeUnitValue) elFeeUnitValue.innerText = feeStr + " VNĐ";
+                if (elCalcText) elCalcText.innerText = "Thời lượng học kỳ này:";
+                if (elCalcTotal) elCalcTotal.innerText = invBillableCount + " buổi";
+            }
             if (elGrandTotal) elGrandTotal.innerText = totalStr + " đ";
             
             var qrImg = document.getElementById('invQrImg');
@@ -594,10 +612,13 @@ function formatScheduleCell(val) {
             
             // Update Textarea with prefilled text
             var sName = currentTutorStudent.ten || currentTutorStudent.student_name || currentTutorStudent.name || "bé";
-            var msg = "Dạ em chào anh/chị, em gửi anh/chị phiếu học tập tổng kết của bé " + sName + " ạ. Học phí kỳ này là " + totalStr + " VNĐ (" + invBillableCount + " buổi). Anh/chị xem qua và quét mã QR chuyển khoản giúp em nhé ạ. Em cảm ơn anh/chị nhiều ạ!";
             var ta = document.getElementById('invTextarea');
             if (ta) {
-                ta.innerHTML = "Dạ em chào anh/chị, em gửi anh/chị phiếu học tập tổng kết của bé <b>" + sName + "</b> ạ. Học phí kỳ này là <b>" + totalStr + " VNĐ</b> (" + invBillableCount + " buổi). Anh/chị xem qua và quét mã QR chuyển khoản giúp em nhé ạ. Em cảm ơn anh/chị nhiều ạ!";
+                if (isMonthly) {
+                    ta.innerHTML = "Dạ em chào anh/chị, em gửi anh/chị phiếu học tập tổng kết của bé <b>" + sName + "</b> ạ. Học phí kỳ này (Trọn gói tháng " + (targetMonth + 1) + ") là <b>" + totalStr + " VNĐ</b>. Anh/chị xem qua và quét mã QR chuyển khoản giúp em nhé ạ. Em cảm ơn anh/chị nhiều ạ!";
+                } else {
+                    ta.innerHTML = "Dạ em chào anh/chị, em gửi anh/chị phiếu học tập tổng kết của bé <b>" + sName + "</b> ạ. Học phí kỳ này là <b>" + totalStr + " VNĐ</b> (" + invBillableCount + " buổi). Anh/chị xem qua và quét mã QR chuyển khoản giúp em nhé ạ. Em cảm ơn anh/chị nhiều ạ!";
+                }
             }
 
             // Nạp danh sách checkbox buổi học chưa đóng vào modal / container
@@ -757,6 +778,24 @@ function formatScheduleCell(val) {
             });
         }
 
+        function toggleBillingTypeLabel(mode) {
+            if (mode === 'add') {
+                var rad = document.querySelector('input[name="addStudentBillingType"]:checked');
+                var val = rad ? rad.value : 'session';
+                var lbl = document.getElementById('addStudentTuitionLabel');
+                var inp = document.getElementById('addStudentTuition');
+                if (lbl) lbl.innerText = (val === 'month') ? "Mức học phí trọn gói / tháng (VNĐ)" : "Mức học phí / buổi (VNĐ)";
+                if (inp) inp.placeholder = (val === 'month') ? "Ví dụ: 2000000" : "Ví dụ: 200000";
+            } else if (mode === 'edit') {
+                var rad = document.querySelector('input[name="editStudentBillingType"]:checked');
+                var val = rad ? rad.value : 'session';
+                var lbl = document.getElementById('editStudentTuitionLabel');
+                var inp = document.getElementById('editStudentTuition');
+                if (lbl) lbl.innerText = (val === 'month') ? "Mức học phí trọn gói / tháng (VNĐ)" : "Mức học phí / buổi (VNĐ)";
+                if (inp) inp.placeholder = (val === 'month') ? "Ví dụ: 2000000" : "Ví dụ: 200000";
+            }
+        }
+
         // 2. Cửa sổ Thêm học sinh (Add Student)
         function openAddStudentModal() {
             document.getElementById('addParentName').value = "";
@@ -764,6 +803,11 @@ function formatScheduleCell(val) {
             document.getElementById('addStudentPhone').value = "";
             document.getElementById('addStudentTuition').value = "";
             document.getElementById('addStudentMaBaiTap').value = "";
+            
+            var radSession = document.getElementById('addBillingSession');
+            if (radSession) radSession.checked = true;
+            toggleBillingTypeLabel('add');
+            
             document.getElementById('addStudentModal').style.display = "flex";
         }
         function closeAddStudentModal() {
@@ -776,6 +820,8 @@ function formatScheduleCell(val) {
             var phone = document.getElementById('addStudentPhone').value.trim();
             var tuition = document.getElementById('addStudentTuition').value.trim();
             var maBaiTap = document.getElementById('addStudentMaBaiTap').value.trim();
+            var radBilling = document.querySelector('input[name="addStudentBillingType"]:checked');
+            var billingType = radBilling ? radBilling.value : 'session';
             var thongBao = "";
             
             if(!pName || !sName || !phone || !tuition || !maBaiTap) {
@@ -793,7 +839,7 @@ function formatScheduleCell(val) {
                          if(loginRes.role === 'tutor') renderTutorView(loginRes.data);
                      }).loginSystem(tutorDataGlobal.tutorPhone, document.getElementById('maPin').value.trim());
                 }
-            }).themHocSinhMoi(tutorDataGlobal.tutorPhone, pName, sName, phone, parseFloat(tuition), maBaiTap, thongBao);
+            }).themHocSinhMoi(tutorDataGlobal.tutorPhone, pName, sName, phone, parseFloat(tuition), maBaiTap, thongBao, billingType);
         }
 
         // 3. Cửa sổ Sửa học sinh (Edit Student)
@@ -803,6 +849,16 @@ function formatScheduleCell(val) {
             document.getElementById('editStudentName').value = currentTutorStudent.name;
             document.getElementById('editStudentTuition').value = currentTutorStudent.tuition || "";
             document.getElementById('editStudentMaBaiTap').value = currentTutorStudent.maBaiTap || "";
+            
+            var bType = currentTutorStudent.billing_type || currentTutorStudent.billingType || currentTutorStudent.billing_cycle || 'session';
+            if (bType === 'month' || bType === 'monthly') {
+                var radM = document.getElementById('editBillingMonth');
+                if (radM) radM.checked = true;
+            } else {
+                var radS = document.getElementById('editBillingSession');
+                if (radS) radS.checked = true;
+            }
+            toggleBillingTypeLabel('edit');
             
             document.getElementById('editParentName').value = ""; 
             document.getElementById('editParentName').placeholder = "Đang tải tên phụ huynh...";
@@ -824,6 +880,8 @@ function formatScheduleCell(val) {
             var phone = document.getElementById('editStudentPhone').value.trim();
             var tuition = document.getElementById('editStudentTuition').value.trim();
             var maBaiTap = document.getElementById('editStudentMaBaiTap').value.trim();
+            var radBilling = document.querySelector('input[name="editStudentBillingType"]:checked');
+            var billingType = radBilling ? radBilling.value : 'session';
             var thongBao = currentTutorStudent.thongBao || "";
             
             if(!pName || !sName || !phone || !tuition || !maBaiTap) {
@@ -849,7 +907,7 @@ function formatScheduleCell(val) {
                         }
                     }).loginSystem(tutorDataGlobal.tutorPhone, document.getElementById('maPin').value.trim());
                 }
-            }).suaThongTinHocSinh(oldPhone, pName, sName, phone, parseFloat(tuition), maBaiTap, thongBao);
+            }).suaThongTinHocSinh(oldPhone, pName, sName, phone, parseFloat(tuition), maBaiTap, thongBao, billingType);
         }
 
         function saveQuickAnnouncement() {
