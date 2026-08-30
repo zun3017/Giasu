@@ -208,6 +208,12 @@ function formatScheduleCell(val) {
                             return;
                         }
                         currentTutorStudent.logs = (res && res.logs) ? res.logs : [];
+                        if (res && res.tuition !== undefined && res.tuition !== null && res.tuition !== 0) {
+                            currentTutorStudent.tuition = res.tuition;
+                        }
+                        if (res && res.parentName) {
+                            currentTutorStudent.parentName = res.parentName;
+                        }
                         renderInvoice();
                         renderTutorChart(currentTutorStudent.logs);
                         renderTutorStudentHistory(currentTutorStudent.logs);
