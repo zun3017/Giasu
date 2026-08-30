@@ -365,6 +365,9 @@ class GoogleScriptRunInstance {
                 const studentPhone = args[0];
                 const studentName = args[1];
                 
+                let studentsRaw = await supaGet(APP_CONFIG.TABLES.STUDENTS, `select=*`);
+                let stObj = studentsRaw.find(s => normalizePhone(s.parent_phone) === normalizePhone(studentPhone) || normalizePhone(s.student_id) === normalizePhone(studentPhone) || (studentName && s.student_name && s.student_name.toLowerCase() === studentName.toLowerCase()));
+                
                 let evalsRaw = await supaGet(APP_CONFIG.TABLES.EVALUATIONS, `select=*`);
                 let matched = evalsRaw.filter(e => !e.deleted_date && (
                     normalizePhone(e.student_phone) === normalizePhone(studentPhone) ||
@@ -392,7 +395,12 @@ class GoogleScriptRunInstance {
                 
                 let logs = sortLogsChronological(rawLogs);
                 
-                result = { logs: logs };
+                result = { 
+                    logs: logs,
+                    tuition: stObj ? (stObj.tuition_fee || 0) : 0,
+                    parentName: stObj ? (stObj.parent_name || "") : "",
+                    announcement: stObj ? (stObj.announcement || "") : ""
+                };
             }
             
             else if (functionName === 'getTutorSchedule') {
