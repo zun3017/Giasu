@@ -149,23 +149,37 @@ async function supaDelete(table, matchParam) {
 }
 
 // ============================================================================
-// CƠ CHẾ TỰ ĐỘNG DỌN DẸP THÙNG RÁC QUÁ 10 NGÀY (PHÂN VÙNG: GIA SƯ)
+// CƠ CHẾ TỰ ĐỘNG DỌN DẸP THÙNG RÁC VÀ Ý KIẾN PHẢN HỒI QUÁ 10 NGÀY (PHÂN VÙNG: GIA SƯ)
 // ============================================================================
-async function autoPurgeOldTrashItems() {
-    const TEN_DAYS_MS = 10 * 24 * 60 * 60 * 1000;
-    const now = Date.now();
+function parseDateCustom(str) {
+    if (!str) return null;
+    if (typeof str === 'number') return new Date(str);
+    str = String(str).trim();
     
-    function isOlderThan10Days(dateStr) {
-        if (!dateStr) return false;
-        let d = new Date(dateStr);
-        if (isNaN(d.getTime())) {
-            let parts = String(dateStr).split('/');
-            if (parts.length === 3) d = new Date(parts[2], parts[1] - 1, parts[0]);
+    // Khớp định dạng DD/MM/YYYY hoặc HH:MM:SS DD/MM/YYYY hoặc DD/MM/YYYY, HH:MM:SS
+    let match = str.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+    if (match) {
+        let day = parseInt(match[1], 10);
+        let month = parseInt(match[2], 10) - 1;
+        let year = parseInt(match[3], 10);
+        let timeMatch = str.match(/(\d{1,2}):(\d{1,2}):(\d{1,2})/);
+        if (timeMatch) {
+            return new Date(year, month, day, parseInt(timeMatch[1], 10), parseInt(timeMatch[2], 10), parseInt(timeMatch[3], 10));
         }
-        if (isNaN(d.getTime())) return false;
-        return (now - d.getTime()) > TEN_DAYS_MS;
+        return new Date(year, month, day);
     }
-    
+    let d = new Date(str);
+    if (!isNaN(d.getTime())) return d;
+    return null;
+}
+
+function isOlderThan10Days(dateStr) {
+    let d = parseDateCustom(dateStr);
+    if (!d) return false;
+    return (Date.now() - d.getTime()) > (10 * 24 * 60 * 60 * 1000);
+}
+
+async function autoPurgeOldTrashItems() {
     try {
         let students = await supaGet(APP_CONFIG.TABLES.STUDENTS, 'deleted_date=not.is.null&select=*');
         for (let s of students) {
@@ -192,6 +206,14 @@ async function autoPurgeOldTrashItems() {
         for (let h of hws) {
             if (isOlderThan10Days(h.deleted_date)) {
                 await supaDelete(APP_CONFIG.TABLES.HOMEWORK, `hw_id=eq.${encodeURIComponent(h.hw_id)}`);
+            }
+        }
+
+        // Tự động quét và xóa sạch các phản hồi quá 10 ngày khỏi bảng Feedbacks
+        let fbs = await supaGet(APP_CONFIG.TABLES.FEEDBACKS, 'select=*');
+        for (let fb of fbs) {
+            if (isOlderThan10Days(fb.submitted_at)) {
+                await supaDelete(APP_CONFIG.TABLES.FEEDBACKS, `feedback_id=eq.${encodeURIComponent(fb.feedback_id)}`);
             }
         }
     } catch (e) {
@@ -979,14 +1001,26 @@ class GoogleScriptRunInstance {
             }
             
             // ==========================================
-            // 6. Ý KIẾN PHỤ HUYNH
+            // 6. Ý KIẾN PHẢN HỒI PHỤ HUYNH (10 NGÀY GẦN NHẤT)
             // ==========================================
             else if (functionName === 'getTutorFeedback') {
                 const [tutorPhone] = args;
                 let fbs = await supaGet(APP_CONFIG.TABLES.FEEDBACKS, `select=*`);
+                
+                // Lọc chính xác chỉ lấy các phản hồi trong 10 ngày gần nhất
+                let recentFbs = [];
+                for (let fb of fbs) {
+                    if (isOlderThan10Days(fb.submitted_at)) {
+                        // Tự động dọn dẹp xóa khỏi Supabase nếu quá 10 ngày
+                        supaDelete(APP_CONFIG.TABLES.FEEDBACKS, `feedback_id=eq.${encodeURIComponent(fb.feedback_id)}`).catch(() => {});
+                    } else {
+                        recentFbs.push(fb);
+                    }
+                }
+
                 result = {
                     success: true,
-                    feedbacks: fbs.map(fb => ({
+                    feedbacks: recentFbs.map(fb => ({
                         studentName: fb.student_name,
                         studentPhone: fb.student_phone,
                         timestamp: fb.submitted_at,
