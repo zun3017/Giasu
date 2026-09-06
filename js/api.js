@@ -784,12 +784,44 @@ class GoogleScriptRunInstance {
                 const studentName = String(args[1] || "").trim();
                 const norm = normalizePhone(maBaiTap);
                 
+                let studentsRaw = await supaGet(APP_CONFIG.TABLES.STUDENTS, `select=*`);
+                let matchedStudent = studentsRaw.find(s => {
+                    let sNameMatch = studentName && s.student_name && s.student_name.trim().toLowerCase() === studentName.toLowerCase();
+                    let sHwNorm = normalizePhone(s.homework_id);
+                    let sIdNorm = normalizePhone(s.student_id);
+                    let sParentNorm = normalizePhone(s.parent_phone);
+                    let sCodeMatch = norm && (sHwNorm === norm || sIdNorm === norm || sParentNorm === norm);
+                    return sNameMatch || sCodeMatch;
+                });
+                
+                let codesToMatch = new Set();
+                if (maBaiTap) codesToMatch.add(maBaiTap.toLowerCase());
+                if (norm) codesToMatch.add(norm);
+                if (matchedStudent) {
+                    if (matchedStudent.homework_id) {
+                        codesToMatch.add(matchedStudent.homework_id.toLowerCase());
+                        let n = normalizePhone(matchedStudent.homework_id);
+                        if (n) codesToMatch.add(n);
+                    }
+                    if (matchedStudent.student_id) {
+                        codesToMatch.add(matchedStudent.student_id.toLowerCase());
+                        let n = normalizePhone(matchedStudent.student_id);
+                        if (n) codesToMatch.add(n);
+                    }
+                    if (matchedStudent.parent_phone) {
+                        codesToMatch.add(matchedStudent.parent_phone.toLowerCase());
+                        let n = normalizePhone(matchedStudent.parent_phone);
+                        if (n) codesToMatch.add(n);
+                    }
+                }
+                
                 let subs = await supaGet(APP_CONFIG.TABLES.SUBMISSIONS, `select=*`);
                 let matched = subs.filter(s => {
-                    let sCode = String(s.homework_code || "").trim();
+                    let sCode = String(s.homework_code || "").trim().toLowerCase();
                     let sNorm = normalizePhone(sCode);
-                    let matchCode = (norm && sNorm === norm) || (maBaiTap && sCode === maBaiTap);
-                    let matchName = (studentName && s.student_name && s.student_name.trim().toLowerCase() === studentName.toLowerCase());
+                    let matchCode = codesToMatch.has(sCode) || (sNorm && codesToMatch.has(sNorm));
+                    let matchName = (studentName && s.student_name && s.student_name.trim().toLowerCase() === studentName.toLowerCase()) ||
+                                    (matchedStudent && s.student_name && matchedStudent.student_name && s.student_name.trim().toLowerCase() === matchedStudent.student_name.toLowerCase());
                     return matchCode || matchName;
                 });
                 
@@ -860,18 +892,41 @@ class GoogleScriptRunInstance {
                 let studentsRaw = await supaGet(APP_CONFIG.TABLES.STUDENTS, `select=*`);
                 let activeStudents = studentsRaw.filter(s => !s.deleted_date);
                 let target = activeStudents.find(s => {
-                    return (normalizePhone(s.homework_id) === norm) || (normalizePhone(s.student_id) === norm) ||
-                           (s.homework_id === rawCode) || (s.student_id === rawCode);
+                    let sHw = normalizePhone(s.homework_id);
+                    let sId = normalizePhone(s.student_id);
+                    let sParent = normalizePhone(s.parent_phone);
+                    return (sHw && sHw === norm) || (sId && sId === norm) || (sParent && sParent === norm) ||
+                           (s.homework_id === rawCode) || (s.student_id === rawCode) || (s.parent_phone === rawCode) ||
+                           (s.student_name && s.student_name.toLowerCase() === rawCode.toLowerCase());
                 });
                 
                 if (!target) {
                     result = { timThay: false, thongBao: "Mã bài tập không hợp lệ!" };
                 } else {
+                    let codesToMatch = new Set();
+                    codesToMatch.add(rawCode.toLowerCase());
+                    if (norm) codesToMatch.add(norm);
+                    if (target.homework_id) {
+                        codesToMatch.add(target.homework_id.toLowerCase());
+                        let n = normalizePhone(target.homework_id);
+                        if (n) codesToMatch.add(n);
+                    }
+                    if (target.student_id) {
+                        codesToMatch.add(target.student_id.toLowerCase());
+                        let n = normalizePhone(target.student_id);
+                        if (n) codesToMatch.add(n);
+                    }
+                    if (target.parent_phone) {
+                        codesToMatch.add(target.parent_phone.toLowerCase());
+                        let n = normalizePhone(target.parent_phone);
+                        if (n) codesToMatch.add(n);
+                    }
+
                     let hwRaw = await supaGet(APP_CONFIG.TABLES.HOMEWORK, `select=*`);
                     let assignedList = hwRaw.filter(h => !h.deleted_date && (
-                        h.student_name === target.student_name ||
-                        h.homework_code === target.homework_id ||
-                        h.homework_code === target.student_id
+                        (target.student_name && h.student_name && h.student_name.trim().toLowerCase() === target.student_name.trim().toLowerCase()) ||
+                        codesToMatch.has(String(h.homework_code || '').toLowerCase()) ||
+                        codesToMatch.has(normalizePhone(h.homework_code))
                     )).map((h, idx) => ({
                         hwId: h.hw_id,
                         rowIndex: idx + 1,
@@ -884,7 +939,11 @@ class GoogleScriptRunInstance {
                     
                     let subsRaw = await supaGet(APP_CONFIG.TABLES.SUBMISSIONS, `select=*`);
                     let mySubs = subsRaw.filter(s => {
-                        return (s.homework_code === target.homework_id) || (s.student_name === target.student_name);
+                        let sCode = String(s.homework_code || '').trim().toLowerCase();
+                        let sNorm = normalizePhone(sCode);
+                        let matchCode = codesToMatch.has(sCode) || (sNorm && codesToMatch.has(sNorm));
+                        let matchName = target.student_name && s.student_name && s.student_name.trim().toLowerCase() === target.student_name.trim().toLowerCase();
+                        return matchCode || matchName;
                     }).map((s, idx) => ({
                         subId: s.submission_id,
                         studentName: s.student_name,
@@ -900,7 +959,7 @@ class GoogleScriptRunInstance {
                     
                     result = {
                         timThay: true,
-                        ma: rawCode,
+                        ma: target.homework_id || rawCode,
                         studentName: target.student_name,
                         assignedList: assignedList,
                         submissions: mySubs,
@@ -916,6 +975,21 @@ class GoogleScriptRunInstance {
                 const todayStr = new Date().toLocaleDateString('vi-VN');
                 let fileUrl = "";
                 
+                // Tra cứu thông tin học sinh để gắn chuẩn mã
+                let studentsRaw = await supaGet(APP_CONFIG.TABLES.STUDENTS, `select=*`);
+                let norm = normalizePhone(ma);
+                let target = studentsRaw.find(s => {
+                    let sHw = normalizePhone(s.homework_id);
+                    let sId = normalizePhone(s.student_id);
+                    let sParent = normalizePhone(s.parent_phone);
+                    return (sHw && sHw === norm) || (sId && sId === norm) || (sParent && sParent === norm) ||
+                           (s.homework_id === ma) || (s.student_id === ma) || (s.parent_phone === ma) ||
+                           (studentName && s.student_name && s.student_name.trim().toLowerCase() === studentName.trim().toLowerCase());
+                });
+
+                const finalCode = (target && target.homework_id) ? target.homework_id : ma;
+                const finalStudentName = (target && target.student_name) ? target.student_name : (studentName || "Học sinh");
+
                 // Nếu đã cấu hình Google Apps Script Web App cũ, gọi trực tiếp hàm uploadHomeworkFiles trong Student.gs
                 if (APP_CONFIG.DRIVE_UPLOAD_URL && filesList && filesList.length > 0 && filesList[0].fileBase64) {
                     try {
@@ -924,7 +998,7 @@ class GoogleScriptRunInstance {
                             headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                             body: JSON.stringify({
                                 functionName: 'uploadHomeworkFiles',
-                                arguments: [ma, studentName, lessonName, filesList]
+                                arguments: [finalCode, finalStudentName, lessonName, filesList]
                             })
                         });
                         let driveData = await driveRes.json();
@@ -964,8 +1038,8 @@ class GoogleScriptRunInstance {
                 
                 await supaPost(APP_CONFIG.TABLES.SUBMISSIONS, [{
                     submission_id: subId,
-                    homework_code: ma,
-                    student_name: studentName || "Học sinh",
+                    homework_code: finalCode,
+                    student_name: finalStudentName,
                     lesson_name: lessonName || "Bài làm gia sư",
                     file_url: fileUrl || 'https://drive.google.com/',
                     submitted_at: nowStr,
