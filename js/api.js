@@ -591,6 +591,20 @@ class GoogleScriptRunInstance {
                 });
                 result = { success: true };
             }
+
+            else if (functionName === 'capNhatThongBaoHocSinh' || functionName === 'saveQuickAnnouncement') {
+                const [studentPhone, text] = args;
+                const p = String(studentPhone || "").trim();
+                const norm = normalizePhone(p);
+                let students = await supaGet(APP_CONFIG.TABLES.STUDENTS, `select=*`);
+                let target = students.find(s => s.student_id === p || normalizePhone(s.student_id) === norm || normalizePhone(s.parent_phone) === norm || normalizePhone(s.homework_id) === norm);
+                if (target) {
+                    await supaPatch(APP_CONFIG.TABLES.STUDENTS, `student_id=eq.${encodeURIComponent(target.student_id)}`, {
+                        announcement: text || ""
+                    });
+                }
+                result = { success: true };
+            }
             
             else if (functionName === 'xoaHocSinhTamThoi' || functionName === 'deleteTutorStudent') {
                 const [tutorPhone, studentPhone] = args;
