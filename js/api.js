@@ -597,7 +597,11 @@ class GoogleScriptRunInstance {
                 const p = String(studentPhone || "").trim();
                 const norm = normalizePhone(p);
                 let students = await supaGet(APP_CONFIG.TABLES.STUDENTS, `select=*`);
-                let target = students.find(s => s.student_id === p || normalizePhone(s.student_id) === norm || normalizePhone(s.parent_phone) === norm || normalizePhone(s.homework_id) === norm);
+                let target = students.find(s => 
+                    s.student_id === p || 
+                    (norm && (normalizePhone(s.student_id) === norm || normalizePhone(s.parent_phone) === norm || normalizePhone(s.homework_id) === norm)) ||
+                    (s.student_name && s.student_name.trim().toLowerCase() === p.toLowerCase())
+                );
                 if (target) {
                     await supaPatch(APP_CONFIG.TABLES.STUDENTS, `student_id=eq.${encodeURIComponent(target.student_id)}`, {
                         announcement: text || ""
