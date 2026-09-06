@@ -949,51 +949,55 @@ function formatScheduleCell(val) {
         }
 
         function clearQuickAnnouncement() {
-            if (!currentTutorStudent) return;
-            var input = document.getElementById('quickAnnouncementInput');
-            var currentVal = input ? input.value.trim() : '';
-            
-            if (!currentVal && !currentTutorStudent.thongBao) {
-                showToast("Chưa có thông báo nào để xóa!", "info");
+            if (!currentTutorStudent) {
+                showToast("Vui lòng chọn học sinh trước!", "warning");
                 return;
             }
+            var input = document.getElementById('quickAnnouncementInput');
+            var statusLabel = document.getElementById('announcementStatus');
 
-            showCustomConfirm("Bạn có chắc chắn muốn xóa thông báo nhanh này không?", function() {
-                if (input) input.value = "";
-                var statusLabel = document.getElementById('announcementStatus');
+            // 1. Xóa sạch ô nhập ngay lập tức
+            if (input) input.value = "";
 
-                // 1. Cập nhật cục bộ ngay lập tức
-                currentTutorStudent.thongBao = "";
-                var globalIndex = tutorDataGlobal.students.findIndex(s => s.phone === currentTutorStudent.phone);
-                if (globalIndex !== -1) {
-                    tutorDataGlobal.students[globalIndex].thongBao = "";
-                }
+            // 2. Cập nhật dữ liệu bộ nhớ cục bộ
+            currentTutorStudent.thongBao = "";
+            if (tutorDataGlobal && tutorDataGlobal.students) {
+                tutorDataGlobal.students.forEach(function(s) {
+                    if (s.phone === currentTutorStudent.phone || s.name === currentTutorStudent.name || (s.maBaiTap && s.maBaiTap === currentTutorStudent.maBaiTap)) {
+                        s.thongBao = "";
+                    }
+                });
+            }
 
-                // 2. Hiển thị trạng thái
-                statusLabel.innerHTML = '<i class="fa-solid fa-circle-check"></i> Đã xóa thông báo!';
+            // 3. Hiển thị nhãn trạng thái và Toast
+            if (statusLabel) {
+                statusLabel.innerHTML = '<i class="fa-solid fa-circle-check" style="color: #EF4444;"></i> Đã xóa thông báo!';
+                statusLabel.style.color = '#EF4444';
                 statusLabel.style.display = 'inline';
                 setTimeout(function() {
                     statusLabel.style.display = 'none';
+                    statusLabel.style.color = '#10B981';
                 }, 3000);
-                showToast("Đã xóa thông báo nhanh thành công!", "success");
+            }
+            showToast("Đã xóa thông báo nhanh thành công!", "success");
 
-                // 3. Sync lên backend
-                showSyncToast('pending');
-                google.script.run
-                    .withSuccessHandler(function(res) {
-                        if (res && res.error) {
-                            showSyncToast('error');
-                            showToast("Lỗi khi xóa thông báo: " + res.error, "error");
-                        } else {
-                            showSyncToast('success');
-                        }
-                    })
-                    .withFailureHandler(function(err) {
+            // 4. Đồng bộ ngay lên Supabase Backend
+            showSyncToast('pending');
+            var lookupKey = currentTutorStudent.phone || currentTutorStudent.maBaiTap || currentTutorStudent.name;
+            google.script.run
+                .withSuccessHandler(function(res) {
+                    if (res && res.error) {
                         showSyncToast('error');
-                        console.error("Lỗi kết nối xóa thông báo:", err);
-                    })
-                    .capNhatThongBaoHocSinh(currentTutorStudent.phone, "");
-            });
+                        showToast("Lỗi khi xóa thông báo: " + res.error, "error");
+                    } else {
+                        showSyncToast('success');
+                    }
+                })
+                .withFailureHandler(function(err) {
+                    showSyncToast('error');
+                    console.error("Lỗi kết nối xóa thông báo:", err);
+                })
+                .capNhatThongBaoHocSinh(lookupKey, "");
         }
 
 
