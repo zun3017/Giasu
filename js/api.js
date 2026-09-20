@@ -1231,7 +1231,7 @@ class GoogleScriptRunInstance {
                 result = { success: true };
             }
             
-            else if (functionName === 'adminCapNhatTaiKhoan' || functionName === 'updateTutorAccountInfo') {
+            else if (functionName === 'adminCapNhatTaiKhoan' || functionName === 'updateTutorAccountInfo' || functionName === 'capNhatThongTinGiaSu') {
                 const [oldPhone, name, phone, pin, qrUrl] = args;
                 const p = oldPhone || phone;
                 let updateData = { name: name, pin: pin };
@@ -1252,6 +1252,16 @@ class GoogleScriptRunInstance {
                     let target = tutors.find(t => normalizePhone(t.phone) === normalizePhone(p) || String(t.tutor_id).trim() === String(p).trim());
                     let targetId = target ? target.tutor_id : p;
                     await supaPatch(APP_CONFIG.TABLES.TUTORS, `tutor_id=eq.${encodeURIComponent(targetId)}`, updateData);
+
+                    // Đồng bộ đổi số điện thoại gia sư trong danh sách học sinh nếu có đổi phone
+                    if (phone && oldPhone && normalizePhone(phone) !== normalizePhone(oldPhone)) {
+                        let stList = await supaGet(APP_CONFIG.TABLES.STUDENTS, `select=*`);
+                        for (let s of stList) {
+                            if (normalizePhone(s.tutor_phone) === normalizePhone(oldPhone) || s.tutor_phone === oldPhone) {
+                                await supaPatch(APP_CONFIG.TABLES.STUDENTS, `student_id=eq.${encodeURIComponent(s.student_id)}`, { tutor_phone: phone });
+                            }
+                        }
+                    }
                 }
                 result = { success: true };
             }
