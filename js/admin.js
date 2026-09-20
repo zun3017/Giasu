@@ -1005,17 +1005,20 @@ var pinVerifyAction = "deleteStudent";
         }
 
         function refreshAdminDashboard() {
-            var pin = document.getElementById('maPin').value.trim();
+            var pin = (document.getElementById('maPin') ? document.getElementById('maPin').value.trim() : "") || sessionStorage.getItem('userPin') || (adminDataGlobal && adminDataGlobal.adminInfo ? adminDataGlobal.adminInfo.pin : "") || "1234";
+            var phone = currentAdminPhone || sessionStorage.getItem('userPhone') || (adminDataGlobal && adminDataGlobal.adminInfo ? adminDataGlobal.adminInfo.phone : "") || "302001";
             
             google.script.run
                 .withSuccessHandler(function(loginRes) {
-                    if (loginRes.role === 'admin') {
+                    if (loginRes.role === 'admin' && loginRes.data) {
+                        sessionStorage.setItem('dashboardData', JSON.stringify(loginRes.data));
                         renderAdminView(loginRes.data);
-                    } else {
-                        location.reload();
                     }
                 })
-                .loginSystem(currentAdminPhone, pin);
+                .withFailureHandler(function(err) {
+                    console.warn("Lỗi làm mới dashboard admin:", err);
+                })
+                .loginSystem(phone, pin);
         }
 
         // Các hàm phụ trợ hóa đơn của Gia sư đã được di chuyển sang đúng file js/tutor.js.
@@ -1143,6 +1146,18 @@ var pinVerifyAction = "deleteStudent";
                             showToast("Lỗi: " + res.error, "error");
                         } else {
                             showToast("Xác nhận đóng phí thuê web và gia hạn thành công!", "success");
+                            
+                            // Cập nhật ngay trên cache cục bộ để giao diện đổi tức thì
+                            if (adminDataGlobal && adminDataGlobal.tutors) {
+                                var t = adminDataGlobal.tutors.find(x => x.phone === phone || normalizePhone(x.phone) === normalizePhone(phone));
+                                if (t) {
+                                    if (res.nextDue) t.nextBillingDate = res.nextDue;
+                                    t.status = "Hoạt động";
+                                }
+                                sessionStorage.setItem('dashboardData', JSON.stringify(adminDataGlobal));
+                                renderAdminTutorsList();
+                            }
+                            
                             refreshAdminDashboard();
                         }
                     })
