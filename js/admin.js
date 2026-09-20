@@ -578,7 +578,7 @@ var pinVerifyAction = "deleteStudent";
             var mobileHtml = "";
             adminDataGlobal.students.forEach((st, idx) => {
                 var statusText = st.deletedDate ? "<span class='badge' style='background:rgba(239,68,68,0.1); color:#EF4444; margin-bottom:0;'>Đã xóa (" + st.deletedDate.split(" ")[0] + ")</span>" : "<span class='badge' style='background:rgba(16,185,129,0.1); color:#10B981; margin-bottom:0;'>Hoạt động</span>";
-                var tName = adminDataGlobal.tutors.find(t => t.phone === st.tutorPhone)?.name || "Chưa gán";
+                var tName = adminDataGlobal.tutors.find(t => normalizePhone(t.phone) === normalizePhone(st.tutorPhone))?.name || "Chưa gán";
                 
                 // Desktop
                 var tr = document.createElement('tr');
@@ -621,10 +621,10 @@ var pinVerifyAction = "deleteStudent";
 
         // --- Admin Modals ---
         function openAdminAccountModal() {
-            var selfData = adminDataGlobal.tutors.find(t => t.phone === currentAdminPhone);
-            document.getElementById('adminAccName').value = selfData ? selfData.name : "Quản trị viên";
-            document.getElementById('adminAccPhone').value = currentAdminPhone;
-            document.getElementById('adminAccPin').value = selfData ? selfData.pin : "";
+            var adminInfo = (adminDataGlobal && adminDataGlobal.adminInfo) ? adminDataGlobal.adminInfo : {};
+            document.getElementById('adminAccName').value = adminInfo.name || "Quản trị viên";
+            document.getElementById('adminAccPhone').value = adminInfo.phone || currentAdminPhone || "302001";
+            document.getElementById('adminAccPin').value = adminInfo.pin || sessionStorage.getItem('userPin') || "";
             document.getElementById('adminAccountModal').style.display = "flex";
         }
         function closeAdminAccountModal() {
@@ -653,7 +653,16 @@ var pinVerifyAction = "deleteStudent";
                     } else {
                         showToast("Cập nhật tài khoản Admin thành công!", "success");
                         currentAdminPhone = phone;
-                        document.getElementById('maPin').value = pin;
+                        sessionStorage.setItem('userPhone', phone);
+                        sessionStorage.setItem('userPin', pin);
+                        if (document.getElementById('maPin')) document.getElementById('maPin').value = pin;
+                        if (adminDataGlobal && adminDataGlobal.adminInfo) {
+                            adminDataGlobal.adminInfo.name = name;
+                            adminDataGlobal.adminInfo.phone = phone;
+                            adminDataGlobal.adminInfo.pin = pin;
+                        }
+                        var adminNameEl = document.getElementById('adminNameDisplay');
+                        if (adminNameEl) adminNameEl.innerText = "Xin chào, " + name;
                         closeAdminAccountModal();
                         refreshAdminDashboard();
                     }
@@ -663,7 +672,7 @@ var pinVerifyAction = "deleteStudent";
                     btn.innerText = "Cập nhật";
                     showToast("Lỗi kết nối: " + err.toString(), "error");
                 })
-                .adminCapNhatTaiKhoan(currentAdminPhone, name, phone, pin);
+                .adminCapNhatTaiKhoanAdmin(currentAdminPhone, name, phone, pin);
         }
 
         // Admin Edit Tutor Modal
@@ -760,6 +769,8 @@ var pinVerifyAction = "deleteStudent";
         // Xóa/Khôi phục & Thùng rác Gia sư JS Controllers
         function confirmDeleteAdminTutor() {
             pinVerifyAction = "deleteTutor";
+            var desc = document.getElementById('confirmPinModalText');
+            if (desc) desc.innerText = "Vui lòng nhập mã PIN Admin để xác nhận đưa gia sư vào thùng rác.";
             document.getElementById('confirmTutorPinInput').value = "";
             document.getElementById('pinConfirmModal').style.display = "flex";
         }
@@ -770,14 +781,19 @@ var pinVerifyAction = "deleteStudent";
 
         function submitPinVerifyForDelete() {
             var inputPin = document.getElementById('confirmTutorPinInput').value.trim();
-            var adminPin = (document.getElementById('maPin') ? document.getElementById('maPin').value.trim() : "") || sessionStorage.getItem('userPin') || "";
+            var adminPin = (document.getElementById('maPin') ? document.getElementById('maPin').value.trim() : "") || sessionStorage.getItem('userPin') || (adminDataGlobal && adminDataGlobal.adminInfo ? adminDataGlobal.adminInfo.pin : "") || "";
             var currentAdminTutor = (adminDataGlobal && adminDataGlobal.tutors) ? adminDataGlobal.tutors.find(t => t.phone === currentAdminPhone) : null;
             var validPin = adminPin || (currentAdminTutor ? currentAdminTutor.pin : "");
             
             if (inputPin && (inputPin === validPin || inputPin === adminPin || (currentAdminTutor && inputPin === currentAdminTutor.pin))) {
                 closePinConfirmModal();
-                closeAdminEditTutorModal();
-                deleteTutorBackend();
+                if (pinVerifyAction === "deleteTutor") {
+                    closeAdminEditTutorModal();
+                    deleteTutorBackend();
+                } else if (pinVerifyAction === "deleteStudent") {
+                    closeAdminEditStudentModal();
+                    deleteStudentBackend();
+                }
             } else {
                 showToast("Mã PIN xác thực của Admin không chính xác!", "error");
             }
@@ -874,6 +890,8 @@ var pinVerifyAction = "deleteStudent";
 
         // Admin Edit Student Modal
         function openAdminAddStudentModal() {
+            var btnDel = document.getElementById('btnDeleteAdminStudent');
+            if (btnDel) btnDel.style.display = "none";
             document.getElementById('adminStudentModalTitle').innerHTML = '<i class="fa-solid fa-user-graduate"></i> Thêm Học Sinh Mới';
             document.getElementById('adminStudentOldPhone').value = "";
             document.getElementById('adminStudentParentName').value = "";
@@ -886,6 +904,8 @@ var pinVerifyAction = "deleteStudent";
         }
 
         function openAdminEditStudentModal(phone, parentName, name, tuition, tutorPhone) {
+            var btnDel = document.getElementById('btnDeleteAdminStudent');
+            if (btnDel) btnDel.style.display = "flex";
             document.getElementById('adminStudentModalTitle').innerHTML = '<i class="fa-solid fa-user-graduate"></i> Sửa Thông Tin Học Sinh';
             document.getElementById('adminStudentOldPhone').value = phone;
             document.getElementById('adminStudentParentName').value = parentName;
@@ -915,6 +935,36 @@ var pinVerifyAction = "deleteStudent";
                 }
                 select.appendChild(opt);
             });
+        }
+
+        
+        function confirmDeleteAdminStudent() {
+            pinVerifyAction = "deleteStudent";
+            var desc = document.getElementById('confirmPinModalText');
+            if (desc) desc.innerText = "Vui lòng nhập mã PIN Admin để xác nhận đưa học sinh vào thùng rác.";
+            document.getElementById('confirmTutorPinInput').value = "";
+            document.getElementById('pinConfirmModal').style.display = "flex";
+        }
+
+        function deleteStudentBackend() {
+             var phone = document.getElementById('adminStudentOldPhone').value;
+             var name = document.getElementById('adminStudentName').value;
+             
+             showCustomConfirm("Xác nhận đưa học sinh " + name + " vào thùng rác? Học sinh sẽ ẩn khỏi danh sách và sẽ bị xóa vĩnh viễn sau 10 ngày.", function() {
+                 google.script.run
+                     .withSuccessHandler(function(res) {
+                         if (res.error) {
+                             showToast("Lỗi: " + res.error, "error");
+                         } else {
+                             showToast("Đã đưa học sinh vào thùng rác thành công!", "success");
+                             refreshAdminDashboard();
+                         }
+                     })
+                     .withFailureHandler(function(err) {
+                         showToast("Lỗi kết nối hoặc hệ thống: " + err.toString(), "error");
+                     })
+                     .adminXoaHocSinhTamThoi(phone);
+             });
         }
 
         function saveAdminStudent() {

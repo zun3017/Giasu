@@ -212,7 +212,7 @@ async function autoPurgeOldTrashItems() {
         // Tự động quét và xóa sạch các phản hồi quá 10 ngày khỏi bảng Feedbacks
         let fbs = await supaGet(APP_CONFIG.TABLES.FEEDBACKS, 'select=*');
         for (let fb of fbs) {
-            if (isOlderThan10Days(fb.submitted_at)) {
+            if (fb.feedback_id !== 'SYSTEM_MARQUEE' && isOlderThan10Days(fb.submitted_at)) {
                 await supaDelete(APP_CONFIG.TABLES.FEEDBACKS, `feedback_id=eq.${encodeURIComponent(fb.feedback_id)}`);
             }
         }
@@ -1145,6 +1145,12 @@ class GoogleScriptRunInstance {
             else if (functionName === 'adminLuuGiaSu' || functionName === 'adminLuuGiaSur' || functionName === 'saveTutorAccount') {
                 const [oldPhone, name, phone, pin, qrUrl, createdDate, nextBillingDate, accountType] = args;
                 const p = phone || oldPhone;
+                let nextBilling = nextBillingDate;
+                if (!nextBilling) {
+                    let d = new Date();
+                    d.setMonth(d.getMonth() + 1);
+                    nextBilling = String(d.getDate()).padStart(2, '0') + '/' + String(d.getMonth() + 1).padStart(2, '0') + '/' + d.getFullYear();
+                }
                 
                 let tutors = await supaGet(APP_CONFIG.TABLES.TUTORS, `select=*`);
                 let existing = null;
@@ -1162,7 +1168,7 @@ class GoogleScriptRunInstance {
                         pin: pin,
                         qr_url: qrUrl !== undefined ? qrUrl : existing.qr_url,
                         registered_date: createdDate || existing.registered_date,
-                        next_due_date: nextBillingDate || existing.next_due_date,
+                        next_due_date: nextBilling || existing.next_due_date,
                         account_type: accountType || existing.account_type || "Gia sư (1-1)"
                     });
                 } else {
@@ -1173,11 +1179,26 @@ class GoogleScriptRunInstance {
                         pin: pin,
                         qr_url: qrUrl || "",
                         registered_date: createdDate || new Date().toLocaleDateString('vi-VN'),
-                        next_due_date: nextBillingDate || "",
+                        next_due_date: nextBilling,
                         account_type: accountType || "Gia sư (1-1)",
                         status: "Hoạt động"
                     }]);
                 }
+                result = { success: true };
+            }
+            
+            else if (functionName === 'adminCapNhatTaiKhoanAdmin') {
+                const [oldPhone, name, phone, pin] = args;
+                const p = oldPhone || phone;
+                let admins = await supaGet(APP_CONFIG.TABLES.ADMINS, `select=*`);
+                let target = admins.find(a => normalizePhone(a.phone) === normalizePhone(p) || String(a.admin_id).trim() === String(p).trim());
+                let targetId = target ? target.admin_id : p;
+                
+                await supaPatch(APP_CONFIG.TABLES.ADMINS, `admin_id=eq.${encodeURIComponent(targetId)}`, {
+                    name: name,
+                    phone: phone,
+                    pin: pin
+                });
                 result = { success: true };
             }
             
@@ -1188,11 +1209,21 @@ class GoogleScriptRunInstance {
                 if (qrUrl !== undefined) updateData.qr_url = qrUrl;
                 if (phone && phone !== oldPhone) updateData.phone = phone;
                 
-                let tutors = await supaGet(APP_CONFIG.TABLES.TUTORS, `select=*`);
-                let target = tutors.find(t => normalizePhone(t.phone) === normalizePhone(p) || String(t.tutor_id).trim() === String(p).trim());
-                let targetId = target ? target.tutor_id : p;
-                
-                await supaPatch(APP_CONFIG.TABLES.TUTORS, `tutor_id=eq.${encodeURIComponent(targetId)}`, updateData);
+                // Kiểm tra xem có phải tài khoản admin không
+                let admins = await supaGet(APP_CONFIG.TABLES.ADMINS, `select=*`);
+                let targetAdmin = admins.find(a => normalizePhone(a.phone) === normalizePhone(p) || String(a.admin_id).trim() === String(p).trim());
+                if (targetAdmin) {
+                    await supaPatch(APP_CONFIG.TABLES.ADMINS, `admin_id=eq.${encodeURIComponent(targetAdmin.admin_id)}`, {
+                        name: name,
+                        phone: phone || targetAdmin.phone,
+                        pin: pin
+                    });
+                } else {
+                    let tutors = await supaGet(APP_CONFIG.TABLES.TUTORS, `select=*`);
+                    let target = tutors.find(t => normalizePhone(t.phone) === normalizePhone(p) || String(t.tutor_id).trim() === String(p).trim());
+                    let targetId = target ? target.tutor_id : p;
+                    await supaPatch(APP_CONFIG.TABLES.TUTORS, `tutor_id=eq.${encodeURIComponent(targetId)}`, updateData);
+                }
                 result = { success: true };
             }
             
@@ -1218,6 +1249,18 @@ class GoogleScriptRunInstance {
                 result = { success: true };
             }
             
+            else if (functionName === 'adminXoaHocSinhTamThoi') {
+                const [studentPhone] = args;
+                let students = await supaGet(APP_CONFIG.TABLES.STUDENTS, `select=*`);
+                let target = students.find(s => s.student_id === studentPhone || normalizePhone(s.student_id) === normalizePhone(studentPhone) || normalizePhone(s.parent_phone) === normalizePhone(studentPhone));
+                let targetId = target ? target.student_id : studentPhone;
+                
+                await supaPatch(APP_CONFIG.TABLES.STUDENTS, `student_id=eq.${encodeURIComponent(targetId)}`, {
+                    deleted_date: new Date().toLocaleDateString('vi-VN')
+                });
+                result = { success: true };
+            }
+            
             else if (functionName === 'adminLuuHocSinh' || functionName === 'adminSaveStudent') {
                 const [oldPhone, parentName, studentName, phone, tuition, tutorPhone, billingType] = args;
                 const p = phone || oldPhone;
@@ -1234,6 +1277,11 @@ class GoogleScriptRunInstance {
                         tuition_fee: parseFloat(tuition) || 0,
                         billing_type: billingType || existing.billing_type || 'session'
                     });
+                    if (phone && oldPhone && phone !== oldPhone) {
+                        supaPatch(APP_CONFIG.TABLES.EVALUATIONS, `student_phone=eq.${encodeURIComponent(oldPhone)}`, {
+                            student_phone: phone
+                        }).catch(() => {});
+                    }
                 } else {
                     await supaPost(APP_CONFIG.TABLES.STUDENTS, [{
                         student_id: p,
@@ -1292,6 +1340,22 @@ class GoogleScriptRunInstance {
             }
             
             else if (functionName === 'adminLuuMarquee') {
+                const [text] = args;
+                let fbs = await supaGet(APP_CONFIG.TABLES.FEEDBACKS, 'feedback_id=eq.SYSTEM_MARQUEE');
+                if (fbs && fbs.length > 0) {
+                    await supaPatch(APP_CONFIG.TABLES.FEEDBACKS, 'feedback_id=eq.SYSTEM_MARQUEE', {
+                        content: text || '',
+                        submitted_at: new Date().toLocaleString('vi-VN')
+                    });
+                } else {
+                    await supaPost(APP_CONFIG.TABLES.FEEDBACKS, [{
+                        feedback_id: 'SYSTEM_MARQUEE',
+                        student_phone: 'ADMIN',
+                        student_name: 'Thông báo hệ thống',
+                        content: text || '',
+                        submitted_at: new Date().toLocaleString('vi-VN')
+                    }]);
+                }
                 result = { success: true };
             }
             
@@ -1360,6 +1424,9 @@ async function getTutorDashboardDataInternal(tutorPhone) {
         });
     });
     
+    let marqueeFbs = await supaGet(APP_CONFIG.TABLES.FEEDBACKS, 'feedback_id=eq.SYSTEM_MARQUEE');
+    let marqueeText = (marqueeFbs && marqueeFbs.length > 0) ? marqueeFbs[0].content : "";
+    
     return {
         tutorPhone: matchedTutor ? matchedTutor.phone : tutorPhone,
         tutorName: matchedTutor ? matchedTutor.name : "Gia sư",
@@ -1369,7 +1436,7 @@ async function getTutorDashboardDataInternal(tutorPhone) {
         deletedStudents: deletedStudents,
         totalUnpaidIncome: totalUnpaid,
         classCount: activeStudents.length,
-        marqueeAnnouncement: ""
+        marqueeAnnouncement: marqueeText
     };
 }
 
@@ -1377,6 +1444,10 @@ async function getTutorDashboardDataInternal(tutorPhone) {
 async function getAdminDashboardDataInternal() {
     let tutorsRaw = await supaGet(APP_CONFIG.TABLES.TUTORS, `select=*`);
     let studentsRaw = await supaGet(APP_CONFIG.TABLES.STUDENTS, `select=*`);
+    let evalsRaw = await supaGet(APP_CONFIG.TABLES.EVALUATIONS, `select=*`);
+    let adminsRaw = await supaGet(APP_CONFIG.TABLES.ADMINS, `select=*`);
+    let marqueeFbs = await supaGet(APP_CONFIG.TABLES.FEEDBACKS, 'feedback_id=eq.SYSTEM_MARQUEE');
+    let marqueeText = (marqueeFbs && marqueeFbs.length > 0) ? marqueeFbs[0].content : "";
     
     let tutors = tutorsRaw.filter(t => !t.deleted_date).map(t => ({
         name: t.name,
@@ -1401,15 +1472,83 @@ async function getAdminDashboardDataInternal() {
         parentName: s.parent_name,
         phone: s.parent_phone,
         tutorPhone: s.tutor_phone,
-        tuition: s.tuition_fee
+        tuition: s.tuition_fee || 0
     }));
+    
+    // Tính toán báo cáo doanh thu & lương chi tiết theo tháng và gia sư
+    let defaultYear = new Date().getFullYear();
+    let incomeReports = {};
+    
+    evalsRaw.filter(e => !e.deleted_date).forEach(e => {
+        let att = String(e.attendance_status || '').toLowerCase();
+        let isAttended = att.includes('đã học') || att.includes('học bù') || att.includes('có mặt');
+        if (!isAttended) return;
+
+        let month = 0, year = defaultYear;
+        let dateStr = String(e.study_date || '').trim();
+        if (dateStr.includes('/')) {
+            let parts = dateStr.split('/');
+            if (parts.length >= 2) {
+                month = parseInt(parts[1], 10);
+                if (parts.length >= 3 && parts[2].length >= 4) {
+                    year = parseInt(parts[2], 10);
+                }
+            }
+        }
+        if (!month || month < 1 || month > 12) {
+            month = new Date().getMonth() + 1;
+        }
+        let mKey = 'Tháng ' + month + '/' + year;
+
+        let normPhone = normalizePhone(e.student_phone);
+        let st = studentsRaw.find(s => 
+            (normPhone && (normalizePhone(s.student_id) === normPhone || normalizePhone(s.parent_phone) === normPhone)) ||
+            (e.student_name && s.student_name && s.student_name.trim().toLowerCase() === e.student_name.trim().toLowerCase())
+        );
+
+        let fee = st ? (Number(st.tuition_fee) || 0) : 0;
+        let isPaid = String(e.paid_status || '').toLowerCase().includes('đã đóng');
+
+        let tutorPhone = e.tutor_phone || (st ? st.tutor_phone : '');
+        let normTutor = normalizePhone(tutorPhone);
+        let tutor = tutorsRaw.find(t => normalizePhone(t.phone) === normTutor || String(t.tutor_id).trim() === String(tutorPhone).trim());
+        let tKey = tutor ? tutor.phone : (tutorPhone || 'OTHER');
+        let tName = tutor ? tutor.name : 'Gia sư';
+
+        if (!incomeReports[mKey]) {
+            incomeReports[mKey] = { expected: 0, paid: 0, unpaid: 0, tutors: {} };
+        }
+        incomeReports[mKey].expected += fee;
+        if (isPaid) {
+            incomeReports[mKey].paid += fee;
+        } else {
+            incomeReports[mKey].unpaid += fee;
+        }
+
+        if (!incomeReports[mKey].tutors[tKey]) {
+            incomeReports[mKey].tutors[tKey] = { name: tName, expected: 0, paid: 0, unpaid: 0 };
+        }
+        incomeReports[mKey].tutors[tKey].expected += fee;
+        if (isPaid) {
+            incomeReports[mKey].tutors[tKey].paid += fee;
+        } else {
+            incomeReports[mKey].tutors[tKey].unpaid += fee;
+        }
+    });
+
+    let adminInfo = (adminsRaw && adminsRaw.length > 0) ? {
+        name: adminsRaw[0].name,
+        phone: adminsRaw[0].phone,
+        pin: adminsRaw[0].pin
+    } : { name: 'Quản trị viên', phone: '302001', pin: '1234' };
     
     return {
         tutors: tutors,
         students: students,
         deletedTutors: deletedTutors,
-        incomeReports: {},
-        marqueeAnnouncement: ""
+        incomeReports: incomeReports,
+        marqueeAnnouncement: marqueeText,
+        adminInfo: adminInfo
     };
 }
 
