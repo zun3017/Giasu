@@ -585,27 +585,12 @@ class GoogleScriptRunInstance {
                 };
 
                 if (existing) {
-                    try {
-                        await supaPatch(APP_CONFIG.TABLES.STUDENTS, `student_id=eq.${encodeURIComponent(existing.student_id)}`, {
-                            ...studentPayload,
-                            billing_type: billingType || 'session'
-                        });
-                    } catch (e) {
-                        await supaPatch(APP_CONFIG.TABLES.STUDENTS, `student_id=eq.${encodeURIComponent(existing.student_id)}`, studentPayload);
-                    }
+                    await supaPatch(APP_CONFIG.TABLES.STUDENTS, `student_id=eq.${encodeURIComponent(existing.student_id)}`, studentPayload);
                 } else {
-                    let newRecord = {
+                    await supaPost(APP_CONFIG.TABLES.STUDENTS, [{
                         student_id: sId,
                         ...studentPayload
-                    };
-                    try {
-                        await supaPost(APP_CONFIG.TABLES.STUDENTS, [{
-                            ...newRecord,
-                            billing_type: billingType || 'session'
-                        }]);
-                    } catch (e) {
-                        await supaPost(APP_CONFIG.TABLES.STUDENTS, [newRecord]);
-                    }
+                    }]);
                 }
                 result = { success: true, studentId: sId };
             }
@@ -622,14 +607,7 @@ class GoogleScriptRunInstance {
                     announcement: thongBao || ""
                 };
                 
-                try {
-                    await supaPatch(APP_CONFIG.TABLES.STUDENTS, `student_id=eq.${encodeURIComponent(oldPhone)}`, {
-                        ...updateData,
-                        billing_type: billingType || 'session'
-                    });
-                } catch (e) {
-                    await supaPatch(APP_CONFIG.TABLES.STUDENTS, `student_id=eq.${encodeURIComponent(oldPhone)}`, updateData);
-                }
+                await supaPatch(APP_CONFIG.TABLES.STUDENTS, `student_id=eq.${encodeURIComponent(oldPhone)}`, updateData);
                 result = { success: true };
             }
 
@@ -1358,14 +1336,7 @@ class GoogleScriptRunInstance {
                 };
 
                 if (existing) {
-                    try {
-                        await supaPatch(APP_CONFIG.TABLES.STUDENTS, `student_id=eq.${encodeURIComponent(existing.student_id)}`, {
-                            ...studentData,
-                            billing_type: billingType || existing.billing_type || 'session'
-                        });
-                    } catch (e) {
-                        await supaPatch(APP_CONFIG.TABLES.STUDENTS, `student_id=eq.${encodeURIComponent(existing.student_id)}`, studentData);
-                    }
+                    await supaPatch(APP_CONFIG.TABLES.STUDENTS, `student_id=eq.${encodeURIComponent(existing.student_id)}`, studentData);
                     if (phone && oldPhone && phone !== oldPhone) {
                         supaPatch(APP_CONFIG.TABLES.EVALUATIONS, `student_phone=eq.${encodeURIComponent(oldPhone)}`, {
                             student_phone: phone
@@ -1377,14 +1348,7 @@ class GoogleScriptRunInstance {
                         ...studentData,
                         homework_id: p
                     };
-                    try {
-                        await supaPost(APP_CONFIG.TABLES.STUDENTS, [{
-                            ...newRecord,
-                            billing_type: billingType || 'session'
-                        }]);
-                    } catch (e) {
-                        await supaPost(APP_CONFIG.TABLES.STUDENTS, [newRecord]);
-                    }
+                    await supaPost(APP_CONFIG.TABLES.STUDENTS, [newRecord]);
                 }
                 result = { success: true };
             }
