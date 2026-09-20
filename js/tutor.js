@@ -992,7 +992,7 @@ function formatScheduleCell(val) {
                     return;
                 }
             }
-            var cleanTuition = String(tuition || "").replace(/[^\d.]/g, '');
+            var cleanTuition = String(tuition || "").replace(/\D/g, '');
             var tuitionNum = parseFloat(cleanTuition) || 0;
             
             var btn = document.querySelector('#addStudentModal .modal-btn-primary');
@@ -1031,7 +1031,7 @@ function formatScheduleCell(val) {
             if(!currentTutorStudent) return;
             document.getElementById('editOldStudentPhone').value = currentTutorStudent.phone;
             document.getElementById('editStudentName').value = currentTutorStudent.name;
-            document.getElementById('editStudentTuition').value = currentTutorStudent.tuition || "";
+            document.getElementById('editStudentTuition').value = currentTutorStudent.tuition ? formatNumberWithDots(currentTutorStudent.tuition) : "";
             document.getElementById('editStudentMaBaiTap').value = currentTutorStudent.maBaiTap || "";
             
             var bType = currentTutorStudent.billing_type || currentTutorStudent.billingType || currentTutorStudent.billing_cycle || 'session';
@@ -1092,7 +1092,7 @@ function formatScheduleCell(val) {
                     return;
                 }
             }
-            var cleanTuition = String(tuition || "").replace(/[^\d.]/g, '');
+            var cleanTuition = String(tuition || "").replace(/\D/g, '');
             var tuitionNum = parseFloat(cleanTuition) || 0;
             
             var btn = document.querySelector('#editStudentModal .modal-btn-primary');

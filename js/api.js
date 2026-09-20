@@ -149,6 +149,38 @@ async function supaDelete(table, matchParam) {
 }
 
 // ============================================================================
+// ĐỊNH DẠNG TIỀN TỆ & HỌC PHÍ (DẤU CHẤM NGĂN CÁCH MỖI 3 SỐ: 200.000)
+// ============================================================================
+window.formatCurrencyInput = function(el) {
+    if (!el) return;
+    let cursorPosition = el.selectionStart;
+    let originalLength = el.value.length;
+    
+    let rawVal = el.value.replace(/\D/g, '');
+    if (!rawVal) {
+        el.value = '';
+        return;
+    }
+    
+    let formatted = rawVal.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    el.value = formatted;
+    
+    let newLength = formatted.length;
+    cursorPosition = cursorPosition + (newLength - originalLength);
+    if (cursorPosition < 0) cursorPosition = 0;
+    try {
+        el.setSelectionRange(cursorPosition, cursorPosition);
+    } catch (e) {}
+};
+
+window.formatNumberWithDots = function(val) {
+    if (val === undefined || val === null || val === '') return '';
+    let rawVal = String(val).replace(/\D/g, '');
+    if (!rawVal) return '';
+    return rawVal.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+};
+
+// ============================================================================
 // CƠ CHẾ TỰ ĐỘNG DỌN DẸP THÙNG RÁC VÀ Ý KIẾN PHẢN HỒI QUÁ 10 NGÀY (PHÂN VÙNG: GIA SƯ)
 // ============================================================================
 function parseDateCustom(str) {
@@ -604,7 +636,7 @@ class GoogleScriptRunInstance {
                         parent_name: phuHuynhName || ("Phụ huynh " + studentName),
                         parent_phone: p || sId,
                         tutor_phone: tutorPhone || "",
-                        tuition_fee: tuition ? Number(tuition) : 0,
+                        tuition_fee: tuition ? Number(String(tuition).replace(/\D/g, '')) : 0,
                         homework_id: finalHwId,
                         announcement: thongBao || "",
                         deleted_date: null
@@ -658,7 +690,7 @@ class GoogleScriptRunInstance {
                         student_name: studentName,
                         parent_name: phuHuynhName || "",
                         parent_phone: p,
-                        tuition_fee: tuition ? Number(tuition) : 0,
+                        tuition_fee: tuition ? Number(String(tuition).replace(/\D/g, '')) : 0,
                         homework_id: finalHwId,
                         announcement: thongBao || ""
                     };
@@ -1388,7 +1420,7 @@ class GoogleScriptRunInstance {
                     parent_name: parentName,
                     parent_phone: phone,
                     tutor_phone: tutorPhone || (existing ? existing.tutor_phone : ""),
-                    tuition_fee: parseFloat(tuition) || 0,
+                    tuition_fee: parseFloat(String(tuition || 0).replace(/\D/g, '')) || 0,
                     deleted_date: null
                 };
 
