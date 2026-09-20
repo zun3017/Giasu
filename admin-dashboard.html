@@ -387,8 +387,38 @@
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="js/api.js?v=2.0.0"></script>
-    <script src="js/admin.js?v=1.6.6"></script>
+    <script src="js/admin.js?v=1.6.8"></script>
     <script>
+        if (typeof window.clearAdminMarquee !== 'function') {
+            window.clearAdminMarquee = function() {
+                var doClear = function() {
+                    var input = document.getElementById('adminMarqueeInput');
+                    if (input) input.value = "";
+                    if (typeof showToast === 'function') showToast("Đang xóa thông báo...", "info");
+                    google.script.run
+                        .withSuccessHandler(function(res) {
+                            if (res && res.error) {
+                                if (typeof showToast === 'function') showToast("Lỗi: " + res.error, "error");
+                            } else {
+                                if (typeof showToast === 'function') showToast("Đã xóa dòng chạy chữ thông báo thành công!", "success");
+                                if (typeof adminDataGlobal !== 'undefined' && adminDataGlobal) {
+                                    adminDataGlobal.marqueeAnnouncement = "";
+                                }
+                            }
+                        })
+                        .withFailureHandler(function(err) {
+                            if (typeof showToast === 'function') showToast("Lỗi hệ thống: " + err.toString(), "error");
+                        })
+                        .adminLuuMarquee("");
+                };
+                if (typeof showCustomConfirm === 'function') {
+                    showCustomConfirm("Bạn có chắc chắn muốn xóa dòng chữ chạy thông báo này không?", doClear);
+                } else if (confirm("Bạn có chắc chắn muốn xóa dòng chữ chạy thông báo này không?")) {
+                    doClear();
+                }
+            };
+        }
+
         window.addEventListener('DOMContentLoaded', () => {
             var data = JSON.parse(sessionStorage.getItem('dashboardData'));
             var role = sessionStorage.getItem('userRole');

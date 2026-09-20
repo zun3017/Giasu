@@ -1244,6 +1244,7 @@ var pinVerifyAction = "deleteStudent";
                     .adminLuuMarquee("");
             });
         }
+        window.clearAdminMarquee = clearAdminMarquee;
 
         function saveAdminMarquee() {
             var text = document.getElementById('adminMarqueeInput').value.trim();
@@ -1278,3 +1279,4 @@ var pinVerifyAction = "deleteStudent";
                 })
                 .adminLuuMarquee(text);
         }
+        window.saveAdminMarquee = saveAdminMarquee;
