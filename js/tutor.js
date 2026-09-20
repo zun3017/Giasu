@@ -979,6 +979,19 @@ function formatScheduleCell(val) {
             if(!maBaiTap) {
                 maBaiTap = phone;
             }
+            
+            // Kiểm tra xem mã bài tập có bị trùng với học sinh khác của gia sư không
+            if (tutorDataGlobal && tutorDataGlobal.students) {
+                var checkHw = maBaiTap.trim().toLowerCase();
+                var dup = tutorDataGlobal.students.find(function(s) {
+                    var sCode = (s.maBaiTap || s.phone || "").trim().toLowerCase();
+                    return sCode && sCode === checkHw;
+                });
+                if (dup) {
+                    showToast("Mã bài tập '" + maBaiTap + "' đã tồn tại (thuộc học sinh " + dup.name + "). Vui lòng đổi mã bài tập khác!", "error");
+                    return;
+                }
+            }
             var cleanTuition = String(tuition || "").replace(/[^\d.]/g, '');
             var tuitionNum = parseFloat(cleanTuition) || 0;
             
@@ -996,7 +1009,7 @@ function formatScheduleCell(val) {
                         btn.innerHTML = origText;
                     }
                     if(res && res.error) {
-                         showToast("Lỗi: " + res.error, "error");
+                         showToast(res.error, "error");
                     } else {
                          showToast("Thêm học sinh mới thành công!", "success");
                          closeAddStudentModal();
@@ -1064,6 +1077,20 @@ function formatScheduleCell(val) {
             }
             if(!maBaiTap) {
                 maBaiTap = phone;
+            }
+            
+            // Kiểm tra xem mã bài tập có bị trùng với học sinh khác không
+            if (tutorDataGlobal && tutorDataGlobal.students) {
+                var checkHw = maBaiTap.trim().toLowerCase();
+                var dup = tutorDataGlobal.students.find(function(s) {
+                    if (s.phone === oldPhone || (currentTutorStudent && s.phone === currentTutorStudent.phone)) return false;
+                    var sCode = (s.maBaiTap || s.phone || "").trim().toLowerCase();
+                    return sCode && sCode === checkHw;
+                });
+                if (dup) {
+                    showToast("Mã bài tập '" + maBaiTap + "' đã bị trùng với học sinh " + dup.name + ". Vui lòng đổi mã bài tập khác!", "error");
+                    return;
+                }
             }
             var cleanTuition = String(tuition || "").replace(/[^\d.]/g, '');
             var tuitionNum = parseFloat(cleanTuition) || 0;

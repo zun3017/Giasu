@@ -566,49 +566,106 @@ class GoogleScriptRunInstance {
                 const p = String(studentPhone || "").trim();
                 const norm = normalizePhone(p);
                 const sId = p || `HS_GS_${Date.now()}`;
+                const finalHwId = String(maBaiTap || p || sId).trim();
+                const normHw = normalizePhone(finalHwId);
                 
                 let students = await supaGet(APP_CONFIG.TABLES.STUDENTS, `select=*`);
-                let existing = students.find(s => 
-                    s.student_id === sId || 
-                    (norm && (normalizePhone(s.student_id) === norm || normalizePhone(s.parent_phone) === norm))
-                );
+                
+                // Kiểm tra xem mã bài tập có bị trùng với học sinh khác không
+                let dupHw = students.find(s => {
+                    if (s.deleted_date) return false;
+                    // Bỏ qua chính học sinh này nếu đang thêm lại hoặc khôi phục
+                    if (s.student_id === sId || (norm && (normalizePhone(s.student_id) === norm || normalizePhone(s.parent_phone) === norm))) {
+                        return false;
+                    }
+                    let sHw = String(s.homework_id || '').trim();
+                    let sHwNorm = normalizePhone(sHw);
+                    let sIdNorm = normalizePhone(s.student_id);
+                    let sParentNorm = normalizePhone(s.parent_phone);
+                    
+                    if (sHw && sHw.toLowerCase() === finalHwId.toLowerCase()) return true;
+                    if (normHw && sHwNorm && sHwNorm === normHw) return true;
+                    if (normHw && ((sIdNorm && sIdNorm === normHw) || (sParentNorm && sParentNorm === normHw))) return true;
+                    return false;
+                });
 
-                let studentPayload = {
-                    student_name: studentName,
-                    parent_name: phuHuynhName || ("Phụ huynh " + studentName),
-                    parent_phone: p || sId,
-                    tutor_phone: tutorPhone || "",
-                    tuition_fee: tuition ? Number(tuition) : 0,
-                    homework_id: maBaiTap || p || sId,
-                    announcement: thongBao || "",
-                    deleted_date: null
-                };
-
-                if (existing) {
-                    await supaPatch(APP_CONFIG.TABLES.STUDENTS, `student_id=eq.${encodeURIComponent(existing.student_id)}`, studentPayload);
+                if (dupHw) {
+                    result = { 
+                        error: `Mã bài tập "${finalHwId}" đã tồn tại trong hệ thống (thuộc học sinh ${dupHw.student_name}). Vui lòng đổi mã bài tập khác!` 
+                    };
                 } else {
-                    await supaPost(APP_CONFIG.TABLES.STUDENTS, [{
-                        student_id: sId,
-                        ...studentPayload
-                    }]);
+                    let existing = students.find(s => 
+                        s.student_id === sId || 
+                        (norm && (normalizePhone(s.student_id) === norm || normalizePhone(s.parent_phone) === norm))
+                    );
+
+                    let studentPayload = {
+                        student_name: studentName,
+                        parent_name: phuHuynhName || ("Phụ huynh " + studentName),
+                        parent_phone: p || sId,
+                        tutor_phone: tutorPhone || "",
+                        tuition_fee: tuition ? Number(tuition) : 0,
+                        homework_id: finalHwId,
+                        announcement: thongBao || "",
+                        deleted_date: null
+                    };
+
+                    if (existing) {
+                        await supaPatch(APP_CONFIG.TABLES.STUDENTS, `student_id=eq.${encodeURIComponent(existing.student_id)}`, studentPayload);
+                    } else {
+                        await supaPost(APP_CONFIG.TABLES.STUDENTS, [{
+                            student_id: sId,
+                            ...studentPayload
+                        }]);
+                    }
+                    result = { success: true, studentId: sId };
                 }
-                result = { success: true, studentId: sId };
             }
             
             else if (functionName === 'suaThongTinHocSinh' || functionName === 'updateTutorStudent') {
                 const [oldPhone, phuHuynhName, studentName, studentPhone, tuition, maBaiTap, thongBao, billingType] = args;
                 const p = String(studentPhone || oldPhone || "").trim();
-                let updateData = {
-                    student_name: studentName,
-                    parent_name: phuHuynhName || "",
-                    parent_phone: p,
-                    tuition_fee: tuition ? Number(tuition) : 0,
-                    homework_id: maBaiTap || p,
-                    announcement: thongBao || ""
-                };
+                const normOld = normalizePhone(oldPhone);
+                const finalHwId = String(maBaiTap || p).trim();
+                const normHw = normalizePhone(finalHwId);
                 
-                await supaPatch(APP_CONFIG.TABLES.STUDENTS, `student_id=eq.${encodeURIComponent(oldPhone)}`, updateData);
-                result = { success: true };
+                let students = await supaGet(APP_CONFIG.TABLES.STUDENTS, `select=*`);
+                
+                // Kiểm tra xem mã bài tập mới có bị trùng với học sinh khác không
+                let dupHw = students.find(s => {
+                    if (s.deleted_date) return false;
+                    // Bỏ qua chính học sinh đang sửa
+                    if (s.student_id === oldPhone || (normOld && (normalizePhone(s.student_id) === normOld || normalizePhone(s.parent_phone) === normOld))) {
+                        return false;
+                    }
+                    let sHw = String(s.homework_id || '').trim();
+                    let sHwNorm = normalizePhone(sHw);
+                    let sIdNorm = normalizePhone(s.student_id);
+                    let sParentNorm = normalizePhone(s.parent_phone);
+                    
+                    if (sHw && sHw.toLowerCase() === finalHwId.toLowerCase()) return true;
+                    if (normHw && sHwNorm && sHwNorm === normHw) return true;
+                    if (normHw && ((sIdNorm && sIdNorm === normHw) || (sParentNorm && sParentNorm === normHw))) return true;
+                    return false;
+                });
+
+                if (dupHw) {
+                    result = { 
+                        error: `Mã bài tập "${finalHwId}" đã tồn tại trong hệ thống (thuộc học sinh ${dupHw.student_name}). Vui lòng đổi mã bài tập khác!` 
+                    };
+                } else {
+                    let updateData = {
+                        student_name: studentName,
+                        parent_name: phuHuynhName || "",
+                        parent_phone: p,
+                        tuition_fee: tuition ? Number(tuition) : 0,
+                        homework_id: finalHwId,
+                        announcement: thongBao || ""
+                    };
+                    
+                    await supaPatch(APP_CONFIG.TABLES.STUDENTS, `student_id=eq.${encodeURIComponent(oldPhone)}`, updateData);
+                    result = { success: true };
+                }
             }
 
             else if (functionName === 'capNhatThongBaoHocSinh' || functionName === 'saveQuickAnnouncement') {
