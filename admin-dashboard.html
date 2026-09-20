@@ -301,7 +301,7 @@
                 </div>
                 <div class="modal-form-group">
                     <label>Học phí / buổi dạy (VNĐ)</label>
-                    <input type="number" id="adminStudentTuition" placeholder="Ví dụ: 200000">
+                    <input type="text" inputmode="numeric" id="adminStudentTuition" placeholder="Ví dụ: 200.000" oninput="formatCurrencyInput(this)">
                 </div>
                 <div class="modal-form-group">
                     <label>Gia sư phụ trách giảng dạy</label>
@@ -386,8 +386,8 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="js/api.js?v=2.0.4"></script>
-    <script src="js/admin.js?v=1.6.8"></script>
+    <script src="js/api.js?v=2.0.5"></script>
+    <script src="js/admin.js?v=1.6.9"></script>
     <script>
         if (typeof window.clearAdminMarquee !== 'function') {
             window.clearAdminMarquee = function() {

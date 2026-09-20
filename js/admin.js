@@ -911,7 +911,7 @@ var pinVerifyAction = "deleteStudent";
             document.getElementById('adminStudentParentName').value = parentName;
             document.getElementById('adminStudentName').value = name;
             document.getElementById('adminStudentPhone').value = phone;
-            document.getElementById('adminStudentTuition').value = tuition;
+            document.getElementById('adminStudentTuition').value = tuition ? formatNumberWithDots(tuition) : "";
             
             populateAdminTutorSelect(tutorPhone);
             document.getElementById('adminEditStudentModal').style.display = "flex";
@@ -1001,7 +1001,7 @@ var pinVerifyAction = "deleteStudent";
                     btn.innerText = "Lưu lại";
                     showToast("Lỗi kết nối: " + err.toString(), "error");
                 })
-                .adminLuuHocSinh(oldPhone, parentName, studentName, phone, parseFloat(tuition) || 0, tutorPhone);
+                .adminLuuHocSinh(oldPhone, parentName, studentName, phone, parseFloat(String(tuition).replace(/\D/g, '')) || 0, tutorPhone);
         }
 
         function refreshAdminDashboard() {
