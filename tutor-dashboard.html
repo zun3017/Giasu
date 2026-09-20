@@ -1403,6 +1403,18 @@
             document.getElementById('maPin').value = pin;
             
             renderTutorView(data);
+
+            // Tự động đồng bộ dữ liệu mới nhất từ máy chủ trong nền
+            if (typeof refreshTutorDashboard === 'function') {
+                refreshTutorDashboard();
+            }
+        });
+
+        // Tự động đồng bộ khi chuyển lại tab Gia sư
+        window.addEventListener('focus', () => {
+            if (typeof refreshTutorDashboard === 'function') {
+                refreshTutorDashboard();
+            }
         });
     </script>
     <!-- PWA Install Script -->
