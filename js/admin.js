@@ -490,12 +490,19 @@ var pinVerifyAction = "deleteStudent";
                                 "<td style='font-size:12px;'>" + lastActiveDisplay + "</td>" +
                                 "<td style='text-align:center;'>" + statusText + "</td>" +
                                 "<td style='text-align:center;'>" +
-                                  "<button class='btn-icon-edit' onclick='openAdminEditTutorModal(\"" + t.phone + "\")' title='Sửa/Vô hiệu hóa gia sư'><i class='fa-solid fa-pen-to-square'></i> Sửa</button>" +
+                                  "<button class='btn-icon-edit' onclick='openAdminEditTutorModal(\"" + t.phone + "\")' title='Sửa thông tin gia sư' style='margin-right:4px;'><i class='fa-solid fa-pen-to-square'></i> Sửa</button>" +
+                                   (isCurrentlyDeactivated ? 
+                                     "<button class='btn-icon-edit' onclick='quickToggleTutorStatus(\"" + t.phone + "\", \"" + t.name + "\", true)' style='background:rgba(16, 185, 129, 0.15); border:1px solid #10B981; color:#10B981;' title='Kích hoạt lại tài khoản'><i class='fa-solid fa-user-check'></i> Mở</button>" : 
+                                     "<button class='btn-icon-edit' onclick='quickToggleTutorStatus(\"" + t.phone + "\", \"" + t.name + "\", false)' style='background:rgba(245, 158, 11, 0.15); border:1px solid #F59E0B; color:#F59E0B;' title='Vô hiệu hóa tài khoản'><i class='fa-solid fa-user-slash'></i> Khóa</button>"
+                                   ) +
                                 "</td>";
                  tbody.appendChild(tr);
                  
                  // Mobile accordion view
                  var editBtn = "<button class='action-btn-hw' onclick='openAdminEditTutorModal(\"" + t.phone + "\")' style='color:#FFD23F; border-color:rgba(255,210,63,0.3); background:rgba(255,210,63,0.1); padding: 4px 14px; text-decoration: none; font-size:12px; border-radius: 20px;'><i class='fa-solid fa-pen-to-square'></i> Sửa</button>";
+                  var lockBtn = isCurrentlyDeactivated ?
+                    "<button class='action-btn-hw' onclick='quickToggleTutorStatus(\"" + t.phone + "\", \"" + t.name + "\", true)' style='color:#10B981; border-color:rgba(16,185,129,0.3); background:rgba(16,185,129,0.1); padding: 4px 14px; text-decoration: none; font-size:12px; border-radius: 20px; margin-right: 6px;'><i class='fa-solid fa-user-check'></i> Mở</button>" :
+                    "<button class='action-btn-hw' onclick='quickToggleTutorStatus(\"" + t.phone + "\", \"" + t.name + "\", false)' style='color:#F59E0B; border-color:rgba(245,158,11,0.3); background:rgba(245,158,11,0.1); padding: 4px 14px; text-decoration: none; font-size:12px; border-radius: 20px; margin-right: 6px;'><i class='fa-solid fa-user-slash'></i> Khóa</button>";
                  var mobilePayBtn = "";
                  if (isCurrentlyDeactivated) {
                      mobilePayBtn = "<span style='color:#6c757d; font-size:12px; margin-right: 8px;'>Đã khóa</span>";
@@ -519,7 +526,7 @@ var pinVerifyAction = "deleteStudent";
                  mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Phí thuê Web</span><span class='accordion-body-val'><b style='color:#A78BFA;'>" + webFee.toLocaleString('vi-VN') + "đ</b></span></div>";
                  mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Hoạt động cuối</span><span class='accordion-body-val'>" + lastActiveDisplay + "</span></div>";
                  mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Trạng thái</span><span class='accordion-body-val'>" + statusText + "</span></div>";
-                 mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Thao tác</span><span class='accordion-body-val'>" + mobilePayBtn + editBtn + "</span></div>";
+                 mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Thao tác</span><span class='accordion-body-val'>" + mobilePayBtn + lockBtn + editBtn + "</span></div>";
                  mobileHtml += "  </div>";
                  mobileHtml += "</div>";
             });
@@ -675,7 +682,7 @@ var pinVerifyAction = "deleteStudent";
         }
         
         function openAdminEditTutorModal(phone) {
-            var tutor = adminDataGlobal.tutors.find(t => t.phone === phone);
+            var tutor = (adminDataGlobal && adminDataGlobal.tutors) ? adminDataGlobal.tutors.find(t => t.phone === phone || normalizePhone(t.phone) === normalizePhone(phone)) : null;
             if (!tutor) return;
             
             document.getElementById('adminTutorModalTitle').innerHTML = '<i class="fa-solid fa-chalkboard-user"></i> Sửa Thông Tin Gia Sư';
@@ -1100,27 +1107,49 @@ var pinVerifyAction = "deleteStudent";
          function toggleTutorDeactivateStatus() {
              var phone = document.getElementById('adminTutorOldPhone').value;
              var name = document.getElementById('adminTutorName').value;
-             var tutor = adminDataGlobal.tutors.find(t => t.phone === phone);
+             var tutor = (adminDataGlobal && adminDataGlobal.tutors) ? adminDataGlobal.tutors.find(t => t.phone === phone || normalizePhone(t.phone) === normalizePhone(phone)) : null;
              if (!tutor) return;
              
-             var isCurrentlyDeactivated = (tutor.status === "Vô hiệu hóa");
-             var newStatus = isCurrentlyDeactivated ? "" : "Vô hiệu hóa";
-             var actionText = isCurrentlyDeactivated ? "kích hoạt lại" : "vô hiệu hóa";
+             var isCurrentlyDeactivated = (tutor.status === 'Vô hiệu hóa');
+             var newStatus = isCurrentlyDeactivated ? 'Hoạt động' : 'Vô hiệu hóa';
+             var actionText = isCurrentlyDeactivated ? 'kích hoạt lại' : 'vô hiệu hóa';
              
-             showCustomConfirm("Xác nhận " + actionText + " tài khoản gia sư " + name + "?", function() {
-                 showToast("Đang cập nhật trạng thái gia sư...", "info");
+             showCustomConfirm('Xác nhận ' + actionText + ' tài khoản gia sư ' + name + '?', function() {
+                 showToast('Đang cập nhật trạng thái gia sư...', 'info');
                  google.script.run
                      .withSuccessHandler(function(res) {
                          if (res.error) {
-                             showToast("Lỗi: " + res.error, "error");
+                             showToast('Lỗi: ' + res.error, 'error');
                          } else {
-                             showToast((isCurrentlyDeactivated ? "Kích hoạt lại" : "Vô hiệu hóa") + " tài khoản gia sư thành công!", "success");
+                             showToast((isCurrentlyDeactivated ? 'Kích hoạt lại' : 'Vô hiệu hóa') + ' tài khoản gia sư thành công!', 'success');
                              closeAdminEditTutorModal();
                              refreshAdminDashboard();
                          }
                      })
                      .withFailureHandler(function(err) {
-                         showToast("Lỗi kết nối: " + err.toString(), "error");
+                         showToast('Lỗi kết nối: ' + err.toString(), 'error');
+                     })
+                     .adminSetTutorStatus(phone, newStatus);
+             });
+         }
+
+         function quickToggleTutorStatus(phone, name, isCurrentlyDeactivated) {
+             var actionText = isCurrentlyDeactivated ? 'kích hoạt lại' : 'vô hiệu hóa';
+             var newStatus = isCurrentlyDeactivated ? 'Hoạt động' : 'Vô hiệu hóa';
+             
+             showCustomConfirm('Xác nhận ' + actionText + ' tài khoản gia sư ' + name + '?', function() {
+                 showToast('Đang cập nhật trạng thái gia sư...', 'info');
+                 google.script.run
+                     .withSuccessHandler(function(res) {
+                         if (res.error) {
+                             showToast('Lỗi: ' + res.error, 'error');
+                         } else {
+                             showToast((isCurrentlyDeactivated ? 'Kích hoạt lại' : 'Vô hiệu hóa') + ' tài khoản gia sư thành công!', 'success');
+                             refreshAdminDashboard();
+                         }
+                     })
+                     .withFailureHandler(function(err) {
+                         showToast('Lỗi kết nối: ' + err.toString(), 'error');
                      })
                      .adminSetTutorStatus(phone, newStatus);
              });
