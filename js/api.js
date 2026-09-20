@@ -1314,22 +1314,36 @@ class GoogleScriptRunInstance {
                 let targetId = target ? target.tutor_id : tutorPhone;
                 
                 let currentDue = target ? target.next_due_date : "";
+                let today = new Date();
+                today.setHours(0, 0, 0, 0);
+                
                 let nextDate = new Date();
+                let dayOfMonth = 18;
+                
                 if (currentDue && currentDue.includes('/')) {
                     let parts = currentDue.split('/');
-                    if (parts.length === 3) {
+                    if (parts.length >= 2) {
                         let d = parseInt(parts[0], 10);
                         let m = parseInt(parts[1], 10) - 1;
-                        let y = parseInt(parts[2], 10);
+                        let y = parts.length >= 3 ? parseInt(parts[2], 10) : today.getFullYear();
+                        dayOfMonth = d;
                         let parseD = new Date(y, m, d);
                         if (!isNaN(parseD.getTime())) {
-                            parseD.setMonth(parseD.getMonth() + 1);
                             nextDate = parseD;
                         }
                     }
-                } else {
-                    nextDate.setMonth(nextDate.getMonth() + 1);
                 }
+                
+                // Gia hạn thêm 1 tháng cho đến khi ngày hạn mới vượt qua ngày hiện tại
+                do {
+                    nextDate.setMonth(nextDate.getMonth() + 1);
+                } while (nextDate <= today);
+                
+                // Giữ lại đúng ngày chu kỳ nếu hợp lệ
+                if (dayOfMonth && dayOfMonth <= 28) {
+                    nextDate.setDate(dayOfMonth);
+                }
+                
                 let nextDueStr = `${String(nextDate.getDate()).padStart(2, '0')}/${String(nextDate.getMonth() + 1).padStart(2, '0')}/${nextDate.getFullYear()}`;
                 
                 await supaPatch(APP_CONFIG.TABLES.TUTORS, `tutor_id=eq.${encodeURIComponent(targetId)}`, {
