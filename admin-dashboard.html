@@ -34,6 +34,7 @@
                 <p>Bảng điều khiển quản trị trung tâm</p>
             </div>
             <div style="display: flex; gap: 10px;">
+                <button id="btnRefreshAdmin" onclick="refreshAdminDashboard()" class="btn-back" style="width: auto; padding: 10px 20px; background: rgba(16, 185, 129, 0.1); border-color: #10B981; color: #10B981;" title="Làm mới dữ liệu từ máy chủ"><i class="fa-solid fa-arrows-rotate"></i> Làm mới</button>
                 <button onclick="openAdminAccountModal()" class="btn-back" style="width: auto; padding: 10px 20px; background: rgba(142,77,255,0.1); border-color: #8E4DFF;"><i class="fa-solid fa-user-shield"></i> Tài khoản</button>
                 <button onclick="quayLai()" class="btn-back" style="width: auto; padding: 10px 20px;"><i class="fa-solid fa-arrow-right-from-bracket"></i> Đăng xuất</button>
             </div>
@@ -386,8 +387,8 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="js/api.js?v=2.0.5"></script>
-    <script src="js/admin.js?v=1.6.9"></script>
+    <script src="js/api.js?v=2.1.0"></script>
+    <script src="js/admin.js?v=1.7.0"></script>
     <script>
         if (typeof window.clearAdminMarquee !== 'function') {
             window.clearAdminMarquee = function() {
@@ -434,6 +435,18 @@
             document.getElementById('maPin').value = pin;
             
             renderAdminView(data);
+
+            // Tự động đồng bộ dữ liệu mới nhất từ máy chủ trong nền
+            if (typeof refreshAdminDashboard === 'function') {
+                refreshAdminDashboard(true);
+            }
+        });
+
+        // Tự động đồng bộ khi chuyển lại tab Admin
+        window.addEventListener('focus', () => {
+            if (typeof refreshAdminDashboard === 'function') {
+                refreshAdminDashboard(true);
+            }
         });
     </script>
     <!-- PWA Install Script -->

@@ -1004,21 +1004,39 @@ var pinVerifyAction = "deleteStudent";
                 .adminLuuHocSinh(oldPhone, parentName, studentName, phone, parseFloat(String(tuition).replace(/\D/g, '')) || 0, tutorPhone);
         }
 
-        function refreshAdminDashboard() {
-            var pin = (document.getElementById('maPin') ? document.getElementById('maPin').value.trim() : "") || sessionStorage.getItem('userPin') || (adminDataGlobal && adminDataGlobal.adminInfo ? adminDataGlobal.adminInfo.pin : "") || "1234";
-            var phone = currentAdminPhone || sessionStorage.getItem('userPhone') || (adminDataGlobal && adminDataGlobal.adminInfo ? adminDataGlobal.adminInfo.phone : "") || "302001";
+        function refreshAdminDashboard(silent) {
+            var refreshBtn = document.getElementById('btnRefreshAdmin');
+            if (refreshBtn) {
+                refreshBtn.innerHTML = '<i class="fa-solid fa-arrows-rotate fa-spin"></i> Đang tải...';
+            }
+            if (!silent && typeof showToast === 'function') {
+                showToast("Đang đồng bộ dữ liệu mới nhất...", "info");
+            }
             
             google.script.run
-                .withSuccessHandler(function(loginRes) {
-                    if (loginRes.role === 'admin' && loginRes.data) {
-                        sessionStorage.setItem('dashboardData', JSON.stringify(loginRes.data));
-                        renderAdminView(loginRes.data);
+                .withSuccessHandler(function(res) {
+                    if (refreshBtn) {
+                        refreshBtn.innerHTML = '<i class="fa-solid fa-arrows-rotate"></i> Làm mới';
+                    }
+                    var data = (res && res.data) ? res.data : res;
+                    if (data && (data.tutors || data.students)) {
+                        sessionStorage.setItem('dashboardData', JSON.stringify(data));
+                        renderAdminView(data);
+                        if (!silent && typeof showToast === 'function') {
+                            showToast("Đã cập nhật dữ liệu mới nhất!", "success");
+                        }
                     }
                 })
                 .withFailureHandler(function(err) {
+                    if (refreshBtn) {
+                        refreshBtn.innerHTML = '<i class="fa-solid fa-arrows-rotate"></i> Làm mới';
+                    }
                     console.warn("Lỗi làm mới dashboard admin:", err);
+                    if (!silent && typeof showToast === 'function') {
+                        showToast("Lỗi làm mới: " + err.toString(), "error");
+                    }
                 })
-                .loginSystem(phone, pin);
+                .getAdminDashboardData();
         }
 
         // Các hàm phụ trợ hóa đơn của Gia sư đã được di chuyển sang đúng file js/tutor.js.
