@@ -969,22 +969,48 @@ function formatScheduleCell(val) {
             var billingType = radBilling ? radBilling.value : 'session';
             var thongBao = "";
             
-            if(!pName || !sName || !phone || !tuition || !maBaiTap) {
-                showToast("Vui lòng điền đầy đủ các thông tin!", "error");
+            if(!sName || !phone) {
+                showToast("Vui lòng nhập Tên học sinh và Số điện thoại!", "error");
                 return;
             }
+            if(!pName) {
+                pName = "Phụ huynh em " + sName;
+            }
+            if(!maBaiTap) {
+                maBaiTap = phone;
+            }
+            var cleanTuition = String(tuition || "").replace(/[^\d.]/g, '');
+            var tuitionNum = parseFloat(cleanTuition) || 0;
             
-            google.script.run.withSuccessHandler(function(res) {
-                if(res.error) {
-                     showToast("Lỗi: " + res.error, "error");
-                } else {
-                     showToast("Thêm học sinh mới thành công!", "success");
-                     closeAddStudentModal();
-                     google.script.run.withSuccessHandler(function(loginRes) {
-                         if(loginRes.role === 'tutor') renderTutorView(loginRes.data);
-                     }).loginSystem(tutorDataGlobal.tutorPhone, document.getElementById('maPin').value.trim());
-                }
-            }).themHocSinhMoi(tutorDataGlobal.tutorPhone, pName, sName, phone, parseFloat(tuition), maBaiTap, thongBao, billingType);
+            var btn = document.querySelector('#addStudentModal .modal-btn-primary');
+            var origText = btn ? btn.innerHTML : "Thêm mới";
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang thêm...';
+            }
+            
+            google.script.run
+                .withSuccessHandler(function(res) {
+                    if (btn) {
+                        btn.disabled = false;
+                        btn.innerHTML = origText;
+                    }
+                    if(res && res.error) {
+                         showToast("Lỗi: " + res.error, "error");
+                    } else {
+                         showToast("Thêm học sinh mới thành công!", "success");
+                         closeAddStudentModal();
+                         refreshTutorDashboard();
+                    }
+                })
+                .withFailureHandler(function(err) {
+                    if (btn) {
+                        btn.disabled = false;
+                        btn.innerHTML = origText;
+                    }
+                    showToast("Lỗi kết nối hoặc hệ thống: " + err.toString(), "error");
+                })
+                .themHocSinhMoi(tutorDataGlobal.tutorPhone, pName, sName, phone, tuitionNum, maBaiTap, thongBao, billingType);
         }
 
         // 3. Cửa sổ Sửa học sinh (Edit Student)
@@ -1027,32 +1053,50 @@ function formatScheduleCell(val) {
             var maBaiTap = document.getElementById('editStudentMaBaiTap').value.trim();
             var radBilling = document.querySelector('input[name="editStudentBillingType"]:checked');
             var billingType = radBilling ? radBilling.value : 'session';
-            var thongBao = currentTutorStudent.thongBao || "";
+            var thongBao = (currentTutorStudent && currentTutorStudent.thongBao) ? currentTutorStudent.thongBao : "";
             
-            if(!pName || !sName || !phone || !tuition || !maBaiTap) {
-                showToast("Vui lòng điền đầy đủ các thông tin!", "error");
+            if(!sName || !phone) {
+                showToast("Vui lòng nhập Tên học sinh và Số điện thoại!", "error");
                 return;
             }
+            if(!pName) {
+                pName = "Phụ huynh em " + sName;
+            }
+            if(!maBaiTap) {
+                maBaiTap = phone;
+            }
+            var cleanTuition = String(tuition || "").replace(/[^\d.]/g, '');
+            var tuitionNum = parseFloat(cleanTuition) || 0;
             
-            google.script.run.withSuccessHandler(function(res) {
-                if(res.error) {
-                    showToast("Lỗi: " + res.error, "error");
-                } else {
-                    showToast("Cập nhật thông tin học sinh thành công!", "success");
-                    closeEditStudentModal();
-                    google.script.run.withSuccessHandler(function(loginRes) {
-                        if(loginRes.role === 'tutor') {
-                            renderTutorView(loginRes.data);
-                            for(var i=0; i<loginRes.data.students.length; i++) {
-                                if(loginRes.data.students[i].phone === phone) {
-                                    selectTutorStudent(i);
-                                    break;
-                                }
-                            }
-                        }
-                    }).loginSystem(tutorDataGlobal.tutorPhone, document.getElementById('maPin').value.trim());
-                }
-            }).suaThongTinHocSinh(oldPhone, pName, sName, phone, parseFloat(tuition), maBaiTap, thongBao, billingType);
+            var btn = document.querySelector('#editStudentModal .modal-btn-primary');
+            var origText = btn ? btn.innerHTML : "Lưu thay đổi";
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang lưu...';
+            }
+            
+            google.script.run
+                .withSuccessHandler(function(res) {
+                    if (btn) {
+                        btn.disabled = false;
+                        btn.innerHTML = origText;
+                    }
+                    if(res && res.error) {
+                        showToast("Lỗi: " + res.error, "error");
+                    } else {
+                        showToast("Cập nhật thông tin học sinh thành công!", "success");
+                        closeEditStudentModal();
+                        refreshTutorDashboard();
+                    }
+                })
+                .withFailureHandler(function(err) {
+                    if (btn) {
+                        btn.disabled = false;
+                        btn.innerHTML = origText;
+                    }
+                    showToast("Lỗi kết nối hoặc hệ thống: " + err.toString(), "error");
+                })
+                .suaThongTinHocSinh(oldPhone, pName, sName, phone, tuitionNum, maBaiTap, thongBao, billingType);
         }
 
         function saveQuickAnnouncement() {

@@ -563,32 +563,73 @@ class GoogleScriptRunInstance {
             // ==========================================
             else if (functionName === 'themHocSinhMoi' || functionName === 'saveTutorStudent') {
                 const [tutorPhone, phuHuynhName, studentName, studentPhone, tuition, maBaiTap, thongBao, billingType] = args;
-                const sId = studentPhone || `HS_GS_${Date.now()}`;
-                await supaPost(APP_CONFIG.TABLES.STUDENTS, [{
-                    student_id: sId,
+                const p = String(studentPhone || "").trim();
+                const norm = normalizePhone(p);
+                const sId = p || `HS_GS_${Date.now()}`;
+                
+                let students = await supaGet(APP_CONFIG.TABLES.STUDENTS, `select=*`);
+                let existing = students.find(s => 
+                    s.student_id === sId || 
+                    (norm && (normalizePhone(s.student_id) === norm || normalizePhone(s.parent_phone) === norm))
+                );
+
+                let studentPayload = {
                     student_name: studentName,
-                    parent_name: phuHuynhName || "",
-                    parent_phone: studentPhone || sId,
+                    parent_name: phuHuynhName || ("Phụ huynh " + studentName),
+                    parent_phone: p || sId,
                     tutor_phone: tutorPhone || "",
-                    tuition_fee: tuition ? Number(tuition) : null,
-                    billing_type: billingType || 'session',
-                    homework_id: maBaiTap || sId,
-                    announcement: thongBao || ""
-                }]);
+                    tuition_fee: tuition ? Number(tuition) : 0,
+                    homework_id: maBaiTap || p || sId,
+                    announcement: thongBao || "",
+                    deleted_date: null
+                };
+
+                if (existing) {
+                    try {
+                        await supaPatch(APP_CONFIG.TABLES.STUDENTS, `student_id=eq.${encodeURIComponent(existing.student_id)}`, {
+                            ...studentPayload,
+                            billing_type: billingType || 'session'
+                        });
+                    } catch (e) {
+                        await supaPatch(APP_CONFIG.TABLES.STUDENTS, `student_id=eq.${encodeURIComponent(existing.student_id)}`, studentPayload);
+                    }
+                } else {
+                    let newRecord = {
+                        student_id: sId,
+                        ...studentPayload
+                    };
+                    try {
+                        await supaPost(APP_CONFIG.TABLES.STUDENTS, [{
+                            ...newRecord,
+                            billing_type: billingType || 'session'
+                        }]);
+                    } catch (e) {
+                        await supaPost(APP_CONFIG.TABLES.STUDENTS, [newRecord]);
+                    }
+                }
                 result = { success: true, studentId: sId };
             }
             
             else if (functionName === 'suaThongTinHocSinh' || functionName === 'updateTutorStudent') {
                 const [oldPhone, phuHuynhName, studentName, studentPhone, tuition, maBaiTap, thongBao, billingType] = args;
-                await supaPatch(APP_CONFIG.TABLES.STUDENTS, `student_id=eq.${encodeURIComponent(oldPhone)}`, {
+                const p = String(studentPhone || oldPhone || "").trim();
+                let updateData = {
                     student_name: studentName,
                     parent_name: phuHuynhName || "",
-                    parent_phone: studentPhone || oldPhone,
-                    tuition_fee: tuition ? Number(tuition) : null,
-                    billing_type: billingType || 'session',
-                    homework_id: maBaiTap || studentPhone || oldPhone,
+                    parent_phone: p,
+                    tuition_fee: tuition ? Number(tuition) : 0,
+                    homework_id: maBaiTap || p,
                     announcement: thongBao || ""
-                });
+                };
+                
+                try {
+                    await supaPatch(APP_CONFIG.TABLES.STUDENTS, `student_id=eq.${encodeURIComponent(oldPhone)}`, {
+                        ...updateData,
+                        billing_type: billingType || 'session'
+                    });
+                } catch (e) {
+                    await supaPatch(APP_CONFIG.TABLES.STUDENTS, `student_id=eq.${encodeURIComponent(oldPhone)}`, updateData);
+                }
                 result = { success: true };
             }
 
@@ -1307,31 +1348,43 @@ class GoogleScriptRunInstance {
                 let students = await supaGet(APP_CONFIG.TABLES.STUDENTS, `select=*`);
                 let existing = students.find(s => s.student_id === oldPhone || normalizePhone(s.student_id) === normalizePhone(oldPhone));
                 
+                let studentData = {
+                    student_name: studentName,
+                    parent_name: parentName,
+                    parent_phone: phone,
+                    tutor_phone: tutorPhone || (existing ? existing.tutor_phone : ""),
+                    tuition_fee: parseFloat(tuition) || 0,
+                    deleted_date: null
+                };
+
                 if (existing) {
-                    await supaPatch(APP_CONFIG.TABLES.STUDENTS, `student_id=eq.${encodeURIComponent(existing.student_id)}`, {
-                        student_name: studentName,
-                        parent_name: parentName,
-                        parent_phone: phone,
-                        tutor_phone: tutorPhone || existing.tutor_phone,
-                        tuition_fee: parseFloat(tuition) || 0,
-                        billing_type: billingType || existing.billing_type || 'session'
-                    });
+                    try {
+                        await supaPatch(APP_CONFIG.TABLES.STUDENTS, `student_id=eq.${encodeURIComponent(existing.student_id)}`, {
+                            ...studentData,
+                            billing_type: billingType || existing.billing_type || 'session'
+                        });
+                    } catch (e) {
+                        await supaPatch(APP_CONFIG.TABLES.STUDENTS, `student_id=eq.${encodeURIComponent(existing.student_id)}`, studentData);
+                    }
                     if (phone && oldPhone && phone !== oldPhone) {
                         supaPatch(APP_CONFIG.TABLES.EVALUATIONS, `student_phone=eq.${encodeURIComponent(oldPhone)}`, {
                             student_phone: phone
                         }).catch(() => {});
                     }
                 } else {
-                    await supaPost(APP_CONFIG.TABLES.STUDENTS, [{
+                    let newRecord = {
                         student_id: p,
-                        student_name: studentName,
-                        parent_name: parentName,
-                        parent_phone: phone,
-                        tutor_phone: tutorPhone,
-                        tuition_fee: parseFloat(tuition) || 0,
-                        billing_type: billingType || 'session',
+                        ...studentData,
                         homework_id: p
-                    }]);
+                    };
+                    try {
+                        await supaPost(APP_CONFIG.TABLES.STUDENTS, [{
+                            ...newRecord,
+                            billing_type: billingType || 'session'
+                        }]);
+                    } catch (e) {
+                        await supaPost(APP_CONFIG.TABLES.STUDENTS, [newRecord]);
+                    }
                 }
                 result = { success: true };
             }
