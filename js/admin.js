@@ -747,7 +747,7 @@ var pinVerifyAction = "deleteStudent";
                     btn.innerText = "Lưu lại";
                     showToast("Lỗi kết nối: " + err.toString(), "error");
                 })
-                .adminLuuGiaSur(oldPhone, name, phone, pin, qrUrl, createdDate, nextBillingDate);
+                .adminLuuGiaSu(oldPhone, name, phone, pin, qrUrl, createdDate, nextBillingDate);
         }
 
         // Xóa/Khôi phục & Thùng rác Gia sư JS Controllers
@@ -763,8 +763,11 @@ var pinVerifyAction = "deleteStudent";
 
         function submitPinVerifyForDelete() {
             var inputPin = document.getElementById('confirmTutorPinInput').value.trim();
-            var adminPin = document.getElementById('maPin').value.trim();
-            if (inputPin === adminPin) {
+            var adminPin = (document.getElementById('maPin') ? document.getElementById('maPin').value.trim() : "") || sessionStorage.getItem('userPin') || "";
+            var currentAdminTutor = (adminDataGlobal && adminDataGlobal.tutors) ? adminDataGlobal.tutors.find(t => t.phone === currentAdminPhone) : null;
+            var validPin = adminPin || (currentAdminTutor ? currentAdminTutor.pin : "");
+            
+            if (inputPin && (inputPin === validPin || inputPin === adminPin || (currentAdminTutor && inputPin === currentAdminTutor.pin))) {
                 closePinConfirmModal();
                 closeAdminEditTutorModal();
                 deleteTutorBackend();
