@@ -2562,9 +2562,9 @@ function handleTutorHwFileSelect(event) {
     if (files.length === 0) return;
     
     var file = files[0];
-    // Giới hạn dung lượng 15MB
-    if (file.size > 15 * 1024 * 1024) {
-        showToast("Dung lượng file tối đa là 15MB!", "error");
+    // Giới hạn dung lượng 30MB
+    if (file.size > 30 * 1024 * 1024) {
+        showToast("Dung lượng file tối đa là 30MB!", "error");
         return;
     }
     
@@ -2917,8 +2917,8 @@ function handleTutorEditHwFileSelect(event) {
     if (files.length === 0) return;
     
     var file = files[0];
-    if (file.size > 15 * 1024 * 1024) {
-        showToast("Dung lượng file tối đa là 15MB!", "error");
+    if (file.size > 30 * 1024 * 1024) {
+        showToast("Dung lượng file tối đa là 30MB!", "error");
         return;
     }
     
