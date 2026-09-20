@@ -1142,19 +1142,42 @@ class GoogleScriptRunInstance {
                 result = await getAdminDashboardDataInternal();
             }
             
-            else if (functionName === 'adminLuuGiaSu' || functionName === 'saveTutorAccount') {
+            else if (functionName === 'adminLuuGiaSu' || functionName === 'adminLuuGiaSur' || functionName === 'saveTutorAccount') {
                 const [oldPhone, name, phone, pin, qrUrl, createdDate, nextBillingDate, accountType] = args;
                 const p = phone || oldPhone;
-                await supaPost(APP_CONFIG.TABLES.TUTORS, [{
-                    tutor_id: p,
-                    name: name,
-                    phone: p,
-                    pin: pin,
-                    qr_url: qrUrl || "",
-                    registered_date: createdDate || new Date().toLocaleDateString('vi-VN'),
-                    next_due_date: nextBillingDate || "",
-                    account_type: accountType || "Gia sư (1-1)"
-                }]);
+                
+                let tutors = await supaGet(APP_CONFIG.TABLES.TUTORS, `select=*`);
+                let existing = null;
+                if (oldPhone) {
+                    existing = tutors.find(t => normalizePhone(t.phone) === normalizePhone(oldPhone) || String(t.tutor_id).trim() === String(oldPhone).trim());
+                }
+                if (!existing && phone) {
+                    existing = tutors.find(t => normalizePhone(t.phone) === normalizePhone(phone) || String(t.tutor_id).trim() === String(phone).trim());
+                }
+                
+                if (existing) {
+                    await supaPatch(APP_CONFIG.TABLES.TUTORS, `tutor_id=eq.${encodeURIComponent(existing.tutor_id)}`, {
+                        name: name,
+                        phone: p,
+                        pin: pin,
+                        qr_url: qrUrl !== undefined ? qrUrl : existing.qr_url,
+                        registered_date: createdDate || existing.registered_date,
+                        next_due_date: nextBillingDate || existing.next_due_date,
+                        account_type: accountType || existing.account_type || "Gia sư (1-1)"
+                    });
+                } else {
+                    await supaPost(APP_CONFIG.TABLES.TUTORS, [{
+                        tutor_id: p,
+                        name: name,
+                        phone: p,
+                        pin: pin,
+                        qr_url: qrUrl || "",
+                        registered_date: createdDate || new Date().toLocaleDateString('vi-VN'),
+                        next_due_date: nextBillingDate || "",
+                        account_type: accountType || "Gia sư (1-1)",
+                        status: "Hoạt động"
+                    }]);
+                }
                 result = { success: true };
             }
             
@@ -1164,13 +1187,22 @@ class GoogleScriptRunInstance {
                 let updateData = { name: name, pin: pin };
                 if (qrUrl !== undefined) updateData.qr_url = qrUrl;
                 if (phone && phone !== oldPhone) updateData.phone = phone;
-                await supaPatch(APP_CONFIG.TABLES.TUTORS, `tutor_id=eq.${encodeURIComponent(p)}`, updateData);
+                
+                let tutors = await supaGet(APP_CONFIG.TABLES.TUTORS, `select=*`);
+                let target = tutors.find(t => normalizePhone(t.phone) === normalizePhone(p) || String(t.tutor_id).trim() === String(p).trim());
+                let targetId = target ? target.tutor_id : p;
+                
+                await supaPatch(APP_CONFIG.TABLES.TUTORS, `tutor_id=eq.${encodeURIComponent(targetId)}`, updateData);
                 result = { success: true };
             }
             
             else if (functionName === 'xoaGiaSuTamThoi' || functionName === 'deleteTutor') {
                 const [tutorPhone] = args;
-                await supaPatch(APP_CONFIG.TABLES.TUTORS, `tutor_id=eq.${encodeURIComponent(tutorPhone)}`, {
+                let tutors = await supaGet(APP_CONFIG.TABLES.TUTORS, `select=*`);
+                let target = tutors.find(t => normalizePhone(t.phone) === normalizePhone(tutorPhone) || String(t.tutor_id).trim() === String(tutorPhone).trim());
+                let targetId = target ? target.tutor_id : tutorPhone;
+                
+                await supaPatch(APP_CONFIG.TABLES.TUTORS, `tutor_id=eq.${encodeURIComponent(targetId)}`, {
                     deleted_date: new Date().toLocaleDateString('vi-VN')
                 });
                 result = { success: true };
@@ -1178,7 +1210,11 @@ class GoogleScriptRunInstance {
             
             else if (functionName === 'khoiPhucGiaSu' || functionName === 'restoreTutor') {
                 const [tutorPhone] = args;
-                await supaPatch(APP_CONFIG.TABLES.TUTORS, `tutor_id=eq.${encodeURIComponent(tutorPhone)}`, { deleted_date: null });
+                let tutors = await supaGet(APP_CONFIG.TABLES.TUTORS, `select=*`);
+                let target = tutors.find(t => normalizePhone(t.phone) === normalizePhone(tutorPhone) || String(t.tutor_id).trim() === String(tutorPhone).trim());
+                let targetId = target ? target.tutor_id : tutorPhone;
+                
+                await supaPatch(APP_CONFIG.TABLES.TUTORS, `tutor_id=eq.${encodeURIComponent(targetId)}`, { deleted_date: null });
                 result = { success: true };
             }
             
@@ -1215,8 +1251,44 @@ class GoogleScriptRunInstance {
             
             else if (functionName === 'adminSetTutorStatus') {
                 const [tutorPhone, status] = args;
-                await supaPatch(APP_CONFIG.TABLES.TUTORS, `tutor_id=eq.${encodeURIComponent(tutorPhone)}`, { status: status });
+                let tutors = await supaGet(APP_CONFIG.TABLES.TUTORS, `select=*`);
+                let target = tutors.find(t => normalizePhone(t.phone) === normalizePhone(tutorPhone) || String(t.tutor_id).trim() === String(tutorPhone).trim());
+                let targetId = target ? target.tutor_id : tutorPhone;
+                
+                await supaPatch(APP_CONFIG.TABLES.TUTORS, `tutor_id=eq.${encodeURIComponent(targetId)}`, { status: status || 'Hoạt động' });
                 result = { success: true };
+            }
+            
+            else if (functionName === 'adminXacNhanDongTienTutor') {
+                const [tutorPhone] = args;
+                let tutors = await supaGet(APP_CONFIG.TABLES.TUTORS, `select=*`);
+                let target = tutors.find(t => normalizePhone(t.phone) === normalizePhone(tutorPhone) || String(t.tutor_id).trim() === String(tutorPhone).trim());
+                let targetId = target ? target.tutor_id : tutorPhone;
+                
+                let currentDue = target ? target.next_due_date : "";
+                let nextDate = new Date();
+                if (currentDue && currentDue.includes('/')) {
+                    let parts = currentDue.split('/');
+                    if (parts.length === 3) {
+                        let d = parseInt(parts[0], 10);
+                        let m = parseInt(parts[1], 10) - 1;
+                        let y = parseInt(parts[2], 10);
+                        let parseD = new Date(y, m, d);
+                        if (!isNaN(parseD.getTime())) {
+                            parseD.setMonth(parseD.getMonth() + 1);
+                            nextDate = parseD;
+                        }
+                    }
+                } else {
+                    nextDate.setMonth(nextDate.getMonth() + 1);
+                }
+                let nextDueStr = `${String(nextDate.getDate()).padStart(2, '0')}/${String(nextDate.getMonth() + 1).padStart(2, '0')}/${nextDate.getFullYear()}`;
+                
+                await supaPatch(APP_CONFIG.TABLES.TUTORS, `tutor_id=eq.${encodeURIComponent(targetId)}`, {
+                    next_due_date: nextDueStr,
+                    status: 'Hoạt động'
+                });
+                result = { success: true, nextDue: nextDueStr };
             }
             
             else if (functionName === 'adminLuuMarquee') {
