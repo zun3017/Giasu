@@ -1220,6 +1220,31 @@ var pinVerifyAction = "deleteStudent";
              });
          }
 
+        
+        function clearAdminMarquee() {
+            showCustomConfirm("Bạn có chắc chắn muốn xóa dòng chữ chạy thông báo này không?", function() {
+                var input = document.getElementById('adminMarqueeInput');
+                if (input) input.value = "";
+                
+                showToast("Đang xóa thông báo...", "info");
+                google.script.run
+                    .withSuccessHandler(function(res) {
+                        if (res.error) {
+                            showToast("Lỗi: " + res.error, "error");
+                        } else {
+                            showToast("Đã xóa dòng chạy chữ thông báo thành công!", "success");
+                            if (adminDataGlobal) {
+                                adminDataGlobal.marqueeAnnouncement = "";
+                            }
+                        }
+                    })
+                    .withFailureHandler(function(err) {
+                        showToast("Lỗi hệ thống: " + err.toString(), "error");
+                    })
+                    .adminLuuMarquee("");
+            });
+        }
+
         function saveAdminMarquee() {
             var text = document.getElementById('adminMarqueeInput').value.trim();
             var btn = document.querySelector('button[onclick="saveAdminMarquee()"]');
