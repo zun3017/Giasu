@@ -849,8 +849,8 @@
                 <input type="number" id="addStudentTuition" placeholder="Ví dụ: 200000">
             </div>
             <div class="modal-form-group">
-                <label>Mã bài tập *</label>
-                <input type="text" id="addStudentMaBaiTap" placeholder="Mã để đăng nhập nộp bài (Ví dụ: BT101)">
+                <label>Mã bài tập (Để trống sẽ tự lấy số điện thoại)</label>
+                <input type="text" id="addStudentMaBaiTap" placeholder="Mã nộp bài (Để trống sẽ dùng SĐT)">
             </div>
             <div class="modal-footer">
                 <button onclick="closeAddStudentModal()" class="modal-btn modal-btn-secondary">Hủy</button>
@@ -1385,8 +1385,8 @@
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <script src="js/api.js?v=2.0.2"></script>
-    <script src="js/tutor.js?v=2.0.2"></script>
+    <script src="js/api.js?v=2.0.3"></script>
+    <script src="js/tutor.js?v=2.0.3"></script>
     <script>
         window.addEventListener('DOMContentLoaded', () => {
             var data = JSON.parse(sessionStorage.getItem('dashboardData'));
