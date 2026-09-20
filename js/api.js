@@ -1099,14 +1099,43 @@ class GoogleScriptRunInstance {
                 const [tutorPhone] = args;
                 let fbs = await supaGet(APP_CONFIG.TABLES.FEEDBACKS, `select=*`);
                 
-                // Lọc chính xác chỉ lấy các phản hồi trong 10 ngày gần nhất
+                // Lấy danh sách học sinh của gia sư này (nếu có tutorPhone)
+                let myStudentPhones = new Set();
+                let myStudentNames = new Set();
+                if (tutorPhone) {
+                    let normTutor = normalizePhone(tutorPhone);
+                    let studentsRaw = await supaGet(APP_CONFIG.TABLES.STUDENTS, `select=*`);
+                    studentsRaw.forEach(s => {
+                        if (normalizePhone(s.tutor_phone) === normTutor || s.tutor_phone === tutorPhone) {
+                            if (s.parent_phone) myStudentPhones.add(normalizePhone(s.parent_phone));
+                            if (s.student_id) myStudentPhones.add(normalizePhone(s.student_id));
+                            if (s.student_name) myStudentNames.add(s.student_name.trim().toLowerCase());
+                        }
+                    });
+                }
+
+                // Lọc chính xác chỉ lấy các phản hồi của PHỤ HUYNH trong 10 ngày gần nhất
                 let recentFbs = [];
                 for (let fb of fbs) {
+                    // TUYỆT ĐỐI KHÔNG LẤY THÔNG BÁO HỆ THỐNG CỦA ADMIN
+                    if (fb.feedback_id === 'SYSTEM_MARQUEE' || fb.student_phone === 'ADMIN' || fb.student_name === 'Thông báo hệ thống') {
+                        continue;
+                    }
+
                     if (isOlderThan10Days(fb.submitted_at)) {
                         // Tự động dọn dẹp xóa khỏi Supabase nếu quá 10 ngày
                         supaDelete(APP_CONFIG.TABLES.FEEDBACKS, `feedback_id=eq.${encodeURIComponent(fb.feedback_id)}`).catch(() => {});
                     } else {
-                        recentFbs.push(fb);
+                        // Nếu có tutorPhone, chỉ lấy phản hồi của học sinh thuộc gia sư đó
+                        if (myStudentPhones.size > 0 || myStudentNames.size > 0) {
+                            let fbPhoneNorm = normalizePhone(fb.student_phone);
+                            let fbNameNorm = (fb.student_name || "").trim().toLowerCase();
+                            if (myStudentPhones.has(fbPhoneNorm) || myStudentNames.has(fbNameNorm)) {
+                                recentFbs.push(fb);
+                            }
+                        } else {
+                            recentFbs.push(fb);
+                        }
                     }
                 }
 
@@ -1355,20 +1384,27 @@ class GoogleScriptRunInstance {
             
             else if (functionName === 'adminLuuMarquee') {
                 const [text] = args;
+                let cleanText = String(text || '').trim();
                 let fbs = await supaGet(APP_CONFIG.TABLES.FEEDBACKS, 'feedback_id=eq.SYSTEM_MARQUEE');
-                if (fbs && fbs.length > 0) {
-                    await supaPatch(APP_CONFIG.TABLES.FEEDBACKS, 'feedback_id=eq.SYSTEM_MARQUEE', {
-                        content: text || '',
-                        submitted_at: new Date().toLocaleString('vi-VN')
-                    });
+                if (cleanText !== '') {
+                    if (fbs && fbs.length > 0) {
+                        await supaPatch(APP_CONFIG.TABLES.FEEDBACKS, 'feedback_id=eq.SYSTEM_MARQUEE', {
+                            content: cleanText,
+                            submitted_at: new Date().toLocaleString('vi-VN')
+                        });
+                    } else {
+                        await supaPost(APP_CONFIG.TABLES.FEEDBACKS, [{
+                            feedback_id: 'SYSTEM_MARQUEE',
+                            student_phone: 'ADMIN',
+                            student_name: 'Thông báo hệ thống',
+                            content: cleanText,
+                            submitted_at: new Date().toLocaleString('vi-VN')
+                        }]);
+                    }
                 } else {
-                    await supaPost(APP_CONFIG.TABLES.FEEDBACKS, [{
-                        feedback_id: 'SYSTEM_MARQUEE',
-                        student_phone: 'ADMIN',
-                        student_name: 'Thông báo hệ thống',
-                        content: text || '',
-                        submitted_at: new Date().toLocaleString('vi-VN')
-                    }]);
+                    if (fbs && fbs.length > 0) {
+                        await supaDelete(APP_CONFIG.TABLES.FEEDBACKS, 'feedback_id=eq.SYSTEM_MARQUEE');
+                    }
                 }
                 result = { success: true };
             }

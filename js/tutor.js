@@ -3518,7 +3518,9 @@ function loadTutorFeedbacks() {
     
     google.script.run.withSuccessHandler(function(response) {
         if (response && response.success && response.feedbacks) {
-            var feedbacks = response.feedbacks;
+            var feedbacks = (response.feedbacks || []).filter(function(fb) {
+                return fb && fb.studentPhone !== 'ADMIN' && fb.studentName !== 'Thông báo hệ thống' && fb.studentName !== 'SYSTEM_MARQUEE';
+            });
             if (feedbacks.length === 0) {
                 container.innerHTML = "<div style='text-align: center; color: rgba(255,255,255,0.3); font-style: italic; padding: 25px;'><i class='fa-regular fa-comment-slash' style='font-size: 20px; display: block; margin-bottom: 8px;'></i>Chưa có ý kiến phản hồi nào trong 10 ngày gần đây.</div>";
                 return;
