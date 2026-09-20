@@ -772,10 +772,38 @@
                     <input type="text" id="accUnpaidIncome" class="readonly-value" readonly>
                 </div>
             </div>
-            <div class="modal-form-group" style="text-align: center; display: flex; flex-direction: column; align-items: center;">
-                <label style="text-align: center; width: 100%;">Ảnh mã QR thanh toán (Admin quản lý)</label>
-                <img id="accQrImg" src="" style="max-width: 100%; max-height: 200px; margin: 10px auto 0; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1); object-fit: contain; display: none;">
-                <div id="accQrText" style="color: #A6ADCE; font-size: 13px; margin-top: 10px;">Chưa cấu hình ảnh QR</div>
+            <div class="modal-form-group" style="text-align: center; display: flex; flex-direction: column; align-items: center; background: rgba(255, 255, 255, 0.03); border: 1px dashed rgba(142, 77, 255, 0.35); border-radius: 14px; padding: 15px; margin-top: 10px;">
+                <label style="text-align: center; width: 100%; font-weight: 700; color: #FFD23F; display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-size: 14px;">
+                    <i class="fa-solid fa-qrcode"></i> Ảnh mã QR thanh toán / chuyển khoản
+                </label>
+                <span style="color: #A6ADCE; font-size: 12px; margin: 4px 0 10px; line-height: 1.4;">
+                    Đăng ảnh mã QR ngân hàng của bạn để hiển thị trên Phiếu học phí gửi cho Phụ huynh
+                </span>
+                
+                <div id="accQrPreviewContainer" style="width: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100px;">
+                    <img id="accQrImg" src="" style="max-width: 220px; max-height: 220px; width: auto; height: auto; border-radius: 12px; border: 1px solid rgba(255,255,255,0.2); object-fit: contain; display: none; box-shadow: 0 4px 20px rgba(0,0,0,0.5); background: #FFF; padding: 6px;">
+                    <div id="accQrText" style="color: #A6ADCE; font-size: 13px; margin: 10px 0;">
+                        <i class="fa-regular fa-image" style="font-size: 28px; display: block; margin-bottom: 6px; opacity: 0.5;"></i>
+                        Chưa có ảnh mã QR
+                    </div>
+                </div>
+
+                <!-- Input file ẩn -->
+                <input type="file" id="accQrFileInput" accept="image/*" style="display: none;" onchange="handleTutorQrFileSelect(this)">
+
+                <div style="display: flex; gap: 10px; margin-top: 12px; flex-wrap: wrap; justify-content: center;">
+                    <button type="button" onclick="document.getElementById('accQrFileInput').click()" class="modal-btn" style="width: auto; padding: 8px 18px; font-size: 13px; border-radius: 8px; font-weight: bold; display: inline-flex; align-items: center; gap: 6px; background: linear-gradient(135deg, #8E4DFF, #5B21B6); border: 1px solid #A870FF; color: #FFF; cursor: pointer; box-shadow: 0 4px 12px rgba(142,77,255,0.3);">
+                        <i class="fa-solid fa-cloud-arrow-up"></i> Tải ảnh mã QR lên
+                    </button>
+                    <button type="button" id="btnRemoveTutorQr" onclick="removeTutorQr()" class="modal-btn" style="width: auto; padding: 8px 14px; font-size: 12px; border-radius: 8px; font-weight: bold; display: none; align-items: center; gap: 5px; background: rgba(239, 68, 68, 0.15); border: 1px solid #EF4444; color: #EF4444; cursor: pointer;">
+                        <i class="fa-solid fa-trash-can"></i> Xóa ảnh
+                    </button>
+                </div>
+
+                <!-- Ô dán link ảnh nếu muốn -->
+                <div style="width: 100%; margin-top: 10px; display: flex; align-items: center; gap: 6px;">
+                    <input type="text" id="accQrUrlInput" placeholder="Hoặc dán liên kết ảnh mã QR (URL)..." style="flex: 1; padding: 7px 12px; font-size: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.25); color: #FFF; outline: none;" oninput="handleTutorQrUrlInput(this.value)">
+                </div>
             </div>
             <div class="modal-footer">
                 <button onclick="closeTutorAccountModal()" class="modal-btn modal-btn-secondary">Đóng</button>
@@ -1357,8 +1385,8 @@
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <script src="js/api.js?v=2.0.1"></script>
-    <script src="js/tutor.js?v=2.0.1"></script>
+    <script src="js/api.js?v=2.0.2"></script>
+    <script src="js/tutor.js?v=2.0.2"></script>
     <script>
         window.addEventListener('DOMContentLoaded', () => {
             var data = JSON.parse(sessionStorage.getItem('dashboardData'));
