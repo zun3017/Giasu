@@ -797,9 +797,12 @@ class GoogleScriptRunInstance {
                 // Nếu Gia sư có đính kèm file và đã cấu hình Google Apps Script Web App, lưu file thẳng vào Google Drive
                 if (APP_CONFIG.DRIVE_UPLOAD_URL && fileBase64) {
                     try {
+                        const controller = new AbortController();
+                        const timeoutId = setTimeout(() => controller.abort(), 8000);
                         let driveRes = await fetch(APP_CONFIG.DRIVE_UPLOAD_URL, {
                             method: 'POST',
                             headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                            signal: controller.signal,
                             body: JSON.stringify({
                                 functionName: 'uploadHomeworkFiles',
                                 arguments: [
@@ -814,17 +817,18 @@ class GoogleScriptRunInstance {
                                 ]
                             })
                         });
+                        clearTimeout(timeoutId);
                         let driveData = await driveRes.json();
                         let resObj = driveData.result || driveData;
                         if (resObj && resObj.success && resObj.fileUrl) {
                             fileUrl = resObj.fileUrl;
                         }
                     } catch (driveErr) {
-                        console.warn("Lỗi tải đề bài lên Google Drive, chuyển sang lưu trữ an toàn:", driveErr);
+                        console.warn("Lưu Drive timeout hoặc lỗi, tự động chuyển sang lưu an toàn trực tiếp:", driveErr);
                     }
                 }
                 
-                // Fallback nếu chưa lưu được qua Drive
+                // Lưu trữ trực tiếp file base64 an toàn nếu Drive chưa trả về link
                 if (!fileUrl && fileBase64) {
                     const mime = mimeType || "application/octet-stream";
                     fileUrl = `data:${mime};base64,${fileBase64}`;
@@ -855,9 +859,12 @@ class GoogleScriptRunInstance {
                 // Nếu có file mới, upload lên Google Drive
                 if (APP_CONFIG.DRIVE_UPLOAD_URL && fileBase64) {
                     try {
+                        const controller = new AbortController();
+                        const timeoutId = setTimeout(() => controller.abort(), 8000);
                         let driveRes = await fetch(APP_CONFIG.DRIVE_UPLOAD_URL, {
                             method: 'POST',
                             headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                            signal: controller.signal,
                             body: JSON.stringify({
                                 functionName: 'uploadHomeworkFiles',
                                 arguments: [
@@ -872,13 +879,14 @@ class GoogleScriptRunInstance {
                                 ]
                             })
                         });
+                        clearTimeout(timeoutId);
                         let driveData = await driveRes.json();
                         let resObj = driveData.result || driveData;
                         if (resObj && resObj.success && resObj.fileUrl) {
                             updateData.file_url = resObj.fileUrl;
                         }
                     } catch (driveErr) {
-                        console.warn("Lỗi cập nhật file lên Drive:", driveErr);
+                        console.warn("Lỗi cập nhật file lên Drive, chuyển sang lưu trực tiếp:", driveErr);
                         const mime = mimeType || "application/octet-stream";
                         updateData.file_url = `data:${mime};base64,${fileBase64}`;
                     }
