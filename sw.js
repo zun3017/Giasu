@@ -1,74 +1,60 @@
-// Gia Sư PWA Service Worker v1.2.0
-const CACHE_NAME = 'giasu-cache-v1.2.0';
+// Service Worker - Ngăn iOS PWA reload trang khi chọn file từ camera/gallery
+const CACHE_NAME = 'giasu-tutor-v1';
+
+// Các file cần cache để offline + ngăn reload
 const STATIC_ASSETS = [
-  './manifest.json',
-  'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap',
-  'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css',
-  'https://i.postimg.cc/66rKbPmb/trinh-duyet.png'
+    '/tutor-dashboard.html',
+    '/js/tutor.js',
+    '/js/api.js',
+    '/js/student.js',
 ];
 
-// Cài đặt Service Worker và lưu trước các file tĩnh quan trọng
-self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(STATIC_ASSETS).catch((err) => {
-        console.warn('[PWA SW] Một số tài nguyên tĩnh không cache được:', err);
-      });
-    })
-  );
-  self.skipWaiting();
-});
-
-// Kích hoạt Service Worker và dọn dẹp các cache phiên bản cũ
-self.addEventListener('activate', (event) => {
-  event.waitUntil(
-    caches.keys().then((keys) => {
-      return Promise.all(
-        keys.map((key) => {
-          if (key !== CACHE_NAME) {
-            return caches.delete(key);
-          }
+self.addEventListener('install', function(event) {
+    self.skipWaiting();
+    event.waitUntil(
+        caches.open(CACHE_NAME).then(function(cache) {
+            return cache.addAll(STATIC_ASSETS).catch(function() {
+                // Bỏ qua lỗi nếu file không tồn tại
+            });
         })
-      );
-    }).then(() => self.clients.claim())
-  );
+    );
 });
 
-// Xử lý Request: Network-First (Luôn lấy dữ liệu mới nhất từ mạng, không cache API)
-self.addEventListener('fetch', (event) => {
-  const url = event.request.url;
+self.addEventListener('activate', function(event) {
+    event.waitUntil(
+        caches.keys().then(function(keys) {
+            return Promise.all(
+                keys.filter(function(key) { return key !== CACHE_NAME; })
+                    .map(function(key) { return caches.delete(key); })
+            );
+        }).then(function() {
+            return self.clients.claim();
+        })
+    );
+});
 
-  // Bỏ qua các yêu cầu không phải GET hoặc là gọi API Supabase, Google Apps Script, Google Drive
-  if (
-    event.request.method !== 'GET' ||
-    url.includes('supabase.co') ||
-    url.includes('script.google.com') ||
-    url.includes('googleusercontent.com') ||
-    url.includes('drive.google.com')
-  ) {
-    return;
-  }
+// Network first, fallback to cache — giữ trang hoạt động khi offline
+self.addEventListener('fetch', function(event) {
+    // Chỉ xử lý GET requests, bỏ qua API/Supabase/Drive
+    if (event.request.method !== 'GET') return;
+    var url = event.request.url;
+    if (url.includes('supabase.co') || url.includes('googleapis.com') || url.includes('script.google.com')) return;
 
-  // Network-First chiến lược cho các trang và file code
-  event.respondWith(
-    fetch(event.request)
-      .then((networkResponse) => {
-        // Nếu tải thành công từ mạng và là asset tĩnh hợp lệ, lưu vào cache
-        if (
-          networkResponse &&
-          networkResponse.status === 200 &&
-          (url.includes('.css') || url.includes('.png') || url.includes('.jpg') || url.includes('fonts.'))
-        ) {
-          const responseClone = networkResponse.clone();
-          caches.open(CACHE_NAME).then((cache) => {
-            cache.put(event.request, responseClone);
-          });
-        }
-        return networkResponse;
-      })
-      .catch(() => {
-        // Nếu mất mạng, fallback lấy từ cache nếu có
-        return caches.match(event.request);
-      })
-  );
+    event.respondWith(
+        fetch(event.request)
+            .then(function(response) {
+                // Cache lại response mới nhất
+                if (response && response.status === 200 && response.type === 'basic') {
+                    var responseToCache = response.clone();
+                    caches.open(CACHE_NAME).then(function(cache) {
+                        cache.put(event.request, responseToCache);
+                    });
+                }
+                return response;
+            })
+            .catch(function() {
+                // Fallback to cache khi offline
+                return caches.match(event.request);
+            })
+    );
 });
