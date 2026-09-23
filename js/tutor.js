@@ -2599,15 +2599,10 @@ function submitAssignedHomework() {
     var title = document.getElementById('assignHwTitle').value.trim();
     var releaseDate = document.getElementById('assignHwReleaseDate').value.trim();
     var externalLink = document.getElementById('assignHwLink') ? document.getElementById('assignHwLink').value.trim() : "";
-    var maBaiTap = currentTutorStudent.maBaiTap || currentTutorStudent.phone || "";
+    var maBaiTap = currentTutorStudent.maBaiTap || currentTutorStudent.phone || currentTutorStudent.studentId || currentTutorStudent.name || "DE_GIA_SU";
     
     if (!title) {
         showToast("Vui lòng nhập Tên bài tập!", "error");
-        return;
-    }
-    
-    if (!maBaiTap) {
-        showToast("Học sinh này chưa có Mã bài tập! Vui lòng cập nhật thông tin học sinh trước.", "error");
         return;
     }
     
