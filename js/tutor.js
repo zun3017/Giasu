@@ -192,7 +192,7 @@ function formatScheduleCell(val) {
             switchTutorHwTab('assign');
             switchTutorHwSubTab('upload');
             
-            // Clear file upload selection
+            // Reset file selection khi chuyển sang học sinh mới
             clearTutorSelectedFile();
             
             // Reset trạng thái thu gọn hóa đơn
@@ -2503,16 +2503,30 @@ function openAssignHwForm() {
     isEditingAssignedHw = false;
     editingAssignedHwRowIndex = null;
     
-    document.getElementById('assignHwTitle').value = "";
+    // Khôi phục title đã nhập từ sessionStorage nếu có (sau khi trang reload trên iOS PWA)
+    var savedTitle = sessionStorage.getItem('hw_draft_title') || "";
+    document.getElementById('assignHwTitle').value = savedTitle;
     var now = new Date();
     document.getElementById('assignHwReleaseDate').value = formatDateDDMMYYYY(now);
     if (document.getElementById('assignHwLink')) {
         document.getElementById('assignHwLink').value = "";
     }
-    clearTutorSelectedFile();
+    // Chỉ reset file nếu chưa có file nào được chọn (tránh xóa file vừa chọn)
+    if (!currentTutorHwFile) {
+        clearTutorSelectedFile();
+    }
     
     document.getElementById('btnSubmitAssignedHw').innerHTML = "Giao bài";
     document.getElementById('assignHwFormContainer').style.display = 'block';
+    
+    // Lưu title vào sessionStorage khi user gõ (bảo vệ khỏi reload bất ngờ)
+    var titleEl = document.getElementById('assignHwTitle');
+    if (titleEl && !titleEl._hwSaveAttached) {
+        titleEl._hwSaveAttached = true;
+        titleEl.addEventListener('input', function() {
+            sessionStorage.setItem('hw_draft_title', titleEl.value);
+        });
+    }
 }
 
 function closeAssignHwForm() {
@@ -2684,6 +2698,7 @@ function submitAssignedHomework() {
                             showToast("Lỗi: " + res.error, "error");
                         } else {
                             showToast("Giao bài tập thành công!", "success");
+                            sessionStorage.removeItem('hw_draft_title');
                             document.getElementById('assignHwTitle').value = "";
                             if (document.getElementById('assignHwLink')) {
                                 document.getElementById('assignHwLink').value = "";
