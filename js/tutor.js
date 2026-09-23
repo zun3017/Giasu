@@ -2599,7 +2599,7 @@ function submitAssignedHomework() {
     var title = document.getElementById('assignHwTitle').value.trim();
     var releaseDate = document.getElementById('assignHwReleaseDate').value.trim();
     var externalLink = document.getElementById('assignHwLink') ? document.getElementById('assignHwLink').value.trim() : "";
-    var maBaiTap = currentTutorStudent.maBaiTap || "";
+    var maBaiTap = currentTutorStudent.maBaiTap || currentTutorStudent.phone || "";
     
     if (!title) {
         showToast("Vui lòng nhập Tên bài tập!", "error");
@@ -2673,6 +2673,7 @@ function submitAssignedHomework() {
                 .editAssignedHomework(editingAssignedHwRowIndex, title, releaseDate, fileBase64, fileName, mimeType, externalLink);
         } else {
             // Tải bài mới lên
+            var tutorPhoneToSend = (tutorDataGlobal && tutorDataGlobal.tutorPhone) ? tutorDataGlobal.tutorPhone : "";
             google.script.run
                 .withSuccessHandler(function(res) {
                     clearInterval(progressInterval);
@@ -2684,10 +2685,15 @@ function submitAssignedHomework() {
                         progressText.style.display = 'none';
                         submitBtn.disabled = false;
                         
-                        if (res.error) {
+                        if (res && res.error) {
                             showToast("Lỗi: " + res.error, "error");
                         } else {
                             showToast("Giao bài tập thành công!", "success");
+                            document.getElementById('assignHwTitle').value = "";
+                            if (document.getElementById('assignHwLink')) {
+                                document.getElementById('assignHwLink').value = "";
+                            }
+                            clearTutorSelectedFile();
                             switchTutorHwSubTab('list');
                             loadTutorAssignedHomework();
                         }
@@ -2700,26 +2706,69 @@ function submitAssignedHomework() {
                     submitBtn.disabled = false;
                     showToast("Lỗi: " + err.toString(), "error");
                 })
-                .uploadAssignedHomework(tutorDataGlobal.tutorPhone, currentTutorStudent.name, title, releaseDate, fileBase64, fileName, mimeType, maBaiTap, externalLink);
+                .uploadAssignedHomework(tutorPhoneToSend, currentTutorStudent.name, title, releaseDate, fileBase64, fileName, mimeType, maBaiTap, externalLink);
         }
     };
     
     if (currentTutorHwFile) {
-        var reader = new FileReader();
-        reader.onload = function(e) {
-            var content = e.target.result;
-            var commaIdx = content.indexOf(',');
-            var base64 = content.substring(commaIdx + 1);
-            proceedWithUpload(base64, currentTutorHwFile.name, currentTutorHwFile.type);
-        };
-        reader.onerror = function() {
-            clearInterval(progressInterval);
-            progressContainer.style.display = 'none';
-            progressText.style.display = 'none';
-            submitBtn.disabled = false;
-            showToast("Lỗi đọc file từ thiết bị!", "error");
-        };
-        reader.readAsDataURL(currentTutorHwFile);
+        if (currentTutorHwFile.type && currentTutorHwFile.type.startsWith('image/')) {
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                var img = new Image();
+                img.onload = function() {
+                    var maxDim = 1600;
+                    var width = img.width;
+                    var height = img.height;
+                    if (width > maxDim || height > maxDim) {
+                        if (width > height) {
+                            height = Math.round((height * maxDim) / width);
+                            width = maxDim;
+                        } else {
+                            width = Math.round((width * maxDim) / height);
+                            height = maxDim;
+                        }
+                    }
+                    var canvas = document.createElement('canvas');
+                    canvas.width = width;
+                    canvas.height = height;
+                    var ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+                    var dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+                    var base64 = dataUrl.split(',')[1];
+                    proceedWithUpload(base64, currentTutorHwFile.name, 'image/jpeg');
+                };
+                img.onerror = function() {
+                    var content = e.target.result;
+                    var base64 = content.indexOf(',') !== -1 ? content.split(',')[1] : content;
+                    proceedWithUpload(base64, currentTutorHwFile.name, currentTutorHwFile.type);
+                };
+                img.src = e.target.result;
+            };
+            reader.onerror = function() {
+                clearInterval(progressInterval);
+                progressContainer.style.display = 'none';
+                progressText.style.display = 'none';
+                submitBtn.disabled = false;
+                showToast("Lỗi đọc file hình ảnh!", "error");
+            };
+            reader.readAsDataURL(currentTutorHwFile);
+        } else {
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                var content = e.target.result;
+                var commaIdx = content.indexOf(',');
+                var base64 = commaIdx !== -1 ? content.substring(commaIdx + 1) : content;
+                proceedWithUpload(base64, currentTutorHwFile.name, currentTutorHwFile.type || 'application/octet-stream');
+            };
+            reader.onerror = function() {
+                clearInterval(progressInterval);
+                progressContainer.style.display = 'none';
+                progressText.style.display = 'none';
+                submitBtn.disabled = false;
+                showToast("Lỗi đọc file từ thiết bị!", "error");
+            };
+            reader.readAsDataURL(currentTutorHwFile);
+        }
     } else {
         proceedWithUpload("", "", "");
     }
@@ -2732,16 +2781,22 @@ function loadTutorAssignedHomework() {
     var tableBody = document.getElementById('assignedHwTableBody');
     tableBody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:#A6ADCE; padding: 15px;"><i class="fa-solid fa-spinner fa-spin"></i> Đang tải dữ liệu...</td></tr>';
     
+    var tutorPhoneToGet = (tutorDataGlobal && tutorDataGlobal.tutorPhone) ? tutorDataGlobal.tutorPhone : "";
     google.script.run
         .withSuccessHandler(function(res) {
-            if (res.error) {
+            if (res && res.error) {
                 showToast("Lỗi: " + res.error, "error");
                 tableBody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:#EF4444; padding: 15px;">Không thể tải dữ liệu!</td></tr>';
                 return;
             }
             
-            assignedHwListGlobal = res.activeList || [];
-            assignedHwTrashGlobal = res.trashList || [];
+            if (Array.isArray(res)) {
+                assignedHwListGlobal = res;
+                assignedHwTrashGlobal = [];
+            } else {
+                assignedHwListGlobal = (res && res.activeList) ? res.activeList : [];
+                assignedHwTrashGlobal = (res && res.trashList) ? res.trashList : [];
+            }
             
             renderAssignedHwList(assignedHwListGlobal);
             renderTutorHwTrashList(assignedHwTrashGlobal);
@@ -2750,7 +2805,7 @@ function loadTutorAssignedHomework() {
             showToast("Lỗi kết nối: " + err.toString(), "error");
             tableBody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:#EF4444; padding: 15px;">Không thể tải dữ liệu!</td></tr>';
         })
-        .getAssignedHomework(currentTutorStudent.name, tutorDataGlobal.tutorPhone);
+        .getAssignedHomework(currentTutorStudent.name, tutorPhoneToGet);
 }
 
 // 8. Render bảng danh sách bài tập hoạt động
