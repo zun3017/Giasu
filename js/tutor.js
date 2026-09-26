@@ -448,109 +448,57 @@ function formatScheduleCell(val) {
             if (elAtt) elAtt.innerText = totalAllClasses > 0 ? Math.round((totalPresent + totalMakeup) / totalAllClasses * 100) + "%" : "100%";
             
             // 2. TÍNH TOÁN DÀNH RIÊNG CHO PHIẾU HỌC TẬP
-            var selectEl = document.getElementById('invCycleSelect');
-            var selectedCycle = selectEl ? selectEl.value : 'unpaid';
-
-            if (selectEl) {
-                var monthMap = {};
-                logs.forEach(function(l) {
-                    var p = parseLessonDate(l.ngay);
-                    if (p) {
-                        var key = p.year + '_' + p.month;
-                        if (!monthMap[key]) {
-                            monthMap[key] = { year: p.year, month: p.month, count: 0 };
-                        }
-                        monthMap[key].count++;
-                    }
-                });
-
-                var monthList = Object.keys(monthMap).map(function(k) { return monthMap[k]; }).sort(function(a, b) {
-                    if (a.year !== b.year) return b.year - a.year;
-                    return b.month - a.month;
-                });
-
-                var currentVal = selectEl.value;
-                var currentOptions = Array.from(selectEl.options).map(function(o) { return o.value; }).join(',');
-                var newOptions = ['unpaid'].concat(monthList.map(function(m) { return 'month_' + m.year + '_' + m.month; })).join(',');
-
-                if (currentOptions !== newOptions) {
-                    selectEl.innerHTML = '<option value="unpaid">Đợt học chưa đóng hiện tại</option>';
-                    monthList.forEach(function(m) {
-                        var opt = document.createElement('option');
-                        opt.value = 'month_' + m.year + '_' + m.month;
-                        opt.innerText = 'Kỳ học Tháng ' + (m.month + 1) + '/' + m.year + ' (' + m.count + ' buổi)';
-                        selectEl.appendChild(opt);
-                    });
-                    if (currentVal && Array.from(selectEl.options).some(function(o) { return o.value === currentVal; })) {
-                        selectEl.value = currentVal;
-                    }
-                    selectedCycle = selectEl.value;
-                }
-            }
-
             var invoiceLogs = [];
             var targetMonth = (new Date()).getMonth();
             var targetYear = (new Date()).getFullYear();
             var isAllPaidInCurrentCycle = false;
 
-            if (selectedCycle.indexOf('month_') === 0) {
-                // Gia sư chọn xem theo tháng cụ thể
-                var parts = selectedCycle.split('_');
-                targetYear = parseInt(parts[1], 10);
-                targetMonth = parseInt(parts[2], 10);
-                invoiceLogs = logs.filter(function(l) {
-                    var p = parseLessonDate(l.ngay);
-                    return p && p.year === targetYear && p.month === targetMonth;
-                });
-            } else {
-                // Đợt học chưa đóng hiện tại
-                if (unpaidLogs.length > 0) {
-                    // Có buổi chưa đóng: Lấy tất cả buổi từ buổi chưa đóng đầu tiên đến hết
-                    var firstUnpaidIndex = -1;
-                    for (var i = 0; i < logs.length; i++) {
-                        var l = logs[i];
-                        var normPaid = String(l.tienDong || "").toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').trim();
-                        var rawStatus = l.trangThai || l.chuyenCan || l.attendance_status || l.attendance || l.status || "";
-                        var normTt = String(rawStatus).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').trim();
-                        var isDaBu = (normTt.includes("da bu") || normTt.includes("hoc bu"));
-                        var isAbsent = !isDaBu && (
-                            normTt.includes("nghi") || normTt.includes("huy") || normTt.includes("vang") || normTt.includes("off") || 
-                            normTt.includes("khong hoc") || normTt.includes("chua hoc") || normTt.includes("tam hoan") || 
-                            normTt === "v" || normTt === "n" || normTt === "x"
-                        );
-                        var isPresent = !isAbsent;
-                        if ((isPresent || isDaBu) && !normPaid.includes("da dong")) {
-                            firstUnpaidIndex = i;
-                            break;
-                        }
+            if (unpaidLogs.length > 0) {
+                // Có buổi chưa đóng: lấy tất cả buổi từ buổi chưa đóng đầu tiên trở đi
+                var firstUnpaidIndex = -1;
+                for (var i = 0; i < logs.length; i++) {
+                    var l = logs[i];
+                    var normPaidL = String(l.tienDong || "").toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').trim();
+                    var rawStatusL = l.trangThai || l.chuyenCan || l.attendance_status || l.attendance || l.status || "";
+                    var normTtL = String(rawStatusL).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').trim();
+                    var isDaBuL = (normTtL.includes("da bu") || normTtL.includes("hoc bu"));
+                    var isAbsentL = !isDaBuL && (
+                        normTtL.includes("nghi") || normTtL.includes("huy") || normTtL.includes("vang") || normTtL.includes("off") ||
+                        normTtL.includes("khong hoc") || normTtL.includes("chua hoc") || normTtL.includes("tam hoan") ||
+                        normTtL === "v" || normTtL === "n" || normTtL === "x"
+                    );
+                    var isPresentL = !isAbsentL;
+                    if ((isPresentL || isDaBuL) && !normPaidL.includes("da dong")) {
+                        firstUnpaidIndex = i;
+                        break;
                     }
-                    if (firstUnpaidIndex !== -1) {
-                        invoiceLogs = logs.slice(firstUnpaidIndex);
-                    } else {
-                        invoiceLogs = unpaidLogs;
-                    }
-                    if (invoiceLogs.length > 0) {
-                        for (var idx = invoiceLogs.length - 1; idx >= 0; idx--) {
-                            var pDate = parseLessonDate(invoiceLogs[idx].ngay);
-                            if (pDate) { targetMonth = pDate.month; targetYear = pDate.year; break; }
-                        }
-                    }
+                }
+                if (firstUnpaidIndex !== -1) {
+                    invoiceLogs = logs.slice(firstUnpaidIndex);
                 } else {
-                    // Tất cả buổi đã đóng học phí:
-                    isAllPaidInCurrentCycle = true;
-                    // Lấy các buổi trong tháng mới nhất để vẫn hiển thị báo cáo chuyên cần / BTVN
-                    if (logs.length > 0) {
-                        for (var idx = logs.length - 1; idx >= 0; idx--) {
-                            var pDate = parseLessonDate(logs[idx].ngay);
-                            if (pDate) { targetMonth = pDate.month; targetYear = pDate.year; break; }
-                        }
-                        invoiceLogs = logs.filter(function(l) {
-                            var p = parseLessonDate(l.ngay);
-                            return p && p.year === targetYear && p.month === targetMonth;
-                        });
-                        if (invoiceLogs.length === 0) {
-                            invoiceLogs = logs.slice(Math.max(0, logs.length - 10));
-                        }
+                    invoiceLogs = unpaidLogs;
+                }
+                // Xác định tháng hiển thị từ buổi mới nhất trong invoiceLogs
+                if (invoiceLogs.length > 0) {
+                    for (var idx = invoiceLogs.length - 1; idx >= 0; idx--) {
+                        var pDate = parseLessonDate(invoiceLogs[idx].ngay);
+                        if (pDate) { targetMonth = pDate.month; targetYear = pDate.year; break; }
+                    }
+                }
+            } else {
+                // Tất cả buổi đã đóng: hiển thị tháng gần nhất, không tính tiền thêm
+                isAllPaidInCurrentCycle = true;
+                if (logs.length > 0) {
+                    for (var idx = logs.length - 1; idx >= 0; idx--) {
+                        var pDate = parseLessonDate(logs[idx].ngay);
+                        if (pDate) { targetMonth = pDate.month; targetYear = pDate.year; break; }
+                    }
+                    invoiceLogs = logs.filter(function(l) {
+                        var p = parseLessonDate(l.ngay);
+                        return p && p.year === targetYear && p.month === targetMonth;
+                    });
+                    if (invoiceLogs.length === 0) {
+                        invoiceLogs = logs.slice(Math.max(0, logs.length - 10));
                     }
                 }
             }
@@ -624,12 +572,9 @@ function formatScheduleCell(val) {
             if (elStudentName) elStudentName.innerText = (currentTutorStudent.ten || currentTutorStudent.student_name || currentTutorStudent.name || "Học sinh");
             
             // Header Month Badge
-            var isMonthMode = selectedCycle.indexOf('month_') === 0;
-            var isMonthFullyPaid = isMonthMode && (invBillableCount > 0) && (invActualPaidCount === invBillableCount);
-
             var elMonth = document.getElementById('invMonthDisplay');
             if (elMonth) {
-                if (isAllPaidInCurrentCycle || isMonthFullyPaid) {
+                if (isAllPaidInCurrentCycle) {
                     elMonth.innerHTML = '<i class="fa-solid fa-calendar-days"></i> KỲ HỌC THÁNG ' + (targetMonth + 1) + ' <span style="font-size:11px; background:#10B981; color:#FFF; padding:2px 8px; border-radius:10px; margin-left:6px; font-weight:600;"><i class="fa-solid fa-check"></i> ĐÃ THANH TOÁN</span>';
                 } else {
                     elMonth.innerHTML = '<i class="fa-solid fa-calendar-days"></i> KỲ HỌC THÁNG ' + (targetMonth + 1);
@@ -689,12 +634,6 @@ function formatScheduleCell(val) {
                 if (elCalcText) elCalcText.innerText = "Học phí cần đóng:";
                 if (elCalcTotal) elCalcTotal.innerText = "0 buổi chưa đóng";
                 if (elGrandTotal) elGrandTotal.innerHTML = '<span style="color:#10B981;">0 đ (Đã thanh toán)</span>';
-            } else if (isMonthFullyPaid) {
-                if (elFeeUnitLabel) elFeeUnitLabel.innerText = "Đơn giá mỗi buổi học:";
-                if (elFeeUnitValue) elFeeUnitValue.innerText = feeStr + " VNĐ";
-                if (elCalcText) elCalcText.innerText = "Thời lượng học kỳ này:";
-                if (elCalcTotal) elCalcTotal.innerText = invBillableCount + " buổi (Đã thanh toán)";
-                if (elGrandTotal) elGrandTotal.innerHTML = '<span style="color:#10B981;">' + totalStr + ' đ (Đã đóng)</span>';
             } else {
                 if (isMonthly) {
                     if (elFeeUnitLabel) elFeeUnitLabel.innerText = "Hình thức thu học phí:";
@@ -729,8 +668,6 @@ function formatScheduleCell(val) {
             if (ta) {
                 if (isAllPaidInCurrentCycle) {
                     ta.innerHTML = "Dạ em chào anh/chị, em gửi anh/chị phiếu học tập tổng kết của bé <b>" + sName + "</b> ạ. Học phí của bé đợt này đã được hoàn tất đầy đủ, hiện không còn khoản học phí nào cần đóng thêm ạ. Em cảm ơn anh/chị nhiều ạ!";
-                } else if (isMonthFullyPaid) {
-                    ta.innerHTML = "Dạ em chào anh/chị, em gửi anh/chị phiếu học tập tổng kết của bé <b>" + sName + "</b> (Tháng " + (targetMonth + 1) + ") ạ. Học phí kỳ này (" + totalStr + " VNĐ - " + invBillableCount + " buổi) anh/chị đã hoàn thành đầy đủ rồi ạ. Em cảm ơn anh/chị nhiều ạ!";
                 } else {
                     if (isMonthly) {
                         ta.innerHTML = "Dạ em chào anh/chị, em gửi anh/chị phiếu học tập tổng kết của bé <b>" + sName + "</b> ạ. Học phí kỳ này (Trọn gói tháng " + (targetMonth + 1) + ") là <b>" + totalStr + " VNĐ</b>. Anh/chị xem qua và quét mã QR chuyển khoản giúp em nhé ạ. Em cảm ơn anh/chị nhiều ạ!";
@@ -739,6 +676,7 @@ function formatScheduleCell(val) {
                     }
                 }
             }
+
 
             // Nạp danh sách checkbox buổi học chưa đóng vào modal / container
             var container = document.getElementById('unpaidLessonsListContainer');
