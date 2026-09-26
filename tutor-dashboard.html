@@ -26,12 +26,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Global CSS -->
     <link rel="stylesheet" href="css/style.css?v=202608301720">
-    <script>
-        // Đăng ký Service Worker để ngăn iOS PWA reload trang khi chọn file từ camera/gallery
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('/sw.js').catch(function() {});
-        }
-    </script>
     <style>
         /* ================= INVOICE STYLES (APPROVED E-RECEIPT) ================= */
         .invoice-container {
@@ -476,10 +470,10 @@
                                 <label>Chọn file bài tập (Hình ảnh, Word, PDF...)</label>
                                 
                                 <!-- Upload Area cho Desktop -->
-                                <div class="upload-area" id="tutorHwUploadAreaDesktop" onclick="document.getElementById('tutorHwFileInputDesktop').click()" style="padding: 20px; border-style: dashed; background: rgba(4, 2, 10, 0.6); border: 2px dashed rgba(142, 77, 255, 0.4); border-radius: 12px; text-align: center; cursor: pointer; transition: all 0.3s;">
+                                <div class="upload-area" id="tutorHwUploadAreaDesktop" onclick="document.getElementById('tutorHwFileInputDesktop').click()" ondragover="event.preventDefault();" ondrop="handleTutorHwDrop(event);" style="padding: 20px; border-style: dashed; background: rgba(4, 2, 10, 0.6); border: 2px dashed rgba(142, 77, 255, 0.4); border-radius: 12px; text-align: center; cursor: pointer; transition: all 0.3s;">
                                     <i class="fa-solid fa-file-arrow-up" style="font-size: 24px; color: #8E4DFF; margin-bottom: 6px;"></i>
                                     <div id="tutorHwUploadText" style="font-size: 12px; color: #E2D1FF;">Kéo thả hoặc click chọn file bài tập từ máy...</div>
-                                    <input type="file" id="tutorHwFileInputDesktop" style="display: none;" onchange="handleTutorHwFileSelect(event)">
+                                    <input type="file" id="tutorHwFileInputDesktop" style="display: none;" onclick="event.stopPropagation();" onchange="handleTutorHwFileSelect(event)">
                                 </div>
 
                                 <!-- Upload Area cho Mobile -->
@@ -499,14 +493,14 @@
                                     </div>
                                     
                                     <!-- Inputs ẩn -->
-                                    <input type="file" id="tutorHwImageInputMobile" style="display: none;" accept="image/*" onchange="handleTutorHwFileSelect(event)">
-                                    <input type="file" id="tutorHwDocInputMobile" style="display: none;" accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" onchange="handleTutorHwFileSelect(event)">
+                                    <input type="file" id="tutorHwImageInputMobile" style="display: none;" accept="image/*" onclick="event.stopPropagation();" onchange="handleTutorHwFileSelect(event)">
+                                    <input type="file" id="tutorHwDocInputMobile" style="display: none;" accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" onclick="event.stopPropagation();" onchange="handleTutorHwFileSelect(event)">
                                 </div>
 
                                 <!-- Selected File Badge -->
                                 <div id="tutorSelectedFileBox" style="display: none; justify-content: space-between; align-items: center; background: rgba(142, 77, 255, 0.15); padding: 8px 12px; border-radius: 8px; margin-top: 10px; font-size: 12px;">
                                     <span id="tutorSelectedFileName" style="color: #FFF; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 80%;"></span>
-                                    <button onclick="clearTutorSelectedFile()" style="background:none; border:none; color:#FF4D4D; cursor:pointer;"><i class="fa-solid fa-times"></i> Hủy</button>
+                                    <button type="button" onclick="clearTutorSelectedFile()" style="background:none; border:none; color:#FF4D4D; cursor:pointer;"><i class="fa-solid fa-times"></i> Hủy</button>
                                 </div>
                             </div>
                             <div class="modal-form-group" style="margin-top: 10px;">
@@ -520,8 +514,8 @@
                             <div id="tutorHwProgressText" style="font-size: 11px; color:#3399FF; text-align:right; display:none; font-weight:bold; margin-top:4px;">0%</div>
 
                             <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 15px;">
-                                <button onclick="closeAssignHwForm()" class="modal-btn modal-btn-secondary" style="width: auto; padding: 6px 15px; font-size: 13px;">Hủy</button>
-                                <button onclick="submitAssignedHomework()" class="modal-btn modal-btn-primary" style="width: auto; padding: 6px 15px; font-size: 13px;" id="btnSubmitAssignedHw">Giao bài</button>
+                                <button type="button" onclick="closeAssignHwForm()" class="modal-btn modal-btn-secondary" style="width: auto; padding: 6px 15px; font-size: 13px;">Hủy</button>
+                                <button type="button" onclick="submitAssignedHomework()" class="modal-btn modal-btn-primary" style="width: auto; padding: 6px 15px; font-size: 13px;" id="btnSubmitAssignedHw">Giao bài</button>
                             </div>
                         </div>
 
@@ -1412,13 +1406,6 @@
             renderTutorView(data);
 
             // Tự động đồng bộ dữ liệu mới nhất từ máy chủ trong nền
-            if (typeof refreshTutorDashboard === 'function') {
-                refreshTutorDashboard();
-            }
-        });
-
-        // Tự động đồng bộ khi chuyển lại tab Gia sư
-        window.addEventListener('focus', () => {
             if (typeof refreshTutorDashboard === 'function') {
                 refreshTutorDashboard();
             }
