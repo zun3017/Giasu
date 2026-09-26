@@ -798,7 +798,7 @@ class GoogleScriptRunInstance {
                 if (APP_CONFIG.DRIVE_UPLOAD_URL && fileBase64) {
                     try {
                         const controller = new AbortController();
-                        const timeoutId = setTimeout(() => controller.abort(), 8000);
+                        const timeoutId = setTimeout(() => controller.abort(), 45000);
                         let driveRes = await fetch(APP_CONFIG.DRIVE_UPLOAD_URL, {
                             method: 'POST',
                             headers: { 'Content-Type': 'text/plain;charset=utf-8' },
@@ -860,7 +860,7 @@ class GoogleScriptRunInstance {
                 if (APP_CONFIG.DRIVE_UPLOAD_URL && fileBase64) {
                     try {
                         const controller = new AbortController();
-                        const timeoutId = setTimeout(() => controller.abort(), 8000);
+                        const timeoutId = setTimeout(() => controller.abort(), 45000);
                         let driveRes = await fetch(APP_CONFIG.DRIVE_UPLOAD_URL, {
                             method: 'POST',
                             headers: { 'Content-Type': 'text/plain;charset=utf-8' },
