@@ -3222,11 +3222,7 @@ function parseDateTimeString(str) {
     if (typeof str === 'number') return str;
     str = String(str).trim();
     
-    // 1. Thử parse trực tiếp ISO hoặc tiêu chuẩn
-    let d = new Date(str);
-    if (!isNaN(d.getTime())) return d.getTime();
-    
-    // 2. Thử tách các thành phần ngày và giờ
+    // Tách các thành phần ngày và giờ
     let parts = str.split(/\s+/);
     let timePart = "";
     let datePart = "";
@@ -3255,28 +3251,31 @@ function parseDateTimeString(str) {
         let dp = datePart.split('/');
         if (dp.length === 3) {
             if (dp[0].length === 4) { // YYYY/MM/DD
-                year = parseInt(dp[0]);
-                month = parseInt(dp[1]) - 1;
-                day = parseInt(dp[2]);
+                year = parseInt(dp[0], 10);
+                month = parseInt(dp[1], 10) - 1;
+                day = parseInt(dp[2], 10);
             } else { // DD/MM/YYYY
-                day = parseInt(dp[0]);
-                month = parseInt(dp[1]) - 1;
-                year = parseInt(dp[2]);
+                day = parseInt(dp[0], 10);
+                month = parseInt(dp[1], 10) - 1;
+                year = parseInt(dp[2], 10);
             }
         }
     } else if (datePart.indexOf('-') !== -1) {
         let dp = datePart.split('-');
         if (dp.length === 3) {
             if (dp[0].length === 4) { // YYYY-MM-DD
-                year = parseInt(dp[0]);
-                month = parseInt(dp[1]) - 1;
-                day = parseInt(dp[2]);
+                year = parseInt(dp[0], 10);
+                month = parseInt(dp[1], 10) - 1;
+                day = parseInt(dp[2], 10);
             } else { // DD-MM-YYYY
-                day = parseInt(dp[0]);
-                month = parseInt(dp[1]) - 1;
-                year = parseInt(dp[2]);
+                day = parseInt(dp[0], 10);
+                month = parseInt(dp[1], 10) - 1;
+                year = parseInt(dp[2], 10);
             }
         }
+    } else {
+        let d = new Date(str);
+        if (!isNaN(d.getTime())) return d.getTime();
     }
     
     // Phân tích timePart
