@@ -248,6 +248,19 @@ async function autoPurgeOldTrashItems() {
                 await supaDelete(APP_CONFIG.TABLES.FEEDBACKS, `feedback_id=eq.${encodeURIComponent(fb.feedback_id)}`);
             }
         }
+
+        // Tự động quét và xóa vĩnh viễn các bài tập đã nộp ở trạng thái Thùng rác (Deleted) quá 10 ngày
+        let delSubs = await supaGet(APP_CONFIG.TABLES.SUBMISSIONS, 'status=eq.Deleted&select=*');
+        for (let sub of delSubs) {
+            let delTime = sub.submitted_at || sub.submission_date;
+            if (sub.comment && sub.comment.includes('DELETED_AT:')) {
+                let m = sub.comment.match(/DELETED_AT:(\d+)/);
+                if (m) delTime = parseInt(m[1], 10);
+            }
+            if (isOlderThan10Days(delTime)) {
+                await supaDelete(APP_CONFIG.TABLES.SUBMISSIONS, `submission_id=eq.${encodeURIComponent(sub.submission_id)}`);
+            }
+        }
     } catch (e) {
         console.warn(`[${APP_CONFIG.SCOPE}] Auto purge check error:`, e);
     }
@@ -284,7 +297,7 @@ class GoogleScriptRunInstance {
         let result = null;
         
         try {
-            if (['getTutorDashboardData', 'getAdminDashboardData', 'loginSystem'].includes(functionName)) {
+            if (['getTutorDashboardData', 'getAdminDashboardData', 'loginSystem', 'xacThucMaBaiTap', 'getStudentSubmissionsForTutor'].includes(functionName)) {
                 autoPurgeOldTrashItems().catch(() => {});
             }
             
@@ -956,7 +969,16 @@ class GoogleScriptRunInstance {
                     let matchCode = codesToMatch.has(sCode) || (sNorm && codesToMatch.has(sNorm));
                     let matchName = (studentName && s.student_name && s.student_name.trim().toLowerCase() === studentName.toLowerCase()) ||
                                     (matchedStudent && s.student_name && matchedStudent.student_name && s.student_name.trim().toLowerCase() === matchedStudent.student_name.toLowerCase());
-                    return matchCode || matchName;
+                    if (!matchCode && !matchName) return false;
+                    if (s.status === 'Deleted') {
+                        let delTime = s.submitted_at || s.submission_date;
+                        if (s.comment && s.comment.includes('DELETED_AT:')) {
+                            let m = s.comment.match(/DELETED_AT:(\d+)/);
+                            if (m) delTime = parseInt(m[1], 10);
+                        }
+                        if (isOlderThan10Days(delTime)) return false;
+                    }
+                    return true;
                 });
                 
                 result = {
@@ -1077,7 +1099,16 @@ class GoogleScriptRunInstance {
                         let sNorm = normalizePhone(sCode);
                         let matchCode = codesToMatch.has(sCode) || (sNorm && codesToMatch.has(sNorm));
                         let matchName = target.student_name && s.student_name && s.student_name.trim().toLowerCase() === target.student_name.trim().toLowerCase();
-                        return matchCode || matchName;
+                        if (!matchCode && !matchName) return false;
+                        if (s.status === 'Deleted') {
+                            let delTime = s.submitted_at || s.submission_date;
+                            if (s.comment && s.comment.includes('DELETED_AT:')) {
+                                let m = s.comment.match(/DELETED_AT:(\d+)/);
+                                if (m) delTime = parseInt(m[1], 10);
+                            }
+                            if (isOlderThan10Days(delTime)) return false;
+                        }
+                        return true;
                     }).map((s, idx) => ({
                         subId: s.submission_id,
                         studentName: s.student_name,
@@ -1195,7 +1226,8 @@ class GoogleScriptRunInstance {
             else if (functionName === 'deleteHomeworkFile') {
                 const [rowIndex] = args;
                 await supaPatch(APP_CONFIG.TABLES.SUBMISSIONS, `submission_id=eq.${encodeURIComponent(rowIndex)}`, {
-                    status: 'Deleted'
+                    status: 'Deleted',
+                    comment: `DELETED_AT:${Date.now()}`
                 });
                 result = { success: true };
             }
@@ -1203,7 +1235,8 @@ class GoogleScriptRunInstance {
             else if (functionName === 'restoreHomeworkFile') {
                 const [rowIndex] = args;
                 await supaPatch(APP_CONFIG.TABLES.SUBMISSIONS, `submission_id=eq.${encodeURIComponent(rowIndex)}`, {
-                    status: 'Active'
+                    status: 'Active',
+                    comment: null
                 });
                 result = { success: true };
             }
