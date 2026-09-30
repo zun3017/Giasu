@@ -475,14 +475,8 @@ function formatScheduleCell(val) {
                     invoiceLogs = logs.slice(Math.max(0, logs.length - 10));
                 }
             } else {
-                // Nếu tất cả buổi đã đóng: Hiển thị tháng gần nhất (không tính tiền)
-                invoiceLogs = logs.filter(function(l) {
-                    var p = parseLessonDate(l.ngay);
-                    return p && p.month === targetMonth && p.year === targetYear;
-                });
-                if (invoiceLogs.length === 0) {
-                    invoiceLogs = logs.slice(Math.max(0, logs.length - 10));
-                }
+                // Nếu tất cả buổi đã đóng và chưa có kỳ mới: để trống, chưa có gì để báo cáo
+                invoiceLogs = [];
             }
 
             var invPresent = 0;
