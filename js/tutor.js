@@ -2137,7 +2137,7 @@ function formatScheduleCell(val) {
             var editWrap = document.getElementById('editLesBtvnCustomWrap');
             var editInp = document.getElementById('editLesBtvnCustom');
             
-            if (curBtvn === "Hoàn thành" || curBtvn === "Không làm" || curBtvn === "Hoàn thành 90%" || curBtvn === "Hoàn thành 75%") {
+            if (curBtvn === "Hoàn thành" || curBtvn === "Không làm" || curBtvn === "Hoàn thành 90%" || curBtvn === "Hoàn thành 75%" || curBtvn === "Phụ huynh nhớ nhắc nhở bé làm bài tập gia sư mới giao") {
                 editSel.value = curBtvn;
                 if (editWrap) editWrap.style.display = "none";
                 if (editInp) editInp.value = "";
@@ -3998,7 +3998,7 @@ function duplicateLesson(rowIndex) {
     var addSel = document.getElementById('lesBtvn');
     var addWrap = document.getElementById('lesBtvnCustomWrap');
     var addInp = document.getElementById('lesBtvnCustom');
-    if (dupBtvn === "Hoàn thành" || dupBtvn === "Không làm" || dupBtvn === "Hoàn thành 90%" || dupBtvn === "Hoàn thành 75%") {
+    if (dupBtvn === "Hoàn thành" || dupBtvn === "Không làm" || dupBtvn === "Hoàn thành 90%" || dupBtvn === "Hoàn thành 75%" || dupBtvn === "Phụ huynh nhớ nhắc nhở bé làm bài tập gia sư mới giao") {
         addSel.value = dupBtvn;
         if (addWrap) addWrap.style.display = "none";
         if (addInp) addInp.value = "";
