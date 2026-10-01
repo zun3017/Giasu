@@ -1003,7 +1003,7 @@ function formatScheduleCell(val) {
                     return sCode && sCode === checkHw;
                 });
                 if (dup) {
-                    showToast("Mã bài tập '" + maBaiTap + "' đã tồn tại (thuộc học sinh " + dup.name + "). Vui lòng đổi mã bài tập khác!", "error");
+                    showToast("Mã bài tập '" + maBaiTap + "' đã được sử dụng. Vui lòng đổi mã bài tập khác!", "error");
                     return;
                 }
             }
@@ -1103,7 +1103,7 @@ function formatScheduleCell(val) {
                     return sCode && sCode === checkHw;
                 });
                 if (dup) {
-                    showToast("Mã bài tập '" + maBaiTap + "' đã bị trùng với học sinh " + dup.name + ". Vui lòng đổi mã bài tập khác!", "error");
+                    showToast("Mã bài tập '" + maBaiTap + "' đã được sử dụng. Vui lòng đổi mã bài tập khác!", "error");
                     return;
                 }
             }

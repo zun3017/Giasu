@@ -636,7 +636,7 @@ class GoogleScriptRunInstance {
 
                 if (dupHw) {
                     result = { 
-                        error: `Mã bài tập "${finalHwId}" đã tồn tại trong hệ thống (thuộc học sinh ${dupHw.student_name}). Vui lòng đổi mã bài tập khác!` 
+                        error: `Mã bài tập "${finalHwId}" đã được sử dụng. Vui lòng đổi mã bài tập khác!` 
                     };
                 } else {
                     let existing = students.find(s => 
@@ -696,7 +696,7 @@ class GoogleScriptRunInstance {
 
                 if (dupHw) {
                     result = { 
-                        error: `Mã bài tập "${finalHwId}" đã tồn tại trong hệ thống (thuộc học sinh ${dupHw.student_name}). Vui lòng đổi mã bài tập khác!` 
+                        error: `Mã bài tập "${finalHwId}" đã được sử dụng. Vui lòng đổi mã bài tập khác!` 
                     };
                 } else {
                     let updateData = {
