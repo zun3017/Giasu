@@ -531,7 +531,16 @@ function formatScheduleCell(val) {
                         if (btvn.indexOf("trễ") !== -1 || btvn.indexOf("muộn") !== -1) {
                             invLateHw++;
                         }
-                        if (btvn.indexOf("thiếu") !== -1 || btvn.indexOf("không làm") !== -1 || btvn.indexOf("chưa làm") !== -1 || btvn.indexOf("chưa nộp") !== -1 || btvn.indexOf("chưa đạt") !== -1 || btvn === "không") {
+                        var pctMatch = btvn.match(/(\d+(\.\d+)?)\s*%/);
+                        if (pctMatch) {
+                            var pVal = parseFloat(pctMatch[1]);
+                            if (pVal >= 100) {
+                                invDoneHw++;
+                            } else {
+                                invMissingHw++;
+                                invMissingHwDates.push((cleanStr || ("Buổi " + (log.tuan || ""))) + " (" + btvnRaw + ")");
+                            }
+                        } else if (btvn.indexOf("thiếu") !== -1 || btvn.indexOf("không làm") !== -1 || btvn.indexOf("chưa làm") !== -1 || btvn.indexOf("chưa nộp") !== -1 || btvn.indexOf("chưa đạt") !== -1 || btvn === "không") {
                             invMissingHw++;
                             invMissingHwDates.push((cleanStr || ("Buổi " + (log.tuan || ""))) + " (" + btvnRaw + ")");
                         } else if (btvn.indexOf("hoàn thành") !== -1 || btvn === "có" || btvn === "đạt" || btvn === "tốt" || btvn === "xuất sắc" || btvn.indexOf("phụ huynh") !== -1 || btvn.indexOf("nhắc") !== -1) {
@@ -1300,10 +1309,29 @@ function formatScheduleCell(val) {
             document.getElementById('lesDiemDinhKi').value = "Không có";
             document.getElementById('lesTrangThai').value = "Đã học";
             document.getElementById('lesBtvn').value = "Hoàn thành";
+            var addWrap = document.getElementById('lesBtvnCustomWrap');
+            if (addWrap) addWrap.style.display = "none";
+            var addInp = document.getElementById('lesBtvnCustom');
+            if (addInp) addInp.value = "";
             document.getElementById('lesMon').value = "Toán học";
             
             document.getElementById('addLessonModal').style.display = "flex";
         }
+
+        // Helper toggle ô nhập % BTVN tùy chỉnh khi chọn "Khác"
+        window.toggleBtvnCustomInput = function(selectId, wrapId, inputId) {
+            var sel = document.getElementById(selectId);
+            var wrap = document.getElementById(wrapId);
+            var inp = document.getElementById(inputId);
+            if (!sel || !wrap) return;
+            if (sel.value === "Khác") {
+                wrap.style.display = "block";
+                if (inp) inp.focus();
+            } else {
+                wrap.style.display = "none";
+            }
+        };
+
         function closeAddLessonModal() {
             document.getElementById('addLessonModal').style.display = "none";
         }
@@ -1316,6 +1344,22 @@ function formatScheduleCell(val) {
             var mon = document.getElementById('lesMon').value;
             var trangThai = document.getElementById('lesTrangThai').value;
             var btvn = document.getElementById('lesBtvn').value;
+            if (btvn === "Khác") {
+                var customInp = document.getElementById('lesBtvnCustom');
+                var customVal = customInp ? customInp.value.trim() : "";
+                if (!customVal) {
+                    showToast("Vui lòng nhập phần trăm hoàn thành BTVN!", "error");
+                    if (customInp) customInp.focus();
+                    return;
+                }
+                var pct = parseInt(customVal, 10);
+                if (isNaN(pct) || pct < 0 || pct > 100) {
+                    showToast("Phần trăm hoàn thành BTVN phải từ 0% đến 100%!", "error");
+                    if (customInp) customInp.focus();
+                    return;
+                }
+                btvn = (pct === 0) ? "Không làm" : ((pct === 100) ? "Hoàn thành" : "Hoàn thành " + pct + "%");
+            }
             var diemDau = document.getElementById('lesDiemDau').value.trim();
             var diemDinhKi = document.getElementById('lesDiemDinhKi').value.trim();
             var noiDung = document.getElementById('lesNoiDung').value.trim();
@@ -1854,10 +1898,36 @@ function formatScheduleCell(val) {
                     return '<span class="status-badge badge-dahoc">Đã học</span>';
                 };
                 var getBtvnBadge = function(btvn) {
-                    var bt = (btvn || "").trim().toLowerCase();
-                    if (bt.indexOf("hoàn thành") !== -1) return '<span class="status-badge badge-hoanthanh">Hoàn thành</span>';
-                    if (bt.indexOf("thiếu") !== -1) return '<span class="status-badge badge-thieu">' + btvn + '</span>';
-                    return '<span class="status-badge" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15); color: #FFF;">' + btvn + '</span>';
+                    var raw = (btvn || "").trim();
+                    var bt = raw.toLowerCase();
+                    if (!raw || raw === "-" || raw === "không có") return '<span class="status-badge" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15); color: #A6ADCE;">-</span>';
+                    
+                    // Kiểm tra phần trăm (ví dụ: "Hoàn thành 90%", "Hoàn thành 75%", "60%")
+                    var pctMatch = bt.match(/(\d+(\.\d+)?)\s*%/);
+                    if (pctMatch) {
+                        var pct = parseFloat(pctMatch[1]);
+                        if (pct >= 90) {
+                            return '<span class="status-badge badge-hoanthanh">' + raw + '</span>';
+                        } else if (pct >= 50) {
+                            return '<span class="status-badge badge-thieu">' + raw + '</span>';
+                        } else {
+                            return '<span class="status-badge badge-nghi">' + raw + '</span>';
+                        }
+                    }
+
+                    if (bt.indexOf("không làm") !== -1 || bt.indexOf("chưa làm") !== -1 || bt.indexOf("chưa nộp") !== -1 || bt.indexOf("chưa đạt") !== -1 || bt === "không") {
+                        return '<span class="status-badge badge-nghi">' + raw + '</span>';
+                    }
+                    if (bt.indexOf("hoàn thành") !== -1 || bt === "đạt" || bt === "tốt" || bt === "xuất sắc" || bt === "có") {
+                        return '<span class="status-badge badge-hoanthanh">' + raw + '</span>';
+                    }
+                    if (bt.indexOf("thiếu") !== -1) {
+                        return '<span class="status-badge badge-thieu">' + raw + '</span>';
+                    }
+                    if (bt.indexOf("phụ huynh") !== -1 || bt.indexOf("nhắc") !== -1) {
+                        return '<span class="status-badge badge-hocbu" style="font-size:10.5px; padding:3px 8px;">' + raw + '</span>';
+                    }
+                    return '<span class="status-badge" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15); color: #FFF;">' + raw + '</span>';
                 };
 
                 var htmlLichSu = "";
@@ -2062,7 +2132,31 @@ function formatScheduleCell(val) {
                 tt = "Hủy/ nghỉ";
             }
             document.getElementById('editLesTrangThai').value = tt;
-            document.getElementById('editLesBtvn').value = log.btvn || "Hoàn thành";
+            var curBtvn = (log.btvn || "Hoàn thành").trim();
+            var editSel = document.getElementById('editLesBtvn');
+            var editWrap = document.getElementById('editLesBtvnCustomWrap');
+            var editInp = document.getElementById('editLesBtvnCustom');
+            
+            if (curBtvn === "Hoàn thành" || curBtvn === "Không làm" || curBtvn === "Hoàn thành 90%" || curBtvn === "Hoàn thành 75%") {
+                editSel.value = curBtvn;
+                if (editWrap) editWrap.style.display = "none";
+                if (editInp) editInp.value = "";
+            } else {
+                editSel.value = "Khác";
+                if (editWrap) editWrap.style.display = "block";
+                var mPct = curBtvn.match(/(\d+(\.\d+)?)%/);
+                if (mPct) {
+                    if (editInp) editInp.value = mPct[1];
+                } else if (curBtvn.toLowerCase().indexOf("thiếu 1 bài") !== -1) {
+                    if (editInp) editInp.value = "80";
+                } else if (curBtvn.toLowerCase().indexOf("thiếu 2 bài") !== -1) {
+                    if (editInp) editInp.value = "60";
+                } else if (curBtvn.toLowerCase().indexOf("thiếu 3 bài") !== -1) {
+                    if (editInp) editInp.value = "40";
+                } else {
+                    if (editInp) editInp.value = "";
+                }
+            }
             document.getElementById('editLesDiemDau').value = log.diemDauGio || "Không có";
             document.getElementById('editLesDiemDinhKi').value = log.diemDinhKi || "Không có";
             document.getElementById('editLesNoiDung').value = log.noiDung || "";
@@ -2081,6 +2175,22 @@ function formatScheduleCell(val) {
             var mon = document.getElementById('editLesMon').value;
             var trangThai = document.getElementById('editLesTrangThai').value;
             var btvn = document.getElementById('editLesBtvn').value;
+            if (btvn === "Khác") {
+                var customInp = document.getElementById('editLesBtvnCustom');
+                var customVal = customInp ? customInp.value.trim() : "";
+                if (!customVal) {
+                    showToast("Vui lòng nhập phần trăm hoàn thành BTVN!", "error");
+                    if (customInp) customInp.focus();
+                    return;
+                }
+                var pct = parseInt(customVal, 10);
+                if (isNaN(pct) || pct < 0 || pct > 100) {
+                    showToast("Phần trăm hoàn thành BTVN phải từ 0% đến 100%!", "error");
+                    if (customInp) customInp.focus();
+                    return;
+                }
+                btvn = (pct === 0) ? "Không làm" : ((pct === 100) ? "Hoàn thành" : "Hoàn thành " + pct + "%");
+            }
             var diemDau = document.getElementById('editLesDiemDau').value.trim();
             var diemDinhKi = document.getElementById('editLesDiemDinhKi').value.trim();
             var noiDung = document.getElementById('editLesNoiDung').value.trim();
@@ -3884,7 +3994,24 @@ function duplicateLesson(rowIndex) {
         tt = "Hủy/ nghỉ"; // Chuẩn hóa
     }
     document.getElementById('lesTrangThai').value = tt;
-    document.getElementById('lesBtvn').value = log.btvn || "Hoàn thành";
+    var dupBtvn = (log.btvn || "Hoàn thành").trim();
+    var addSel = document.getElementById('lesBtvn');
+    var addWrap = document.getElementById('lesBtvnCustomWrap');
+    var addInp = document.getElementById('lesBtvnCustom');
+    if (dupBtvn === "Hoàn thành" || dupBtvn === "Không làm" || dupBtvn === "Hoàn thành 90%" || dupBtvn === "Hoàn thành 75%") {
+        addSel.value = dupBtvn;
+        if (addWrap) addWrap.style.display = "none";
+        if (addInp) addInp.value = "";
+    } else {
+        addSel.value = "Khác";
+        if (addWrap) addWrap.style.display = "block";
+        var mPct = dupBtvn.match(/(\d+(\.\d+)?)%/);
+        if (mPct) {
+            if (addInp) addInp.value = mPct[1];
+        } else {
+            if (addInp) addInp.value = "";
+        }
+    }
     document.getElementById('lesDiemDau').value = log.diemDauGio || "Không có";
     document.getElementById('lesDiemDinhKi').value = log.diemDinhKi || "Không có";
     document.getElementById('lesNoiDung').value = log.noiDung || "";

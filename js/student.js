@@ -458,10 +458,36 @@ var currentStudentName = "";
                         return '<span class="status-badge badge-dahoc">Đã học</span>';
                     };
                     var getBtvnBadge = function(btvn) {
-                        var bt = (btvn || "").trim().toLowerCase();
-                        if (bt.indexOf("hoàn thành") !== -1) return '<span class="status-badge badge-hoanthanh">Hoàn thành</span>';
-                        if (bt.indexOf("thiếu") !== -1) return '<span class="status-badge badge-thieu">' + btvn + '</span>';
-                        return '<span class="status-badge" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15); color: #FFF;">' + btvn + '</span>';
+                        var raw = (btvn || "").trim();
+                        var bt = raw.toLowerCase();
+                        if (!raw || raw === "-" || raw === "không có") return '<span class="status-badge" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15); color: #A6ADCE;">-</span>';
+                        
+                        // Kiểm tra phần trăm (ví dụ: "Hoàn thành 90%", "Hoàn thành 75%", "60%")
+                        var pctMatch = bt.match(/(\d+(\.\d+)?)\s*%/);
+                        if (pctMatch) {
+                            var pct = parseFloat(pctMatch[1]);
+                            if (pct >= 90) {
+                                return '<span class="status-badge badge-hoanthanh">' + raw + '</span>';
+                            } else if (pct >= 50) {
+                                return '<span class="status-badge badge-thieu">' + raw + '</span>';
+                            } else {
+                                return '<span class="status-badge badge-nghi">' + raw + '</span>';
+                            }
+                        }
+
+                        if (bt.indexOf("không làm") !== -1 || bt.indexOf("chưa làm") !== -1 || bt.indexOf("chưa nộp") !== -1 || bt.indexOf("chưa đạt") !== -1 || bt === "không") {
+                            return '<span class="status-badge badge-nghi">' + raw + '</span>';
+                        }
+                        if (bt.indexOf("hoàn thành") !== -1 || bt === "đạt" || bt === "tốt" || bt === "xuất sắc" || bt === "có") {
+                            return '<span class="status-badge badge-hoanthanh">' + raw + '</span>';
+                        }
+                        if (bt.indexOf("thiếu") !== -1) {
+                            return '<span class="status-badge badge-thieu">' + raw + '</span>';
+                        }
+                        if (bt.indexOf("phụ huynh") !== -1 || bt.indexOf("nhắc") !== -1) {
+                            return '<span class="status-badge badge-hocbu" style="font-size:10.5px; padding:3px 8px;">' + raw + '</span>';
+                        }
+                        return '<span class="status-badge" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15); color: #FFF;">' + raw + '</span>';
                     };
 
                     // Cập nhật tiêu đề Lịch sử có kèm tổng số buổi rõ ràng

@@ -1059,15 +1059,19 @@
             </div>
             <div class="modal-form-group">
                 <label>Đánh giá Bài tập về nhà</label>
-                <select id="lesBtvn">
+                <select id="lesBtvn" onchange="toggleBtvnCustomInput('lesBtvn', 'lesBtvnCustomWrap', 'lesBtvnCustom')">
                     <option value="Hoàn thành">Hoàn thành</option>
-                    <option value="Thiếu">Thiếu</option>
                     <option value="Không làm">Không làm</option>
-                    <option value="Phụ huynh nhớ nhắc nhở bé làm bài tập gia sư mới giao">Phụ huynh nhớ nhắc nhở bé làm bài tập gia sư mới giao</option>
-                    <option value="Thiếu 1 bài">Thiếu 1 bài</option>
-                    <option value="Thiếu 2 bài">Thiếu 2 bài</option>
-                    <option value="Thiếu 3 bài">Thiếu 3 bài</option>
+                    <option value="Hoàn thành 90%">Hoàn thành 90%</option>
+                    <option value="Hoàn thành 75%">Hoàn thành 75%</option>
+                    <option value="Khác">Khác</option>
                 </select>
+                <div id="lesBtvnCustomWrap" style="display: none; margin-top: 8px;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <input type="number" id="lesBtvnCustom" min="0" max="100" placeholder="Nhập % hoàn thành (ví dụ: 60)" style="flex: 1; padding: 10px 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; color: #FFF;">
+                        <span style="font-weight: bold; color: #FFD23F; font-size: 15px;">%</span>
+                    </div>
+                </div>
             </div>
             <div class="modal-grid-2">
                 <div class="modal-form-group">
@@ -1185,15 +1189,19 @@
                 </div>
                 <div class="modal-form-group">
                     <label>Đánh giá Bài tập về nhà</label>
-                    <select id="editLesBtvn">
+                    <select id="editLesBtvn" onchange="toggleBtvnCustomInput('editLesBtvn', 'editLesBtvnCustomWrap', 'editLesBtvnCustom')">
                         <option value="Hoàn thành">Hoàn thành</option>
-                        <option value="Thiếu">Thiếu</option>
                         <option value="Không làm">Không làm</option>
-                        <option value="Phụ huynh nhớ nhắc nhở bé làm bài tập gia sư mới giao">Phụ huynh nhớ nhắc nhở bé làm bài tập gia sư mới giao</option>
-                        <option value="Thiếu 1 bài">Thiếu 1 bài</option>
-                        <option value="Thiếu 2 bài">Thiếu 2 bài</option>
-                        <option value="Thiếu 3 bài">Thiếu 3 bài</option>
+                        <option value="Hoàn thành 90%">Hoàn thành 90%</option>
+                        <option value="Hoàn thành 75%">Hoàn thành 75%</option>
+                        <option value="Khác">Khác</option>
                     </select>
+                    <div id="editLesBtvnCustomWrap" style="display: none; margin-top: 8px;">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <input type="number" id="editLesBtvnCustom" min="0" max="100" placeholder="Nhập % hoàn thành (ví dụ: 60)" style="flex: 1; padding: 10px 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; color: #FFF;">
+                            <span style="font-weight: bold; color: #FFD23F; font-size: 15px;">%</span>
+                        </div>
+                    </div>
                 </div>
                 <div class="modal-grid-2">
                     <div class="modal-form-group">
@@ -1385,8 +1393,8 @@
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <script src="js/api.js?v=2.0.7"></script>
-    <script src="js/tutor.js?v=2.0.7"></script>
+    <script src="js/api.js?v=2.0.8"></script>
+    <script src="js/tutor.js?v=2.0.8"></script>
     <script>
         window.addEventListener('DOMContentLoaded', () => {
             var data = JSON.parse(sessionStorage.getItem('dashboardData'));
