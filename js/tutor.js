@@ -7509,6 +7509,9 @@ function openAssignHwForm() {
     document.getElementById('assignHwTitle').value = savedTitle;
     var now = new Date();
     document.getElementById('assignHwReleaseDate').value = formatDateDDMMYYYY(now);
+    if (document.getElementById('assignHwDueDate')) {
+        document.getElementById('assignHwDueDate').value = "";
+    }
     if (document.getElementById('assignHwLink')) {
         document.getElementById('assignHwLink').value = "";
     }
@@ -7628,12 +7631,18 @@ function submitAssignedHomework() {
     
     var title = document.getElementById('assignHwTitle').value.trim();
     var releaseDate = document.getElementById('assignHwReleaseDate').value.trim();
+    var dueDate = document.getElementById('assignHwDueDate') ? document.getElementById('assignHwDueDate').value.trim() : "";
     var externalLink = document.getElementById('assignHwLink') ? document.getElementById('assignHwLink').value.trim() : "";
     var maBaiTap = currentTutorStudent.maBaiTap || currentTutorStudent.phone || currentTutorStudent.studentId || currentTutorStudent.name || "DE_GIA_SU";
     
     if (!title) {
         showToast("Vui lòng nhập Tên bài tập!", "error");
         return;
+    }
+
+    if (!dueDate) {
+        var baseDateForDue = releaseDate || formatDateDDMMYYYY(new Date());
+        dueDate = computeDefaultDueDate(baseDateForDue);
     }
     
     // Nếu là giao bài mới (không sửa) thì bắt buộc chọn file hoặc nhập link ngoài
@@ -7695,7 +7704,7 @@ function submitAssignedHomework() {
                     submitBtn.disabled = false;
                     showToast("Lỗi: " + err.toString(), "error");
                 })
-                .editAssignedHomework(editingAssignedHwRowIndex, title, releaseDate, fileBase64, fileName, mimeType, externalLink);
+                .editAssignedHomework(editingAssignedHwRowIndex, title, releaseDate, fileBase64, fileName, mimeType, externalLink, dueDate);
         } else {
             // Tải bài mới lên
             var tutorPhoneToSend = (tutorDataGlobal && tutorDataGlobal.tutorPhone) ? tutorDataGlobal.tutorPhone : "";
@@ -7716,6 +7725,9 @@ function submitAssignedHomework() {
                             showToast("Giao bài tập thành công!", "success");
                             sessionStorage.removeItem('hw_draft_title');
                             document.getElementById('assignHwTitle').value = "";
+                            if (document.getElementById('assignHwDueDate')) {
+                                document.getElementById('assignHwDueDate').value = "";
+                            }
                             if (document.getElementById('assignHwLink')) {
                                 document.getElementById('assignHwLink').value = "";
                             }
@@ -7732,7 +7744,7 @@ function submitAssignedHomework() {
                     submitBtn.disabled = false;
                     showToast("Lỗi: " + err.toString(), "error");
                 })
-                .uploadAssignedHomework(tutorPhoneToSend, currentTutorStudent.name, title, releaseDate, fileBase64, fileName, mimeType, maBaiTap, externalLink);
+                .uploadAssignedHomework(tutorPhoneToSend, currentTutorStudent.name, title, releaseDate, fileBase64, fileName, mimeType, maBaiTap, externalLink, dueDate);
         }
     };
     
@@ -7845,7 +7857,7 @@ function renderAssignedHwList(list, showAll) {
     if (!tableBody) return;
     
     if (!list || list.length === 0) {
-        tableBody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:#A6ADCE; padding: 20px;"><i class="fa-solid fa-circle-info"></i> Chưa giao bài tập nào cho học sinh này!</td></tr>';
+        tableBody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:#A6ADCE; padding: 20px;"><i class="fa-solid fa-circle-info"></i> Chưa giao bài tập nào cho học sinh này!</td></tr>';
         if (mobileContainer) {
             mobileContainer.innerHTML = '<div style="text-align:center; color:#A6ADCE; padding: 20px; font-size: 13px;"><i class="fa-solid fa-circle-info"></i> Chưa giao bài tập nào cho học sinh này!</div>';
         }
@@ -7868,6 +7880,7 @@ function renderAssignedHwList(list, showAll) {
     var mobileHtml = "";
     
     visibleList.forEach(function(item, idx) {
+        var dueDateText = item.dueDate || (typeof computeDefaultDueDate === 'function' ? computeDefaultDueDate(item.releaseDate) : item.releaseDate);
         var fileLinkHtml = item.fileUrl ? '<a href="' + item.fileUrl + '" target="_blank" style="color:#8E4DFF; font-weight:600; text-decoration:none; display:inline-flex; align-items:center; gap:6px;"><i class="fa-solid fa-file-pdf"></i> Xem file</a>' : '';
         var extLinkHtml = item.externalLink ? '<a href="' + item.externalLink + '" target="_blank" style="color:#10B981; font-weight:600; text-decoration:none; display:inline-flex; align-items:center; gap:6px;"><i class="fa-solid fa-link"></i> Mở link</a>' : '';
         
@@ -7883,7 +7896,7 @@ function renderAssignedHwList(list, showAll) {
 
         var actionsHtml = 
             '<div style="display:flex; gap:8px; justify-content:center; align-items:center;">' +
-                '<button onclick="startEditAssignedHw(\'' + item.rowIndex + '\', \'' + item.title.replace(/'/g, "\\'") + '\', \'' + item.releaseDate + '\')" class="action-btn-hw-icon action-btn-hw-edit" title="Chỉnh sửa"><i class="fa-solid fa-pen-to-square"></i></button>' +
+                '<button onclick="startEditAssignedHw(\'' + item.rowIndex + '\', \'' + item.title.replace(/'/g, "\\'") + '\', \'' + item.releaseDate + '\', \'' + dueDateText.replace(/'/g, "\\'") + '\')" class="action-btn-hw-icon action-btn-hw-edit" title="Chỉnh sửa"><i class="fa-solid fa-pen-to-square"></i></button>' +
                 '<button onclick="deleteAssignedHomework(\'' + item.rowIndex + '\')" class="action-btn-hw-icon action-btn-hw-delete" title="Xóa tạm thời"><i class="fa-solid fa-trash-can"></i></button>' +
             '</div>';
             
@@ -7891,6 +7904,7 @@ function renderAssignedHwList(list, showAll) {
         tableBody.innerHTML += 
             '<tr>' +
                 '<td style="color:#A6ADCE;">' + item.releaseDate + '</td>' +
+                '<td style="color:#F59E0B; font-weight:600; font-size:13px;">' + dueDateText + '</td>' +
                 '<td style="color:#FFF; font-weight:500;">' + item.title + '</td>' +
                 '<td>' + attachmentsHtml + '</td>' +
                 '<td style="text-align: center; vertical-align: middle;">' + actionsHtml + '</td>' +
@@ -7909,10 +7923,11 @@ function renderAssignedHwList(list, showAll) {
         mobileHtml += "  </div>";
         mobileHtml += "  <div class='accordion-body' id='assign-hw-body-" + idx + "' style='display: none;'>";
         mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Ngày giao</span><span class='accordion-body-val'>" + item.releaseDate + "</span></div>";
+        mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Hạn nộp</span><span class='accordion-body-val' style='color:#F59E0B; font-weight:600;'>" + dueDateText + "</span></div>";
         mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Đính kèm</span><span class='accordion-body-val'>" + attachmentsMobileHtml + "</span></div>";
         mobileHtml += "    <div class='accordion-body-row' style='margin-top: 5px;'><span class='accordion-body-label'>Thao tác</span>";
         mobileHtml += "      <span class='accordion-body-val' style='display:inline-flex; gap:10px;'>";
-        mobileHtml += "        <button onclick=\"startEditAssignedHw('" + item.rowIndex + "', '" + item.title.replace(/'/g, "\\'") + "', '" + item.releaseDate + "')\" class='action-btn-hw' style='border-color:#F59E0B; color:#F59E0B; cursor:pointer;'><i class='fa-solid fa-pen-to-square'></i> Sửa</button>";
+        mobileHtml += "        <button onclick=\"startEditAssignedHw('" + item.rowIndex + "', '" + item.title.replace(/'/g, "\\'") + "', '" + item.releaseDate + "', '" + dueDateText.replace(/'/g, "\\'") + "')\" class='action-btn-hw' style='border-color:#F59E0B; color:#F59E0B; cursor:pointer;'><i class='fa-solid fa-pen-to-square'></i> Sửa</button>";
         mobileHtml += "        <button onclick=\"deleteAssignedHomework('" + item.rowIndex + "')\" class='action-btn-hw' style='border-color:#EF4444; color:#EF4444; cursor:pointer;'><i class='fa-solid fa-trash-can'></i> Xóa</button>";
         mobileHtml += "      </span>";
         mobileHtml += "    </div>";
@@ -7924,7 +7939,7 @@ function renderAssignedHwList(list, showAll) {
     if (totalCount > ASSIGNED_HW_LIMIT) {
         var remaining = totalCount - ASSIGNED_HW_LIMIT;
         if (!showAll) {
-            tableBody.innerHTML += '<tr><td colspan="4" style="text-align:center; padding:10px;">'
+            tableBody.innerHTML += '<tr><td colspan="5" style="text-align:center; padding:10px;">'
                 + '<button onclick="renderAssignedHwList(assignedHwListGlobal, true)" style="background:none; border:1px solid #4B5563; color:#8E4DFF; padding:6px 20px; border-radius:8px; cursor:pointer; font-size:13px;">'
                 + '<i class="fa-solid fa-chevron-down" style="margin-right:5px;"></i>Xem thêm ' + remaining + ' bài cũ hơn'
                 + '</button></td></tr>';
@@ -7933,7 +7948,7 @@ function renderAssignedHwList(list, showAll) {
                 + '<i class="fa-solid fa-chevron-down" style="margin-right:5px;"></i>Xem thêm ' + remaining + ' bài cũ hơn'
                 + '</button></div>';
         } else {
-            tableBody.innerHTML += '<tr><td colspan="4" style="text-align:center; padding:10px;">'
+            tableBody.innerHTML += '<tr><td colspan="5" style="text-align:center; padding:10px;">'
                 + '<button onclick="renderAssignedHwList(assignedHwListGlobal, false)" style="background:none; border:1px solid #4B5563; color:#9CA3AF; padding:6px 20px; border-radius:8px; cursor:pointer; font-size:13px;">'
                 + '<i class="fa-solid fa-chevron-up" style="margin-right:5px;"></i>Thu gọn'
                 + '</button></td></tr>';
@@ -7966,21 +7981,29 @@ function toggleTutorAssignedHwAccordion(idx) {
 // 9. Bắt đầu chỉnh sửa bài tập giao (Sử dụng Modal độc lập)
 var currentTutorEditHwFile = null;
 
-function startEditAssignedHw(rowIndex, title, releaseDate) {
+function startEditAssignedHw(rowIndex, title, releaseDate, dueDate) {
     editingAssignedHwRowIndex = rowIndex;
     
     var currentLink = "";
+    var currentDue = dueDate || "";
     if (assignedHwListGlobal) {
         var foundHw = assignedHwListGlobal.find(function(item) {
             return item.rowIndex === rowIndex;
         });
-        if (foundHw && foundHw.externalLink) {
-            currentLink = foundHw.externalLink;
+        if (foundHw) {
+            if (foundHw.externalLink) currentLink = foundHw.externalLink;
+            if (!currentDue && foundHw.dueDate) currentDue = foundHw.dueDate;
         }
+    }
+    if (!currentDue && releaseDate) {
+        currentDue = computeDefaultDueDate(releaseDate);
     }
     
     document.getElementById('editAssignHwTitle').value = title;
     document.getElementById('editAssignHwReleaseDate').value = releaseDate;
+    if (document.getElementById('editAssignHwDueDate')) {
+        document.getElementById('editAssignHwDueDate').value = currentDue;
+    }
     if (document.getElementById('editAssignHwLink')) {
         document.getElementById('editAssignHwLink').value = currentLink;
     }
@@ -8024,11 +8047,16 @@ function clearTutorEditSelectedFile() {
 function submitEditAssignedHomework() {
     var title = document.getElementById('editAssignHwTitle').value.trim();
     var releaseDate = document.getElementById('editAssignHwReleaseDate').value.trim();
+    var dueDate = document.getElementById('editAssignHwDueDate') ? document.getElementById('editAssignHwDueDate').value.trim() : "";
     var externalLink = document.getElementById('editAssignHwLink') ? document.getElementById('editAssignHwLink').value.trim() : "";
     
     if (!title) {
         showToast("Vui lòng nhập Tên bài tập!", "error");
         return;
+    }
+    if (!dueDate) {
+        var baseDateForDue = releaseDate || formatDateDDMMYYYY(new Date());
+        dueDate = computeDefaultDueDate(baseDateForDue);
     }
     
     var submitBtn = document.getElementById('btnSubmitEditAssignedHw');
@@ -8081,7 +8109,7 @@ function submitEditAssignedHomework() {
                 submitBtn.disabled = false;
                 showToast("Lỗi: " + err.toString(), "error");
             })
-            .editAssignedHomework(editingAssignedHwRowIndex, title, releaseDate, fileBase64, fileName, mimeType, externalLink);
+            .editAssignedHomework(editingAssignedHwRowIndex, title, releaseDate, fileBase64, fileName, mimeType, externalLink, dueDate);
     };
     
     if (currentTutorEditHwFile) {
@@ -8797,6 +8825,40 @@ function formatDateDDMMYYYY(date) {
     var m = date.getMonth() + 1;
     var y = date.getFullYear();
     return (d < 10 ? '0' + d : d) + '/' + (m < 10 ? '0' + m : m) + '/' + y;
+}
+
+// Helper: Tính hạn nộp mặc định (+4 ngày kể từ ngày giao bài)
+function computeDefaultDueDate(releaseDateStr) {
+    var baseDate = new Date();
+    if (releaseDateStr && typeof releaseDateStr === 'string') {
+        var str = releaseDateStr.trim().split(' ')[0];
+        if (str.includes('/')) {
+            var parts = str.split('/');
+            if (parts.length >= 3) {
+                var day = parseInt(parts[0], 10);
+                var month = parseInt(parts[1], 10) - 1;
+                var year = parseInt(parts[2], 10);
+                if (!isNaN(day) && !isNaN(month) && !isNaN(year)) {
+                    baseDate = new Date(year, month, day);
+                }
+            }
+        } else if (str.includes('-')) {
+            var parts = str.split('-');
+            if (parts.length >= 3 && parts[0].length === 4) {
+                var year = parseInt(parts[0], 10);
+                var month = parseInt(parts[1], 10) - 1;
+                var day = parseInt(parts[2], 10);
+                if (!isNaN(day) && !isNaN(month) && !isNaN(year)) {
+                    baseDate = new Date(year, month, day);
+                }
+            }
+        }
+    }
+    baseDate.setDate(baseDate.getDate() + 4);
+    var dd = String(baseDate.getDate()).padStart(2, '0');
+    var mm = String(baseDate.getMonth() + 1).padStart(2, '0');
+    var yyyy = baseDate.getFullYear();
+    return dd + '/' + mm + '/' + yyyy;
 }
 
 // Helper: Chuyển đổi link xem Drive thành link tải trực tiếp

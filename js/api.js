@@ -76,6 +76,46 @@ function formatShortDate(dStr) {
     return s;
 }
 
+function computeDefaultDueDate(releaseDateStr) {
+    let baseDate = new Date();
+    if (releaseDateStr) {
+        let str = String(releaseDateStr).trim();
+        let mIso = str.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+        if (mIso) {
+            baseDate = new Date(parseInt(mIso[1], 10), parseInt(mIso[2], 10) - 1, parseInt(mIso[3], 10));
+        } else if (str.includes('/')) {
+            let p = str.split('/');
+            let d = parseInt(p[0], 10);
+            let m = parseInt(p[1], 10) - 1;
+            let y = p[2] ? parseInt(p[2], 10) : new Date().getFullYear();
+            if (y < 100) y += 2000;
+            baseDate = new Date(y, m, d);
+        }
+    }
+    // Mặc định sau ngày giao bài trong vòng 4 ngày
+    baseDate.setDate(baseDate.getDate() + 4);
+    let dd = String(baseDate.getDate()).padStart(2, '0');
+    let mm = String(baseDate.getMonth() + 1).padStart(2, '0');
+    let yyyy = baseDate.getFullYear();
+    return `${dd}/${mm}/${yyyy}`;
+}
+
+function extractHwTitleAndDueDate(rawName, rawDueDate, rawReleaseDate) {
+    let title = String(rawName || "").trim();
+    let dueDate = (rawDueDate && String(rawDueDate).trim()) ? String(rawDueDate).trim() : "";
+    if (!dueDate && title.includes("[Hạn:")) {
+        let m = title.match(/\[Hạn:\s*([^\]]+)\]/);
+        if (m) {
+            dueDate = m[1].trim();
+            title = title.replace(/\[Hạn:\s*[^\]]+\]/, "").trim();
+        }
+    }
+    if (!dueDate && rawReleaseDate) {
+        dueDate = computeDefaultDueDate(rawReleaseDate);
+    }
+    return { title, dueDate };
+}
+
 function parseLogDate(dStr) {
     if (!dStr) return 0;
     let s = String(dStr).trim().split(' ')[0];
@@ -411,7 +451,7 @@ class GoogleScriptRunInstance {
                             h.homework_code === target.student_id
                         )).map(h => ({
                             mon: "Gia sư",
-                            tenBai: h.hw_name,
+                            tenBai: extractHwTitleAndDueDate(h.hw_name, h.due_date, h.release_date).title,
                             link: h.external_link || h.file_url || ""
                         }));
                         
@@ -850,30 +890,38 @@ class GoogleScriptRunInstance {
                 
                 result = {
                     success: true,
-                    activeList: active.map((h, idx) => ({
-                        rowIndex: h.hw_id,
-                        studentName: h.student_name,
-                        title: h.hw_name,
-                        releaseDate: h.release_date || "",
-                        fileUrl: h.file_url || "",
-                        externalLink: h.external_link || "",
-                        status: h.status || "Active"
-                    })),
-                    trashList: trash.map((h, idx) => ({
-                        rowIndex: h.hw_id,
-                        studentName: h.student_name,
-                        title: h.hw_name,
-                        releaseDate: h.release_date || "",
-                        fileUrl: h.file_url || "",
-                        externalLink: h.external_link || "",
-                        deletedTime: h.deleted_date || "",
-                        deletedDate: h.deleted_date || ""
-                    }))
+                    activeList: active.map((h, idx) => {
+                        let parsed = extractHwTitleAndDueDate(h.hw_name, h.due_date, h.release_date);
+                        return {
+                            rowIndex: h.hw_id,
+                            studentName: h.student_name,
+                            title: parsed.title,
+                            releaseDate: h.release_date || "",
+                            dueDate: parsed.dueDate,
+                            fileUrl: h.file_url || "",
+                            externalLink: h.external_link || "",
+                            status: h.status || "Active"
+                        };
+                    }),
+                    trashList: trash.map((h, idx) => {
+                        let parsed = extractHwTitleAndDueDate(h.hw_name, h.due_date, h.release_date);
+                        return {
+                            rowIndex: h.hw_id,
+                            studentName: h.student_name,
+                            title: parsed.title,
+                            releaseDate: h.release_date || "",
+                            dueDate: parsed.dueDate,
+                            fileUrl: h.file_url || "",
+                            externalLink: h.external_link || "",
+                            deletedTime: h.deleted_date || "",
+                            deletedDate: h.deleted_date || ""
+                        };
+                    })
                 };
             }
             
             else if (functionName === 'uploadAssignedHomework' || functionName === 'assignHomework') {
-                const [tutorPhone, studentName, title, releaseDate, fileBase64, fileName, mimeType, maBaiTap, externalLink] = args;
+                const [tutorPhone, studentName, title, releaseDate, fileBase64, fileName, mimeType, maBaiTap, externalLink, dueDate] = args;
                 const hwId = `HW_GS_${Date.now()}`;
                 let fileUrl = externalLink || "";
                 
@@ -916,26 +964,46 @@ class GoogleScriptRunInstance {
                     const mime = mimeType || "application/octet-stream";
                     fileUrl = `data:${mime};base64,${fileBase64}`;
                 }
+
+                const finalRelease = releaseDate || new Date().toLocaleDateString('vi-VN');
+                const finalDue = (dueDate && String(dueDate).trim()) ? String(dueDate).trim() : computeDefaultDueDate(finalRelease);
                 
-                await supaPost(APP_CONFIG.TABLES.HOMEWORK, [{
+                const payload = {
                     hw_id: hwId,
                     student_name: studentName,
                     hw_name: title,
-                    release_date: releaseDate || new Date().toLocaleDateString('vi-VN'),
+                    release_date: finalRelease,
+                    due_date: finalDue,
                     file_url: fileUrl,
                     homework_code: maBaiTap || "",
                     tutor_phone: tutorPhone || "",
                     external_link: externalLink || "",
                     status: 'Active'
-                }]);
-                result = { success: true, hwId: hwId, fileUrl: fileUrl };
+                };
+
+                try {
+                    await supaPost(APP_CONFIG.TABLES.HOMEWORK, [payload]);
+                } catch (errPost) {
+                    let errStr = (errPost && (errPost.message || errPost.toString())) || "";
+                    if (errStr.includes("due_date") || errStr.includes("PGRST204")) {
+                        delete payload.due_date;
+                        payload.hw_name = title + (finalDue ? ` [Hạn: ${finalDue}]` : "");
+                        await supaPost(APP_CONFIG.TABLES.HOMEWORK, [payload]);
+                    } else {
+                        throw errPost;
+                    }
+                }
+                result = { success: true, hwId: hwId, fileUrl: fileUrl, dueDate: finalDue };
             }
             
             else if (functionName === 'editAssignedHomework' || functionName === 'updateAssignedHomework') {
-                const [hwId, title, releaseDate, fileBase64, fileName, mimeType, externalLink] = args;
+                const [hwId, title, releaseDate, fileBase64, fileName, mimeType, externalLink, dueDate] = args;
+                const finalRelease = releaseDate || new Date().toLocaleDateString('vi-VN');
+                const finalDue = (dueDate && String(dueDate).trim()) ? String(dueDate).trim() : computeDefaultDueDate(finalRelease);
                 let updateData = {
                     hw_name: title,
-                    release_date: releaseDate || new Date().toLocaleDateString('vi-VN')
+                    release_date: finalRelease,
+                    due_date: finalDue
                 };
                 if (externalLink !== undefined) updateData.external_link = externalLink;
                 
@@ -978,8 +1046,19 @@ class GoogleScriptRunInstance {
                     updateData.file_url = `data:${mime};base64,${fileBase64}`;
                 }
                 
-                await supaPatch(APP_CONFIG.TABLES.HOMEWORK, `hw_id=eq.${encodeURIComponent(hwId)}`, updateData);
-                result = { success: true };
+                try {
+                    await supaPatch(APP_CONFIG.TABLES.HOMEWORK, `hw_id=eq.${encodeURIComponent(hwId)}`, updateData);
+                } catch (errPatch) {
+                    let errStr = (errPatch && (errPatch.message || errPatch.toString())) || "";
+                    if (errStr.includes("due_date") || errStr.includes("PGRST204")) {
+                        delete updateData.due_date;
+                        updateData.hw_name = title + (finalDue ? ` [Hạn: ${finalDue}]` : "");
+                        await supaPatch(APP_CONFIG.TABLES.HOMEWORK, `hw_id=eq.${encodeURIComponent(hwId)}`, updateData);
+                    } else {
+                        throw errPatch;
+                    }
+                }
+                result = { success: true, dueDate: finalDue };
             }
             
             else if (functionName === 'deleteAssignedHomework') {
@@ -1153,15 +1232,19 @@ class GoogleScriptRunInstance {
                         (target.student_name && h.student_name && h.student_name.trim().toLowerCase() === target.student_name.trim().toLowerCase()) ||
                         codesToMatch.has(String(h.homework_code || '').toLowerCase()) ||
                         codesToMatch.has(normalizePhone(h.homework_code))
-                    )).map((h, idx) => ({
-                        hwId: h.hw_id,
-                        rowIndex: idx + 1,
-                        studentName: target.student_name,
-                        title: h.hw_name,
-                        releaseDate: h.release_date || "",
-                        fileUrl: h.file_url || "",
-                        externalLink: h.external_link || ""
-                    }));
+                    )).map((h, idx) => {
+                        let parsed = extractHwTitleAndDueDate(h.hw_name, h.due_date, h.release_date);
+                        return {
+                            hwId: h.hw_id,
+                            rowIndex: idx + 1,
+                            studentName: target.student_name,
+                            title: parsed.title,
+                            releaseDate: h.release_date || "",
+                            dueDate: parsed.dueDate,
+                            fileUrl: h.file_url || "",
+                            externalLink: h.external_link || ""
+                        };
+                    });
                     
                     let subsRaw = await supaGet(APP_CONFIG.TABLES.SUBMISSIONS, `select=*`);
                     let mySubs = subsRaw.filter(s => {

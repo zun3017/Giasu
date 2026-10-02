@@ -1508,7 +1508,7 @@
         <button type="button" onclick="closeLightbox()" style="position:absolute; top:20px; right:25px; background:rgba(255,255,255,0.15); border:none; color:#FFF; font-size:24px; width:45px; height:45px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center;"><i class="fa-solid fa-xmark"></i></button>
     </div>
 
-    <script src="js/api.js?v=3.0.0"></script>
+    <script src="js/api.js?v=20261002_v15"></script>
     <script>
         // --- Web App Notification and Confirmation Dialogs ---
         function showToast(message, type = 'info') {
@@ -1763,29 +1763,182 @@
             }
         }
 
-        // ===== PHASE 16.1: TÍNH & HIỂN THỊ 4 KPI CARDS =====
-        function renderHwKpi(homeworkList, submissions) {
-            var total = (homeworkList || []).length;
-            var subList = submissions || [];
-            var submitted = subList.filter(function(s) { return s.status !== 'Deleted'; }).length;
+        // Helper: Tính hạn nộp mặc định (+4 ngày kể từ ngày giao)
+        function computeDefaultDueDate(releaseDateStr) {
+            var baseDate = new Date();
+            if (releaseDateStr && typeof releaseDateStr === 'string') {
+                var str = releaseDateStr.trim().split(' ')[0];
+                if (str.includes('/')) {
+                    var parts = str.split('/');
+                    if (parts.length >= 3) {
+                        var day = parseInt(parts[0], 10);
+                        var month = parseInt(parts[1], 10) - 1;
+                        var year = parseInt(parts[2], 10);
+                        if (!isNaN(day) && !isNaN(month) && !isNaN(year)) {
+                            baseDate = new Date(year, month, day);
+                        }
+                    }
+                } else if (str.includes('-')) {
+                    var parts = str.split('-');
+                    if (parts.length >= 3 && parts[0].length === 4) {
+                        var year = parseInt(parts[0], 10);
+                        var month = parseInt(parts[1], 10) - 1;
+                        var day = parseInt(parts[2], 10);
+                        if (!isNaN(day) && !isNaN(month) && !isNaN(year)) {
+                            baseDate = new Date(year, month, day);
+                        }
+                    }
+                }
+            }
+            baseDate.setDate(baseDate.getDate() + 4);
+            var dd = String(baseDate.getDate()).padStart(2, '0');
+            var mm = String(baseDate.getMonth() + 1).padStart(2, '0');
+            var yyyy = baseDate.getFullYear();
+            return dd + '/' + mm + '/' + yyyy;
+        }
+
+        // Helper: Phân tích các định dạng ngày/giờ phổ biến
+        function parseHwDate(d, isEndOfDay) {
+            if (!d) return null;
+            if (d instanceof Date) return d;
+            if (typeof d === 'number') return new Date(d);
+            var str = String(d).trim();
+            var timeFirst = str.match(/^(\d{1,2}):(\d{1,2})(?::(\d{1,2}))?\s+(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+            if (timeFirst) {
+                var h = parseInt(timeFirst[1], 10), m = parseInt(timeFirst[2], 10), s = parseInt(timeFirst[3] || '0', 10);
+                var day = parseInt(timeFirst[4], 10), mo = parseInt(timeFirst[5], 10) - 1, y = parseInt(timeFirst[6], 10);
+                return new Date(y, mo, day, h, m, s);
+            }
+            var dateFirst = str.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})(?:\s+(\d{1,2}):(\d{1,2})(?::(\d{1,2}))?)?/);
+            if (dateFirst) {
+                var day = parseInt(dateFirst[1], 10), mo = parseInt(dateFirst[2], 10) - 1, y = parseInt(dateFirst[3], 10);
+                if (dateFirst[4] !== undefined) {
+                    var h = parseInt(dateFirst[4], 10), m = parseInt(dateFirst[5], 10), s = parseInt(dateFirst[6] || '0', 10);
+                    return new Date(y, mo, day, h, m, s);
+                }
+                return isEndOfDay ? new Date(y, mo, day, 23, 59, 59, 999) : new Date(y, mo, day, 0, 0, 0, 0);
+            }
+            var ymd = str.match(/^(\d{4})-(\d{1,2})-(\d{1,2})(?:\s+(\d{1,2}):(\d{1,2})(?::(\d{1,2}))?)?/);
+            if (ymd) {
+                var y = parseInt(ymd[1], 10), mo = parseInt(ymd[2], 10) - 1, day = parseInt(ymd[3], 10);
+                if (ymd[4] !== undefined) {
+                    var h = parseInt(ymd[4], 10), m = parseInt(ymd[5], 10), s = parseInt(ymd[6] || '0', 10);
+                    return new Date(y, mo, day, h, m, s);
+                }
+                return isEndOfDay ? new Date(y, mo, day, 23, 59, 59, 999) : new Date(y, mo, day, 0, 0, 0, 0);
+            }
+            var t = Date.parse(str);
+            if (!isNaN(t)) return new Date(t);
+            return null;
+        }
+
+        // Tính toán thống kê nộp bài thực tế dựa vào deadline
+        function calculateSubmissionStats(homeworkList, submissions) {
+            var hwList = (homeworkList || []).slice();
+            var activeSubs = (submissions || []).filter(function(s) { return s.status !== 'Deleted'; });
+            
+            var assignedStatus = hwList.map(function(hw) {
+                var dueDateStr = hw.dueDate || computeDefaultDueDate(hw.releaseDate);
+                var dueD = parseHwDate(dueDateStr, true);
+                var relD = parseHwDate(hw.releaseDate, false);
+                return {
+                    hw: hw,
+                    dueDateStr: dueDateStr,
+                    dueD: dueD,
+                    relD: relD,
+                    matchedSub: null,
+                    isSubmitted: false,
+                    isOnTime: false
+                };
+            });
+
+            var usedSubIds = new Set();
+
+            // Pass 1: Ghép chính xác theo tên bài tập
+            assignedStatus.forEach(function(item) {
+                var titleNorm = (item.hw.title || '').trim().toLowerCase();
+                if (!titleNorm) return;
+                var foundSub = activeSubs.find(function(s) {
+                    var sid = s.subId || s.submission_id;
+                    if (sid && usedSubIds.has(sid)) return false;
+                    var lessonNorm = (s.lessonName || s.lesson_name || '').trim().toLowerCase();
+                    return lessonNorm === titleNorm || lessonNorm.indexOf(titleNorm) !== -1 || titleNorm.indexOf(lessonNorm) !== -1;
+                });
+                if (foundSub) {
+                    item.matchedSub = foundSub;
+                    item.isSubmitted = true;
+                    var sid = foundSub.subId || foundSub.submission_id;
+                    if (sid) usedSubIds.add(sid);
+                    var subD = parseHwDate(foundSub.timestamp || foundSub.submitted_at || foundSub.submissionDate || foundSub.submission_date, false);
+                    item.isOnTime = item.dueD && subD ? (subD.getTime() <= item.dueD.getTime()) : true;
+                }
+            });
+
+            // Pass 2: Các bài nộp còn lại chưa match tên, ghép với bài giao chưa nộp
+            activeSubs.forEach(function(sub) {
+                var sid = sub.subId || sub.submission_id;
+                if (sid && usedSubIds.has(sid)) return;
+                var subD = parseHwDate(sub.timestamp || sub.submitted_at || sub.submissionDate || sub.submission_date, false);
+                var availableHw = assignedStatus.find(function(item) {
+                    return !item.matchedSub;
+                });
+                if (availableHw) {
+                    availableHw.matchedSub = sub;
+                    availableHw.isSubmitted = true;
+                    if (sid) usedSubIds.add(sid);
+                    availableHw.isOnTime = availableHw.dueD && subD ? (subD.getTime() <= availableHw.dueD.getTime()) : true;
+                }
+            });
 
             var onTime = 0;
-            subList.forEach(function(sub) {
-                if (sub.status !== 'Deleted') {
+            var late = 0;
+            var missing = 0;
+
+            assignedStatus.forEach(function(item) {
+                if (item.isSubmitted) {
+                    if (item.isOnTime) onTime++;
+                    else late++;
+                } else {
+                    missing++;
+                }
+            });
+
+            // Những bài nộp thêm ngoài danh sách giao (tự làm thêm)
+            activeSubs.forEach(function(sub) {
+                var sid = sub.subId || sub.submission_id;
+                if (!sid || !usedSubIds.has(sid)) {
                     onTime++;
                 }
             });
-            var missing = Math.max(0, total - submitted);
 
+            var totalSubmitted = onTime + late;
+            var totalHw = Math.max(hwList.length, totalSubmitted + missing);
+            if (totalHw < totalSubmitted) totalHw = totalSubmitted;
+            missing = Math.max(0, totalHw - totalSubmitted);
+            var pct = totalHw > 0 ? Math.round(totalSubmitted / totalHw * 100) : (totalSubmitted > 0 ? 100 : 0);
+
+            return {
+                total: totalHw,
+                submitted: totalSubmitted,
+                onTime: onTime,
+                late: late,
+                missing: missing,
+                pct: pct
+            };
+        }
+
+        // ===== PHASE 16.1: TÍNH & HIỂN THỊ 4 KPI CARDS =====
+        function renderHwKpi(homeworkList, submissions) {
+            var stats = calculateSubmissionStats(homeworkList, submissions);
             var elTotal = document.getElementById('kpiTotal');
             var elSubmitted = document.getElementById('kpiSubmitted');
             var elOnTime = document.getElementById('kpiOnTime');
             var elMissing = document.getElementById('kpiMissing');
 
-            if (elTotal) elTotal.textContent = total;
-            if (elSubmitted) elSubmitted.textContent = submitted + '/' + total;
-            if (elOnTime) elOnTime.textContent = onTime;
-            if (elMissing) elMissing.textContent = missing;
+            if (elTotal) elTotal.textContent = stats.total;
+            if (elSubmitted) elSubmitted.textContent = stats.submitted + '/' + stats.total;
+            if (elOnTime) elOnTime.textContent = stats.onTime;
+            if (elMissing) elMissing.textContent = stats.missing;
         }
 
         // ===== PHASE 16.2: 2 BIỂU ĐỒ CHART.JS (DONUT + BAR) =====
@@ -1806,14 +1959,12 @@
         }
 
         function renderHwCharts(homeworkList, submissions) {
-            var total = (homeworkList || []).length;
+            var stats = calculateSubmissionStats(homeworkList, submissions);
             var subList = (submissions || []).filter(function(s) { return s.status !== 'Deleted'; });
-            var submitted = subList.length;
-            var missing = Math.max(0, total - submitted);
-
-            var onTime = Math.ceil(submitted * 0.7);
-            var late = submitted - onTime;
-            var pct = total > 0 ? Math.round(submitted / total * 100) : (submitted > 0 ? 100 : 0);
+            var onTime = stats.onTime;
+            var late = stats.late;
+            var missing = stats.missing;
+            var pct = stats.pct;
 
             // --- DONUT CHART ---
             var pctEl = document.getElementById('hwDonutPct');
@@ -2017,8 +2168,16 @@
                     cardHtml += '    </div>';
                     cardHtml += '    <div class="hw-assigned-info">';
                     cardHtml += '      <div class="hw-assigned-title">' + (hw.title || 'Bài tập') + '</div>';
+                    var dueDate = hw.dueDate || (typeof computeDefaultDueDate === 'function' ? computeDefaultDueDate(hw.releaseDate) : "");
+                    var metaHtml = '';
                     if (hw.releaseDate) {
-                        cardHtml += '      <div class="hw-assigned-deadline"><i class="fa-regular fa-clock"></i> Ngày giao: ' + hw.releaseDate + '</div>';
+                        metaHtml += '<span style="color:#64748B; font-weight:500;"><i class="fa-regular fa-calendar-days"></i> Giao: ' + hw.releaseDate + '</span>';
+                    }
+                    if (dueDate) {
+                        metaHtml += '<span style="color:#D97706; font-weight:600;"><i class="fa-regular fa-clock"></i> Hạn: ' + dueDate + '</span>';
+                    }
+                    if (metaHtml) {
+                        cardHtml += '      <div class="hw-assigned-deadline" style="display:flex; gap:12px; flex-wrap:wrap;">' + metaHtml + '</div>';
                     }
                     if (hw.description) {
                         cardHtml += '      <div class="hw-assigned-desc">' + hw.description + '</div>';

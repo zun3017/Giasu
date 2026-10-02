@@ -1094,14 +1094,18 @@
                         <!-- Form Giao bài tập (mặc định ẩn) -->
                         <div id="assignHwFormContainer" style="display: block; border: 1px solid var(--border-card); background: var(--bg-card-alt); border-radius: 12px; padding: 15px; margin-bottom: 20px;">
                             <h4 style="color: var(--color-primary); margin-bottom: 15px; font-size: 15px;"><i class="fa-solid fa-folder-plus"></i> Đăng tải bài tập mới</h4>
-                            <div class="modal-grid-2">
+                            <div class="modal-form-group">
+                                <label>Tên bài tập *</label>
+                                <input type="text" id="assignHwTitle" placeholder="Ví dụ: Đề cương Toán tuần 1">
+                            </div>
+                            <div class="modal-grid-2" style="margin-top: 10px;">
                                 <div class="modal-form-group">
-                                    <label>Tên bài tập *</label>
-                                    <input type="text" id="assignHwTitle" placeholder="Ví dụ: Đề cương Toán tuần 1">
+                                    <label>Ngày phát hành</label>
+                                    <input type="text" id="assignHwReleaseDate" placeholder="dd/mm/yyyy (hoặc để trống tự lấy hôm nay)">
                                 </div>
                                 <div class="modal-form-group">
-                                    <label>Ngày phát hành *</label>
-                                    <input type="text" id="assignHwReleaseDate" placeholder="dd/mm/yyyy (hoặc để trống tự lấy hôm nay)">
+                                    <label>Hạn nộp bài <span style="font-weight: normal; font-size: 11px; color: var(--text-secondary);">(Mặc định 4 ngày sau ngày giao nếu để trống)</span></label>
+                                    <input type="text" id="assignHwDueDate" placeholder="dd/mm/yyyy (hoặc để trống tự tính +4 ngày)">
                                 </div>
                             </div>
                             <div class="modal-form-group" style="margin-top: 10px;">
@@ -1168,6 +1172,7 @@
                                     <thead>
                                         <tr>
                                             <th>Ngày giao</th>
+                                            <th>Hạn nộp</th>
                                             <th>Tên bài tập</th>
                                             <th>Đính kèm (File/Link)</th>
                                             <th style="text-align: center;">Thao tác</th>
@@ -1705,9 +1710,15 @@
                 <label>Tên bài tập *</label>
                 <input type="text" id="editAssignHwTitle" placeholder="Ví dụ: Đề cương Toán tuần 1">
             </div>
-            <div class="modal-form-group">
-                <label>Ngày phát hành *</label>
-                <input type="text" id="editAssignHwReleaseDate" placeholder="dd/mm/yyyy">
+            <div class="modal-grid-2" style="margin-top: 10px;">
+                <div class="modal-form-group">
+                    <label>Ngày phát hành *</label>
+                    <input type="text" id="editAssignHwReleaseDate" placeholder="dd/mm/yyyy">
+                </div>
+                <div class="modal-form-group">
+                    <label>Hạn nộp bài <span style="font-weight: normal; font-size: 11px; color: var(--text-secondary);">(Mặc định 4 ngày sau ngày giao nếu trống)</span></label>
+                    <input type="text" id="editAssignHwDueDate" placeholder="dd/mm/yyyy (hoặc để trống tự tính +4 ngày)">
+                </div>
             </div>
             <div class="modal-form-group" style="margin-top: 10px;">
                 <label>Chọn file bài tập mới (Nếu muốn thay thế file cũ)</label>
@@ -2636,8 +2647,8 @@
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <script src="js/api.js?v=2.1.0"></script>
-    <script src="js/tutor.js?v=20261002_v14"></script>
+    <script src="js/api.js?v=20261002_v15"></script>
+    <script src="js/tutor.js?v=20261002_v15"></script>
     <script>
         function toggleTutorMobileSidebar(force) {
             var sidebar = document.getElementById('tutorSidebar');
