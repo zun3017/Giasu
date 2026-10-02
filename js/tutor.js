@@ -1862,6 +1862,10 @@ function toggleCustomDropdown(selectId, e) {
         syncCustomDropdownFromSelect(selectId);
         wrap.classList.add('open');
         menu.classList.add('open');
+        var parentToolbar = wrap.closest('.diary-toolbar, .tuition-toolbar, .report-filter-toolbar');
+        if (parentToolbar) {
+            parentToolbar.classList.add('has-open-dropdown');
+        }
     }
 }
 window.toggleCustomDropdown = toggleCustomDropdown;
@@ -1872,6 +1876,9 @@ function closeAllCustomDropdowns() {
     });
     document.querySelectorAll('.custom-dropdown-menu.open').forEach(function(m) {
         m.classList.remove('open');
+    });
+    document.querySelectorAll('.has-open-dropdown').forEach(function(t) {
+        t.classList.remove('has-open-dropdown');
     });
 }
 window.closeAllCustomDropdowns = closeAllCustomDropdowns;
@@ -1889,6 +1896,11 @@ function syncCustomDropdownFromSelect(selectId) {
     var curText = "";
     menu.innerHTML = "";
 
+    if (select.options.length === 0) {
+        selectedTextEl.innerText = (selectId === 'reportStudentSelect' || selectId === 'diaryStudentFilter') ? "Chưa có học sinh" : "Tất cả các tháng";
+        return;
+    }
+
     Array.from(select.options).forEach(function(opt) {
         var isSelected = (opt.value === curVal);
         if (isSelected || (!curText && select.selectedIndex === 0)) {
@@ -1900,7 +1912,7 @@ function syncCustomDropdownFromSelect(selectId) {
         item.dataset.value = opt.value;
 
         var iconHtml = '';
-        if (selectId === 'diaryStudentFilter') {
+        if (selectId === 'diaryStudentFilter' || selectId === 'reportStudentSelect') {
             iconHtml = '<i class="fa-solid fa-graduation-cap" style="margin-right: 8px; opacity: 0.7; font-size: 12px;"></i>';
         } else if (opt.value === 'all') {
             iconHtml = '<i class="fa-solid fa-layer-group" style="margin-right: 8px; opacity: 0.7; font-size: 12px;"></i>';
@@ -1933,6 +1945,11 @@ if (typeof window._customDropdownClickBound === 'undefined') {
     window._customDropdownClickBound = true;
     document.addEventListener('click', function(e) {
         if (!e.target.closest('.custom-dropdown-wrap')) {
+            closeAllCustomDropdowns();
+        }
+    });
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
             closeAllCustomDropdowns();
         }
     });
@@ -4506,6 +4523,8 @@ function initReportFilterOptions() {
         } else if (students.length > 0) {
             studentSelect.value = students[0].name.trim();
         }
+
+        syncCustomDropdownFromSelect('reportStudentSelect');
     }
 }
 window.initReportFilterOptions = initReportFilterOptions;

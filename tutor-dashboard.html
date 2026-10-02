@@ -1066,8 +1066,15 @@
                     <!-- Học sinh -->
                     <div class="report-control-group">
                         <label class="report-control-label" for="reportStudentSelect"><i class="fa-solid fa-user-graduate"></i> Học sinh:</label>
-                        <select id="reportStudentSelect" class="report-input-box report-select" onchange="previewTutorReport()">
-                        </select>
+                        <div class="report-input-box custom-dropdown-wrap" id="reportStudentDropdownWrap" onclick="toggleCustomDropdown('reportStudentSelect', event)" style="min-width: 190px; display: inline-flex; align-items: center; justify-content: space-between; cursor: pointer; padding: 8px 14px; min-height: 38px; box-sizing: border-box;">
+                            <div class="custom-dropdown-value-group" style="width: 100%; display: flex; justify-content: space-between; align-items: center;">
+                                <span class="custom-dropdown-selected" id="reportStudentSelectedText">Chọn học sinh</span>
+                                <i class="fa-solid fa-chevron-down custom-dropdown-icon"></i>
+                            </div>
+                            <select id="reportStudentSelect" class="report-input-box report-select" onchange="previewTutorReport()" style="display: none;">
+                            </select>
+                            <div class="custom-dropdown-menu" id="reportStudentMenu"></div>
+                        </div>
                     </div>
 
                     <!-- Actions -->

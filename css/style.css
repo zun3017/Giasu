@@ -3665,9 +3665,36 @@
             color: var(--text-primary);
         }
 
+        /* Toolbars stacking contexts: luôn nằm trên các widget/bảng phía dưới */
+        .report-filter-toolbar,
+        .diary-toolbar,
+        .tuition-toolbar {
+            position: relative !important;
+            z-index: 50 !important;
+        }
+        .report-filter-toolbar.has-open-dropdown,
+        .diary-toolbar.has-open-dropdown,
+        .tuition-toolbar.has-open-dropdown,
+        .report-filter-toolbar:has(.custom-dropdown-wrap.open),
+        .diary-toolbar:has(.custom-dropdown-wrap.open),
+        .tuition-toolbar:has(.custom-dropdown-wrap.open) {
+            z-index: 1050 !important;
+        }
+
+        /* Các khối phía sau toolbars giữ z-index thấp để không bao giờ che đè menu dropdown */
+        #tutorQuickAnnouncementWidget,
+        .tutor-diary-card,
+        .tuition-banner-grid,
+        .tuition-banner-card,
+        .tuition-table-card,
+        .report-preview-wrapper {
+            position: relative;
+            z-index: 1;
+        }
+
         /* Custom Filter Dropdown System (Thay thế select native bằng menu sang trọng) */
         .custom-dropdown-wrap {
-            position: relative;
+            position: relative !important;
             cursor: pointer;
             user-select: none;
             transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
@@ -3706,28 +3733,33 @@
             display: none !important;
         }
 
-        /* Floating Menu Popup */
+        /* Floating Menu Popup: Nền đặc 100% không trong suốt, z-index cao tuyệt đối */
         .custom-dropdown-menu {
             display: none;
             position: absolute;
             top: calc(100% + 8px);
             right: 0;
-            min-width: 200px;
+            min-width: 210px;
             width: max-content;
             max-width: calc(100vw - 32px);
-            background: var(--bg-card, #FFFFFF);
-            border: 1px solid var(--border-card, var(--border-color, #E2E8F0));
-            border-radius: 14px;
-            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.16), 0 2px 8px rgba(0, 0, 0, 0.05);
-            padding: 6px;
-            z-index: 1050;
+            background: #FFFFFF !important;
+            border: 1px solid var(--border-card, var(--border-color, #E2E8F0)) !important;
+            border-radius: 14px !important;
+            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.20), 0 4px 12px rgba(0, 0, 0, 0.08) !important;
+            padding: 6px !important;
+            z-index: 9999 !important;
             max-height: 280px;
             overflow-y: auto;
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
+            backdrop-filter: none !important;
+            -webkit-backdrop-filter: none !important;
+            opacity: 1 !important;
+        }
+        .report-control-group .custom-dropdown-menu {
+            left: 0 !important;
+            right: auto !important;
         }
         .custom-dropdown-menu.open {
-            display: block;
+            display: block !important;
             animation: customDropdownFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
         @keyframes customDropdownFadeIn {
@@ -3761,7 +3793,8 @@
             border-radius: 9px;
             font-size: 13.5px;
             font-weight: 500;
-            color: var(--text-primary, #1E293B);
+            color: #1E293B !important;
+            background: transparent;
             cursor: pointer;
             transition: all 0.15s ease;
             margin-bottom: 2px;
@@ -3771,13 +3804,13 @@
             margin-bottom: 0;
         }
         .custom-dropdown-item:hover {
-            background: var(--nav-hover-bg, rgba(142, 77, 255, 0.08));
-            color: var(--color-primary);
+            background: var(--nav-hover-bg, rgba(142, 77, 255, 0.08)) !important;
+            color: var(--color-primary) !important;
             transform: translateX(2px);
         }
         .custom-dropdown-item.active {
-            background: var(--nav-active-bg, rgba(142, 77, 255, 0.14));
-            color: var(--color-primary);
+            background: var(--nav-active-bg, rgba(142, 77, 255, 0.14)) !important;
+            color: var(--color-primary) !important;
             font-weight: 700;
         }
         .custom-dropdown-item .item-check {
@@ -3788,6 +3821,43 @@
         }
         .custom-dropdown-item.active .item-check {
             opacity: 1;
+        }
+
+        /* Dark Theme overrides cho Custom Dropdown Menu */
+        [data-theme="dark"] .custom-dropdown-menu,
+        [data-dark-mode="true"] .custom-dropdown-menu,
+        body.theme-dark-purple .custom-dropdown-menu,
+        body.theme-dreamy-cosmic-full .custom-dropdown-menu,
+        body.theme-neon-seoul-full .custom-dropdown-menu,
+        body.theme-mystic-blue-full .custom-dropdown-menu,
+        body.theme-blossom-noir-full .custom-dropdown-menu,
+        body.theme-violet-planet-full .custom-dropdown-menu,
+        html[data-theme="dark"] .custom-dropdown-menu {
+            background: #182234 !important;
+            border-color: #334155 !important;
+            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.55), 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+        }
+        [data-theme="dark"] .custom-dropdown-item,
+        [data-dark-mode="true"] .custom-dropdown-item,
+        body.theme-dark-purple .custom-dropdown-item,
+        body.theme-dreamy-cosmic-full .custom-dropdown-item,
+        body.theme-neon-seoul-full .custom-dropdown-item,
+        body.theme-mystic-blue-full .custom-dropdown-item,
+        body.theme-blossom-noir-full .custom-dropdown-item,
+        body.theme-violet-planet-full .custom-dropdown-item,
+        html[data-theme="dark"] .custom-dropdown-item {
+            color: #F8FAFC !important;
+        }
+        [data-theme="dark"] .custom-dropdown-item:hover,
+        [data-dark-mode="true"] .custom-dropdown-item:hover,
+        body.theme-dark-purple .custom-dropdown-item:hover,
+        body.theme-dreamy-cosmic-full .custom-dropdown-item:hover,
+        body.theme-neon-seoul-full .custom-dropdown-item:hover,
+        body.theme-mystic-blue-full .custom-dropdown-item:hover,
+        body.theme-blossom-noir-full .custom-dropdown-item:hover,
+        body.theme-violet-planet-full .custom-dropdown-item:hover,
+        html[data-theme="dark"] .custom-dropdown-item:hover {
+            background: rgba(255, 255, 255, 0.08) !important;
         }
 
         /* Tuition Banner Grid */
