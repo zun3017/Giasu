@@ -3357,6 +3357,8 @@
                     studentIndex: studentIdx,
                     subIndex: subIdx,
                     studentName: row.studentName,
+                    subject: row.subject || row.studentName,
+                    fee: row.fee || 500000,
                     dayKey: dayKey,
                     startTime: startHour.padStart(2,'0') + ':' + startMin,
                     endTime:   endHour.padStart(2,'0')   + ':' + endMin,
@@ -4529,7 +4531,13 @@
 
         // Áp dụng di chuyển (drop) - hỗ trợ multi-slot
         function applyDrop(props, newDayKey, newStart, newEnd, start, isThisOnly) {
-            let row = tutorScheduleSheetData[props.studentIndex];
+            let row = (props.studentIndex !== undefined && tutorScheduleSheetData && tutorScheduleSheetData[props.studentIndex])
+                ? tutorScheduleSheetData[props.studentIndex]
+                : (Array.isArray(tutorScheduleSheetData) ? tutorScheduleSheetData.find(s => s && s.studentName && s.studentName.trim().toLowerCase() === (props.studentName || '').trim().toLowerCase()) : null);
+            if (!row) {
+                console.warn('Không tìm thấy dữ liệu học sinh:', props.studentName);
+                return;
+            }
             let oldDayKey = props.dayKey;
 
             // === Xử LÝ SỰ KIỆN "ĐỜI DỜI" (RESCHEDULE) ===
@@ -4664,7 +4672,13 @@
 
         // Áp dụng đổi giờ kết thúc (resize)
         function applyResize(props, newEnd, isThisOnly) {
-            let row    = tutorScheduleSheetData[props.studentIndex];
+            let row = (props.studentIndex !== undefined && tutorScheduleSheetData && tutorScheduleSheetData[props.studentIndex])
+                ? tutorScheduleSheetData[props.studentIndex]
+                : (Array.isArray(tutorScheduleSheetData) ? tutorScheduleSheetData.find(s => s && s.studentName && s.studentName.trim().toLowerCase() === (props.studentName || '').trim().toLowerCase()) : null);
+            if (!row) {
+                console.warn('Không tìm thấy dữ liệu học sinh:', props.studentName);
+                return;
+            }
             let dayKey = props.dayKey;
             let timeVal;
             if (isThisOnly) {
@@ -4686,7 +4700,13 @@
 
         // Áp dụng xoá ca dạy
         function applyDelete(props, start, isThisOnly) {
-            let row = tutorScheduleSheetData[props.studentIndex];
+            let row = (props.studentIndex !== undefined && tutorScheduleSheetData && tutorScheduleSheetData[props.studentIndex])
+                ? tutorScheduleSheetData[props.studentIndex]
+                : (Array.isArray(tutorScheduleSheetData) ? tutorScheduleSheetData.find(s => s && s.studentName && s.studentName.trim().toLowerCase() === (props.studentName || '').trim().toLowerCase()) : null);
+            if (!row) {
+                console.warn('Không tìm thấy dữ liệu học sinh:', props.studentName);
+                return;
+            }
             let oldDayKey = props.dayKey;
 
             if (isThisOnly) {
@@ -4718,46 +4738,60 @@
 
         function showEventDetail(fcEvent, jsEvent) {
             activeFcEvent = fcEvent;
-            const props = fcEvent.extendedProps;
+            const props = (fcEvent && fcEvent.extendedProps) ? fcEvent.extendedProps : {};
 
             // --- Điền nội dung ---
-            document.getElementById("detailTitle").innerText = props.studentName;
+            let titleEl = document.getElementById("detailTitle");
+            if (titleEl) titleEl.innerText = props.studentName || "Chi tiết ca dạy";
 
             const colorDot = document.getElementById("detailColorDot");
             let dotColor = props.eventColor || (props.isOneTime ? "#FFD23F" : "#8E4DFF");
-            colorDot.style.backgroundColor = dotColor;
-            colorDot.style.boxShadow = "0 0 7px " + dotColor + "aa";
+            if (colorDot) {
+                colorDot.style.backgroundColor = dotColor;
+                colorDot.style.boxShadow = "0 0 7px " + dotColor + "aa";
+            }
 
             let dateObj = new Date(props.date);
             let daysOfWeekVi = ["Chủ Nhật","Thứ Hai","Thứ Ba","Thứ Tư","Thứ Năm","Thứ Sáu","Thứ Bảy"];
-            let dayName  = daysOfWeekVi[dateObj.getDay()];
-            let dayNum   = dateObj.getDate();
-            let monthNum = dateObj.getMonth() + 1;
-            document.getElementById("detailDateTime").innerText =
-                dayName + ", " + dayNum + " tháng " + monthNum + " · " + props.startTime + " – " + props.endTime;
+            let dayName  = isNaN(dateObj.getTime()) ? "" : daysOfWeekVi[dateObj.getDay()];
+            let dayNum   = isNaN(dateObj.getTime()) ? "" : dateObj.getDate();
+            let monthNum = isNaN(dateObj.getTime()) ? "" : (dateObj.getMonth() + 1);
+            let dtEl = document.getElementById("detailDateTime");
+            if (dtEl) {
+                dtEl.innerText = (dayName ? (dayName + ", " + dayNum + " tháng " + monthNum + " · ") : "") + (props.startTime || "") + " – " + (props.endTime || "");
+            }
 
-            let cellVal = tutorScheduleSheetData[props.studentIndex][props.dayKey] || "";
+            // Tìm studentRow một cách an toàn theo studentIndex hoặc tên học sinh
+            let studentRow = (props.studentIndex !== undefined && tutorScheduleSheetData && tutorScheduleSheetData[props.studentIndex])
+                ? tutorScheduleSheetData[props.studentIndex]
+                : (Array.isArray(tutorScheduleSheetData) ? tutorScheduleSheetData.find(s => s && s.studentName && s.studentName.trim().toLowerCase() === (props.studentName || '').trim().toLowerCase()) : null);
+
+            let cellVal = (studentRow && props.dayKey && studentRow[props.dayKey]) ? studentRow[props.dayKey] : "";
             let recurrenceText;
             if (props.isOneTime) {
-                recurrenceText = cellVal.startsWith("RESCHEDULE") ? "Được dời sang tuần này" : "Diễn ra một lần";
+                recurrenceText = (cellVal && cellVal.startsWith("RESCHEDULE")) ? "Được dời sang tuần này" : "Diễn ra một lần";
             } else {
-                recurrenceText = "Hàng tuần vào " + dayName.toLowerCase();
-                if (cellVal.includes(" SKIP ")) recurrenceText += " (Có tuần được dời)";
+                recurrenceText = "Hàng tuần vào " + (dayName ? dayName.toLowerCase() : (props.dayKey || ""));
+                if (cellVal && cellVal.includes(" SKIP ")) recurrenceText += " (Có tuần được dời)";
             }
-            document.getElementById("detailRecurrence").innerText = recurrenceText;
+            let recEl = document.getElementById("detailRecurrence");
+            if (recEl) recEl.innerText = recurrenceText;
 
             const feeEl = document.getElementById("detailFee");
             if (feeEl) {
-                let fVal = props.fee || 500000;
+                let fVal = props.fee || (studentRow && studentRow.fee) || 500000;
                 feeEl.innerText = Number(fVal).toLocaleString('vi-VN') + ' đ / buổi';
             }
 
             const notesContainer = document.getElementById("detailNotesContainer");
-            if (props.notes && props.notes.trim() !== "") {
-                document.getElementById("detailNotes").innerText = props.notes;
-                notesContainer.style.display = "flex";
-            } else {
-                notesContainer.style.display = "none";
+            if (notesContainer) {
+                if (props.notes && props.notes.trim() !== "") {
+                    let nEl = document.getElementById("detailNotes");
+                    if (nEl) nEl.innerText = props.notes;
+                    notesContainer.style.display = "flex";
+                } else {
+                    notesContainer.style.display = "none";
+                }
             }
 
             // --- Định vị popover bên cạnh sự kiện được click ---
@@ -4831,17 +4865,22 @@
 
         function deleteFromDetail() {
             if (!activeFcEvent) return;
-            const props = activeFcEvent.extendedProps;
-            let studentIdx = props.studentIndex;
+            const props = activeFcEvent.extendedProps || {};
+            let studentRow = (props.studentIndex !== undefined && tutorScheduleSheetData && tutorScheduleSheetData[props.studentIndex])
+                ? tutorScheduleSheetData[props.studentIndex]
+                : (Array.isArray(tutorScheduleSheetData) ? tutorScheduleSheetData.find(s => s && s.studentName && s.studentName.trim().toLowerCase() === (props.studentName || '').trim().toLowerCase()) : null);
+            let studentIdx = studentRow ? tutorScheduleSheetData.indexOf(studentRow) : props.studentIndex;
             let oldDayKey  = props.dayKey;
             let _fcEvent = activeFcEvent; // lưu tham chiếu trước khi đóng popover
 
             if (props.isOneTime) {
-                showWebConfirm("Bạn có chắc chắn muốn xóa ca học một lần này của <b>" + props.studentName + "</b> không?", function() {
-                    let existing = tutorScheduleSheetData[studentIdx][oldDayKey] || "";
-                    let slots = existing.split("|").map(s => s.trim());
-                    slots.splice(props.subIndex, 1);
-                    tutorScheduleSheetData[studentIdx][oldDayKey] = slots.filter(s => s !== "").join(" | ");
+                showWebConfirm("Bạn có chắc chắn muốn xóa ca học một lần này của <b>" + (props.studentName || "") + "</b> không?", function() {
+                    if (studentRow && oldDayKey) {
+                        let existing = studentRow[oldDayKey] || "";
+                        let slots = existing.split("|").map(s => s.trim());
+                        slots.splice(props.subIndex, 1);
+                        studentRow[oldDayKey] = slots.filter(s => s !== "").join(" | ");
+                    }
                     saveAndRefetch(props.studentName, function() {
                         closeDetailModalForce();
                     }, 'remove', null, _fcEvent);
@@ -4853,7 +4892,7 @@
                     props: props,
                     start: new Date(props.date)
                 };
-                showRecurrenceDialog('Bạn muốn xóa ca dạy lặp lại của <b>' + props.studentName + '</b> vào ' + oldDayKey.toUpperCase() + '?', true);
+                showRecurrenceDialog('Bạn muốn xóa ca dạy lặp lại của <b>' + (props.studentName || "") + '</b> vào ' + (oldDayKey ? oldDayKey.toUpperCase() : "") + '?', true);
             }
         }
 
@@ -4914,14 +4953,20 @@
 
         // Sửa ca dạy
         function openEditEventModal(fcEvent) {
-            const props = fcEvent.extendedProps;
-            document.getElementById("modalTitleText").innerHTML = '<i class="fa-solid fa-pen-to-square" style="color: #FFD23F;"></i> Sửa lịch dạy';
+            const props = (fcEvent && fcEvent.extendedProps) ? fcEvent.extendedProps : {};
+            let titleEl = document.getElementById("modalTitleText");
+            if (titleEl) titleEl.innerHTML = '<i class="fa-solid fa-pen-to-square" style="color: #FFD23F;"></i> Sửa lịch dạy';
             
-            document.getElementById("eventStudentIndex").value = props.studentIndex;
+            let studentRow = (props.studentIndex !== undefined && tutorScheduleSheetData && tutorScheduleSheetData[props.studentIndex])
+                ? tutorScheduleSheetData[props.studentIndex]
+                : (Array.isArray(tutorScheduleSheetData) ? tutorScheduleSheetData.find(s => s && s.studentName && s.studentName.trim().toLowerCase() === (props.studentName || '').trim().toLowerCase()) : null);
+            let studentIdx = studentRow ? tutorScheduleSheetData.indexOf(studentRow) : (props.studentIndex !== undefined ? props.studentIndex : 0);
+
+            document.getElementById("eventStudentIndex").value = studentIdx;
             document.getElementById("eventSubIndex").value = (props.subIndex !== undefined ? props.subIndex : "");
-            document.getElementById("eventOldDay").value = props.dayKey;
+            document.getElementById("eventOldDay").value = props.dayKey || "";
             
-            document.getElementById("eventStudent").value = props.studentIndex;
+            document.getElementById("eventStudent").value = studentIdx;
             document.getElementById("eventStudent").disabled = true;
 
             // Ẩn ô nhập tên học sinh khác khi sửa lịch hiện tại
@@ -4929,24 +4974,27 @@
             document.getElementById("eventCustomStudentName").value = "";
             document.getElementById("eventCustomStudentName").required = false;
 
-            
             if (props.isOneTime) {
                 document.getElementById("eventRepeatMode").value = "none";
-                let parts = props.oneTimeDateStr.split("/");
-                document.getElementById("eventSpecificDate").value = parts[2] + "-" + parts[1] + "-" + parts[0];
+                let parts = (props.oneTimeDateStr || "").split("/");
+                if (parts.length === 3) {
+                    document.getElementById("eventSpecificDate").value = parts[2] + "-" + parts[1] + "-" + parts[0];
+                }
             } else {
                 document.getElementById("eventRepeatMode").value = "weekly";
-                document.getElementById("eventDayOfWeek").value = props.dayKey;
+                document.getElementById("eventDayOfWeek").value = props.dayKey || "mon";
             }
             
             allDayKeys.forEach(key => {
-                document.getElementById("check" + key.charAt(0).toUpperCase() + key.slice(1)).checked = (key === props.dayKey);
+                let chk = document.getElementById("check" + key.charAt(0).toUpperCase() + key.slice(1));
+                if (chk) chk.checked = (key === props.dayKey);
             });
 
-            document.getElementById("eventStartTime").value = props.startTime;
-            document.getElementById("eventEndTime").value = props.endTime;
-            document.getElementById("eventFee").value = formatNumberWithDots(props.fee || (tutorScheduleSheetData[props.studentIndex] && tutorScheduleSheetData[props.studentIndex].fee) || 500000);
-            document.getElementById("eventNotes").value = props.notes;
+            document.getElementById("eventStartTime").value = props.startTime || "";
+            document.getElementById("eventEndTime").value = props.endTime || "";
+            let fVal = props.fee || (studentRow && studentRow.fee) || 500000;
+            document.getElementById("eventFee").value = formatNumberWithDots(fVal);
+            document.getElementById("eventNotes").value = props.notes || "";
 
             // Set color picker theo cấu hình của event
             if (props.sessionColor) {
@@ -5018,7 +5066,7 @@
                 targetStudentIdx = parseInt(studentIdx);
             }
             
-            if (isNaN(targetStudentIdx)) return;
+            if (isNaN(targetStudentIdx) || !tutorScheduleSheetData[targetStudentIdx]) return;
             let row = tutorScheduleSheetData[targetStudentIdx];
 
             let feeInputVal = parseInt(String(document.getElementById("eventFee").value).replace(/\D/g, ''), 10);
@@ -5143,7 +5191,7 @@
             let oldDayKey = document.getElementById("eventOldDay").value;
             let _fcEvent = activeFcEvent; // lưu tham chiếu trước khi đóng modal
 
-            if (!isNaN(studentIdx) && oldDayKey !== "") {
+            if (!isNaN(studentIdx) && tutorScheduleSheetData && tutorScheduleSheetData[studentIdx] && oldDayKey !== "") {
                 let sName = tutorScheduleSheetData[studentIdx].studentName;
                 showWebConfirm("Bạn có chắc chắn muốn xóa ca học này của <b>" + sName + "</b> không?", function() {
                     let existing = tutorScheduleSheetData[studentIdx][oldDayKey] || "";
