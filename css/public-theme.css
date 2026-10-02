@@ -1,0 +1,611 @@
+/* ============================================================================
+ * css/public-theme.css — Light White-Blue Theme (Public Pages)
+ * Áp dụng cho: index.html, student-login.html, tutor-login.html,
+ *             homework.html, student-dashboard.html, login.html
+ * ============================================================================ */
+
+:root {
+  --bg-page:              #F0F7FF;
+  --bg-page-gradient:     linear-gradient(160deg, #F0F7FF 0%, #E0EFFF 50%, #F5F8FF 100%);
+  --header-bg:            rgba(255, 255, 255, 0.95);
+  --header-border:        #DBEAFE;
+  --bg-card:              #FFFFFF;
+  --bg-card-alt:          #F8FAFF;
+  --bg-input:             #F8FAFF;
+  --bg-overlay:           rgba(15, 23, 42, 0.5);
+  --border-color:         #DBEAFE;
+  --border-card:          #E2E8F0;
+  --text-primary:         #1E293B;
+  --text-secondary:       #64748B;
+  --text-muted:           #94A3B8;
+  --nav-btn-text:         #475569;
+  --color-primary:        #3B82F6;
+  --color-primary-dark:   #1D4ED8;
+  --color-primary-light:  #93C5FD;
+  --color-primary-rgb:    59, 130, 246;
+  --color-accent-kpi:     #2563EB;
+  --highlight-color:      #2563EB;
+  --nav-active-bg:        #EFF6FF;
+  --nav-active-text:      #2563EB;
+  --nav-active-border:    #BFDBFE;
+  --nav-hover-bg:         rgba(59, 130, 246, 0.06);
+  --btn-bg:               linear-gradient(135deg, #3B82F6, #1D4ED8);
+  --btn-text:             #FFFFFF;
+  --shadow-card:          0 4px 20px rgba(59, 130, 246, 0.08);
+  --shadow-primary:       0 6px 20px rgba(59, 130, 246, 0.25);
+  --scrollbar-thumb:      #93C5FD;
+}
+
+/* ============================================================================
+ * NAVBAR & HEADER CHUẨN ĐỒNG NHẤT 100% VỚI TRANG CHỦ (INDEX.HTML)
+ * Đảm bảo trên mọi trang đăng nhập (student-login, tutor-login, homework, login),
+ * cỡ chữ, kích thước, chiều cao và độ bo của các nút luôn đồng nhất tuyệt đối.
+ * ============================================================================ */
+.header {
+    position: sticky !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    z-index: 1000 !important;
+    background: var(--header-bg, rgba(255, 255, 255, 0.95)) !important;
+    backdrop-filter: blur(12px) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
+    border-bottom: 1px solid var(--header-border, #DBEAFE) !important;
+    padding: 12px 24px !important;
+    padding-top: calc(constant(safe-area-inset-top, 0px) + 12px) !important;
+    padding-top: calc(env(safe-area-inset-top, 0px) + 12px) !important;
+    padding-left: calc(constant(safe-area-inset-left, 0px) + 24px) !important;
+    padding-left: calc(env(safe-area-inset-left, 0px) + 24px) !important;
+    padding-right: calc(constant(safe-area-inset-right, 0px) + 24px) !important;
+    padding-right: calc(env(safe-area-inset-right, 0px) + 24px) !important;
+    box-sizing: border-box !important;
+}
+
+.nav-container {
+    width: 100% !important;
+    max-width: 1200px !important;
+    margin: 0 auto !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 20px !important;
+    box-sizing: border-box !important;
+}
+
+.nav-left {
+    display: flex !important;
+    align-items: center !important;
+    gap: 16px !important;
+    text-decoration: none !important;
+    cursor: pointer !important;
+}
+
+.nav-logo {
+    width: 38px !important;
+    height: 38px !important;
+    flex-shrink: 0 !important;
+}
+
+.header-text {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+    min-width: 0 !important;
+}
+
+.header-text h1 {
+    font-size: 18px !important;
+    font-weight: 700 !important;
+    color: var(--text-primary, #1E293B) !important;
+    margin: 0 !important;
+    margin-bottom: -2px !important;
+    letter-spacing: -0.5px !important;
+    line-height: 1.2 !important;
+    white-space: nowrap !important;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+}
+
+.header-text p {
+    font-size: 11px !important;
+    color: var(--text-secondary, #64748B) !important;
+    font-weight: 500 !important;
+    margin: 0 !important;
+    line-height: 1.2 !important;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+}
+
+.nav-right {
+    display: flex !important;
+    align-items: center !important;
+    gap: 12px !important;
+}
+
+/* Navigation Buttons - CỠ CHỮ & ĐỘ TO CỦA NÚT CHUẨN TRANG CHỦ 100% */
+.nav-btn {
+    background: var(--bg-input, #F8FAFF) !important;
+    color: var(--nav-btn-text, #475569) !important;
+    border: 1px solid var(--border-card, #E2E8F0) !important;
+    padding: 10px 20px !important;
+    border-radius: 30px !important;
+    font-size: 13.5px !important;
+    font-weight: 600 !important;
+    line-height: 1.2 !important;
+    height: 38px !important;
+    min-height: 38px !important;
+    max-height: 38px !important;
+    box-sizing: border-box !important;
+    cursor: pointer !important;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 8px !important;
+    text-decoration: none !important;
+    white-space: nowrap !important;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+    -webkit-font-smoothing: subpixel-antialiased !important;
+    -moz-osx-font-smoothing: auto !important;
+}
+
+.nav-btn i {
+    font-size: 14px !important;
+    line-height: 1 !important;
+    display: inline-block !important;
+}
+
+.nav-btn:hover {
+    background: var(--nav-hover-bg, rgba(59, 130, 246, 0.06)) !important;
+    border-color: var(--border-color, #DBEAFE) !important;
+    color: var(--text-primary, #1E293B) !important;
+    transform: translateY(-1px) !important;
+}
+
+.nav-btn.active {
+    background: var(--nav-active-bg, #EFF6FF) !important;
+    border: 1px solid var(--nav-active-border, #BFDBFE) !important;
+    color: var(--nav-active-text, #2563EB) !important;
+    font-weight: 700 !important;
+    box-shadow: 0 6px 20px rgba(59, 130, 246, 0.25) !important;
+}
+
+/* ============================================================================
+ * NAVBAR RESPONSIVE & HAMBURGER (ĐỒNG BỘ 100% TRÊN MỌI TRANG PUBLIC)
+ * ============================================================================ */
+
+/* Nút Hamburger — MẶC ĐỊNH LUÔN ẨN TUYỆT ĐỐI TRÊN DESKTOP */
+.hamburger-btn {
+    display: none !important;
+    background: none !important;
+    border: none !important;
+    color: var(--nav-btn-text, #1E293B) !important;
+    font-size: 22px !important;
+    cursor: pointer !important;
+    padding: 8px !important;
+    min-width: 44px !important;
+    min-height: 44px !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border-radius: 10px !important;
+    transition: background 0.2s !important;
+    outline: none !important;
+    box-shadow: none !important;
+}
+.hamburger-btn:hover {
+    background: var(--nav-hover-bg, rgba(59, 130, 246, 0.08)) !important;
+}
+
+/* Menu Dropdown Mobile — MẶC ĐỊNH LUÔN ẨN TUYỆT ĐỐI TRÊN DESKTOP */
+.mobile-nav-dropdown {
+    display: none !important;
+    position: absolute !important;
+    top: 100% !important;
+    right: 0 !important;
+    left: 0 !important;
+    background: var(--header-bg, rgba(255, 255, 255, 0.98)) !important;
+    border-bottom: 1px solid var(--header-border, #DBEAFE) !important;
+    backdrop-filter: blur(16px) !important;
+    -webkit-backdrop-filter: blur(16px) !important;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08) !important;
+    z-index: 998 !important;
+    padding: 8px !important;
+    flex-direction: column !important;
+    gap: 4px !important;
+}
+
+.mobile-nav-dropdown.open {
+    display: flex !important;
+}
+
+.mobile-nav-item {
+    padding: 12px 16px !important;
+    border-radius: 10px !important;
+    color: var(--nav-btn-text, #1E293B) !important;
+    text-decoration: none !important;
+    font-size: 14.5px !important;
+    font-weight: 600 !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 12px !important;
+    min-height: 46px !important;
+    transition: background 0.2s, color 0.2s !important;
+    box-sizing: border-box !important;
+}
+.mobile-nav-item:hover,
+.mobile-nav-item.active {
+    background: var(--nav-active-bg, #EFF6FF) !important;
+    color: var(--nav-active-text, #2563EB) !important;
+}
+.mobile-nav-item i {
+    width: 20px !important;
+    text-align: center !important;
+}
+
+/* Khi màn hình > 768px (Desktop & Tablet ngang): Ẩn hamburger và dropdown, hiện nav-right */
+@media (min-width: 769px) {
+    .hamburger-btn {
+        display: none !important;
+    }
+    .mobile-nav-dropdown {
+        display: none !important;
+    }
+    .nav-right {
+        display: flex !important;
+    }
+}
+
+/* MÀN HÌNH ĐIỆN THOẠI & TABLET DỌC (≤ 768px): Ẩn nav-right, hiển thị nút Hamburger ☰ */
+@media (max-width: 768px) {
+    .header {
+        padding: 10px 16px !important;
+        padding-top: calc(constant(safe-area-inset-top, 0px) + 10px) !important;
+        padding-top: calc(env(safe-area-inset-top, 0px) + 10px) !important;
+        padding-left: calc(constant(safe-area-inset-left, 0px) + 16px) !important;
+        padding-left: calc(env(safe-area-inset-left, 0px) + 16px) !important;
+        padding-right: calc(constant(safe-area-inset-right, 0px) + 16px) !important;
+        padding-right: calc(env(safe-area-inset-right, 0px) + 16px) !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+    }
+    .nav-container {
+        width: 100% !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        gap: 12px !important;
+        box-sizing: border-box !important;
+    }
+    .nav-left {
+        gap: 10px !important;
+        min-width: 0 !important;
+        flex-shrink: 1 !important;
+    }
+    .nav-logo {
+        width: 34px !important;
+        height: 34px !important;
+        flex-shrink: 0 !important;
+    }
+    .header-text {
+        min-width: 0 !important;
+    }
+    .header-text h1 {
+        font-size: 15.5px !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        margin: 0 !important;
+        line-height: 1.2 !important;
+    }
+    .header-text p {
+        display: none !important;
+    }
+    .nav-right {
+        display: none !important;
+    }
+    .hamburger-btn {
+        display: none !important;
+    }
+}
+
+/* ===== PHASE 17 — BOTTOM NAVIGATION (Public Pages) ===== */
+.bottom-nav { display: none; }
+
+body.logged-in .bottom-nav,
+.logged-in .bottom-nav,
+.bottom-nav.hidden-nav,
+.bottom-nav[style*="display: none"],
+.bottom-nav[style*="display:none"] {
+  display: none !important;
+}
+
+@media (max-width: 768px) {
+  .bottom-nav {
+    display: flex !important;
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    width: 100% !important;
+    max-width: 100vw !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
+    height: calc(60px + env(safe-area-inset-bottom, 0px)) !important;
+    padding-bottom: env(safe-area-inset-bottom, 0px) !important;
+    background: rgba(255, 255, 255, 0.97) !important;
+    backdrop-filter: blur(20px) !important;
+    -webkit-backdrop-filter: blur(20px) !important;
+    border-top: 1px solid #E2E8F0 !important;
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.06) !important;
+    z-index: 9000 !important;
+    align-items: center !important;
+    justify-content: space-around !important;
+  }
+  body.logged-in .bottom-nav,
+  .logged-in .bottom-nav,
+  .bottom-nav.hidden-nav,
+  .bottom-nav[style*="display: none"],
+  .bottom-nav[style*="display:none"] {
+    display: none !important;
+  }
+  .bottom-nav-item {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 3px !important;
+    padding: 6px 2px !important;
+    text-decoration: none !important;
+    border-radius: 12px !important;
+    transition: all 0.2s !important;
+    flex: 1 1 0 !important;
+    width: 25% !important;
+    max-width: 25% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+    min-height: 48px !important;
+    position: relative !important;
+    -webkit-tap-highlight-color: transparent !important;
+  }
+  .bottom-nav-item i {
+    font-size: 20px !important;
+    color: #94A3B8 !important;
+    transition: color 0.2s, transform 0.2s !important;
+  }
+  .bottom-nav-item span {
+    font-size: 10px !important;
+    font-weight: 600 !important;
+    color: #94A3B8 !important;
+    font-family: Inter, sans-serif !important;
+    white-space: nowrap !important;
+    text-overflow: ellipsis !important;
+    overflow: hidden !important;
+    max-width: 100% !important;
+    text-align: center !important;
+    transition: color 0.2s !important;
+  }
+  .bottom-nav-item.active i  { color: #3B82F6 !important; transform: scale(1.1) !important; }
+  .bottom-nav-item.active span { color: #3B82F6 !important; }
+  .bottom-nav-item.active { background: rgba(59, 130, 246, 0.08) !important; }
+  .bottom-nav-item:active { transform: scale(0.94) !important; }
+
+  /* Ẩn hamburger + desktop nav + dropdown cũ */
+  .hamburger-btn        { display: none !important; }
+  .nav-right            { display: none !important; }
+  .mobile-nav-dropdown  { display: none !important; }
+
+  /* Padding bottom để content không bị bottom nav che */
+  body { padding-bottom: calc(68px + env(safe-area-inset-bottom, 0px)) !important; }
+  body.logged-in { padding-bottom: 24px !important; }
+}
+
+/* ===== PHASE 17 — HEADER COMPACT ===== */
+@media (max-width: 768px) {
+  .header {
+    padding: 8px 16px !important;
+    min-height: 52px !important;
+  }
+  .nav-logo { width: 32px !important; height: 32px !important; }
+  .header-text h1 { font-size: 14px !important; margin: 0 !important; }
+  .header-text p  { display: none !important; }
+  .nav-container  { min-height: 52px !important; }
+}
+@media (max-width: 480px) {
+  .header { padding: 6px 12px !important; min-height: 48px !important; }
+  .header-text h1 { font-size: 13px !important; }
+}
+
+/* ===== PHASE 17 — TOAST NOTIFICATIONS MOBILE FIX ===== */
+@media (max-width: 480px) {
+  #toastNotification {
+    right: 8px !important;
+    left: 8px !important;
+    top: 56px !important;
+  }
+  #toastNotification > div {
+    min-width: unset !important;
+    width: 100% !important;
+    box-sizing: border-box;
+  }
+}
+
+/* ===== PHASE 17 — TYPOGRAPHY ===== */
+@media (max-width: 480px) {
+  html { -webkit-text-size-adjust: 100%; }
+  input, select, textarea { font-size: 16px !important; }
+
+  /* Hero section index.html */
+  .hero-title  { font-size: 24px !important; line-height: 1.3 !important; }
+  .hero-subtitle { font-size: 14px !important; }
+  .hero-ctas { flex-direction: column !important; gap: 10px !important; }
+  .btn-cta { width: 100% !important; justify-content: center !important; }
+}
+@media (max-width: 360px) {
+  .hero-title { font-size: 20px !important; }
+}
+
+/* ===== PHASE 17 — GLOBAL POLISH ===== */
+
+/* Smooth scroll */
+html { scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}
+
+/* Prevent horizontal overflow */
+body {
+  overflow-x: hidden;
+  max-width: 100%;
+}
+
+/* Better tap experience */
+@media (max-width: 768px) {
+  button, a, [onclick], label {
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+
+  /* Active press animation */
+  button:active,
+  .hw-kpi-card:active,
+  .summary-card:active,
+  .hw-assigned-card:active,
+  .bottom-nav-item:active {
+    transform: scale(0.95) !important;
+    transition: transform 0.08s ease !important;
+  }
+
+  /* Touch targets 44px — CHỈ các class cụ thể, KHÔNG dùng selector "button" chung */
+  .nav-btn, .btn-submit, .btn-cta,
+  .bottom-nav-item, .action-btn-hw,
+  .hw-logout-btn, .hw-btn-preview,
+  .hw-btn-edit, .hw-btn-del,
+  .btn-submit-feedback, .btn-back,
+  .btn-load-more, .legend-btn {
+    min-height: 44px !important;
+  }
+
+  /* Font 16px cho input — chỉ trong context public pages (tránh override Tailwind) */
+  .search-card input, .search-card select, .search-card textarea,
+  #hwLessonInput, #hwStudentInput,
+  .feedback-form-container textarea,
+  input[type="text"]:not([class*="text-"]),
+  input[type="password"]:not([class*="text-"]),
+  input[type="tel"]:not([class*="text-"]) {
+    font-size: 16px !important;
+  }
+
+  /* Scrollbar nhỏ */
+  ::-webkit-scrollbar { width: 3px; height: 3px; }
+  ::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 4px; }
+}
+
+/* iOS safe area cho bottom nav */
+@media (max-width: 768px) {
+  .bottom-nav {
+    padding-bottom: max(12px, env(safe-area-inset-bottom, 0px)) !important;
+    height: calc(60px + max(12px, env(safe-area-inset-bottom, 0px))) !important;
+  }
+}
+
+/* Skeleton loading class (có thể dùng sau) */
+.skeleton {
+  background: linear-gradient(90deg, #F1F5F9 25%, #E2E8F0 50%, #F1F5F9 75%);
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.5s infinite;
+  border-radius: 8px;
+}
+@keyframes skeleton-shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* ============================================================
+ * PHASE 19 — SCROLL REVEAL ANIMATIONS (Cuộn đến đâu hiện đến đó)
+ * ============================================================ */
+
+/* Fade + trượt lên từ dưới */
+.reveal {
+  opacity: 0;
+  transform: translateY(32px);
+  transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform;
+}
+.reveal.visible {
+  opacity: 1 !important;
+  transform: translateY(0) !important;
+  will-change: auto;
+}
+
+/* Stagger: Các thẻ con trượt lên so le lần lượt */
+.reveal-stagger > * {
+  opacity: 0;
+  transform: translateY(28px);
+  transition: opacity 0.55s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.55s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  will-change: opacity, transform;
+}
+.reveal-stagger.visible > * {
+  opacity: 1 !important;
+  transform: translateY(0) !important;
+  will-change: auto;
+}
+.reveal-stagger.visible > *:nth-child(1) { transition-delay: 0.05s !important; }
+.reveal-stagger.visible > *:nth-child(2) { transition-delay: 0.15s !important; }
+.reveal-stagger.visible > *:nth-child(3) { transition-delay: 0.25s !important; }
+.reveal-stagger.visible > *:nth-child(4) { transition-delay: 0.35s !important; }
+.reveal-stagger.visible > *:nth-child(5) { transition-delay: 0.45s !important; }
+.reveal-stagger.visible > *:nth-child(6) { transition-delay: 0.55s !important; }
+.reveal-stagger.visible > *:nth-child(7) { transition-delay: 0.65s !important; }
+.reveal-stagger.visible > *:nth-child(8) { transition-delay: 0.75s !important; }
+.reveal-stagger.visible > *:nth-child(9) { transition-delay: 0.85s !important; }
+.reveal-stagger.visible > *:nth-child(10) { transition-delay: 0.95s !important; }
+
+/* Trượt từ bên trái sang */
+.reveal-left {
+  opacity: 0;
+  transform: translateX(-40px);
+  transition: opacity 0.65s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.65s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform;
+}
+.reveal-left.visible {
+  opacity: 1 !important;
+  transform: translateX(0) !important;
+  will-change: auto;
+}
+
+/* Trượt từ bên phải sang */
+.reveal-right {
+  opacity: 0;
+  transform: translateX(40px);
+  transition: opacity 0.65s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.65s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform;
+}
+.reveal-right.visible {
+  opacity: 1 !important;
+  transform: translateX(0) !important;
+  will-change: auto;
+}
+
+/* Phóng to nhẹ (Scale in) */
+.reveal-scale {
+  opacity: 0;
+  transform: scale(0.92);
+  transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform;
+}
+.reveal-scale.visible {
+  opacity: 1 !important;
+  transform: scale(1) !important;
+  will-change: auto;
+}
+
+/* Mobile: giảm khoảng cách translate */
+@media (max-width: 480px) {
+  .reveal        { transform: translateY(20px); }
+  .reveal-stagger > * { transform: translateY(20px); }
+  .reveal-left   { transform: translateX(-20px); }
+  .reveal-right  { transform: translateX(20px); }
+  .reveal-scale  { transform: scale(0.94); }
+}
