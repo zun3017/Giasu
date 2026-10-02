@@ -312,9 +312,8 @@ function renderStudentView(ketQua) {
     if (tongBTVNThangNay > 0) {
         btvnPercent = Math.round((completedBTVNThangNay / tongBTVNThangNay) * 100);
         valBTVNText = btvnPercent + "%";
-    } else if (buoiHocThangNay > 0) {
-        btvnPercent = 100;
-        valBTVNText = "100%";
+    } else {
+        valBTVNText = "--";
     }
     var elBTVN = document.getElementById('valBTVN');
     if (elBTVN) elBTVN.innerText = valBTVNText;
@@ -368,13 +367,16 @@ function renderStudentView(ketQua) {
     if (lichSuVe.length > 1) {
         var parseDateNum = function(str) {
             if (!str) return 0;
-            var parts = String(str).split('/');
-            if (parts.length >= 2) {
-                var d = parseInt(parts[0], 10) || 0;
-                var m = parseInt(parts[1], 10) || 0;
-                var y = (parts.length >= 3) ? (parseInt(parts[2], 10) || 2026) : 2026;
-                return y * 10000 + m * 100 + d;
-            }
+            var s = String(str).trim();
+            s = s.replace(/^(thứ\s*[\w\d]+|chủ\s*nhật|cn|t\d+)\s*[,.-]?\s*/i, '').trim();
+            var mIso = s.match(/(\d{4})[-\/.](\d{1,2})[-\/.](\d{1,2})/);
+            if (mIso) return parseInt(mIso[1], 10) * 10000 + parseInt(mIso[2], 10) * 100 + parseInt(mIso[3], 10);
+            var mDmy = s.match(/(\d{1,2})[-\/.](\d{1,2})[-\/.](\d{4})/);
+            if (mDmy) return parseInt(mDmy[3], 10) * 10000 + parseInt(mDmy[2], 10) * 100 + parseInt(mDmy[1], 10);
+            var mDm = s.match(/(\d{1,2})[-\/.](\d{1,2})/);
+            if (mDm) return (new Date().getFullYear()) * 10000 + parseInt(mDm[2], 10) * 100 + parseInt(mDm[1], 10);
+            var d = new Date(s);
+            if (!isNaN(d.getTime())) return d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate();
             return 0;
         };
         var firstD = parseDateNum(lichSuVe[0].ngay);
