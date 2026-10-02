@@ -450,9 +450,12 @@ html { scroll-behavior: smooth; }
 }
 
 /* Prevent horizontal overflow */
-body {
-  overflow-x: hidden;
-  max-width: 100%;
+html, body {
+  overflow-x: hidden !important;
+  max-width: 100vw !important;
+  width: 100% !important;
+  touch-action: pan-y;
+  position: relative;
 }
 
 /* Better tap experience */
