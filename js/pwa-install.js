@@ -1,6 +1,7 @@
 /**
  * PWA Install & Service Worker Registration Module
- * Tự động đăng ký Service Worker và hiển thị nút/banner Cài đặt Ứng dụng thông minh trên iOS & Android
+ * Đồng bộ chuẩn Theme Trang Chủ (Xanh Royal #2563EB & Trắng hiện đại)
+ * Nút "Tải App" tích hợp trực tiếp trên thanh Header (Navbar)
  */
 (function() {
   // 1. Đăng ký Service Worker
@@ -20,209 +21,267 @@
   // 2. Kiểm tra xem người dùng đã mở dưới dạng App Standalone chưa
   var isStandalone = window.matchMedia('(display-mode: standalone)').matches || (window.navigator.standalone === true);
   var isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+  var isAndroid = /Android/i.test(navigator.userAgent);
+
   if (isStandalone) {
     document.documentElement.classList.add('is-pwa-standalone');
   }
   if (isIOS) {
     document.documentElement.classList.add('is-ios-device');
   }
-  if (isStandalone) {
-    // Đang chạy trong App native -> Không hiển thị nút cài đặt
-    return;
-  }
-
-  // 3. CHỈ HIỂN THỊ TRÊN ĐIỆN THOẠI (Mobile / Tablet / Màn hình nhỏ <= 768px), ẨN HOÀN TOÀN TRÊN MÁY TÍNH
-  var isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || (window.innerWidth <= 768);
-  if (!isMobileDevice) {
-    return;
-  }
-
-  // 4. CHỈ HIỂN THỊ BANNER Ở TRANG CHỦ (index.html), TUYỆT ĐỐI KHÔNG HIỂN THỊ Ở CÁC TRANG DASHBOARD, LOGIN, BÀI TẬP, LỊCH
-  var currentPath = (window.location.pathname || '').toLowerCase();
-  var isExcludedPage = currentPath.indexOf('dashboard') !== -1 || 
-                       currentPath.indexOf('login') !== -1 || 
-                       currentPath.indexOf('homework') !== -1 || 
-                       currentPath.indexOf('calendar') !== -1;
-
-  var isHomePage = !isExcludedPage && (
-    currentPath.endsWith('index.html') || 
-    currentPath.endsWith('/') || 
-    currentPath === '' || 
-    currentPath.slice(-1) === '/' ||
-    currentPath.indexOf('index') !== -1
-  );
-
-  if (!isHomePage) {
-    return;
-  }
-
-  // Kiểm tra nếu người dùng vừa mới bấm tắt thông báo gần đây (3 ngày)
-  var dismissedTime = localStorage.getItem('giasu_pwa_dismissed');
-  if (dismissedTime && (Date.now() - parseInt(dismissedTime, 10) < 3 * 24 * 60 * 60 * 1000)) {
-    return;
-  }
 
   var deferredPrompt = null;
-  var isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
 
-  // 4. Xây dựng giao diện Banner Cài đặt
-  function createInstallBanner() {
-    if (document.getElementById('pwaInstallBanner')) return;
+  // Lắng nghe sự kiện cài đặt trên Android / Chrome
+  window.addEventListener('beforeinstallprompt', function(e) {
+    e.preventDefault();
+    deferredPrompt = e;
+  });
 
-    var banner = document.createElement('div');
-    banner.id = 'pwaInstallBanner';
-    banner.style.cssText = [
-      'position: fixed',
-      'bottom: 20px',
-      'left: 50%',
-      'transform: translateX(-50%) translateY(120%)',
-      'width: 90%',
-      'max-width: 480px',
-      'background: rgba(19, 9, 36, 0.95)',
-      'border: 1px solid rgba(142, 77, 255, 0.5)',
-      'border-radius: 16px',
-      'padding: 12px 16px',
-      'display: flex',
-      'align-items: center',
-      'justify-content: space-between',
-      'gap: 12px',
-      'box-shadow: 0 10px 35px rgba(0, 0, 0, 0.8), 0 0 15px rgba(142, 77, 255, 0.3)',
-      'z-index: 99998',
-      'backdrop-filter: blur(10px)',
-      '-webkit-backdrop-filter: blur(10px)',
-      'transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
-      'font-family: "Inter", sans-serif'
-    ].join(';');
-
-    banner.innerHTML = [
-      '<div style="display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0;">',
-      '  <img src="https://i.postimg.cc/66rKbPmb/trinh-duyet.png" alt="App Icon" style="width: 42px; height: 42px; border-radius: 10px; border: 1px solid rgba(255,210,63,0.4); flex-shrink: 0; object-fit: cover;">',
-      '  <div style="min-width: 0;">',
-      '    <div style="color: #FFF; font-weight: 700; font-size: 13.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Cài đặt App Gia Sư</div>',
-      '    <div style="color: #A6ADCE; font-size: 11.5px; line-height: 1.3;">Truy cập nhanh & nộp bài không cần mở web</div>',
-      '  </div>',
-      '</div>',
-      '<div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">',
-      '  <button id="pwaInstallActionBtn" style="background: linear-gradient(135deg, #8E4DFF, #5B21B6); border: 1px solid #A870FF; color: #FFF; font-weight: 700; font-size: 12px; padding: 8px 14px; border-radius: 20px; cursor: pointer; display: flex; align-items: center; gap: 5px; box-shadow: 0 4px 12px rgba(142,77,255,0.4); transition: transform 0.2s;">',
-      '    <i class="fa-solid fa-download"></i> Cài đặt',
-      '  </button>',
-      '  <button id="pwaInstallCloseBtn" style="background: none; border: none; color: #6A6E8D; font-size: 16px; cursor: pointer; padding: 6px; display: flex; align-items: center; justify-content: center; transition: color 0.2s;">',
-      '    <i class="fa-solid fa-xmark"></i>',
-      '  </button>',
-      '</div>'
-    ].join('');
-
-    document.body.appendChild(banner);
-
-    // Kích hoạt animation trượt lên
-    setTimeout(function() {
-      banner.style.transform = 'translateX(-50%) translateY(0)';
-    }, 1500);
-
-    // Bắt sự kiện nút Đóng
-    var closeBtn = document.getElementById('pwaInstallCloseBtn');
-    if (closeBtn) {
-      closeBtn.onclick = function() {
-        banner.style.transform = 'translateX(-50%) translateY(140%)';
-        localStorage.setItem('giasu_pwa_dismissed', Date.now().toString());
-        setTimeout(function() {
-          banner.remove();
-        }, 400);
-      };
+  // 3. Hàm tạo/kết nối nút "Tải App" trên Header
+  function setupHeaderInstallButton() {
+    // Nếu đang chạy trong app standalone thì ẩn nút cài đặt
+    if (isStandalone) {
+      var existingBtn = document.getElementById('btnHeaderInstallApp');
+      if (existingBtn) existingBtn.style.display = 'none';
+      return;
     }
 
-    // Bắt sự kiện nút Cài đặt
-    var actionBtn = document.getElementById('pwaInstallActionBtn');
-    if (actionBtn) {
-      actionBtn.onclick = function() {
+    var btn = document.getElementById('btnHeaderInstallApp');
+    if (!btn) {
+      // Tìm container navbar
+      var navContainer = document.querySelector('.header .nav-container');
+      if (navContainer) {
+        btn = document.createElement('button');
+        btn.id = 'btnHeaderInstallApp';
+        btn.className = 'nav-install-btn';
+        btn.type = 'button';
+        btn.title = 'Cài đặt App Tra cứu học tập';
+        btn.innerHTML = '<i class="fa-solid fa-cloud-arrow-down"></i> <span>Tải App</span>';
+        navContainer.appendChild(btn);
+      }
+    }
+
+    if (btn && !btn.dataset.pwaBound) {
+      btn.dataset.pwaBound = 'true';
+      btn.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+
         if (deferredPrompt) {
-          // Android / Chrome
+          // Android / Chrome hỗ trợ native prompt
           deferredPrompt.prompt();
           deferredPrompt.userChoice.then(function(choiceResult) {
             if (choiceResult.outcome === 'accepted') {
-              banner.style.transform = 'translateX(-50%) translateY(140%)';
+              if (btn) btn.style.display = 'none';
             }
             deferredPrompt = null;
           });
         } else if (isIOS) {
-          // iPhone / iPad -> Hiện modal hướng dẫn
+          // iPhone / iPad -> Modal hướng dẫn chuẩn theme trang chủ
           showIOSInstallModal();
+        } else if (isAndroid) {
+          // Android chưa kịp bắt beforeinstallprompt hoặc trình duyệt khác
+          showAndroidInstallModal();
         } else {
-          // Trình duyệt khác
-          showDesktopInstallGuide();
+          // Máy tính Desktop Chrome/Edge
+          showDesktopInstallModal();
         }
-      };
+      });
     }
   }
 
-  // 4. Modal Hướng dẫn cài đặt cho iPhone (iOS Safari)
+  // 4. Modal Hướng dẫn cài đặt cho iPhone (iOS Safari) - Theme Trang Chủ Chuẩn
   function showIOSInstallModal() {
-    var modalId = 'pwaIosModal';
-    if (document.getElementById(modalId)) return;
+    var modalId = 'pwaGuideModal';
+    var oldModal = document.getElementById(modalId);
+    if (oldModal) oldModal.remove();
 
     var modal = document.createElement('div');
     modal.id = modalId;
     modal.style.cssText = [
       'position: fixed',
-      'top: 0',
-      'left: 0',
-      'width: 100%',
-      'height: 100%',
-      'background: rgba(3, 8, 29, 0.85)',
-      'backdrop-filter: blur(8px)',
-      '-webkit-backdrop-filter: blur(8px)',
-      'z-index: 99999',
+      'inset: 0',
+      'background: rgba(15, 23, 42, 0.65)',
+      'backdrop-filter: blur(6px)',
+      '-webkit-backdrop-filter: blur(6px)',
+      'z-index: 999999',
       'display: flex',
       'align-items: center',
       'justify-content: center',
-      'padding: 20px',
+      'padding: 16px',
       'box-sizing: border-box',
-      'font-family: "Inter", sans-serif'
+      'font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+      'animation: pwaFadeIn 0.25s ease'
     ].join(';');
 
     modal.innerHTML = [
-      '<div style="background: #130924; border: 1px solid #8E4DFF; border-radius: 18px; max-width: 380px; width: 100%; padding: 24px; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.8); position: relative;">',
-      '  <button onclick="document.getElementById(\'pwaIosModal\').remove()" style="position: absolute; top: 12px; right: 14px; background: none; border: none; color: #A6ADCE; font-size: 20px; cursor: pointer;"><i class="fa-solid fa-xmark"></i></button>',
-      '  <img src="https://i.postimg.cc/66rKbPmb/trinh-duyet.png" style="width: 55px; height: 55px; border-radius: 12px; margin-bottom: 12px; border: 1px solid rgba(255,210,63,0.4);">',
-      '  <h3 style="color: #FFF; margin: 0 0 8px; font-size: 17px; font-weight: 700;">Cài đặt App trên Điện Thoại</h3>',
-      '  <p style="color: #A6ADCE; font-size: 13px; margin: 0 0 18px; line-height: 1.4;">Thực hiện 3 bước đơn giản để thêm biểu tượng Gia Sư vào màn hình chính:</p>',
-      '  <div style="text-align: left; background: rgba(255,255,255,0.04); border-radius: 12px; padding: 14px; margin-bottom: 18px; display: flex; flex-direction: column; gap: 12px; font-size: 13px; color: #E2E8F0;">',
-      '    <div style="display: flex; align-items: center; gap: 10px;">',
-      '      <div style="width: 24px; height: 24px; border-radius: 50%; background: #8E4DFF; color: #FFF; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 11px; flex-shrink: 0;">1</div>',
-      '      <div>Nhấn vào nút <strong>Chia sẻ</strong> <i class="fa-solid fa-arrow-up-from-bracket" style="color: #3B82F6; margin: 0 2px;"></i> ở thanh công cụ dưới Safari / Chrome.</div>',
+      '<div style="background: #FFFFFF; border-radius: 24px; max-width: 390px; width: 100%; padding: 26px 22px 22px; text-align: center; box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.25); position: relative; border: 1px solid #E2E8F0; box-sizing: border-box;">',
+      '  <button id="pwaModalCloseBtn" style="position: absolute; top: 16px; right: 16px; width: 32px; height: 32px; border-radius: 50%; background: #F1F5F9; border: none; color: #64748B; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s;"><i class="fa-solid fa-xmark"></i></button>',
+      '  <div style="display: inline-flex; padding: 10px; background: #EFF6FF; border-radius: 20px; margin-bottom: 14px;">',
+      '    <img src="https://i.postimg.cc/66rKbPmb/trinh-duyet.png" alt="Logo" style="width: 52px; height: 52px; border-radius: 12px; object-fit: cover; box-shadow: 0 4px 12px rgba(37,99,235,0.18);">',
+      '  </div>',
+      '  <h3 style="color: #0F172A; margin: 0 0 6px; font-size: 18px; font-weight: 800;">Cài đặt App trên iPhone</h3>',
+      '  <p style="color: #64748B; font-size: 13px; margin: 0 0 18px; line-height: 1.45;">Mở trực tiếp từ màn hình chính để theo dõi bài tập & điểm danh nhanh nhất</p>',
+      '  <div style="text-align: left; background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 16px; padding: 14px 16px; margin-bottom: 20px; display: flex; flex-direction: column; gap: 12px; font-size: 13px; color: #334155;">',
+      '    <div style="display: flex; align-items: flex-start; gap: 12px;">',
+      '      <div style="width: 24px; height: 24px; border-radius: 50%; background: #2563EB; color: #FFF; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 12px; flex-shrink: 0; margin-top: 1px;">1</div>',
+      '      <div>Nhấn nút <strong>Chia sẻ</strong> <i class="fa-solid fa-arrow-up-from-bracket" style="color: #2563EB; margin: 0 2px;"></i> ở thanh công cụ dưới Safari.</div>',
       '    </div>',
-      '    <div style="display: flex; align-items: center; gap: 10px;">',
-      '      <div style="width: 24px; height: 24px; border-radius: 50%; background: #8E4DFF; color: #FFF; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 11px; flex-shrink: 0;">2</div>',
-      '      <div>Cuộn xuống nhấn vào <strong>"Xem thêm"</strong> (hoặc cuộn xuống danh sách tùy chọn).</div>',
+      '    <div style="display: flex; align-items: flex-start; gap: 12px;">',
+      '      <div style="width: 24px; height: 24px; border-radius: 50%; background: #2563EB; color: #FFF; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 12px; flex-shrink: 0; margin-top: 1px;">2</div>',
+      '      <div>Cuộn xuống chọn <strong>"Thêm vào Màn hình chính"</strong> <i class="fa-regular fa-square-plus" style="color: #2563EB; margin-left: 2px;"></i></div>',
       '    </div>',
-      '    <div style="display: flex; align-items: center; gap: 10px;">',
-      '      <div style="width: 24px; height: 24px; border-radius: 50%; background: #10B981; color: #FFF; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 11px; flex-shrink: 0;">3</div>',
-      '      <div>Nhấn vào <strong>"Thêm vào Màn hình chính"</strong> <i class="fa-regular fa-square-plus" style="color: #FFD23F; margin-left: 2px;"></i> ➔ Nhấn <strong>Thêm</strong> là hoàn tất!</div>',
+      '    <div style="display: flex; align-items: flex-start; gap: 12px;">',
+      '      <div style="width: 24px; height: 24px; border-radius: 50%; background: #10B981; color: #FFF; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 12px; flex-shrink: 0; margin-top: 1px;">3</div>',
+      '      <div>Nhấn <strong>Thêm</strong> ở góc trên bên phải màn hình để hoàn tất!</div>',
       '    </div>',
       '  </div>',
-      '  <button onclick="document.getElementById(\'pwaIosModal\').remove()" style="background: linear-gradient(135deg, #8E4DFF, #5B21B6); border: none; color: #FFF; font-weight: 700; font-size: 13px; padding: 10px 24px; border-radius: 20px; cursor: pointer; width: 100%;">Đã hiểu</button>',
+      '  <button id="pwaModalOkBtn" style="background: linear-gradient(135deg, #2563EB, #1D4ED8); border: none; color: #FFF; font-weight: 700; font-size: 14px; padding: 12px 24px; border-radius: 14px; cursor: pointer; width: 100%; box-shadow: 0 6px 18px rgba(37,99,235,0.3); transition: all 0.2s;">Đã hiểu</button>',
       '</div>'
     ].join('');
 
     document.body.appendChild(modal);
+    bindModalDismiss(modal);
   }
 
-  // 5. Hướng dẫn cho trình duyệt Desktop
-  function showDesktopInstallGuide() {
-    alert('Để cài đặt App trên máy tính: Bạn vui lòng nhấn vào biểu tượng [Cài đặt ứng dụng] trên thanh địa chỉ của trình duyệt Chrome/Edge (ở góc phải thanh URL).');
+  // 5. Modal Hướng dẫn cài đặt cho Android (khi không kích hoạt được native prompt)
+  function showAndroidInstallModal() {
+    var modalId = 'pwaGuideModal';
+    var oldModal = document.getElementById(modalId);
+    if (oldModal) oldModal.remove();
+
+    var modal = document.createElement('div');
+    modal.id = modalId;
+    modal.style.cssText = [
+      'position: fixed',
+      'inset: 0',
+      'background: rgba(15, 23, 42, 0.65)',
+      'backdrop-filter: blur(6px)',
+      '-webkit-backdrop-filter: blur(6px)',
+      'z-index: 999999',
+      'display: flex',
+      'align-items: center',
+      'justify-content: center',
+      'padding: 16px',
+      'box-sizing: border-box',
+      'font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+      'animation: pwaFadeIn 0.25s ease'
+    ].join(';');
+
+    modal.innerHTML = [
+      '<div style="background: #FFFFFF; border-radius: 24px; max-width: 390px; width: 100%; padding: 26px 22px 22px; text-align: center; box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.25); position: relative; border: 1px solid #E2E8F0; box-sizing: border-box;">',
+      '  <button id="pwaModalCloseBtn" style="position: absolute; top: 16px; right: 16px; width: 32px; height: 32px; border-radius: 50%; background: #F1F5F9; border: none; color: #64748B; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center;"><i class="fa-solid fa-xmark"></i></button>',
+      '  <div style="display: inline-flex; padding: 10px; background: #EFF6FF; border-radius: 20px; margin-bottom: 14px;">',
+      '    <img src="https://i.postimg.cc/66rKbPmb/trinh-duyet.png" alt="Logo" style="width: 52px; height: 52px; border-radius: 12px; object-fit: cover; box-shadow: 0 4px 12px rgba(37,99,235,0.18);">',
+      '  </div>',
+      '  <h3 style="color: #0F172A; margin: 0 0 6px; font-size: 18px; font-weight: 800;">Cài đặt App trên Android</h3>',
+      '  <p style="color: #64748B; font-size: 13px; margin: 0 0 18px; line-height: 1.45;">Cài đặt biểu tượng Tra cứu học tập trực tiếp vào điện thoại</p>',
+      '  <div style="text-align: left; background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 16px; padding: 14px 16px; margin-bottom: 20px; display: flex; flex-direction: column; gap: 12px; font-size: 13px; color: #334155;">',
+      '    <div style="display: flex; align-items: flex-start; gap: 12px;">',
+      '      <div style="width: 24px; height: 24px; border-radius: 50%; background: #2563EB; color: #FFF; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 12px; flex-shrink: 0; margin-top: 1px;">1</div>',
+      '      <div>Nhấn nút <strong>Menu 3 chấm</strong> <i class="fa-solid fa-ellipsis-vertical" style="color: #2563EB; margin: 0 2px;"></i> ở góc phải trên trình duyệt Chrome.</div>',
+      '    </div>',
+      '    <div style="display: flex; align-items: flex-start; gap: 12px;">',
+      '      <div style="width: 24px; height: 24px; border-radius: 50%; background: #2563EB; color: #FFF; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 12px; flex-shrink: 0; margin-top: 1px;">2</div>',
+      '      <div>Chọn dòng <strong>"Cài đặt ứng dụng"</strong> (hoặc "Thêm vào Màn hình chính").</div>',
+      '    </div>',
+      '    <div style="display: flex; align-items: flex-start; gap: 12px;">',
+      '      <div style="width: 24px; height: 24px; border-radius: 50%; background: #10B981; color: #FFF; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 12px; flex-shrink: 0; margin-top: 1px;">3</div>',
+      '      <div>Nhấn <strong>Cài đặt</strong> để hoàn tất!</div>',
+      '    </div>',
+      '  </div>',
+      '  <button id="pwaModalOkBtn" style="background: linear-gradient(135deg, #2563EB, #1D4ED8); border: none; color: #FFF; font-weight: 700; font-size: 14px; padding: 12px 24px; border-radius: 14px; cursor: pointer; width: 100%; box-shadow: 0 6px 18px rgba(37,99,235,0.3); transition: all 0.2s;">Đã hiểu</button>',
+      '</div>'
+    ].join('');
+
+    document.body.appendChild(modal);
+    bindModalDismiss(modal);
   }
 
-  // 6. Lắng nghe sự kiện cài đặt trên Android / Chrome
-  window.addEventListener('beforeinstallprompt', function(e) {
-    e.preventDefault();
-    deferredPrompt = e;
-    createInstallBanner();
-  });
+  // 6. Modal Hướng dẫn cài đặt trên Máy tính Desktop
+  function showDesktopInstallModal() {
+    var modalId = 'pwaGuideModal';
+    var oldModal = document.getElementById(modalId);
+    if (oldModal) oldModal.remove();
 
-  // 7. Tự động hiển thị banner trên iOS nếu chưa cài đặt
-  if (isIOS) {
-    window.addEventListener('DOMContentLoaded', function() {
-      createInstallBanner();
-    });
+    var modal = document.createElement('div');
+    modal.id = modalId;
+    modal.style.cssText = [
+      'position: fixed',
+      'inset: 0',
+      'background: rgba(15, 23, 42, 0.65)',
+      'backdrop-filter: blur(6px)',
+      '-webkit-backdrop-filter: blur(6px)',
+      'z-index: 999999',
+      'display: flex',
+      'align-items: center',
+      'justify-content: center',
+      'padding: 16px',
+      'box-sizing: border-box',
+      'font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+      'animation: pwaFadeIn 0.25s ease'
+    ].join(';');
+
+    modal.innerHTML = [
+      '<div style="background: #FFFFFF; border-radius: 24px; max-width: 420px; width: 100%; padding: 26px 24px 22px; text-align: center; box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.25); position: relative; border: 1px solid #E2E8F0; box-sizing: border-box;">',
+      '  <button id="pwaModalCloseBtn" style="position: absolute; top: 16px; right: 16px; width: 32px; height: 32px; border-radius: 50%; background: #F1F5F9; border: none; color: #64748B; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center;"><i class="fa-solid fa-xmark"></i></button>',
+      '  <div style="display: inline-flex; padding: 10px; background: #EFF6FF; border-radius: 20px; margin-bottom: 14px;">',
+      '    <img src="https://i.postimg.cc/66rKbPmb/trinh-duyet.png" alt="Logo" style="width: 52px; height: 52px; border-radius: 12px; object-fit: cover; box-shadow: 0 4px 12px rgba(37,99,235,0.18);">',
+      '  </div>',
+      '  <h3 style="color: #0F172A; margin: 0 0 6px; font-size: 18px; font-weight: 800;">Cài đặt App trên Máy tính</h3>',
+      '  <p style="color: #64748B; font-size: 13px; margin: 0 0 18px; line-height: 1.45;">Mở trong cửa sổ riêng, chạy độc lập như phần mềm máy tính</p>',
+      '  <div style="text-align: left; background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 16px; padding: 14px 16px; margin-bottom: 20px; display: flex; flex-direction: column; gap: 12px; font-size: 13px; color: #334155;">',
+      '    <div style="display: flex; align-items: flex-start; gap: 12px;">',
+      '      <div style="width: 24px; height: 24px; border-radius: 50%; background: #2563EB; color: #FFF; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 12px; flex-shrink: 0; margin-top: 1px;">1</div>',
+      '      <div>Nhìn lên <strong>thanh địa chỉ URL</strong> ở trên cùng của trình duyệt Chrome hoặc Microsoft Edge.</div>',
+      '    </div>',
+      '    <div style="display: flex; align-items: flex-start; gap: 12px;">',
+      '      <div style="width: 24px; height: 24px; border-radius: 50%; background: #2563EB; color: #FFF; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 12px; flex-shrink: 0; margin-top: 1px;">2</div>',
+      '      <div>Nhấn vào biểu tượng <strong>Cài đặt ứng dụng</strong> <i class="fa-solid fa-desktop" style="color: #2563EB; margin: 0 2px;"></i> (máy tính hoặc icon mũi tên tải xuống ở góc phải thanh URL).</div>',
+      '    </div>',
+      '    <div style="display: flex; align-items: flex-start; gap: 12px;">',
+      '      <div style="width: 24px; height: 24px; border-radius: 50%; background: #10B981; color: #FFF; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 12px; flex-shrink: 0; margin-top: 1px;">3</div>',
+      '      <div>Chọn <strong>Cài đặt</strong> để đưa biểu tượng App ra màn hình Desktop.</div>',
+      '    </div>',
+      '  </div>',
+      '  <button id="pwaModalOkBtn" style="background: linear-gradient(135deg, #2563EB, #1D4ED8); border: none; color: #FFF; font-weight: 700; font-size: 14px; padding: 12px 24px; border-radius: 14px; cursor: pointer; width: 100%; box-shadow: 0 6px 18px rgba(37,99,235,0.3); transition: all 0.2s;">Đã hiểu</button>',
+      '</div>'
+    ].join('');
+
+    document.body.appendChild(modal);
+    bindModalDismiss(modal);
+  }
+
+  // Tiện ích đóng modal
+  function bindModalDismiss(modal) {
+    var closeBtn = document.getElementById('pwaModalCloseBtn');
+    var okBtn = document.getElementById('pwaModalOkBtn');
+    function closeModal() {
+      modal.style.opacity = '0';
+      modal.style.transition = 'opacity 0.2s ease';
+      setTimeout(function() {
+        if (modal.parentNode) modal.parentNode.removeChild(modal);
+      }, 200);
+    }
+    if (closeBtn) closeBtn.onclick = closeModal;
+    if (okBtn) okBtn.onclick = closeModal;
+    modal.onclick = function(e) {
+      if (e.target === modal) closeModal();
+    };
+    function onEsc(e) {
+      if (e.key === 'Escape') {
+        closeModal();
+        window.removeEventListener('keydown', onEsc);
+      }
+    }
+    window.addEventListener('keydown', onEsc);
+  }
+
+  // Khởi tạo khi DOM sẵn sàng
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', setupHeaderInstallButton);
+  } else {
+    setupHeaderInstallButton();
   }
 })();
