@@ -2447,32 +2447,11 @@ function initVietnameseDatePicker(textInputId, pickerInputId, onChangeCallback) 
 window.initVietnameseDatePicker = initVietnameseDatePicker;
 
 function getActiveThemeInvoiceColors() {
-    var docEl = document.documentElement;
-    var s = window.getComputedStyle(docEl);
-    var primary = (s.getPropertyValue('--color-primary') || '').trim();
-    if (!primary) primary = '#8E4DFF';
-    
-    var rgbStr = (s.getPropertyValue('--color-primary-rgb') || '').trim();
-    var r = 142, g = 77, b = 255;
-    if (rgbStr && rgbStr.indexOf(',') !== -1) {
-        var parts = rgbStr.split(',').map(function(p) { return parseInt(p.trim(), 10); });
-        if (parts.length >= 3 && !isNaN(parts[0])) {
-            r = parts[0]; g = parts[1]; b = parts[2];
-        }
-    } else if (primary.startsWith('#') && primary.length === 7) {
-        r = parseInt(primary.slice(1, 3), 16) || 142;
-        g = parseInt(primary.slice(3, 5), 16) || 77;
-        b = parseInt(primary.slice(5, 7), 16) || 255;
-    }
-
-    var softBg = 'rgba(' + r + ', ' + g + ', ' + b + ', 0.10)';
-    var softBorder = 'rgba(' + r + ', ' + g + ', ' + b + ', 0.30)';
-
     return {
-        primary: primary,
-        rgb: r + ', ' + g + ', ' + b,
-        softBg: softBg,
-        softBorder: softBorder
+        primary: '#7C3AED',
+        rgb: '124, 58, 237',
+        softBg: '#FAF5FF',
+        softBorder: '#E9D5FF'
     };
 }
 window.getActiveThemeInvoiceColors = getActiveThemeInvoiceColors;
@@ -3265,20 +3244,21 @@ function renderTuitionLivePreview() {
             ? state.footerNoteText 
             : defaultSections.footerNote;
 
-        // ==================== MẪU 2: PHIẾU HỌC PHÍ THEO MẪU BÁO CÁO TOÀN DIỆN (THEME HỆ THỐNG) ====================
-        html += '<div id="tuitionInvoiceCard" class="tuition-receipt-card template-2-card" style="border: 1.5px solid ' + themeColors.primary + '; border-radius: 24px; padding: 24px 22px; background: #FFFFFF; box-shadow: 0 12px 36px rgba(0,0,0,0.06); font-family: \'Plus Jakarta Sans\', -apple-system, BlinkMacSystemFont, sans-serif; color: #1E293B; box-sizing: border-box;">';
+        // ==================== MẪU 2: PHIẾU HỌC PHÍ THEO MẪU BÁO CÁO TOÀN DIỆN (ĐỒNG BỘ THEME MẪU 1) ====================
+        html += '<div id="tuitionInvoiceCard" class="invoice-container template-2-card" style="border: 1px solid #E2E8F0; border-radius: 28px; padding: 26px 22px 22px 22px; background: #FFFFFF; box-shadow: 0 35px 80px -15px rgba(0,0,0,0.15), 0 0 0 1px rgba(0,0,0,0.04); font-family: \'Plus Jakarta Sans\', -apple-system, BlinkMacSystemFont, sans-serif; color: #1E293B; box-sizing: border-box; position: relative; overflow: hidden;">';
+        html += '<div style="position: absolute; top: 0; left: 0; right: 0; height: 6px; background: linear-gradient(90deg, #8E4DFF 0%, #3B82F6 50%, #10B981 100%);"></div>';
 
         // 1. Centered Title
-        html += '<div style="text-align: center; margin-bottom: 16px;">';
-        html += '<h2 style="font-size: 22px; font-weight: 900; color: ' + themeColors.primary + '; margin: 0; text-transform: uppercase; letter-spacing: 0.5px;">' + periodTitle + '</h2>';
+        html += '<div style="text-align: center; margin-bottom: 18px; margin-top: 4px;">';
+        html += '<h2 style="font-size: 22px; font-weight: 900; color: #7C3AED; margin: 0; text-transform: uppercase; letter-spacing: 0.5px;">' + periodTitle + '</h2>';
         html += '</div>';
 
         // 2. 2-Column Section (THÔNG TIN HỌC SINH & TỔNG HỌC PHÍ / QR)
         html += '<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;">';
 
         // Left Box: THÔNG TIN HỌC SINH
-        html += '<div style="background: #FFFFFF; border: 1.5px solid ' + themeColors.softBorder + '; border-radius: 16px; padding: 12px 14px; display: flex; flex-direction: column; justify-content: space-between;">';
-        html += '<div style="font-size: 11.5px; font-weight: 800; color: ' + themeColors.primary + '; text-transform: uppercase; letter-spacing: 0.5px; padding-bottom: 6px; border-bottom: 1.5px solid ' + themeColors.softBorder + '; margin-bottom: 4px;">THÔNG TIN HỌC SINH</div>';
+        html += '<div style="background: #FFFFFF; border: 1.5px solid #E9D5FF; border-radius: 18px; padding: 13px 14px; display: flex; flex-direction: column; justify-content: space-between;">';
+        html += '<div style="font-size: 11.5px; font-weight: 800; color: #7C3AED; text-transform: uppercase; letter-spacing: 0.5px; padding-bottom: 6px; border-bottom: 1.5px solid #F3E8FF; margin-bottom: 4px;"><i class="fa-solid fa-graduation-cap" style="color: #7C3AED; margin-right: 5px;"></i>THÔNG TIN HỌC SINH</div>';
 
         if (toggles.student !== false) {
             html += '<div style="display: flex; justify-content: space-between; align-items: center; font-size: 11.5px; padding: 4.5px 0; border-bottom: 1px dotted #CBD5E1;">';
@@ -3338,15 +3318,16 @@ function renderTuitionLivePreview() {
         html += '</div>'; // End Left Box
 
         // Right Box: TỔNG HỌC PHÍ & QR (Không hiển thị dòng ngân hàng, số TK, chủ TK)
-        html += '<div style="background: #FFFFFF; border: 1.5px solid ' + themeColors.softBorder + '; border-radius: 16px; padding: 12px 14px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;">';
+        html += '<div style="background: linear-gradient(180deg, #FAF5FF 0%, #F5F3FF 100%); border: 1.5px solid #E9D5FF; border-radius: 18px; padding: 13px 14px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;">';
         html += '<div style="width: 100%; text-align: center;">';
-        html += '<div style="font-size: 11px; font-weight: 800; color: ' + themeColors.primary + '; text-transform: uppercase; letter-spacing: 0.5px;">TỔNG HỌC PHÍ</div>';
-        html += '<div style="font-size: 23px; font-weight: 900; color: ' + themeColors.primary + '; letter-spacing: -0.5px; margin: 2px 0 6px 0;">' + grandTotalStr + '</div>';
+        html += '<div style="font-size: 11px; font-weight: 800; color: #7C3AED; text-transform: uppercase; letter-spacing: 0.5px;"><i class="fa-solid fa-receipt" style="color: #7C3AED; margin-right: 5px;"></i>TỔNG HỌC PHÍ</div>';
+        html += '<div style="font-size: 23px; font-weight: 900; color: #7C3AED; letter-spacing: -0.5px; margin: 2px 0 6px 0;">' + grandTotalStr + '</div>';
         html += '</div>';
 
         if (toggles.qr !== false) {
             html += '<div style="margin: 4px 0; text-align: center;">';
-            html += '<img src="' + qrImgSrc + '" style="width: 130px; height: 130px; object-fit: contain; border-radius: 10px; border: 1px solid #E2E8F0; background: #FFF; padding: 4px; box-sizing: border-box;" alt="VietQR" crossorigin="anonymous">';
+            html += '<img src="' + qrImgSrc + '" style="width: 130px; height: 130px; object-fit: contain; border-radius: 10px; border: 1px solid #E9D5FF; background: #FFF; padding: 4px; box-sizing: border-box; box-shadow: 0 4px 12px rgba(124, 58, 237, 0.08);" alt="VietQR" crossorigin="anonymous">';
+            html += '<div style="font-size: 11px; font-weight: 700; color: #7C3AED; margin-top: 4px;"><i class="fa-solid fa-qrcode"></i> Quét VietQR</div>';
             html += '</div>';
         }
 
@@ -3356,7 +3337,7 @@ function renderTuitionLivePreview() {
         // 3. Section: NHẬN XÉT HỌC TẬP
         if (toggles.feedback !== false) {
             html += '<div style="margin-top: 14px;">';
-            html += '<div style="font-size: 12.5px; font-weight: 800; color: ' + themeColors.primary + '; text-transform: uppercase; letter-spacing: 0.5px; padding-bottom: 5px; border-bottom: 1.5px solid ' + themeColors.softBorder + '; margin-bottom: 8px;">NHẬN XÉT HỌC TẬP</div>';
+            html += '<div style="font-size: 12.5px; font-weight: 800; color: #7C3AED; text-transform: uppercase; letter-spacing: 0.5px; padding-bottom: 5px; border-bottom: 1.5px solid #F3E8FF; margin-bottom: 8px;"><i class="fa-regular fa-comment-dots" style="color: #7C3AED; margin-right: 5px;"></i>NHẬN XÉT HỌC TẬP</div>';
             html += '<div id="invFeedbackText" contenteditable="true" style="font-size: 11.5px; color: #1E293B; line-height: 1.6; outline: none; padding: 2px 0;" oninput="onTuitionCustomFieldInput(\'feedbackText\', this.innerHTML)">' + feedbackContent + '</div>';
             html += '</div>';
         }
@@ -3364,13 +3345,13 @@ function renderTuitionLivePreview() {
         // 4. Section: LỊCH HỌC (Full width, không có cột học phí ở góc)
         if (toggles.schedule !== false) {
             html += '<div style="margin-top: 14px;">';
-            html += '<div style="font-size: 12px; font-weight: 800; color: ' + themeColors.primary + '; text-transform: uppercase; letter-spacing: 0.5px; padding-bottom: 4px; border-bottom: 1.5px solid ' + themeColors.softBorder + '; margin-bottom: 6px;">LỊCH HỌC</div>';
+            html += '<div style="font-size: 12px; font-weight: 800; color: #7C3AED; text-transform: uppercase; letter-spacing: 0.5px; padding-bottom: 4px; border-bottom: 1.5px solid #F3E8FF; margin-bottom: 6px;"><i class="fa-solid fa-calendar-check" style="color: #7C3AED; margin-right: 5px;"></i>LỊCH HỌC</div>';
             html += '<div id="invScheduleText" contenteditable="true" style="font-size: 11.5px; color: #1E293B; line-height: 1.6; outline: none; padding: 2px 0;" oninput="onTuitionCustomFieldInput(\'scheduleText\', this.innerHTML)">' + scheduleContent + '</div>';
             html += '</div>';
         }
 
         // 5. Footer Banner Lời dặn dò
-        html += '<div id="invFooterNoteText" contenteditable="true" style="background: ' + themeColors.softBg + '; color: ' + themeColors.primary + '; border: 1px solid ' + themeColors.softBorder + '; border-radius: 20px; padding: 9px 16px; text-align: center; font-size: 11.5px; font-weight: 600; outline: none; margin-top: 16px; line-height: 1.5;" oninput="onTuitionCustomFieldInput(\'footerNoteText\', this.innerText)">' + footerNoteContent + '</div>';
+        html += '<div id="invFooterNoteText" contenteditable="true" style="background: linear-gradient(135deg, #FAF5FF 0%, #F5F3FF 100%); color: #7C3AED; border: 1px solid #E9D5FF; border-radius: 20px; padding: 9px 16px; text-align: center; font-size: 11.5px; font-weight: 600; outline: none; margin-top: 16px; line-height: 1.5;" oninput="onTuitionCustomFieldInput(\'footerNoteText\', this.innerText)">' + footerNoteContent + '</div>';
 
         html += '</div>'; // End Mẫu 2 #tuitionInvoiceCard
     } else {
