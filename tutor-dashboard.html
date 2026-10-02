@@ -1573,7 +1573,7 @@
     </div>
 
     <!-- MODAL CẮT ẢNH ĐẠI DIỆN KIỂU FACEBOOK -->
-    <div id="avatarCropModal" class="modal-overlay" style="z-index: 1200; display: none;" onclick="if(event.target===this) closeAvatarCropper()">
+    <div id="avatarCropModal" class="modal-overlay" style="z-index: 2500; display: none; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);" onclick="if(event.target===this) closeAvatarCropper()">
         <div class="modal-content" style="max-width: 500px; padding: 0; overflow: hidden; border-radius: 20px;">
             <div class="modal-header" style="padding: 16px 20px; border-bottom: 1px solid var(--border-color);">
                 <h3 style="font-size: 16px;"><i class="fa-solid fa-crop-simple" style="color: var(--color-primary);"></i> Chỉnh sửa & Cắt ảnh đại diện</h3>
@@ -2329,7 +2329,7 @@
 
     <!-- Admin Account settings modal -->
         <!-- 6. Custom Confirm Modal -->
-    <div id="customConfirmModal" class="modal-overlay" style="z-index: 2000;" onclick="if(event.target === this) this.style.display = 'none';">
+    <div id="customConfirmModal" class="modal-overlay" style="z-index: 9999;" onclick="if(event.target === this) this.style.display = 'none';">
         <div class="modal-content" style="max-width: 400px; text-align: center;">
             <div style="font-size: 40px; color: var(--color-primary); margin-bottom: 15px;"><i class="fa-solid fa-circle-question"></i></div>
             <h3 style="color: var(--text-heading, var(--text-primary)); margin: 0 0 10px; font-size: 18px;">Xác nhận yêu cầu</h3>

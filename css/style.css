@@ -6159,6 +6159,9 @@ body {
 }
 
 /* Cropper.js circular crop overlay */
+#avatarCropModal {
+    z-index: 2500 !important;
+}
 #avatarCropModal .cropper-view-box,
 #avatarCropModal .cropper-face {
     border-radius: 50%;

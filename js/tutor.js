@@ -5411,7 +5411,10 @@ window.initTutorSidebarState = initTutorSidebarState;
                 cropImg.src = e.target.result;
                 
                 var cropModal = document.getElementById('avatarCropModal');
-                if (cropModal) cropModal.style.display = 'flex';
+                if (cropModal) {
+                    cropModal.style.zIndex = '2500';
+                    cropModal.style.display = 'flex';
+                }
                 
                 if (avatarCropperInstance) {
                     avatarCropperInstance.destroy();
