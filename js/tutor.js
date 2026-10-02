@@ -6732,8 +6732,8 @@ window.initTutorSidebarState = initTutorSidebarState;
                 var htmlMobile = "<div class='mobile-cards-view'>";
 
                 list.slice().reverse().forEach(function(item, idx) {
-                    var styleStr = (idx >= 5) ? 'style="display: none;" class="tutor-history-row tutor-hidden-row"' : 'class="tutor-history-row"';
-                    var btvnValue = (item.btvn || item.danhGiaBTVN || "");
+                    var isAbsent = isAbsentLog(item);
+                    var btvnValue = isAbsent ? "-" : (item.btvn || item.danhGiaBTVN || "");
 
                     var rawDateOnly = formatDateOnly(item.ngay);
 

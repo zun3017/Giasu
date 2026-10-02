@@ -45,19 +45,87 @@ function isAbsentSession(statusOrItem) {
     return false;
 }
 
+// Helper phân tích ngày tháng chuẩn xác
+function parseInputDate(str) {
+    if (!str) return null;
+    if (str instanceof Date) {
+        return isNaN(str.getTime()) ? null : str;
+    }
+    var s = String(str).trim();
+    if (!s) return null;
+
+    s = s.replace(/^(thứ\s*[\w\d]+|chủ\s*nhật|cn|t\d+)\s*[,.-]?\s*/i, '').trim();
+
+    // 0. Khớp tiếng Việt: "Ngày DD tháng MM năm YYYY" hoặc "Ngày DD/MM/YYYY"
+    var vnMatch = s.match(/(?:ngày\s*)?(\d{1,2})\s*(?:tháng|\/|-)\s*(\d{1,2})(?:\s*(?:năm|\/|-)\s*(\d{4}))?/i);
+    if (s.toLowerCase().indexOf('ngày') !== -1 && vnMatch) {
+        var d = parseInt(vnMatch[1], 10);
+        var m = parseInt(vnMatch[2], 10) - 1;
+        var y = vnMatch[3] ? parseInt(vnMatch[3], 10) : new Date().getFullYear();
+        var date = new Date(y, m, d, 0, 0, 0, 0);
+        return isNaN(date.getTime()) ? null : date;
+    }
+
+    // 1. Khớp ISO YYYY-MM-DD hoặc YYYY/MM/DD
+    var isoMatch = s.match(/^(\d{4})[-\/.](\d{1,2})[-\/.](\d{1,2})/);
+    if (isoMatch) {
+        var y = parseInt(isoMatch[1], 10);
+        var m = parseInt(isoMatch[2], 10) - 1;
+        var d = parseInt(isoMatch[3], 10);
+        var date = new Date(y, m, d, 0, 0, 0, 0);
+        return isNaN(date.getTime()) ? null : date;
+    }
+
+    // 2. Khớp DD/MM/YYYY hoặc DD-MM-YYYY hoặc DD.MM.YYYY
+    var dmyMatch = s.match(/^(\d{1,2})[-\/.](\d{1,2})[-\/.](\d{4})/);
+    if (dmyMatch) {
+        var d = parseInt(dmyMatch[1], 10);
+        var m = parseInt(dmyMatch[2], 10) - 1;
+        var y = parseInt(dmyMatch[3], 10);
+        var date = new Date(y, m, d, 0, 0, 0, 0);
+        return isNaN(date.getTime()) ? null : date;
+    }
+
+    // 3. Khớp DD/MM/YY
+    var dmy2Match = s.match(/^(\d{1,2})[-\/.](\d{1,2})[-\/.](\d{2})$/);
+    if (dmy2Match) {
+        var d = parseInt(dmy2Match[1], 10);
+        var m = parseInt(dmy2Match[2], 10) - 1;
+        var y = 2000 + parseInt(dmy2Match[3], 10);
+        var date = new Date(y, m, d, 0, 0, 0, 0);
+        return isNaN(date.getTime()) ? null : date;
+    }
+
+    // 4. Khớp MM/YYYY hoặc MM-YYYY -> ngày 1 của tháng đó
+    var myMatch = s.match(/^(\d{1,2})[-\/.](\d{4})$/);
+    if (myMatch) {
+        var m = parseInt(myMatch[1], 10) - 1;
+        var y = parseInt(myMatch[2], 10);
+        var date = new Date(y, m, 1, 0, 0, 0, 0);
+        return isNaN(date.getTime()) ? null : date;
+    }
+
+    // 5. Khớp DD/MM hoặc DD-MM (mặc định năm hiện tại từ hệ thống)
+    var dmMatch = s.match(/^(\d{1,2})[-\/.](\d{1,2})$/);
+    if (dmMatch) {
+        var d = parseInt(dmMatch[1], 10);
+        var m = parseInt(dmMatch[2], 10) - 1;
+        var y = new Date().getFullYear();
+        var date = new Date(y, m, d, 0, 0, 0, 0);
+        return isNaN(date.getTime()) ? null : date;
+    }
+
+    var parsed = new Date(s);
+    return isNaN(parsed.getTime()) ? null : parsed;
+}
+window.parseInputDate = parseInputDate;
+
 // Helper phân tích ngày học linh hoạt từ mọi định dạng
 function parseLessonDate(rawStr) {
     if (!rawStr) return null;
-    var s = String(rawStr).trim();
-    var mIso = s.match(/(\d{4})[-/.](\d{1,2})[-/.](\d{1,2})/);
-    var mDmy = s.match(/(\d{1,2})[-/.](\d{1,2})[-/.](\d{4})/);
-    var mDm = s.match(/(\d{1,2})[-/.](\d{1,2})/);
-    var curY = new Date().getFullYear();
-    if (mIso) return { year: parseInt(mIso[1], 10), month: parseInt(mIso[2], 10) - 1 };
-    if (mDmy) return { year: parseInt(mDmy[3], 10), month: parseInt(mDmy[2], 10) - 1 };
-    if (mDm) return { year: curY, month: parseInt(mDm[2], 10) - 1 };
-    var d = new Date(s);
-    return isNaN(d.getTime()) ? null : { year: d.getFullYear(), month: d.getMonth() };
+    var d = parseInputDate(rawStr);
+    if (!d || isNaN(d.getTime())) return null;
+    return { year: d.getFullYear(), month: d.getMonth() };
 }
 
 function renderStudentView(ketQua) {
@@ -65,6 +133,7 @@ function renderStudentView(ketQua) {
     
     // Đảm bảo có mảng danh sách lịch sử học tập
     var lichSu = ketQua.lichSuHocTap || ketQua.danhSachNhatKy || [];
+    window._currentStudentLichSu = lichSu;
 
     // Hủy biểu đồ cũ nếu có
     if (currentChartInstance) {
@@ -524,7 +593,7 @@ function renderStudentView(ketQua) {
             var isHidden = (idx >= 5);
             var hiddenAttr = isHidden ? ' style="display:none;" class="history-row hidden-row' + (isAbsent ? ' row-absent' : '') + '"' : ' class="history-row' + (isAbsent ? ' row-absent' : '') + '"';
             
-            var btvnValue = (item.danhGiaBTVN || item.btvn || "");
+            var btvnValue = isAbsent ? "-" : (item.danhGiaBTVN || item.btvn || "");
             var diemDau = item.diemDauGio !== undefined && item.diemDauGio !== null ? item.diemDauGio : item.diemDG;
             var diemDinh = item.diemDinhKi !== undefined && item.diemDinhKi !== null ? item.diemDinhKi : item.diemDK;
             var tuanVal = item.tuan !== undefined && item.tuan !== null && item.tuan !== '' ? item.tuan : (item.buoi || item.rowIndex || (idx + 1));
