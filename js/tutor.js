@@ -6661,11 +6661,11 @@ window.initTutorSidebarState = initTutorSidebarState;
                 else totalPresent++;
             });
 
-            // Cập nhật tiêu đề Lịch sử kèm tổng số buổi (Đã học: X • Nghỉ: Y)
+            // Cập nhật tiêu đề Lịch sử học tập & Nhận xét chi tiết (gọn gàng, không kèm số buổi tổng dồn)
             var historyTitleEl = document.getElementById('tutorStudentHistoryTitle');
             if (!historyTitleEl) historyTitleEl = document.querySelector('.schedule-section h3 span');
             if (historyTitleEl) {
-                historyTitleEl.innerHTML = '<i class="fa-solid fa-clock-rotate-left"></i> Lịch sử học tập & Nhận xét chi tiết <span style="font-size: 13px; color: var(--text-secondary, #64748B); font-weight: normal; margin-left: 8px;">(Đã học: <b style="color:#10B981;">' + totalPresent + '</b> • Nghỉ: <b style="color:#EF4444;">' + totalAbsent + '</b>)</span>';
+                historyTitleEl.innerHTML = '<i class="fa-solid fa-clock-rotate-left"></i> Lịch sử học tập & Nhận xét chi tiết';
             }
 
             if (totalBuoi > 0) {
