@@ -1106,18 +1106,28 @@
 
                 <div class="diary-filters">
                     <!-- Dropdown Học sinh -->
-                    <div class="diary-filter-item">
+                    <div class="diary-filter-item custom-dropdown-wrap" id="diaryStudentDropdownWrap" onclick="toggleCustomDropdown('diaryStudentFilter', event)">
                         <label><i class="fa-solid fa-user-graduate"></i> Học sinh:</label>
-                        <select id="diaryStudentFilter" onchange="filterTutorDiary()">
+                        <div class="custom-dropdown-value-group">
+                            <span class="custom-dropdown-selected" id="diaryStudentSelectedText">Tất cả học sinh</span>
+                            <i class="fa-solid fa-chevron-down custom-dropdown-icon"></i>
+                        </div>
+                        <select id="diaryStudentFilter" onchange="filterTutorDiary()" style="display: none;">
                         </select>
+                        <div class="custom-dropdown-menu" id="diaryStudentMenu"></div>
                     </div>
 
                     <!-- Dropdown Tháng -->
-                    <div class="diary-filter-item">
+                    <div class="diary-filter-item custom-dropdown-wrap" id="diaryMonthDropdownWrap" onclick="toggleCustomDropdown('diaryMonthFilter', event)">
                         <label><i class="fa-solid fa-calendar-days"></i> Tháng:</label>
-                        <select id="diaryMonthFilter" onchange="filterTutorDiary()">
+                        <div class="custom-dropdown-value-group">
+                            <span class="custom-dropdown-selected" id="diaryMonthSelectedText">Tất cả các tháng</span>
+                            <i class="fa-solid fa-chevron-down custom-dropdown-icon"></i>
+                        </div>
+                        <select id="diaryMonthFilter" onchange="filterTutorDiary()" style="display: none;">
                             <option value="all">Tất cả các tháng</option>
                         </select>
+                        <div class="custom-dropdown-menu" id="diaryMonthMenu"></div>
                     </div>
 
                     <!-- Badge tổng số buổi -->
@@ -1349,11 +1359,16 @@
                     <p style="color: var(--text-secondary); font-size: 13px; margin: 4px 0 0 0;">Theo dõi tổng thu nhập, tình trạng đóng học phí từng em và xuất hóa đơn phiếu học tập</p>
                 </div>
                 <div class="tuition-filters">
-                    <div class="tuition-filter-item">
+                    <div class="tuition-filter-item custom-dropdown-wrap" id="tuitionMonthDropdownWrap" onclick="toggleCustomDropdown('tuitionMonthFilter', event)">
                         <label><i class="fa-solid fa-calendar-days"></i> Kỳ học:</label>
-                        <select id="tuitionMonthFilter" onchange="renderTutorTuitionSection()">
+                        <div class="custom-dropdown-value-group">
+                            <span class="custom-dropdown-selected" id="tuitionMonthSelectedText">Tất cả các tháng</span>
+                            <i class="fa-solid fa-chevron-down custom-dropdown-icon"></i>
+                        </div>
+                        <select id="tuitionMonthFilter" onchange="renderTutorTuitionSection()" style="display: none;">
                             <option value="all">Tất cả các tháng</option>
                         </select>
+                        <div class="custom-dropdown-menu" id="tuitionMonthMenu"></div>
                     </div>
                 </div>
             </div>

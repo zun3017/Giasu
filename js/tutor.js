@@ -1433,6 +1433,11 @@ function initTutorDiaryFilters() {
     if (prevMonth && monthSelect.querySelector('option[value="' + prevMonth + '"]')) {
         monthSelect.value = prevMonth;
     }
+
+    if (typeof syncCustomDropdownFromSelect === 'function') {
+        syncCustomDropdownFromSelect('diaryStudentFilter');
+        syncCustomDropdownFromSelect('diaryMonthFilter');
+    }
 }
 
 function filterTutorDiary() {
@@ -1837,6 +1842,102 @@ function goToStudentDiary(studentName, event) {
 }
 window.goToStudentDiary = goToStudentDiary;
 
+// ==========================================================================
+// CUSTOM FILTER DROPDOWN SYSTEM (Giao diện dropdown menu sang trọng, hiện đại)
+// ==========================================================================
+function toggleCustomDropdown(selectId, e) {
+    if (e) {
+        e.stopPropagation();
+    }
+    var select = document.getElementById(selectId);
+    if (!select) return;
+    var wrap = select.closest('.custom-dropdown-wrap');
+    if (!wrap) return;
+    var menu = wrap.querySelector('.custom-dropdown-menu');
+    if (!menu) return;
+
+    var isOpen = wrap.classList.contains('open');
+    closeAllCustomDropdowns();
+    if (!isOpen) {
+        syncCustomDropdownFromSelect(selectId);
+        wrap.classList.add('open');
+        menu.classList.add('open');
+    }
+}
+window.toggleCustomDropdown = toggleCustomDropdown;
+
+function closeAllCustomDropdowns() {
+    document.querySelectorAll('.custom-dropdown-wrap.open').forEach(function(w) {
+        w.classList.remove('open');
+    });
+    document.querySelectorAll('.custom-dropdown-menu.open').forEach(function(m) {
+        m.classList.remove('open');
+    });
+}
+window.closeAllCustomDropdowns = closeAllCustomDropdowns;
+
+function syncCustomDropdownFromSelect(selectId) {
+    var select = document.getElementById(selectId);
+    if (!select) return;
+    var wrap = select.closest('.custom-dropdown-wrap');
+    if (!wrap) return;
+    var selectedTextEl = wrap.querySelector('.custom-dropdown-selected');
+    var menu = wrap.querySelector('.custom-dropdown-menu');
+    if (!selectedTextEl || !menu) return;
+
+    var curVal = select.value;
+    var curText = "";
+    menu.innerHTML = "";
+
+    Array.from(select.options).forEach(function(opt) {
+        var isSelected = (opt.value === curVal);
+        if (isSelected || (!curText && select.selectedIndex === 0)) {
+            curText = opt.innerText;
+        }
+
+        var item = document.createElement('div');
+        item.className = 'custom-dropdown-item' + (isSelected ? ' active' : '');
+        item.dataset.value = opt.value;
+
+        var iconHtml = '';
+        if (selectId === 'diaryStudentFilter') {
+            iconHtml = '<i class="fa-solid fa-graduation-cap" style="margin-right: 8px; opacity: 0.7; font-size: 12px;"></i>';
+        } else if (opt.value === 'all') {
+            iconHtml = '<i class="fa-solid fa-layer-group" style="margin-right: 8px; opacity: 0.7; font-size: 12px;"></i>';
+        } else {
+            iconHtml = '<i class="fa-regular fa-calendar-check" style="margin-right: 8px; opacity: 0.7; font-size: 12px;"></i>';
+        }
+
+        item.innerHTML = '<span style="display: inline-flex; align-items: center;">' + iconHtml + opt.innerText + '</span>' +
+                         '<i class="fa-solid fa-check item-check"></i>';
+
+        item.onclick = function(ev) {
+            ev.stopPropagation();
+            select.value = opt.value;
+            select.dispatchEvent(new Event('change'));
+            syncCustomDropdownFromSelect(selectId);
+            closeAllCustomDropdowns();
+        };
+
+        menu.appendChild(item);
+    });
+
+    if (select.selectedIndex >= 0 && select.options[select.selectedIndex]) {
+        curText = select.options[select.selectedIndex].innerText;
+    }
+    selectedTextEl.innerText = curText || "Chọn...";
+}
+window.syncCustomDropdownFromSelect = syncCustomDropdownFromSelect;
+
+if (typeof window._customDropdownClickBound === 'undefined') {
+    window._customDropdownClickBound = true;
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.custom-dropdown-wrap')) {
+            closeAllCustomDropdowns();
+        }
+    });
+}
+
 function initTuitionMonthFilter() {
     var select = document.getElementById('tuitionMonthFilter');
     if (!select) return;
@@ -1906,6 +2007,10 @@ function initTuitionMonthFilter() {
         select.value = 'all';
     } else {
         select.value = (sortedMonths.length > 0) ? sortedMonths[0] : "all";
+    }
+
+    if (typeof syncCustomDropdownFromSelect === 'function') {
+        syncCustomDropdownFromSelect('tuitionMonthFilter');
     }
 }
 window.initTuitionMonthFilter = initTuitionMonthFilter;

@@ -3665,6 +3665,131 @@
             color: var(--text-primary);
         }
 
+        /* Custom Filter Dropdown System (Thay thế select native bằng menu sang trọng) */
+        .custom-dropdown-wrap {
+            position: relative;
+            cursor: pointer;
+            user-select: none;
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .custom-dropdown-wrap:hover {
+            border-color: var(--color-primary) !important;
+            box-shadow: 0 2px 10px rgba(142, 77, 255, 0.12);
+        }
+        .custom-dropdown-wrap.open {
+            border-color: var(--color-primary) !important;
+            box-shadow: 0 0 0 3px rgba(142, 77, 255, 0.16) !important;
+            z-index: 1060 !important;
+        }
+        .custom-dropdown-value-group {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+        }
+        .custom-dropdown-selected {
+            font-size: 13.5px;
+            font-weight: 700;
+            color: var(--color-primary, #8E4DFF);
+            white-space: nowrap;
+        }
+        .custom-dropdown-icon {
+            font-size: 11px;
+            color: var(--color-primary, #8E4DFF);
+            margin-left: 2px;
+            transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .custom-dropdown-wrap.open .custom-dropdown-icon {
+            transform: rotate(180deg);
+        }
+        .custom-dropdown-wrap select {
+            display: none !important;
+        }
+
+        /* Floating Menu Popup */
+        .custom-dropdown-menu {
+            display: none;
+            position: absolute;
+            top: calc(100% + 8px);
+            right: 0;
+            min-width: 200px;
+            width: max-content;
+            max-width: calc(100vw - 32px);
+            background: var(--bg-card, #FFFFFF);
+            border: 1px solid var(--border-card, var(--border-color, #E2E8F0));
+            border-radius: 14px;
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.16), 0 2px 8px rgba(0, 0, 0, 0.05);
+            padding: 6px;
+            z-index: 1050;
+            max-height: 280px;
+            overflow-y: auto;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+        .custom-dropdown-menu.open {
+            display: block;
+            animation: customDropdownFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        @keyframes customDropdownFadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-6px) scale(0.98);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+        .custom-dropdown-menu::-webkit-scrollbar {
+            width: 5px;
+        }
+        .custom-dropdown-menu::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-dropdown-menu::-webkit-scrollbar-thumb {
+            background: var(--border-color, #CBD5E1);
+            border-radius: 10px;
+        }
+        .custom-dropdown-menu::-webkit-scrollbar-thumb:hover {
+            background: var(--color-primary);
+        }
+        .custom-dropdown-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 9px 12px;
+            border-radius: 9px;
+            font-size: 13.5px;
+            font-weight: 500;
+            color: var(--text-primary, #1E293B);
+            cursor: pointer;
+            transition: all 0.15s ease;
+            margin-bottom: 2px;
+            user-select: none;
+        }
+        .custom-dropdown-item:last-child {
+            margin-bottom: 0;
+        }
+        .custom-dropdown-item:hover {
+            background: var(--nav-hover-bg, rgba(142, 77, 255, 0.08));
+            color: var(--color-primary);
+            transform: translateX(2px);
+        }
+        .custom-dropdown-item.active {
+            background: var(--nav-active-bg, rgba(142, 77, 255, 0.14));
+            color: var(--color-primary);
+            font-weight: 700;
+        }
+        .custom-dropdown-item .item-check {
+            font-size: 11px;
+            color: var(--color-primary);
+            opacity: 0;
+            transition: opacity 0.15s ease;
+        }
+        .custom-dropdown-item.active .item-check {
+            opacity: 1;
+        }
+
         /* Tuition Banner Grid */
         .tuition-banner-grid {
             display: grid;
