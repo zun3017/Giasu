@@ -13,6 +13,54 @@ function getTutorStudentsResolved() {
 }
 window.getTutorStudentsResolved = getTutorStudentsResolved;
 
+function parseInputDate(str) {
+    if (!str) return null;
+    var s = String(str).trim().split(' ')[0];
+    if (s.indexOf('/') !== -1) {
+        var parts = s.split('/');
+        if (parts.length >= 3) {
+            var y = parts[2].length === 4 ? parseInt(parts[2], 10) : parseInt('20' + parts[2], 10);
+            return new Date(y, parseInt(parts[1], 10) - 1, parseInt(parts[0], 10), 0, 0, 0, 0);
+        } else if (parts.length === 2) {
+            var nowYear = new Date().getFullYear();
+            return new Date(nowYear, parseInt(parts[1], 10) - 1, parseInt(parts[0], 10), 0, 0, 0, 0);
+        }
+    }
+    if (s.indexOf('-') !== -1) {
+        var parts = s.split('-');
+        if (parts.length >= 3) {
+            if (parts[0].length === 4) {
+                return new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10), 0, 0, 0, 0);
+            } else {
+                var y = parts[2].length === 4 ? parseInt(parts[2], 10) : parseInt('20' + parts[2], 10);
+                return new Date(y, parseInt(parts[1], 10) - 1, parseInt(parts[0], 10), 0, 0, 0, 0);
+            }
+        }
+    }
+    return null;
+}
+window.parseInputDate = parseInputDate;
+
+function parseLogDate(dmyStr) {
+    if (!dmyStr) return null;
+    return parseInputDate(dmyStr);
+}
+window.parseLogDate = parseLogDate;
+
+function getMonthYearFromLogDate(dateStr) {
+    if (!dateStr) return null;
+    var d = parseInputDate(dateStr);
+    if (!d || isNaN(d.getTime())) return null;
+    var m = d.getMonth() + 1;
+    var y = d.getFullYear();
+    return {
+        month: m,
+        year: y,
+        key: String(m).padStart(2, '0') + '/' + y
+    };
+}
+window.getMonthYearFromLogDate = getMonthYearFromLogDate;
+
 function formatScheduleCell(val) {
     if (!val || val.trim() === "") {
         return "<span style='color: var(--text-muted); font-weight: normal;'>-</span>";
@@ -105,33 +153,39 @@ function renderTutorKpiCards(data, selM, selY) {
 
     students.forEach(function(st) {
         var unit = (st.tuition && st.tuition > 0) ? Number(st.tuition) : 200000;
+        var bType = st.billing_type || st.billingType || 'session';
+        var stSessions = 0;
         if (st.logs && Array.isArray(st.logs)) {
             st.logs.forEach(function(log) {
-                var inMonth = false;
-                if (log.ngay) {
-                    var lm = 0, ly = 0;
-                    if (log.ngay.indexOf('/') !== -1) {
-                        var parts = log.ngay.split('/');
-                        if (parts.length >= 3) {
-                            lm = parseInt(parts[1], 10);
-                            ly = parseInt(parts[2], 10);
-                        }
-                    } else if (log.ngay.indexOf('-') !== -1) {
-                        var parts = log.ngay.split('-');
-                        if (parts.length >= 3) {
-                            lm = parseInt(parts[1], 10);
-                            ly = parseInt(parts[0], 10);
-                        }
-                    }
-                    if (lm === selM && ly === selY) {
-                        inMonth = true;
-                    }
-                }
-                if (inMonth && (log.chuyenCan === "Có mặt" || log.chuyenCan === "present" || !log.chuyenCan)) {
-                    totalSessions++;
-                    totalFee += unit;
-                }
+                if (!log || !log.ngay) return;
+                var my = getMonthYearFromLogDate(log.ngay);
+                if (!my || my.month !== selM || my.year !== selY) return;
+
+                var rawStatus = log.trangThai || log.chuyenCan || log.attendance_status || log.attendance || log.status || "";
+                var normTt = String(rawStatus).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').trim();
+                var isDaBu = (normTt.includes("da bu") || normTt.includes("hoc bu"));
+                var isAbsent = !isDaBu && (
+                    normTt.includes("nghi") || 
+                    normTt.includes("huy") || 
+                    normTt.includes("vang") || 
+                    normTt.includes("off") || 
+                    normTt.includes("khong hoc") ||
+                    normTt.includes("chua hoc") ||
+                    normTt.includes("tam hoan") ||
+                    normTt === "v" || 
+                    normTt === "n" || 
+                    normTt === "x"
+                );
+                if (isAbsent) return;
+
+                stSessions++;
+                totalSessions++;
             });
+        }
+        if (bType === 'month' || bType === 'monthly') {
+            if (stSessions > 0) totalFee += unit;
+        } else {
+            totalFee += (stSessions * unit);
         }
     });
 
@@ -399,27 +453,28 @@ function renderRevenueBarChart(selM, selY) {
 
         if (st.logs && Array.isArray(st.logs)) {
             st.logs.forEach(function(log) {
-                if (log.ngay) {
-                    var lm = 0, ly = 0;
-                    if (log.ngay.indexOf('/') !== -1) {
-                        var p = log.ngay.split('/');
-                        if (p.length >= 3) {
-                            lm = parseInt(p[1], 10);
-                            ly = parseInt(p[2], 10);
-                        }
-                    } else if (log.ngay.indexOf('-') !== -1) {
-                        var p = log.ngay.split('-');
-                        if (p.length >= 3) {
-                            lm = parseInt(p[1], 10);
-                            ly = parseInt(p[0], 10);
-                        }
-                    }
-                    if (ly === year && lm >= 1 && lm <= 12) {
-                        if (log.chuyenCan === "Có mặt" || log.chuyenCan === "present" || !log.chuyenCan) {
-                            sessionsPerMonth[lm] = (sessionsPerMonth[lm] || 0) + 1;
-                        }
-                    }
-                }
+                if (!log || !log.ngay) return;
+                var my = getMonthYearFromLogDate(log.ngay);
+                if (!my || my.year !== year || my.month < 1 || my.month > 12) return;
+
+                var rawStatus = log.trangThai || log.chuyenCan || log.attendance_status || log.attendance || log.status || "";
+                var normTt = String(rawStatus).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').trim();
+                var isDaBu = (normTt.includes("da bu") || normTt.includes("hoc bu"));
+                var isAbsent = !isDaBu && (
+                    normTt.includes("nghi") || 
+                    normTt.includes("huy") || 
+                    normTt.includes("vang") || 
+                    normTt.includes("off") || 
+                    normTt.includes("khong hoc") ||
+                    normTt.includes("chua hoc") ||
+                    normTt.includes("tam hoan") ||
+                    normTt === "v" || 
+                    normTt === "n" || 
+                    normTt === "x"
+                );
+                if (isAbsent) return;
+
+                sessionsPerMonth[my.month] = (sessionsPerMonth[my.month] || 0) + 1;
             });
         }
 
@@ -686,23 +741,37 @@ function renderStudentRevenueDonut(selM, selY) {
         var sessions = 0;
         var revenue = 0;
 
+        var bType = st.billing_type || st.billingType || 'session';
         if (st.logs && Array.isArray(st.logs)) {
             st.logs.forEach(function(log) {
-                if (log.ngay) {
-                    var isMatch = false;
-                    if (log.ngay.indexOf('/') !== -1) {
-                        var p = log.ngay.split('/');
-                        if (p.length >= 3 && parseInt(p[1], 10) === m && parseInt(p[2], 10) === y) isMatch = true;
-                    } else if (log.ngay.indexOf('-') !== -1) {
-                        var p = log.ngay.split('-');
-                        if (p.length >= 3 && parseInt(p[1], 10) === m && parseInt(p[0], 10) === y) isMatch = true;
-                    }
-                    if (isMatch && (log.chuyenCan === "Có mặt" || log.chuyenCan === "present" || !log.chuyenCan)) {
-                        sessions++;
-                        revenue += unit;
-                    }
-                }
+                if (!log || !log.ngay) return;
+                var my = getMonthYearFromLogDate(log.ngay);
+                if (!my || my.month !== m || my.year !== y) return;
+
+                var rawStatus = log.trangThai || log.chuyenCan || log.attendance_status || log.attendance || log.status || "";
+                var normTt = String(rawStatus).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').trim();
+                var isDaBu = (normTt.includes("da bu") || normTt.includes("hoc bu"));
+                var isAbsent = !isDaBu && (
+                    normTt.includes("nghi") || 
+                    normTt.includes("huy") || 
+                    normTt.includes("vang") || 
+                    normTt.includes("off") || 
+                    normTt.includes("khong hoc") ||
+                    normTt.includes("chua hoc") ||
+                    normTt.includes("tam hoan") ||
+                    normTt === "v" || 
+                    normTt === "n" || 
+                    normTt === "x"
+                );
+                if (isAbsent) return;
+
+                sessions++;
             });
+        }
+        if (bType === 'month' || bType === 'monthly') {
+            if (sessions > 0) revenue = unit;
+        } else {
+            revenue = sessions * unit;
         }
 
         var color = colorMap[st.name.trim()] || palette[idx % palette.length];
@@ -1285,11 +1354,10 @@ function initTuitionMonthFilter() {
     students.forEach(function(st) {
         if (st.logs && Array.isArray(st.logs)) {
             st.logs.forEach(function(l) {
-                if (l.ngay) {
-                    var parts = l.ngay.split('/');
-                    if (parts.length >= 3) {
-                        var mKey = parts[1].padStart(2, '0') + '/' + parts[2];
-                        monthsSet[mKey] = true;
+                if (l && l.ngay) {
+                    var my = getMonthYearFromLogDate(l.ngay);
+                    if (my) {
+                        monthsSet[my.key] = true;
                     }
                 }
             });
@@ -1322,9 +1390,9 @@ function initTuitionMonthFilter() {
         var mCandidate = sortedMonths[i];
         var hasLogsInMonth = students.some(function(st) {
             return st.logs && Array.isArray(st.logs) && st.logs.some(function(l) {
-                if (!l.ngay) return false;
-                var parts = l.ngay.split('/');
-                return parts.length >= 3 && (parts[1].padStart(2, '0') + '/' + parts[2]) === mCandidate;
+                if (!l || !l.ngay) return false;
+                var my = getMonthYearFromLogDate(l.ngay);
+                return my && my.key === mCandidate;
             });
         });
         if (hasLogsInMonth) {
@@ -1333,14 +1401,16 @@ function initTuitionMonthFilter() {
         }
     }
 
-    if (currentVal && (currentVal === 'all' || monthsSet[currentVal])) {
+    if (currentVal && monthsSet[currentVal]) {
         select.value = currentVal;
     } else if (latestActiveMonth) {
         select.value = latestActiveMonth;
     } else if (monthsSet[currentMonthStr]) {
         select.value = currentMonthStr;
+    } else if (currentVal === 'all') {
+        select.value = 'all';
     } else {
-        select.value = "all";
+        select.value = (sortedMonths.length > 0) ? sortedMonths[0] : "all";
     }
 }
 window.initTuitionMonthFilter = initTuitionMonthFilter;
@@ -1388,19 +1458,30 @@ function renderTutorTuitionSection() {
         var sessionCount = 0;
         if (st.logs && Array.isArray(st.logs)) {
             st.logs.forEach(function(l) {
-                if (selMonth === 'all') {
-                    sessionCount++;
-                } else if (l.ngay) {
-                    var parts = l.ngay.split('/');
-                    if (parts.length >= 3) {
-                        var logMonth = parts[1].padStart(2, '0') + '/' + parts[2];
-                        if (logMonth === selMonth) sessionCount++;
-                    }
-                }
+                if (!l) return;
+                var my = getMonthYearFromLogDate(l.ngay);
+                if (selMonth !== 'all' && (!my || my.key !== selMonth)) return;
+
+                // Kiểm tra chuyên cần: buổi nghỉ/hủy thì không tính tiền
+                var rawStatus = l.trangThai || l.chuyenCan || l.attendance_status || l.attendance || l.status || "";
+                var normTt = String(rawStatus).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').trim();
+                var isDaBu = (normTt.includes("da bu") || normTt.includes("hoc bu"));
+                var isAbsent = !isDaBu && (
+                    normTt.includes("nghi") || 
+                    normTt.includes("huy") || 
+                    normTt.includes("vang") || 
+                    normTt.includes("off") || 
+                    normTt.includes("khong hoc") ||
+                    normTt.includes("chua hoc") ||
+                    normTt.includes("tam hoan") ||
+                    normTt === "v" || 
+                    normTt === "n" || 
+                    normTt === "x"
+                );
+                if (isAbsent) return; // Buổi hủy/nghỉ không tính vào số buổi học
+
+                sessionCount++;
             });
-        }
-        if (sessionCount === 0 && selMonth === 'all' && st.totalSessions) {
-            sessionCount = st.totalSessions;
         }
 
         // Unit fee
@@ -1487,6 +1568,79 @@ function renderTutorTuitionSection() {
     if (penEl) penEl.innerText = Number(totalPending).toLocaleString('vi-VN') + "đ";
 }
 window.renderTutorTuitionSection = renderTutorTuitionSection;
+
+function loadAllTutorStudentsLogs(data) {
+    var students = (data && data.students) ? data.students : (tutorDataGlobal && tutorDataGlobal.students ? tutorDataGlobal.students : []);
+    if (!students || students.length === 0) return;
+
+    var pending = students.length;
+    var anyFetched = false;
+
+    students.forEach(function(st) {
+        if (st.logs && Array.isArray(st.logs) && st.logs.length > 0) {
+            pending--;
+            if (pending === 0 && anyFetched) {
+                onAllLogsLoaded();
+            }
+            return;
+        }
+
+        if (typeof google !== 'undefined' && google.script && google.script.run && google.script.run.getStudentDetailsForTutor) {
+            google.script.run
+                .withSuccessHandler(function(res) {
+                    try {
+                        if (res && res.logs) {
+                            st.logs = res.logs;
+                        } else if (!st.logs) {
+                            st.logs = [];
+                        }
+                        if (res && res.student && res.student.tuition) {
+                            st.tuition = res.student.tuition;
+                        }
+                        if (res && res.student && res.student.billing_type) {
+                            st.billing_type = res.student.billing_type;
+                        } else if (res && res.billing_type) {
+                            st.billing_type = res.billing_type;
+                        }
+                        anyFetched = true;
+                    } catch (e) {
+                        console.error("Error setting student logs:", e);
+                    }
+                    pending--;
+                    if (pending === 0) {
+                        onAllLogsLoaded();
+                    }
+                })
+                .withFailureHandler(function(err) {
+                    console.error("Failed to load logs for student " + st.name, err);
+                    if (!st.logs) st.logs = [];
+                    pending--;
+                    if (pending === 0) {
+                        onAllLogsLoaded();
+                    }
+                })
+                .getStudentDetailsForTutor(st.phone, st.name);
+        } else {
+            pending--;
+            if (pending === 0 && anyFetched) {
+                onAllLogsLoaded();
+            }
+        }
+    });
+
+    function onAllLogsLoaded() {
+        initTuitionMonthFilter();
+        renderTutorTuitionSection();
+        renderTutorKpiCards(tutorDataGlobal, tutorOverviewMonth, tutorOverviewYear);
+        if (typeof renderOverviewCharts === 'function') {
+            renderOverviewCharts(tutorOverviewMonth, tutorOverviewYear);
+        }
+        if (typeof renderTutorStudentsGrid === 'function') {
+            renderTutorStudentsGrid();
+        }
+    }
+}
+window.loadAllTutorStudentsLogs = loadAllTutorStudentsLogs;
 
 function toggleStudentTuitionStatus(idx) {
     var resolvedStudents = (typeof getTutorStudentsResolved === 'function')
@@ -1888,7 +2042,29 @@ function buildTuitionModalForm(st, studentLogs) {
     var state = window.tuitionInvoiceModalState || {};
     var toggles = state.toggles || {};
 
-    var totalSess = studentLogs.length;
+    var billableSess = 0;
+    if (studentLogs && Array.isArray(studentLogs)) {
+        studentLogs.forEach(function(log) {
+            if (!log) return;
+            var rawStatus = log.trangThai || log.chuyenCan || log.attendance_status || log.attendance || log.status || "";
+            var normTt = String(rawStatus).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').trim();
+            var isDaBu = (normTt.includes("da bu") || normTt.includes("hoc bu"));
+            var isAbsent = !isDaBu && (
+                normTt.includes("nghi") || 
+                normTt.includes("huy") || 
+                normTt.includes("vang") || 
+                normTt.includes("off") || 
+                normTt.includes("khong hoc") ||
+                normTt.includes("chua hoc") ||
+                normTt.includes("tam hoan") ||
+                normTt === "v" || 
+                normTt === "n" || 
+                normTt === "x"
+            );
+            if (!isAbsent) billableSess++;
+        });
+    }
+    var totalSess = billableSess;
     var totalHours = (totalSess * 1.5).toFixed(1);
     var unitFee = st.tuition || 200000;
     var unitFeeStr = Number(unitFee).toLocaleString('vi-VN') + " đ";
@@ -2621,6 +2797,22 @@ function openStudentInvoiceModal(studentName) {
         : ((tutorDataGlobal && tutorDataGlobal.students) ? tutorDataGlobal.students : []);
     var st = students.find(function(s) { return s.name.trim() === studentName.trim(); });
     if (!st) return;
+
+    if ((!st.logs || st.logs.length === 0) && typeof google !== 'undefined' && google.script && google.script.run && google.script.run.getStudentDetailsForTutor) {
+        if (typeof showToast === 'function') showToast("Đang tải dữ liệu học tập của " + st.name + "...", "info");
+        google.script.run
+            .withSuccessHandler(function(res) {
+                if (res && res.logs) st.logs = res.logs;
+                if (res && res.student && res.student.tuition) st.tuition = res.student.tuition;
+                if (res && res.student && res.student.billing_type) st.billing_type = res.student.billing_type;
+                openStudentInvoiceModal(studentName);
+            })
+            .withFailureHandler(function(err) {
+                if (typeof showToast === 'function') showToast("Lỗi tải dữ liệu: " + err, "error");
+            })
+            .getStudentDetailsForTutor(st.phone, st.name);
+        return;
+    }
 
     var bAcc = (tutorDataGlobal && tutorDataGlobal.accountNumber) 
         ? tutorDataGlobal.accountNumber 
@@ -3940,6 +4132,9 @@ window.initTutorSidebarState = initTutorSidebarState;
                 }
                 selectTutorStudent(selectIdx);
             }
+
+            // Nạp nhật ký cho toàn bộ học sinh để hiển thị đúng số buổi và học phí
+            loadAllTutorStudentsLogs(data);
         }
 
 
@@ -4037,6 +4232,12 @@ window.initTutorSidebarState = initTutorSidebarState;
                             renderInvoice();
                             renderTutorChart(currentTutorStudent.logs);
                             renderTutorStudentHistory(currentTutorStudent.logs);
+                            initTuitionMonthFilter();
+                            renderTutorTuitionSection();
+                            renderTutorKpiCards(tutorDataGlobal, tutorOverviewMonth, tutorOverviewYear);
+                            if (typeof renderOverviewCharts === 'function') {
+                                renderOverviewCharts(tutorOverviewMonth, tutorOverviewYear);
+                            }
                         } catch (err) {
                             showToast("Lỗi hiển thị biểu đồ/lịch sử: " + err.message, "error");
                             console.error("Render student logs error: ", err);
