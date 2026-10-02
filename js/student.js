@@ -1495,25 +1495,33 @@ function renderProgressComparison(logs) {
         }
     ];
 
-    container.innerHTML = metrics.map(function(m) {
-        var arrowClass = 'same';
-        var arrowIcon = '→';
-        var diffText = '=';
+    // Lọc bỏ những chỉ số hoàn toàn không có dữ liệu ở cả 2 kỳ (cả 2 kỳ đều là '—')
+    var validMetrics = metrics.filter(function(m) {
+        return !(m.prev === '—' && m.cur === '—');
+    });
+
+    if (validMetrics.length === 0) {
+        wrapper.style.display = 'none';
+        return;
+    }
+
+    container.innerHTML = validMetrics.map(function(m) {
+        var arrowHtml = '';
         
-        if (m.diff > 0.05) {
-            arrowClass = 'up';
-            arrowIcon = '↑';
-            diffText = '+' + (typeof m.diff === 'number' && m.diff % 1 !== 0 ? m.diff.toFixed(1) : m.diff) + (m.unit === '%' ? '%' : '');
-        } else if (m.diff < -0.05) {
-            arrowClass = 'down';
-            arrowIcon = '↓';
-            diffText = (typeof m.diff === 'number' && m.diff % 1 !== 0 ? m.diff.toFixed(1) : m.diff) + (m.unit === '%' ? '%' : '');
+        // Chỉ hiển thị mũi tên chênh lệch khi có Tăng (↑) hoặc Giảm (↓) thực sự
+        // Nếu bằng nhau hoặc không có dữ liệu so sánh, không hiển thị gì
+        if (m.hasVal && m.diff > 0.05) {
+            var diffText = '+' + (typeof m.diff === 'number' && m.diff % 1 !== 0 ? m.diff.toFixed(1) : m.diff) + (m.unit === '%' ? '%' : '');
+            arrowHtml = '<div class="compare-arrow up">↑ ' + diffText + '</div>';
+        } else if (m.hasVal && m.diff < -0.05) {
+            var diffText = (typeof m.diff === 'number' && m.diff % 1 !== 0 ? m.diff.toFixed(1) : m.diff) + (m.unit === '%' ? '%' : '');
+            arrowHtml = '<div class="compare-arrow down">↓ ' + diffText + '</div>';
         }
 
         return '<div class="progress-compare-item">' +
             '<div class="compare-label">' + m.label + '</div>' +
             '<div class="compare-values">' + m.prev + ' → ' + m.cur + '</div>' +
-            '<div class="compare-arrow ' + arrowClass + '">' + arrowIcon + ' ' + diffText + '</div>' +
+            arrowHtml +
             '</div>';
     }).join('');
 }

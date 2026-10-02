@@ -6030,7 +6030,7 @@ body {
 
 .progress-compare-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
     gap: 12px;
 }
 @media (max-width: 768px) {
@@ -6044,6 +6044,11 @@ body {
     background: var(--bg-card-alt, #f8fafc);
     border: 1px solid var(--border-color, #e2e8f0);
     transition: transform 0.25s ease;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    min-height: 82px;
 }
 .progress-compare-item:hover {
     transform: translateY(-2px);
@@ -6060,11 +6065,11 @@ body {
     font-size: 15px;
     font-weight: 800;
     color: var(--text-primary, #1e293b);
-    margin-bottom: 4px;
 }
 .progress-compare-item .compare-arrow {
     font-size: 13px;
     font-weight: 700;
+    margin-top: 4px;
 }
 .compare-arrow.up { color: #10B981; }
 .compare-arrow.down { color: #EF4444; }
