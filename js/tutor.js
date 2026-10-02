@@ -4323,6 +4323,9 @@ window.initTutorSidebarState = initTutorSidebarState;
             
             document.getElementById('tutorDashboardBox').style.display = 'block';
             initTutorSidebarState();
+            if (typeof loadTutorAvatar === 'function') {
+                loadTutorAvatar();
+            }
             if (!currentTutorStudent) {
                 var dt = document.getElementById('tutorStudentDetail');
                 if (dt) dt.style.display = 'none';
@@ -5212,6 +5215,170 @@ window.initTutorSidebarState = initTutorSidebarState;
             showToast("Đã gỡ ảnh QR. Nhấn 'Cập nhật tài khoản' để lưu thay đổi.", "info");
         }
 
+        /* ============================================================
+         * TASK 5 — Facebook-style Avatar Cropper & Profile Fields
+         * ============================================================ */
+        var avatarCropperInstance = null;
+
+        function openAvatarCropper() {
+            var inp = document.getElementById('avatarFileInput');
+            if (inp) inp.click();
+        }
+        window.openAvatarCropper = openAvatarCropper;
+
+        function handleAvatarFileSelect(input) {
+            if (!input.files || !input.files[0]) return;
+            var file = input.files[0];
+            
+            if (!file.type.startsWith('image/')) {
+                showToast('Vui lòng chọn file hình ảnh!', 'error');
+                return;
+            }
+            if (file.size > 12 * 1024 * 1024) {
+                showToast('Ảnh quá lớn! Tối đa 12MB', 'error');
+                return;
+            }
+            
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                var cropImg = document.getElementById('avatarCropImage');
+                if (!cropImg) return;
+                cropImg.src = e.target.result;
+                
+                var cropModal = document.getElementById('avatarCropModal');
+                if (cropModal) cropModal.style.display = 'flex';
+                
+                if (avatarCropperInstance) {
+                    avatarCropperInstance.destroy();
+                    avatarCropperInstance = null;
+                }
+                
+                setTimeout(function() {
+                    if (typeof Cropper === 'undefined') {
+                        showToast('Đang tải thư viện cắt ảnh, vui lòng thử lại sau...', 'warning');
+                        return;
+                    }
+                    avatarCropperInstance = new Cropper(cropImg, {
+                        aspectRatio: 1,
+                        viewMode: 1,
+                        dragMode: 'move',
+                        cropBoxResizable: true,
+                        cropBoxMovable: true,
+                        autoCropArea: 0.85,
+                        responsive: true,
+                        restore: false,
+                        guides: false,
+                        center: true,
+                        highlight: false,
+                        background: false,
+                        modal: true,
+                        minCropBoxWidth: 80,
+                        minCropBoxHeight: 80
+                    });
+                }, 150);
+            };
+            reader.readAsDataURL(file);
+            input.value = '';
+        }
+        window.handleAvatarFileSelect = handleAvatarFileSelect;
+
+        function closeAvatarCropper() {
+            var cropModal = document.getElementById('avatarCropModal');
+            if (cropModal) cropModal.style.display = 'none';
+            if (avatarCropperInstance) {
+                avatarCropperInstance.destroy();
+                avatarCropperInstance = null;
+            }
+        }
+        window.closeAvatarCropper = closeAvatarCropper;
+
+        function avatarCropperZoom(ratio) {
+            if (avatarCropperInstance) avatarCropperInstance.zoom(ratio);
+        }
+        window.avatarCropperZoom = avatarCropperZoom;
+
+        function avatarCropperRotate(degree) {
+            if (avatarCropperInstance) avatarCropperInstance.rotate(degree);
+        }
+        window.avatarCropperRotate = avatarCropperRotate;
+
+        function saveAvatarCrop() {
+            if (!avatarCropperInstance) return;
+            
+            var canvas = avatarCropperInstance.getCroppedCanvas({
+                width: 320,
+                height: 320,
+                imageSmoothingEnabled: true,
+                imageSmoothingQuality: 'high'
+            });
+            
+            if (!canvas) {
+                showToast('Lỗi xử lý cắt ảnh!', 'error');
+                return;
+            }
+            
+            var dataUrl = canvas.toDataURL('image/jpeg', 0.9);
+            
+            var avatarImg = document.getElementById('profileAvatarImg');
+            var placeholder = document.getElementById('profileAvatarPlaceholder');
+            if (avatarImg) {
+                avatarImg.src = dataUrl;
+                avatarImg.style.display = 'block';
+            }
+            if (placeholder) placeholder.style.display = 'none';
+            
+            updateSidebarAvatar(dataUrl);
+            
+            var phone = (tutorDataGlobal && tutorDataGlobal.tutorPhone) ? tutorDataGlobal.tutorPhone : (currentTutorPhone || 'default');
+            try {
+                localStorage.setItem('tutorAvatar_' + phone, dataUrl);
+            } catch(e) {
+                console.warn('LocalStorage quota error', e);
+            }
+
+            closeAvatarCropper();
+            showToast('Đã lưu ảnh đại diện thành công!', 'success');
+        }
+        window.saveAvatarCrop = saveAvatarCrop;
+
+        function updateSidebarAvatar(url) {
+            if (!url) return;
+            var sidebarHeader = document.querySelector('.tutor-sidebar .sidebar-brand, .tutor-sidebar .brand-header, #tutorSidebarHeader');
+            if (sidebarHeader) {
+                var existingImg = sidebarHeader.querySelector('.sidebar-avatar');
+                if (!existingImg) {
+                    existingImg = document.createElement('img');
+                    existingImg.className = 'sidebar-avatar';
+                    existingImg.alt = 'Avatar';
+                    sidebarHeader.insertBefore(existingImg, sidebarHeader.firstChild);
+                }
+                existingImg.src = url;
+                existingImg.style.display = 'inline-block';
+            }
+            
+            var mobBtn = document.querySelector('.mobile-action-btn.account-btn');
+            if (mobBtn) {
+                mobBtn.innerHTML = '<img src="' + url + '" style="width: 28px; height: 28px; border-radius: 50%; object-fit: cover; border: 1.5px solid #FFF;">';
+            }
+        }
+        window.updateSidebarAvatar = updateSidebarAvatar;
+
+        function loadTutorAvatar() {
+            var phone = (tutorDataGlobal && tutorDataGlobal.tutorPhone) ? tutorDataGlobal.tutorPhone : (currentTutorPhone || 'default');
+            var saved = localStorage.getItem('tutorAvatar_' + phone);
+            if (saved) {
+                var avatarImg = document.getElementById('profileAvatarImg');
+                var placeholder = document.getElementById('profileAvatarPlaceholder');
+                if (avatarImg) {
+                    avatarImg.src = saved;
+                    avatarImg.style.display = 'block';
+                }
+                if (placeholder) placeholder.style.display = 'none';
+                updateSidebarAvatar(saved);
+            }
+        }
+        window.loadTutorAvatar = loadTutorAvatar;
+
         // 1. Cửa sổ Tài khoản (Account)
         function openTutorAccountModal() {
             if(!tutorDataGlobal) return;
@@ -5221,6 +5388,36 @@ window.initTutorSidebarState = initTutorSidebarState;
             document.getElementById('accClassCount').value = tutorDataGlobal.classCount || "0";
             document.getElementById('accUnpaidIncome').value = (tutorDataGlobal.totalUnpaidIncome || 0).toLocaleString('vi-VN') + " VNĐ";
             
+            // Fill additional profile fields from local store
+            var savedProfile = {};
+            try {
+                var pStr = localStorage.getItem('tutorProfile_' + tutorDataGlobal.tutorPhone);
+                if (pStr) savedProfile = JSON.parse(pStr);
+            } catch(e) {}
+
+            var emailEl = document.getElementById('accTutorEmail');
+            if (emailEl) emailEl.value = tutorDataGlobal.email || savedProfile.email || "";
+
+            var subjEl = document.getElementById('accTutorSubjects');
+            if (subjEl) subjEl.value = tutorDataGlobal.subjects || savedProfile.subjects || "";
+
+            var expEl = document.getElementById('accTutorExperience');
+            if (expEl) expEl.value = tutorDataGlobal.experience || savedProfile.experience || "";
+
+            var startDateEl = document.getElementById('accStartDate');
+            if (startDateEl) startDateEl.value = tutorDataGlobal.createdDate || savedProfile.startDate || "01/09/2025";
+
+            var totalSessionsEl = document.getElementById('accTotalSessions');
+            if (totalSessionsEl) {
+                var totalSessionsAll = 0;
+                (tutorDataGlobal.students || []).forEach(function(s) {
+                    if (s.logs && Array.isArray(s.logs)) totalSessionsAll += s.logs.length;
+                });
+                totalSessionsEl.value = totalSessionsAll + " buổi";
+            }
+
+            loadTutorAvatar();
+
             currentTutorQrBase64 = (tutorDataGlobal && tutorDataGlobal.qrCode) ? tutorDataGlobal.qrCode : "";
             var qrImg = document.getElementById('accQrImg');
             var qrText = document.getElementById('accQrText');
@@ -5258,11 +5455,23 @@ window.initTutorSidebarState = initTutorSidebarState;
             var name = document.getElementById('accTutorName').value.trim();
             var phone = document.getElementById('accTutorPhone').value.trim();
             var pin = document.getElementById('accTutorPin').value.trim();
+            var email = document.getElementById('accTutorEmail') ? document.getElementById('accTutorEmail').value.trim() : "";
+            var subjects = document.getElementById('accTutorSubjects') ? document.getElementById('accTutorSubjects').value.trim() : "";
+            var experience = document.getElementById('accTutorExperience') ? document.getElementById('accTutorExperience').value.trim() : "";
             
             if(!name || !phone) {
                 showToast("Vui lòng điền đầy đủ Tên và Số điện thoại!", "error");
                 return;
             }
+
+            // Save profile details locally
+            try {
+                localStorage.setItem('tutorProfile_' + phone, JSON.stringify({
+                    email: email,
+                    subjects: subjects,
+                    experience: experience
+                }));
+            } catch(e) {}
             
             var confirmMsg = "Bạn có chắc chắn muốn cập nhật thông tin tài khoản và mã QR?";
             if(phone !== tutorDataGlobal.tutorPhone) {
@@ -5288,12 +5497,15 @@ window.initTutorSidebarState = initTutorSidebarState;
                         if(res.error) {
                             showToast("Lỗi: " + res.error, "error");
                         } else {
-                            showToast("Cập nhật tài khoản và mã QR thành công!", "success");
+                            showToast("Cập nhật tài khoản thành công!", "success");
                             
                             // Cập nhật dữ liệu cục bộ ngay lập tức
                             tutorDataGlobal.tutorName = name;
                             tutorDataGlobal.tutorPhone = phone;
                             tutorDataGlobal.tutorPin = pin;
+                            tutorDataGlobal.email = email;
+                            tutorDataGlobal.subjects = subjects;
+                            tutorDataGlobal.experience = experience;
                             tutorDataGlobal.qrCode = qrToSave;
                             currentTutorPhone = phone;
                             
