@@ -4284,14 +4284,25 @@ function copyTuitionAIPrompt() {
     }
     promptLines.push("");
     promptLines.push("=== YÊU CẦU BẮT BUỘC ĐỐI VỚI AI ===");
-    promptLines.push("Hãy dựa vào toàn bộ dữ liệu thực tế trên để viết một đoạn \"NHẬN XÉT HỌC TẬP\" định kỳ gửi cho phụ huynh và học sinh, đáp ứng đầy đủ các tiêu chí sau:");
-    promptLines.push("1. ĐỘ DÀI BẮT BUỘC: NẰM TRONG KHOẢNG 100 – 180 TỪ (tuyệt đối không viết dưới 100 từ và không vượt quá 180 từ).");
-    promptLines.push("2. CẤU TRÚC ĐOẠN NHẬN XÉT BAO GỒM:");
-    promptLines.push("   - Nhận xét về thái độ học tập, tính chuyên cần và ý thức hoàn thành bài tập về nhà.");
-    promptLines.push("   - Nhận xét về năng lực tiếp thu, điểm số và sự tiến bộ rõ rệt qua các bài học cụ thể trong tháng.");
-    promptLines.push("   - Chỉ ra điểm cần khắc phục và đưa ra lời khích lệ chân thành, phương hướng cho giai đoạn tiếp theo.");
-    promptLines.push("3. VĂN PHONG: Trang trọng, chân tình, sâu sát với các ghi chú thực tế, mang tính khích lệ và tạo sự an tâm, tin tưởng cho phụ huynh.");
-    promptLines.push("4. ĐỊNH DẠNG ĐẦU RA: CHỈ XUẤT TRỰC TIẾP ĐOẠN VĂN NHẬN XÉT HOÀN CHỈNH (không mở bài rào đón như \"Dưới đây là...\", không kèm chú thích hay tiêu đề thừa) để gia sư có thể copy và dán ngay vào phiếu học phí hoặc gửi cho phụ huynh.");
+    promptLines.push("Hãy dựa vào toàn bộ dữ liệu thực tế trên để viết phần \"NHẬN XÉT HỌC TẬP\" định kỳ gửi cho phụ huynh. BẮT BUỘC PHẢI CHIA ĐÚNG BỐ CỤC 3 PHẦN theo chuẩn cấu trúc sau:");
+    promptLines.push("");
+    promptLines.push("Tổng quan:");
+    promptLines.push("+ [Nhận xét về tinh thần, thái độ học tập, tính chuyên cần, đi học đúng giờ và tập trung nghe giảng]");
+    promptLines.push("+ [Nhận xét về ý thức làm bài tập về nhà, mức độ hoàn thành BTVN và tính chủ động tương tác/hỏi bài]");
+    promptLines.push("");
+    promptLines.push("Kiến thức & Kỹ năng:");
+    promptLines.push("+ [Nhận xét về khả năng tiếp thu bài, mức độ nắm chắc kiến thức trọng tâm bám sát các buổi học trong tháng]");
+    promptLines.push("+ [Nhận xét về kỹ năng giải bài tập, điểm số kiểm tra, sự tiến bộ trong tư duy và vận dụng phương pháp]");
+    promptLines.push("");
+    promptLines.push("Điểm cần cải thiện:");
+    promptLines.push("+ [Chỉ ra điểm cần khắc phục thực tế, rèn luyện tính cẩn thận khi tính toán/làm bài để tránh lỗi sơ suất]");
+    promptLines.push("+ [Định hướng rèn luyện, lời khích lệ chân thành, nhắc nhở cách trình bày hoặc duy trì thói quen tự ôn bài]");
+    promptLines.push("");
+    promptLines.push("=== QUY TẮC ĐỊNH DẠNG VÀ VĂN PHONG ===");
+    promptLines.push("1. BỐ CỤC BẮT BUỘC: Phải có đúng 3 tiêu đề chính xác: 'Tổng quan:', 'Kiến thức & Kỹ năng:', 'Điểm cần cải thiện:'. Dưới mỗi tiêu đề phải có đúng 2 gạch đầu dòng bắt đầu bằng dấu cộng '+ ' (mỗi gạch là 1 câu nhận xét súc tích, hoàn chỉnh).");
+    promptLines.push("2. ĐỘ DÀI: Khoảng 120 – 180 từ, súc tích, cô đọng, giàu tính sư phạm.");
+    promptLines.push("3. VĂN PHONG: Trang trọng, chân tình, bám sát các dữ liệu thực tế của học sinh (số buổi học, tỉ lệ BTVN, điểm kiểm tra, ghi chú của gia sư).");
+    promptLines.push("4. ĐỊNH DẠNG ĐẦU RA: CHỈ XUẤT DUY NHẤT ĐOẠN VĂN THEO ĐÚNG MẪU 3 PHẦN TRÊN (không kèm lời chào mở đầu như 'Dưới đây là...', không kèm tiêu đề phụ hay ghi chú ở cuối) để gia sư có thể copy và dán ngay vào phiếu học phí.");
 
     var fullPromptText = promptLines.join("\n");
 
@@ -4313,7 +4324,7 @@ function copyTuitionAIPrompt() {
             }, 2500);
         }
         if (typeof showToast === 'function') {
-            showToast("Đã copy Prompt AI (100 - 180 từ)! Dán vào ChatGPT / Gemini để lấy nhận xét.", "success");
+            showToast("Đã copy Prompt AI chuẩn bố cục 3 phần! Dán vào ChatGPT / Gemini để lấy nhận xét.", "success");
         }
     }
 
@@ -11261,7 +11272,7 @@ var tabOnboardingSteps = {
         {
             target: '#btnTuitionPromptAI',
             title: '✨ Nút Tạo Prompt AI Nhận Xét',
-            desc: 'Tự động tổng hợp dữ liệu 30 ngày qua (điểm số, chuyên cần, bài tập) thành mẫu Prompt AI hoàn chỉnh (100 - 180 từ). Chỉ cần bấm để sao chép rồi dán vào AI!',
+            desc: 'Tự động tổng hợp dữ liệu 30 ngày qua (điểm số, chuyên cần, bài tập) thành mẫu Prompt AI hoàn chỉnh chuẩn bố cục 3 phần. Chỉ cần bấm để sao chép rồi dán vào ChatGPT / Gemini!',
             placement: 'top'
         },
         {
