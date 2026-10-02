@@ -6765,6 +6765,9 @@ window.initTutorSidebarState = initTutorSidebarState;
                         ? "<span style='color: var(--text-primary); font-style: italic;'><i class='fa-solid fa-comment-dots' style='color: var(--color-primary, #3B82F6); font-size: 11px; margin-right: 4px;'></i>" + parsedNhanXet + "</span>" 
                         : "<span style='color: var(--text-muted); font-style: italic;'>—</span>";
 
+                    var isHidden = (idx >= 5);
+                    var styleStr = isHidden ? 'style="display: none;" class="tutor-history-row tutor-hidden-row"' : 'class="tutor-history-row"';
+
                     // Desktop Row
                     htmlLichSu += "<tr " + styleStr + ">";
                     htmlLichSu += "<td style='text-align: center; font-weight: 700; color: var(--text-primary);'>" + (item.tuan || "") + "</td>";
@@ -6783,7 +6786,7 @@ window.initTutorSidebarState = initTutorSidebarState;
                     htmlLichSu += "</tr>";
 
                     // Mobile Row (Accordion Card)
-                    var mobileStyleStr = (idx >= 5) ? 'style="display: none;" class="accordion-item tutor-history-row tutor-hidden-row"' : 'class="accordion-item tutor-history-row"';
+                    var mobileStyleStr = isHidden ? 'style="display: none;" class="accordion-item tutor-history-row tutor-hidden-row"' : 'class="accordion-item tutor-history-row"';
                     htmlMobile += "<div " + mobileStyleStr + ">";
                     htmlMobile += "  <div class='accordion-header' onclick='toggleTutorAccordion(" + idx + ")'>";
                     htmlMobile += "    <div style='display: flex; align-items: center;'>";
