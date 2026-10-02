@@ -8,7 +8,7 @@
     <title>Hệ thống Tra cứu Học tập</title>
     <!-- PWA Settings -->
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#0B0826">
+    <meta name="theme-color" content="#3B82F6">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Gia Sư">
@@ -23,47 +23,795 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="css/style.css?v=3.0.0">
+    <!-- Global CSS -->
+    <link rel="stylesheet" href="css/style.css?v=20261002_scroll">
+    <!-- Public Light Theme -->
+    <link rel="stylesheet" href="css/public-theme.css?v=20261002_scroll">
+
+    <!-- Mobile Responsive Optimizations -->
+    <style>
+        /* ===== PHASE 15: STUDENT HERO PROFILE CARD ===== */
+        .student-hero-card {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            background: linear-gradient(135deg, #1D4ED8 0%, #3B82F6 60%, #60A5FA 100%);
+            border-radius: 20px;
+            padding: 24px 28px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 32px rgba(59,130,246,0.3);
+            color: #fff;
+            flex-wrap: wrap;
+        }
+        .hero-avatar {
+            width: 64px; height: 64px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.2);
+            border: 3px solid rgba(255,255,255,0.5);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 22px; font-weight: 800; color: #fff;
+            flex-shrink: 0;
+            letter-spacing: 1px;
+        }
+        .hero-info { flex: 1; min-width: 200px; }
+        .hero-name { font-size: 20px; font-weight: 700; margin: 0 0 10px; color: #fff; }
+        .hero-name strong { color: #fff; font-weight: 800; }
+        .hero-meta { display: flex; flex-wrap: wrap; gap: 8px; }
+        .hero-tag {
+            background: rgba(255,255,255,0.18);
+            border-radius: 20px;
+            padding: 4px 12px;
+            font-size: 12px;
+            font-weight: 600;
+            color: rgba(255,255,255,0.95);
+            display: inline-flex; align-items: center; gap: 5px;
+        }
+        .hero-month-badge {
+            background: rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.35);
+            border-radius: 12px;
+            padding: 8px 16px;
+            font-size: 13px; font-weight: 700; color: #fff;
+            display: flex; align-items: center; gap: 8px;
+            white-space: nowrap; align-self: flex-start;
+        }
+        @media (max-width: 600px) {
+            .student-hero-card { padding: 18px 16px; gap: 14px; }
+            .hero-avatar { width: 50px; height: 50px; font-size: 17px; }
+            .hero-name { font-size: 17px; }
+            .hero-month-badge { width: 100%; justify-content: center; }
+        }
+
+        /* ===== PHASE 15: KPI CARDS ENHANCEMENT ===== */
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 14px;
+            margin-bottom: 20px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .summary-card {
+            border-radius: 16px !important;
+            padding: 16px 14px !important;
+            box-shadow: 0 2px 12px rgba(59,130,246,0.07) !important;
+            transition: all 0.25s cubic-bezier(0.4,0,0.2,1) !important;
+            display: flex !important;
+            align-items: center !important;
+            gap: 12px !important;
+            min-height: 82px;
+            min-width: 0 !important;
+            box-sizing: border-box !important;
+            overflow: hidden;
+        }
+        .summary-card:hover {
+            transform: translateY(-3px) !important;
+            box-shadow: 0 8px 24px rgba(59,130,246,0.14) !important;
+        }
+        .summary-icon {
+            width: 46px !important; height: 46px !important;
+            border-radius: 13px !important;
+            font-size: 19px !important;
+            flex-shrink: 0 !important;
+        }
+        .summary-info {
+            min-width: 0 !important;
+            flex: 1 1 0% !important;
+            overflow: hidden;
+        }
+        .summary-label {
+            font-size: 11px !important;
+            font-weight: 700 !important;
+            color: #64748B !important;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            display: block;
+            margin-bottom: 3px;
+            white-space: normal !important;
+            word-break: break-word;
+            line-height: 1.3 !important;
+        }
+        .summary-val {
+            font-size: 24px !important;
+            font-weight: 800 !important;
+            color: #1E293B !important;
+            line-height: 1.1 !important;
+            display: block !important;
+        }
+
+        /* Score level badges */
+        .score-badge-xs {
+            display: inline-block;
+            margin-top: 5px;
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 700;
+        }
+        .badge-excellent { background: #ECFDF5; color: #059669; }
+        .badge-good      { background: #EFF6FF; color: #2563EB; }
+        .badge-average   { background: #FFFBEB; color: #D97706; }
+        .badge-poor      { background: #FEF2F2; color: #DC2626; }
+
+        /* ===== PHASE 15: CHARTS GRID & 2 DONUT CHARTS ===== */
+        .charts-grid {
+            display: grid;
+            grid-template-columns: 1.6fr 1fr;
+            gap: 16px;
+            margin-bottom: 20px;
+            align-items: start;
+        }
+        .chart-donuts-col { display: flex; flex-direction: column; gap: 16px; }
+        .chart-donut-box { flex: 1; }
+        .donut-wrapper { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+        .donut-canvas-wrap {
+            position: relative; width: 120px; height: 120px; flex-shrink: 0;
+        }
+        .donut-canvas-wrap canvas { width: 120px !important; height: 120px !important; }
+        .donut-center {
+            position: absolute; inset: 0;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            pointer-events: none;
+        }
+        .donut-pct  { font-size: 20px; font-weight: 800; color: #1E293B; line-height: 1; }
+        .donut-lbl  { font-size: 10px; font-weight: 600; color: #64748B; text-align: center; margin-top: 2px; }
+        .donut-legend { display: flex; flex-direction: column; gap: 7px; flex: 1; min-width: 90px; }
+        .donut-legend-item {
+            display: flex; align-items: center; gap: 8px;
+            font-size: 12px; color: #475569; font-weight: 500;
+        }
+        .donut-legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+        .donut-legend-count { margin-left: auto; font-weight: 700; color: #1E293B; font-size: 13px; }
+        .donut-legend-wrap {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            flex: 1;
+            min-width: 130px;
+        }
+        .donut-reward-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 5px 12px;
+            border-radius: 9999px;
+            font-size: 11.5px;
+            font-weight: 700;
+            margin-top: 10px;
+            width: fit-content;
+            line-height: 1.25;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+            animation: bounce-in 0.5s ease-out;
+        }
+        .reward-trophy {
+            background: linear-gradient(135deg, #FFFBEB, #FEF3C7);
+            color: #B45309;
+            border: 1px solid #FCD34D;
+        }
+        .reward-gold {
+            background: linear-gradient(135deg, #EFF6FF, #DBEAFE);
+            color: #1D4ED8;
+            border: 1px solid #93C5FD;
+        }
+        .reward-silver {
+            background: linear-gradient(135deg, #F0FDF4, #DCFCE7);
+            color: #15803D;
+            border: 1px solid #86EFAC;
+        }
+        .reward-cheer {
+            background: linear-gradient(135deg, #FAF5FF, #F3E8FF);
+            color: #7E22CE;
+            border: 1px solid #D8B4FE;
+        }
+
+        /* ===== PHASE 15: HISTORY TABLE ENHANCEMENT ===== */
+        .table-wrapper.desktop-table-view {
+            width: 100% !important;
+            overflow-x: hidden !important;
+            border-radius: 12px;
+            box-sizing: border-box;
+        }
+        .history-table {
+            width: 100% !important;
+            max-width: 100% !important;
+            min-width: 0 !important;
+            border-collapse: collapse;
+            font-family: Inter, sans-serif;
+            table-layout: auto;
+        }
+        .history-table th {
+            background: #F0F7FF;
+            color: #64748B;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            padding: 8px 6px;
+            text-align: left;
+            border-bottom: 2px solid #DBEAFE;
+            white-space: nowrap;
+            box-sizing: border-box;
+        }
+        .history-row td {
+            padding: 8px 6px;
+            border-bottom: 1px solid #F1F5F9;
+            font-size: 12.5px;
+            color: #475569;
+            vertical-align: middle;
+            box-sizing: border-box;
+        }
+        .cell-noidung {
+            min-width: 100px;
+            white-space: normal !important;
+            word-break: break-word;
+            overflow-wrap: break-word;
+            line-height: 1.35;
+            color: #1E293B;
+            font-weight: 500;
+            font-size: 12px;
+        }
+        .cell-nhanxet {
+            min-width: 120px;
+            white-space: normal !important;
+            word-break: break-word;
+            overflow-wrap: break-word;
+            line-height: 1.35;
+            font-size: 12px;
+            color: #334155;
+        }
+        .cell-nhanxet-empty {
+            color: #94A3B8;
+            font-style: normal;
+        }
+        .history-row.row-absent { background: rgba(239, 68, 68, 0.04); }
+        .history-row:hover { background: #F8FAFF; }
+        .history-row:last-child td { border-bottom: none; }
+
+        .date-badge {
+            background: #EFF6FF;
+            color: #2563EB;
+            border-radius: 8px;
+            padding: 3px 8px;
+            font-size: 12px;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+        .subj-chip {
+            background: #F0FDF4;
+            color: #059669;
+            border-radius: 8px;
+            padding: 3px 8px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .btvn-chip {
+            border-radius: 8px;
+            padding: 3px 10px;
+            font-size: 12px;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+        .btvn-done { background: #ECFDF5; color: #059669; }
+        .btvn-fail { background: #FFF7ED; color: #C2410C; }
+        .btvn-na   { background: #F1F5F9; color: #94A3B8; }
+
+        .status-chip {
+            border-radius: 8px;
+            padding: 3px 10px;
+            font-size: 12px;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+        .status-present { background: #EFF6FF; color: #2563EB; }
+        .status-absent  { background: #FEF2F2; color: #DC2626; }
+
+        .btn-expand-row {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #94A3B8;
+            font-size: 13px;
+            padding: 4px 8px;
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+        .btn-expand-row:hover { background: #EFF6FF; color: #3B82F6; }
+        .btn-expand-row.open { color: #3B82F6; transform: rotate(180deg); }
+
+        .history-detail-row td {
+            padding: 0;
+            background: #F8FAFF;
+            border-bottom: 1px solid #F1F5F9;
+        }
+        .detail-content {
+            padding: 10px 16px;
+            font-size: 13px;
+            color: #475569;
+            border-left: 3px solid #3B82F6;
+            margin: 6px 10px;
+            border-radius: 0 6px 6px 0;
+            background: #FFFFFF;
+        }
+
+        /* ===== PHASE 15: ANNOUNCEMENT & FEEDBACK REDESIGN ===== */
+        .announce-card {
+            border-radius: 14px;
+            padding: 14px 18px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 20px;
+        }
+        .announce-has {
+            background: linear-gradient(135deg, #EFF6FF, #DBEAFE);
+            border: 1px solid #BFDBFE;
+            box-shadow: 0 2px 10px rgba(59, 130, 246, 0.08);
+        }
+        .announce-icon {
+            width: 42px;
+            height: 42px;
+            background: #3B82F6;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 17px;
+            flex-shrink: 0;
+        }
+        .announce-body { flex: 1; }
+        .announce-title {
+            font-size: 11px;
+            font-weight: 700;
+            color: #2563EB;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+        .announce-text {
+            font-size: 14px;
+            color: #1E293B;
+            font-weight: 500;
+            line-height: 1.5;
+        }
+        .announce-empty {
+            background: #F8FAFF;
+            border: 1px dashed #DBEAFE;
+            color: #94A3B8;
+            font-size: 13px;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px;
+        }
+
+        /* Feedback form */
+        #khuVucPhanHoiPhuHuynh {
+            background: #FFFFFF;
+            border: 1px solid #DBEAFE;
+            border-radius: 16px;
+            padding: 20px;
+            margin-top: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 12px rgba(59, 130, 246, 0.05);
+        }
+        #khuVucPhanHoiPhuHuynh h4 {
+            font-size: 15px;
+            font-weight: 700;
+            color: #1E293B;
+            margin: 0 0 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        #feedbackInput {
+            width: 100%;
+            background: #F8FAFF;
+            border: 1px solid #DBEAFE;
+            border-radius: 12px;
+            padding: 12px 14px;
+            color: #1E293B;
+            font-size: 14px;
+            font-family: Inter, sans-serif;
+            resize: vertical;
+            min-height: 80px;
+            transition: border-color 0.2s;
+            box-sizing: border-box;
+        }
+        #feedbackInput:focus {
+            border-color: #3B82F6;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+        }
+        .btn-submit-feedback {
+            margin-top: 10px;
+            background: linear-gradient(135deg, #3B82F6, #1D4ED8);
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            padding: 12px 24px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            min-height: 44px;
+            transition: opacity 0.2s;
+        }
+        .btn-submit-feedback:hover {
+            opacity: 0.9;
+        }
+
+        /* ===== BIỂU ĐỒ ĐIỂM SỐ CHUẨN GIA SƯ (IMAGE 1) ===== */
+        .chart-box.chart-line-box {
+            background: var(--bg-card, #FFFFFF);
+            border: 1px solid var(--border-color, #DBEAFE);
+            border-radius: 20px !important;
+            padding: 24px;
+            box-shadow: 0 4px 20px rgba(59, 130, 246, 0.06);
+        }
+        .chart-legend-wrapper {
+            display: flex;
+            justify-content: flex-start;
+            margin-bottom: 16px;
+        }
+        .chart-legend-container {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .legend-btn {
+            background: #FFFFFF !important;
+            border: 1px solid #E2E8F0 !important;
+            border-radius: 9999px !important;
+            padding: 7px 18px !important;
+            font-size: 13px !important;
+            font-weight: 600 !important;
+            cursor: pointer;
+            display: inline-flex !important;
+            align-items: center !important;
+            gap: 8px !important;
+            transition: all 0.2s ease !important;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
+            outline: none !important;
+            color: #475569 !important;
+        }
+        .legend-btn:hover {
+            background: #F8FAFC !important;
+            border-color: #CBD5E1 !important;
+            transform: translateY(-1px);
+        }
+        .legend-btn.btn-dau-gio.active {
+            border-color: #3B82F6 !important;
+            background: #EFF6FF !important;
+            color: #2563EB !important;
+            box-shadow: 0 2px 8px rgba(59, 130, 246, 0.15) !important;
+        }
+        .legend-btn.btn-dinh-ki.active {
+            border-color: #F59E0B !important;
+            background: #FFFBEB !important;
+            color: #D97706 !important;
+            box-shadow: 0 2px 8px rgba(245, 158, 11, 0.15) !important;
+        }
+        .legend-btn.inactive {
+            opacity: 0.45 !important;
+            text-decoration: line-through !important;
+            background: transparent !important;
+            border-color: #E2E8F0 !important;
+            box-shadow: none !important;
+        }
+        .legend-dot.dot-purple {
+            background: #3B82F6 !important;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+        .legend-dot.dot-yellow {
+            background: #F59E0B !important;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        /* Top Navigation Bar / Compact Back Button */
+        .result-top-bar {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            margin-bottom: 14px;
+        }
+        .btn-back-compact {
+            display: inline-flex !important;
+            align-items: center;
+            gap: 8px;
+            padding: 7px 14px !important;
+            background: #FFFFFF !important;
+            color: #475569 !important;
+            border: 1px solid #CBD5E1 !important;
+            border-radius: 9999px !important;
+            font-size: 13px !important;
+            font-weight: 600 !important;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            outline: none;
+            width: auto !important;
+            text-decoration: none;
+            min-height: 34px !important;
+            line-height: 1;
+        }
+        .btn-back-compact:hover {
+            background: #EFF6FF !important;
+            border-color: #3B82F6 !important;
+            color: #2563EB !important;
+            transform: translateX(-2px);
+            box-shadow: 0 2px 6px rgba(37, 99, 235, 0.12);
+        }
+        .btn-back-compact:active {
+            transform: translateX(0);
+        }
+        .btn-back-compact i {
+            font-size: 12px;
+            transition: transform 0.2s ease;
+        }
+        .btn-back-compact:hover i {
+            transform: translateX(-2px);
+        }
+
+        /* ===== STUDENT DASHBOARD MOBILE ===== */
+        @media (max-width: 768px) {
+            #resultBox, .main-container {
+                padding: 16px 12px 60px !important;
+                margin: 10px auto !important;
+                border-radius: 16px !important;
+                width: 100% !important;
+                box-sizing: border-box !important;
+            }
+            .page-section, .result-section {
+                padding: 16px !important;
+                box-sizing: border-box !important;
+            }
+
+            /* Summary/KPI grid (Card Bài Tập full width, 2 card điểm song song) */
+            .summary-grid {
+                grid-template-columns: 1fr 1fr !important;
+                gap: 12px !important;
+            }
+            .summary-card:first-child {
+                grid-column: 1 / -1 !important;
+            }
+
+            /* Score numbers */
+            .score-number, .kpi-number, .summary-val {
+                font-size: 26px !important;
+            }
+
+            /* Charts */
+            .chart-box {
+                padding: 16px 12px !important;
+                box-sizing: border-box !important;
+            }
+            .charts-grid { grid-template-columns: 1fr; }
+            .chart-donuts-col { flex-direction: row; }
+            .chart-donut-box { flex: 1; }
+            .chart-container, .chart-canvas-container, #diemChart {
+                max-width: 100% !important;
+                height: 220px !important;
+            }
+
+            /* Subject cards */
+            .subject-card, .result-card {
+                width: 100% !important;
+                margin: 0 !important;
+            }
+
+            /* Tables */
+            .table-wrapper, .result-table-wrapper {
+                overflow-x: auto !important;
+                -webkit-overflow-scrolling: touch;
+                width: 100% !important;
+            }
+            .table-wrapper table, .result-table {
+                min-width: 500px !important;
+            }
+
+            /* Buttons */
+            button, .tab-btn, .filter-btn, .btn-submit-feedback, .btn-back {
+                min-height: 44px !important;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .summary-grid {
+                grid-template-columns: 1fr 1fr !important;
+                gap: 10px !important;
+            }
+            .summary-card:first-child {
+                grid-column: 1 / -1 !important;
+            }
+            .summary-card {
+                padding: 12px 10px !important;
+                gap: 8px !important;
+                min-height: 72px !important;
+            }
+            .summary-label {
+                font-size: 10px !important;
+                letter-spacing: 0.2px;
+            }
+            .chart-donuts-col { flex-direction: column; }
+            .donut-canvas-wrap { width: 100px; height: 100px; }
+            .donut-canvas-wrap canvas { width: 100px !important; height: 100px !important; }
+            .donut-pct { font-size: 17px; }
+            #resultBox, .main-container {
+                padding: 12px 8px 60px !important;
+            }
+            .summary-val, .score-number {
+                font-size: 20px !important;
+            }
+            .summary-icon {
+                width: 40px !important;
+                height: 40px !important;
+                font-size: 17px !important;
+            }
+            .page-section, .result-section {
+                padding: 12px !important;
+            }
+
+            /* Font sizes */
+            h2, h4, .section-title {
+                font-size: 16px !important;
+            }
+            .card-label, .stat-label, .summary-label {
+                font-size: 12px !important;
+            }
+            .feedback-form-container textarea {
+                font-size: 16px !important;
+            }
+            .btn-submit-feedback {
+                width: 100% !important;
+                justify-content: center !important;
+            }
+            .btn-back-compact {
+                width: auto !important;
+            }
+        }
+
+        @media (max-width: 360px) {
+            .summary-grid {
+                grid-template-columns: 1fr !important;
+            }
+            .score-number, .summary-val {
+                font-size: 22px !important;
+            }
+        }
+
+        /* ===== PHASE 17 — CHARTS MOBILE ===== */
+        @media (max-width: 480px) {
+          /* Charts grid: 1 cột */
+          .charts-grid { grid-template-columns: 1fr !important; }
+
+          /* Line chart height */
+          .chart-canvas-container { height: 200px !important; }
+          .chart-canvas-container canvas { height: 200px !important; }
+
+          /* Donut col: ngang */
+          .chart-donuts-col {
+            flex-direction: row !important;
+            gap: 12px !important;
+          }
+          .chart-donut-box { flex: 1 !important; }
+          .donut-canvas-wrap { width: 90px !important; height: 90px !important; }
+          .donut-canvas-wrap canvas { width: 90px !important; height: 90px !important; }
+          .donut-pct { font-size: 16px !important; }
+          .donut-lbl { font-size: 9px !important; }
+          .donut-legend { display: none !important; } /* ẩn legend khi quá nhỏ */
+        }
+        @media (max-width: 360px) {
+          .chart-donuts-col { flex-direction: column !important; }
+          .donut-canvas-wrap { width: 100px !important; height: 100px !important; }
+          .donut-canvas-wrap canvas { width: 100px !important; height: 100px !important; }
+          .donut-legend { display: flex !important; }
+        }
+    </style>
 </head>
-<body>
+<body class="logged-in">
+    <!-- Header / Navbar -->
+    <div class="header">
+        <div class="nav-container">
+            <a href="index.html" class="nav-left" style="text-decoration: none; cursor: pointer;">
+                <img src="https://i.postimg.cc/66rKbPmb/trinh-duyet.png" alt="Logo" class="nav-logo">
+                <div class="header-text">
+                    <h1>Tra cứu học tập</h1>
+                    <p>Quản lý Gia sư 4.0</p>
+                </div>
+            </a>
+            <div class="nav-right">
+                <a href="index.html" class="nav-btn" id="btnNavHome"><i class="fa-solid fa-house"></i> <span class="nav-label">Trang chủ</span></a>
+                <a href="student-login.html" class="nav-btn active" id="btnNavStudent"><i class="fa-solid fa-graduation-cap"></i> <span class="nav-label">PH/HS</span></a>
+                <a href="homework.html" class="nav-btn" id="btnNavHomework"><i class="fa-solid fa-file-arrow-up"></i> <span class="nav-label">BÀI TẬP</span></a>
+                <a href="tutor-login.html" class="nav-btn" id="btnNavTutor"><i class="fa-solid fa-chalkboard-user"></i> <span class="nav-label">GIA SƯ</span></a>
+            </div>
+            <!-- Hamburger button -->
+            <button class="hamburger-btn" id="hamburgerBtn" onclick="toggleMobileNav()" aria-label="Menu">
+                <i class="fa-solid fa-bars" id="hamburgerIcon"></i>
+            </button>
+        </div>
+        <!-- Mobile dropdown (đặt NGAY SAU .nav-container đóng, vẫn trong .header) -->
+        <div class="mobile-nav-dropdown" id="mobileNavDropdown">
+            <a href="index.html" class="mobile-nav-item" id="mobileHome">
+                <i class="fa-solid fa-house"></i> Trang chủ
+            </a>
+            <a href="student-login.html" class="mobile-nav-item" id="mobileStudent">
+                <i class="fa-solid fa-graduation-cap"></i> PH/HS
+            </a>
+            <a href="homework.html" class="mobile-nav-item" id="mobileHomework">
+                <i class="fa-solid fa-file-arrow-up"></i> Bài tập
+            </a>
+            <a href="tutor-login.html" class="mobile-nav-item" id="mobileTutor">
+                <i class="fa-solid fa-chalkboard-user"></i> Gia sư
+            </a>
+        </div>
+    </div>
+
     <div id="resultBox">
+        <div class="result-top-bar">
+            <button type="button" onclick="quayLai()" class="btn-back-compact" title="Trở về màn hình chính">
+                <i class="fa-solid fa-arrow-left"></i>
+                <span>Trở về màn hình chính</span>
+            </button>
+        </div>
         <div id="loiChao"></div>
         
         <!-- Khu vực hiển thị Huy chương vinh danh (đã dời vào thẻ bên dưới) -->
         
         <!-- Khung Thông Báo -->
         <div id="khuVucThongBao"></div>
-        
-        <!-- Khung Phản Hồi Phụ Huynh -->
-        <div class="result-section" id="khuVucPhanHoiPhuHuynh" style="margin-top: 20px;">
-            <h4><i class="fa-regular fa-comment-dots"></i> Phản hồi từ Phụ huynh</h4>
-            <div class="feedback-form-container">
-                <textarea id="feedbackInput" placeholder="Nhập ý kiến đóng góp hoặc phản hồi của phụ huynh gửi cho gia sư tại đây..." rows="3"></textarea>
-                <button onclick="guiPhanHoiPhuHuynh()" id="btnSubmitFeedback" class="btn-submit-feedback">
-                    Gửi phản hồi <i class="fa-regular fa-paper-plane"></i>
-                </button>
-            </div>
-            <p id="feedbackMessage" class="feedback-message-status"></p>
-        </div>
 
-        <!-- Bảng Tóm Tắt Kết Quả -->
-        <div class="summary-grid">
-            <!-- Thẻ BÀI TẬP -->
-            <a href="javascript:void(0)" onclick="goToHomeworkPortal()" class="summary-card" style="text-decoration: none; cursor: pointer; border: 1px solid rgba(255, 210, 63, 0.3); background: linear-gradient(135deg, rgba(255,210,63,0.08) 0%, rgba(20,16,68,0.9) 100%); transition: all 0.3s;" onmouseover="this.style.borderColor='#FFD23F'; this.style.transform='translateY(-2px)'" onmouseout="this.style.borderColor='rgba(255,210,63,0.3)'; this.style.transform='none'">
+        <!-- Bảng Tóm Tắt Kết Quả (Bổ sung đủ 6 IDs tương thích Production) -->
+        <div class="summary-grid reveal-stagger">
+            <!-- Thẻ 1: BÀI TẬP (Click điều hướng sang Portal nộp bài) -->
+            <a href="javascript:void(0)" onclick="goToHomeworkPortal()" class="summary-card" style="text-decoration: none; cursor: pointer; border: 1px solid #BFDBFE; background: #FFFFFF; transition: all 0.3s; box-shadow: var(--shadow-card);" onmouseover="this.style.borderColor='#3B82F6'; this.style.transform='translateY(-2px)'" onmouseout="this.style.borderColor='#BFDBFE'; this.style.transform='none'">
                 <div class="summary-icon" style="background: linear-gradient(135deg, #FFD23F, #FF8C00); box-shadow: 0 0 20px rgba(255,210,63,0.4);"><i class="fa-solid fa-file-arrow-up"></i></div>
                 <div class="summary-info">
-                    <span class="summary-label" style="color: #FFD23F; font-weight: 700;">BÀI TẬP</span>
-                    <span style="font-size: 14px; color: #E2D1FF; font-weight: 600; margin-top: 4px; display: block;">Bấm vào để nộp →</span>
+                    <span class="summary-label" style="color: #2563EB; font-weight: 700;">BÀI TẬP</span>
+                    <span style="font-size: 13px; color: #64748B; font-weight: 600; margin-top: 4px; display: block;">Bấm vào để nộp →</span>
                 </div>
             </a>
+
+            <!-- Thẻ 2: TB Đầu giờ -->
             <div class="summary-card">
-                <div class="summary-icon icon-purple" style="background: linear-gradient(135deg, #8E4DFF, #5B2EFF); box-shadow: 0 0 20px rgba(142,77,255,0.4);"><i class="fa-solid fa-graduation-cap"></i></div>
+                <div class="summary-icon icon-purple" style="background: linear-gradient(135deg, #3B82F6, #1D4ED8); box-shadow: 0 0 20px rgba(59,130,246,0.3);"><i class="fa-solid fa-graduation-cap"></i></div>
                 <div class="summary-info">
                     <span class="summary-label">TB Đầu giờ (tháng)</span>
                     <span class="summary-val" id="valDiemDauGio">-</span>
                     <div id="badgeDauGioContainer" style="margin-top: 6px;"></div>
                 </div>
             </div>
+
+            <!-- Thẻ 3: TB Định kì -->
             <div class="summary-card">
                 <div class="summary-icon" style="background: linear-gradient(135deg, #FFD23F, #FF8C00); box-shadow: 0 0 20px rgba(255,210,63,0.4);"><i class="fa-solid fa-award"></i></div>
                 <div class="summary-info">
@@ -72,23 +820,29 @@
                     <div id="badgeDinhKiContainer" style="margin-top: 6px;"></div>
                 </div>
             </div>
+
+            <!-- Thẻ 4: Hoàn thành BTVN (CHỨA ID #valBTVN và #btvnBadgeContainer) -->
             <div class="summary-card">
-                <div class="summary-icon icon-blue" style="background: linear-gradient(135deg, #33ccff, #0066ff); box-shadow: 0 0 20px rgba(0,102,255,0.4);"><i class="fa-solid fa-list-check"></i></div>
+                <div class="summary-icon icon-blue" style="background: linear-gradient(135deg, #0EA5E9, #0284C7); box-shadow: 0 0 20px rgba(14,165,233,0.3);"><i class="fa-solid fa-list-check"></i></div>
                 <div class="summary-info">
                     <span class="summary-label">Hoàn thành BTVN (tháng)</span>
                     <span class="summary-val" id="valBTVN">-</span>
                     <div id="btvnBadgeContainer" style="margin-top: 6px;"></div>
                 </div>
             </div>
+
+            <!-- Thẻ 5: Số buổi đã học (CHỨA ID #lblBuoiHoc và #valBuoiHoc) -->
             <div class="summary-card">
-                <div class="summary-icon icon-green" style="background: linear-gradient(135deg, #33ff99, #009933); box-shadow: 0 0 20px rgba(0,153,51,0.4);"><i class="fa-solid fa-calendar-check"></i></div>
+                <div class="summary-icon icon-green" style="background: linear-gradient(135deg, #10B981, #059669); box-shadow: 0 0 20px rgba(16,185,129,0.3);"><i class="fa-solid fa-calendar-check"></i></div>
                 <div class="summary-info">
                     <span class="summary-label" id="lblBuoiHoc">Số buổi đã học (tháng này)</span>
                     <span class="summary-val" id="valBuoiHoc">-</span>
                 </div>
             </div>
+
+            <!-- Thẻ 6: Số buổi nghỉ (CHỨA ID #lblBuoiNghi và #valBuoiNghi) -->
             <div class="summary-card">
-                <div class="summary-icon icon-orange" style="background: linear-gradient(135deg, #ffcc66, #ff6600); box-shadow: 0 0 20px rgba(255,102,0,0.4);"><i class="fa-solid fa-calendar-times"></i></div>
+                <div class="summary-icon icon-orange" style="background: linear-gradient(135deg, #F59E0B, #D97706); box-shadow: 0 0 20px rgba(245,158,11,0.3);"><i class="fa-solid fa-calendar-xmark"></i></div>
                 <div class="summary-info">
                     <span class="summary-label" id="lblBuoiNghi">Số buổi nghỉ (tháng này)</span>
                     <span class="summary-val" id="valBuoiNghi">-</span>
@@ -96,46 +850,114 @@
             </div>
         </div>
         
-        <!-- Biểu Đồ Học Tập -->
-        <div class="chart-box">
-            <div class="chart-header" style="justify-content: space-between; flex-wrap: wrap; gap: 10px;">
-                <div style="display: flex; align-items: center; gap: 10px;">
-                    <i class="fa-solid fa-chart-line"></i>
-                    <h4>Biểu đồ điểm số học tập</h4>
+        <!-- Biểu Đồ Học Tập: 2 Cột (Line chart + 2 Donut charts) -->
+        <div class="charts-grid reveal">
+            <!-- Cột trái: Biểu đồ đường (Line chart) -->
+            <div class="chart-box chart-line-box">
+                <div class="chart-header" style="justify-content: space-between; flex-wrap: wrap; gap: 10px; margin-bottom: 12px;">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <i class="fa-solid fa-chart-line" style="color: #3B82F6; font-size: 18px;"></i>
+                        <h4 style="margin: 0; font-size: 16px; font-weight: 700; color: #1E293B;">Biểu đồ điểm số học tập</h4>
+                    </div>
+                    <div class="chart-instruction" style="font-size: 12px; color: #64748B;">
+                        <i class="fa-solid fa-circle-info" style="color: #3B82F6;"></i> Nhấn nút điểm để ẩn/hiện đường dữ liệu. Nhấn vào điểm tròn để xem chi tiết
+                    </div>
                 </div>
-                <div class="chart-instruction">
-                    <i class="fa-solid fa-circle-info"></i> Nhấn nút điểm để ẩn/hiện đường dữ liệu. Nhấn vào nút tròn trên biểu đồ để xem điểm chi tiết hôm đó
+                
+                <!-- Custom Legend Buttons -->
+                <div class="chart-legend-wrapper">
+                    <div class="chart-legend-container">
+                        <button class="legend-btn active btn-dau-gio" id="btnLegDauGio" onclick="toggleDataset(0)">
+                            <span class="legend-dot dot-purple"></span>
+                            Điểm đầu giờ
+                        </button>
+                        <button class="legend-btn active btn-dinh-ki" id="btnLegDinhKi" onclick="toggleDataset(1)">
+                            <span class="legend-dot dot-yellow"></span>
+                            Điểm định kì
+                        </button>
+                    </div>
                 </div>
-            </div>
-            
-            <!-- Custom Legend Buttons -->
-            <div class="chart-legend-wrapper">
-                <div class="chart-legend-container">
-                    <button class="legend-btn active btn-dau-gio" id="btnLegDauGio" onclick="toggleDataset(0)">
-                        <span class="legend-dot dot-purple"></span>
-                        Điểm đầu giờ
-                    </button>
-                    <button class="legend-btn active btn-dinh-ki" id="btnLegDinhKi" onclick="toggleDataset(1)">
-                        <span class="legend-dot dot-yellow"></span>
-                        Điểm định kì
-                    </button>
+
+                <div class="chart-canvas-container">
+                    <canvas id="diemChart"></canvas>
                 </div>
             </div>
 
-            <div class="chart-canvas-container">
-                <canvas id="diemChart"></canvas>
+            <!-- Cột phải: 2 Donut charts (BTVN + Chuyên cần) -->
+            <div class="chart-donuts-col">
+                <div class="chart-box chart-donut-box">
+                    <div class="chart-header" style="margin-bottom: 14px;">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <i class="fa-solid fa-circle-check" style="color: #10B981; font-size: 16px;"></i>
+                            <h4 style="margin: 0; font-size: 14px; font-weight: 700; color: var(--text-primary, #1E293B);">Hoàn thành BTVN</h4>
+                        </div>
+                    </div>
+                    <div class="donut-wrapper">
+                        <div class="donut-canvas-wrap">
+                            <canvas id="btvnChart" width="120" height="120"></canvas>
+                            <div class="donut-center">
+                                <span class="donut-pct" id="btvnPct">-</span>
+                                <span class="donut-lbl">Hoàn thành</span>
+                            </div>
+                        </div>
+                        <div class="donut-legend-wrap">
+                            <div class="donut-legend" id="btvnLegend"></div>
+                            <div id="btvnRewardBadge"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="chart-box chart-donut-box">
+                    <div class="chart-header" style="margin-bottom: 14px;">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <i class="fa-solid fa-user-check" style="color: #3B82F6; font-size: 16px;"></i>
+                            <h4 style="margin: 0; font-size: 14px; font-weight: 700; color: var(--text-primary, #1E293B);">Chuyên cần</h4>
+                        </div>
+                    </div>
+                    <div class="donut-wrapper">
+                        <div class="donut-canvas-wrap">
+                            <canvas id="chuyenCanChart" width="120" height="120"></canvas>
+                            <div class="donut-center">
+                                <span class="donut-pct" id="chuyenCanPct">-</span>
+                                <span class="donut-lbl">Có mặt</span>
+                            </div>
+                        </div>
+                        <div class="donut-legend-wrap">
+                            <div class="donut-legend" id="chuyenCanLegend"></div>
+                            <div id="chuyenCanRewardBadge"></div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
         
-        <div class="result-section">
-            <h4><i class="fa-solid fa-clock-rotate-left"></i> Lịch sử Đánh giá Học tập</h4>
-            <div class="table-wrapper" id="khuVucLichSu"></div>
-            <div class="load-more-container" id="loadMoreContainer" style="display: none;">
-                <button id="btnLoadMore" onclick="hienThemBuoi()" class="btn-load-more">...</button>
+        <!-- Lịch sử học tập & Nhận xét chi tiết (Nhật ký các buổi học) -->
+        <div class="schedule-section reveal" style="margin-top: 25px; margin-bottom: 30px;">
+            <h3 style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+                <span id="studentHistoryTitle" style="display: flex; align-items: center; gap: 10px;"><i class="fa-solid fa-clock-rotate-left"></i> Lịch sử học tập & Nhận xét chi tiết</span>
+                <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                    <button type="button" onclick="lamMoiLichSuHocTap()" class="btn-refresh-history" title="Làm mới lịch sử" style="cursor: pointer;"><i class="fa-solid fa-arrows-rotate"></i> Làm mới</button>
+                </div>
+            </h3>
+            <div id="khuVucLichSu" style="margin-top: 15px;"></div>
+            <div class="load-more-container" id="loadMoreContainer" style="display: none; text-align: center; margin-top: 18px;">
+                <button id="btnLoadMore" onclick="hienThemBuoi()" class="btn-load-more">
+                    <i class="fa-solid fa-chevron-down"></i> Xem thêm các buổi trước
+                </button>
             </div>
         </div>
 
-        <button onclick="quayLai()" class="btn-back"><i class="fa-solid fa-arrow-left"></i> Trở Về Màn Hình Chính</button>
+        <!-- Khung Phản Hồi Phụ Huynh -->
+        <div id="khuVucPhanHoiPhuHuynh" class="reveal">
+            <h4><i class="fa-regular fa-comment-dots" style="color: #3B82F6;"></i> Phản hồi từ Phụ huynh</h4>
+            <div class="feedback-form-container">
+                <textarea id="feedbackInput" placeholder="Nhập ý kiến đóng góp hoặc phản hồi của phụ huynh gửi cho gia sư tại đây..." rows="3"></textarea>
+                <button onclick="guiPhanHoiPhuHuynh()" id="btnSubmitFeedback" class="btn-submit-feedback">
+                    Gửi phản hồi <i class="fa-regular fa-paper-plane"></i>
+                </button>
+            </div>
+            <p id="feedbackMessage" class="feedback-message-status"></p>
+        </div>
     </div>
 
 
@@ -150,22 +972,36 @@
     <div class="star twinkle-1" style="top: 70%; right: 15%; width: 3px; height: 3px;"></div>
     <div class="star twinkle-2" style="top: 85%; left: 30%; width: 2px; height: 2px;"></div>
 
+    <!-- Thư viện Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Core API kết nối Supabase và Apps Script -->
     <script src="js/api.js?v=3.0.0"></script>
+    <!-- Logic hiển thị Học sinh -->
     <script src="js/student.js?v=3.0.1"></script>
     <script>
+        // Khởi động trang và nạp dữ liệu thật từ Session hoặc gọi API đăng nhập lại
         window.addEventListener('DOMContentLoaded', () => {
-            var data = JSON.parse(sessionStorage.getItem('dashboardData') || localStorage.getItem('dashboardData') || 'null');
+            var data = null;
+            var dataStr = sessionStorage.getItem('dashboardData') || localStorage.getItem('dashboardData');
             var role = sessionStorage.getItem('userRole') || localStorage.getItem('userRole');
             var phone = sessionStorage.getItem('userPhone') || localStorage.getItem('userPhone');
+
+            try {
+                if (dataStr) data = JSON.parse(dataStr);
+            } catch (e) {
+                console.error("Lỗi parse dashboardData:", e);
+            }
+
             if (data && role === 'student') {
                 renderStudentView(data);
             } else if (!phone) {
+                // Không có phiên đăng nhập -> chuyển về màn hình đăng nhập học sinh
                 window.location.href = 'student-login.html';
                 return;
             }
 
-            if (phone) {
+            // Đồng bộ dữ liệu mới nhất từ backend nếu có số điện thoại
+            if (phone && typeof google !== 'undefined' && google.script && google.script.run && google.script.run.loginSystem) {
                 google.script.run.withSuccessHandler(function(res) {
                     if (res && res.role === 'student' && res.data && res.data.timThay) {
                         sessionStorage.setItem('userRole', 'student');
@@ -176,8 +1012,9 @@
             }
         });
 
+        // Hàm điều hướng sang trang Bài tập của học sinh
         function goToHomeworkPortal() {
-            var phone = sessionStorage.getItem('userPhone') || '';
+            var phone = sessionStorage.getItem('userPhone') || localStorage.getItem('userPhone') || '';
             if (phone) {
                 window.location.href = 'homework.html?code=' + encodeURIComponent(phone);
             } else {
@@ -185,8 +1022,50 @@
             }
         }
     </script>
+
     <!-- PWA Install Script -->
     <script src="js/pwa-install.js"></script>
+
+    <!-- Mobile Nav Script -->
+    <script>
+        function toggleMobileNav() {
+            var dd = document.getElementById('mobileNavDropdown');
+            var icon = document.getElementById('hamburgerIcon');
+            if (!dd) return;
+            var isOpen = dd.classList.contains('open');
+            dd.classList.toggle('open', !isOpen);
+            if (icon) {
+                icon.className = isOpen ? 'fa-solid fa-bars' : 'fa-solid fa-xmark';
+            }
+        }
+
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('#hamburgerBtn') && !e.target.closest('#mobileNavDropdown')) {
+                var dd = document.getElementById('mobileNavDropdown');
+                var icon = document.getElementById('hamburgerIcon');
+                if (dd) { dd.classList.remove('open'); }
+                if (icon) { icon.className = 'fa-solid fa-bars'; }
+            }
+        });
+
+        (function() {
+            var path = window.location.pathname.split('/').pop() || 'index.html';
+            var map = {
+                'index.html': 'mobileHome',
+                'student-login.html': 'mobileStudent',
+                'student-dashboard.html': 'mobileStudent',
+                'homework.html': 'mobileHomework',
+                'tutor-login.html': 'mobileTutor'
+            };
+            var id = map[path];
+            if (id) {
+                var el = document.getElementById(id);
+                if (el) el.classList.add('active');
+            }
+        })();
+    </script>
+
+    <!-- Scroll Animation Engine -->
     <script src="js/scroll-animations.js"></script>
 </body>
 </html>
