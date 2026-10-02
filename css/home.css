@@ -480,18 +480,26 @@ html, body {
    PREMIUM 4-COLUMN FOOTER SYSTEM
    ========================================================================== */
 .footer-premium {
-    background: #FFFFFF;
-    border-top: 2px solid var(--border-color);
+    width: 100% !important;
+    max-width: 100% !important;
+    align-self: stretch !important;
+    box-sizing: border-box !important;
+    background: #1E293B !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
     position: relative;
     z-index: 50;
-    padding: 60px 20px 30px 20px;
+    padding: 60px 24px 30px 24px;
     margin-top: 80px;
-    box-shadow: 0 -4px 20px rgba(59, 130, 246, 0.06);
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    box-shadow: 0 -4px 20px rgba(15, 23, 42, 0.4);
 }
 
 .footer-container {
     max-width: 1200px;
     margin: 0 auto;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .footer-top-grid {
@@ -1308,7 +1316,7 @@ html, body {
 .faq-answer-content { padding:14px 22px 18px!important; font-size:14px!important; color:#475569!important; line-height:1.65!important; border-top:1px solid #F1F5F9!important; }
 
 /* ===== PHASE 18 — FOOTER POLISH ===== */
-.footer-premium { background:#1E293B!important; }
+.footer-premium { background:#1E293B!important; width:100%!important; align-self:stretch!important; max-width:100%!important; box-sizing:border-box!important; }
 .footer-brand-title { color:#F1F5F9!important; }
 .footer-col h4 { color:#F1F5F9!important; font-size:14px!important; font-weight:700!important; margin-bottom:16px!important; display:flex!important; align-items:center!important; gap:8px!important; }
 .footer-links-list li a { color:#94A3B8!important; font-size:13px!important; transition:color 0.2s!important; }
