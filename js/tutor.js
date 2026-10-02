@@ -6740,6 +6740,11 @@ window.initTutorSidebarState = initTutorSidebarState;
                     // Giữ nguyên 100% Nội dung dạy học, không tự ý cắt lời nhận xét
                     var parsedContent = item.noiDung || item.topic || "";
                     var parsedNhanXet = (item.nhanXet || item.nhan_xet || item["nhận xét"] || item.tutor_comment || item.comment || "").trim();
+                    if (!parsedNhanXet && parsedContent.indexOf("---NHAN_XET---") !== -1) {
+                        var cParts = parsedContent.split("---NHAN_XET---");
+                        parsedContent = cParts[0].trim();
+                        parsedNhanXet = cParts.slice(1).join("---NHAN_XET---").trim();
+                    }
 
                     // Điểm số
                     var diemDau = item.diemDauGio !== undefined && item.diemDauGio !== null ? item.diemDauGio : item.diemDG;
@@ -6977,9 +6982,16 @@ window.initTutorSidebarState = initTutorSidebarState;
             }
             document.getElementById('editLesDiemDau').value = log.diemDauGio || "Không có";
             document.getElementById('editLesDiemDinhKi').value = log.diemDinhKi || "Không có";
-            document.getElementById('editLesNoiDung').value = log.noiDung || "";
+            var cContent = log.noiDung || "";
+            var cNhanXet = (log.nhanXet || log.nhan_xet || log["nhận xét"] || log.tutor_comment || "").trim();
+            if (!cNhanXet && cContent.indexOf("---NHAN_XET---") !== -1) {
+                var cParts = cContent.split("---NHAN_XET---");
+                cContent = cParts[0].trim();
+                cNhanXet = cParts.slice(1).join("---NHAN_XET---").trim();
+            }
+            document.getElementById('editLesNoiDung').value = cContent;
             if (document.getElementById('editLesNhanXet')) {
-                document.getElementById('editLesNhanXet').value = log.nhanXet || log.nhan_xet || log["nhận xét"] || log.tutor_comment || "";
+                document.getElementById('editLesNhanXet').value = cNhanXet;
             }
             
             document.getElementById('editLessonModal').style.display = "flex";
@@ -8893,9 +8905,16 @@ function duplicateLesson(rowIndex) {
     }
     document.getElementById('lesDiemDau').value = log.diemDauGio || "Không có";
     document.getElementById('lesDiemDinhKi').value = log.diemDinhKi || "Không có";
-    document.getElementById('lesNoiDung').value = log.noiDung || "";
+    var cContent = log.noiDung || "";
+    var cNhanXet = (log.nhanXet || log.nhan_xet || log["nhận xét"] || log.tutor_comment || "").trim();
+    if (!cNhanXet && cContent.indexOf("---NHAN_XET---") !== -1) {
+        var cParts = cContent.split("---NHAN_XET---");
+        cContent = cParts[0].trim();
+        cNhanXet = cParts.slice(1).join("---NHAN_XET---").trim();
+    }
+    document.getElementById('lesNoiDung').value = cContent;
     if (document.getElementById('lesNhanXet')) {
-        document.getElementById('lesNhanXet').value = log.nhanXet || log.nhan_xet || log["nhận xét"] || log.tutor_comment || "";
+        document.getElementById('lesNhanXet').value = cNhanXet;
     }
     
     showToast("Đã nhân bản dữ liệu buổi học! Vui lòng kiểm tra ngày dạy và nhận xét.", "success");

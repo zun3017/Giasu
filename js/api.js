@@ -374,6 +374,16 @@ class GoogleScriptRunInstance {
                         
                         let rawLogs = evalsRaw.filter(e => !e.deleted_date).map((e, idx) => {
                             let att = e.attendance_status || "Đã học";
+                            let content = e.lesson_content || "";
+                            let comment = (e.nhan_xet !== undefined && e.nhan_xet !== null) ? String(e.nhan_xet).trim() : 
+                                          ((e["nhận xét"] !== undefined && e["nhận xét"] !== null) ? String(e["nhận xét"]).trim() : 
+                                          ((e.tutor_comment !== undefined && e.tutor_comment !== null) ? String(e.tutor_comment).trim() : 
+                                          ((e.comment !== undefined && e.comment !== null) ? String(e.comment).trim() : "")));
+                            if (!comment && content.includes("---NHAN_XET---")) {
+                                let parts = content.split("---NHAN_XET---");
+                                content = parts[0].trim();
+                                comment = parts.slice(1).join("---NHAN_XET---").trim();
+                            }
                             return {
                                 rowIndex: idx + 1,
                                 evalId: e.eval_id,
@@ -381,8 +391,8 @@ class GoogleScriptRunInstance {
                                 ngay: formatShortDate(e.study_date),
                                 studyDate: e.study_date || "",
                                 mon: e.subject || "Toán học",
-                                noiDung: e.lesson_content || "",
-                                nhanXet: e.nhan_xet || e["nhận xét"] || e.tutor_comment || e.comment || "",
+                                noiDung: content,
+                                nhanXet: comment,
                                 danhGiaBTVN: (e.hw_eval && String(e.hw_eval).trim()) ? String(e.hw_eval).trim() : ((att.toLowerCase().indexOf('nghi') !== -1 || att.toLowerCase().indexOf('huy') !== -1 || att.toLowerCase().indexOf('vang') !== -1) ? "-" : "Hoàn thành"),
                                 btvn: (e.hw_eval && String(e.hw_eval).trim()) ? String(e.hw_eval).trim() : ((att.toLowerCase().indexOf('nghi') !== -1 || att.toLowerCase().indexOf('huy') !== -1 || att.toLowerCase().indexOf('vang') !== -1) ? "-" : "Hoàn thành"),
                                 diemDauGio: cleanScore(e.entry_test),
@@ -445,6 +455,16 @@ class GoogleScriptRunInstance {
                 
                 let rawLogs = matched.map((e, idx) => {
                     let att = e.attendance_status || "Đã học";
+                    let content = e.lesson_content || "";
+                    let comment = (e.nhan_xet !== undefined && e.nhan_xet !== null) ? String(e.nhan_xet).trim() : 
+                                  ((e["nhận xét"] !== undefined && e["nhận xét"] !== null) ? String(e["nhận xét"]).trim() : 
+                                  ((e.tutor_comment !== undefined && e.tutor_comment !== null) ? String(e.tutor_comment).trim() : 
+                                  ((e.comment !== undefined && e.comment !== null) ? String(e.comment).trim() : "")));
+                    if (!comment && content.includes("---NHAN_XET---")) {
+                        let parts = content.split("---NHAN_XET---");
+                        content = parts[0].trim();
+                        comment = parts.slice(1).join("---NHAN_XET---").trim();
+                    }
                     return {
                         rowIndex: e.eval_id,
                         evalId: e.eval_id,
@@ -452,8 +472,8 @@ class GoogleScriptRunInstance {
                         ngay: formatShortDate(e.study_date),
                         studyDate: e.study_date || "",
                         mon: e.subject || "Toán học",
-                        noiDung: e.lesson_content || "",
-                        nhanXet: e.nhan_xet || e["nhận xét"] || e.tutor_comment || e.comment || "",
+                        noiDung: content,
+                        nhanXet: comment,
                         danhGiaBTVN: (e.hw_eval && String(e.hw_eval).trim()) ? String(e.hw_eval).trim() : ((att.toLowerCase().indexOf('nghi') !== -1 || att.toLowerCase().indexOf('huy') !== -1 || att.toLowerCase().indexOf('vang') !== -1) ? "-" : "Hoàn thành"),
                         btvn: (e.hw_eval && String(e.hw_eval).trim()) ? String(e.hw_eval).trim() : ((att.toLowerCase().indexOf('nghi') !== -1 || att.toLowerCase().indexOf('huy') !== -1 || att.toLowerCase().indexOf('vang') !== -1) ? "-" : "Hoàn thành"),
                         diemDauGio: cleanScore(e.entry_test),
@@ -531,6 +551,7 @@ class GoogleScriptRunInstance {
             else if (functionName === 'themBuoiHoc') {
                 const [studentPhone, studentName, tuan, ngayDay, monHoc, noiDung, danhGiaBTVN, diemDauGio, diemDinhKi, trangThai, nhanXet] = args;
                 const evalId = `EVAL_${studentPhone}_${Date.now()}`;
+                const commentVal = (nhanXet !== undefined && nhanXet !== null) ? String(nhanXet).trim() : "";
                 const payload = {
                     eval_id: evalId,
                     student_phone: studentPhone,
@@ -544,14 +565,24 @@ class GoogleScriptRunInstance {
                     term_test: diemDinhKi ? String(diemDinhKi) : "",
                     attendance_status: trangThai || "Đã học",
                     paid_status: "Chưa đóng",
-                    nhan_xet: nhanXet || ""
+                    nhan_xet: commentVal
                 };
                 try {
                     await supaPost(APP_CONFIG.TABLES.EVALUATIONS, [payload]);
                 } catch (errPost) {
-                    if (String(errPost).includes("nhan_xet") || (errPost && errPost.message && errPost.message.includes("nhan_xet"))) {
-                        delete payload.nhan_xet;
-                        await supaPost(APP_CONFIG.TABLES.EVALUATIONS, [payload]);
+                    let errStr = (errPost && (errPost.message || errPost.toString())) || "";
+                    if (errStr.includes("nhan_xet") || errStr.includes("nhận xét") || errStr.includes("PGRST204")) {
+                        try {
+                            delete payload.nhan_xet;
+                            payload["nhận xét"] = commentVal;
+                            await supaPost(APP_CONFIG.TABLES.EVALUATIONS, [payload]);
+                        } catch (errPostVN) {
+                            delete payload["nhận xét"];
+                            if (commentVal) {
+                                payload.lesson_content = (noiDung || "") + "\n---NHAN_XET---\n" + commentVal;
+                            }
+                            await supaPost(APP_CONFIG.TABLES.EVALUATIONS, [payload]);
+                        }
                     } else {
                         throw errPost;
                     }
@@ -562,6 +593,7 @@ class GoogleScriptRunInstance {
             else if (functionName === 'suaBuoiHoc') {
                 const [rowIndex, tuan, ngayDay, monHoc, noiDung, danhGiaBTVN, diemDauGio, diemDinhKi, trangThai, nhanXet] = args;
                 const evalId = rowIndex;
+                const commentVal = (nhanXet !== undefined && nhanXet !== null) ? String(nhanXet).trim() : "";
                 const patchData = {
                     week_num: String(tuan || "1"),
                     study_date: ngayDay || "",
@@ -571,14 +603,26 @@ class GoogleScriptRunInstance {
                     entry_test: diemDauGio ? String(diemDauGio) : "",
                     term_test: diemDinhKi ? String(diemDinhKi) : "",
                     attendance_status: trangThai || "Đã học",
-                    nhan_xet: nhanXet || ""
+                    nhan_xet: commentVal
                 };
                 try {
                     await supaPatch(APP_CONFIG.TABLES.EVALUATIONS, `eval_id=eq.${encodeURIComponent(evalId)}`, patchData);
                 } catch (errPatch) {
-                    if (String(errPatch).includes("nhan_xet") || (errPatch && errPatch.message && errPatch.message.includes("nhan_xet"))) {
-                        delete patchData.nhan_xet;
-                        await supaPatch(APP_CONFIG.TABLES.EVALUATIONS, `eval_id=eq.${encodeURIComponent(evalId)}`, patchData);
+                    let errStr = (errPatch && (errPatch.message || errPatch.toString())) || "";
+                    if (errStr.includes("nhan_xet") || errStr.includes("nhận xét") || errStr.includes("PGRST204")) {
+                        try {
+                            delete patchData.nhan_xet;
+                            patchData["nhận xét"] = commentVal;
+                            await supaPatch(APP_CONFIG.TABLES.EVALUATIONS, `eval_id=eq.${encodeURIComponent(evalId)}`, patchData);
+                        } catch (errPatchVN) {
+                            delete patchData["nhận xét"];
+                            if (commentVal) {
+                                patchData.lesson_content = (noiDung || "") + "\n---NHAN_XET---\n" + commentVal;
+                            } else {
+                                patchData.lesson_content = noiDung || "";
+                            }
+                            await supaPatch(APP_CONFIG.TABLES.EVALUATIONS, `eval_id=eq.${encodeURIComponent(evalId)}`, patchData);
+                        }
                     } else {
                         throw errPatch;
                     }

@@ -602,8 +602,16 @@ function renderStudentView(ketQua) {
                 ? window.formatDateOnly(item.ngay) 
                 : (typeof formatDateOnly === 'function' ? formatDateOnly(item.ngay) : (item.ngay || "—"));
 
-            var commentHtml = (item.nhanXet && String(item.nhanXet).trim() !== "")
-                ? '<span style="color: var(--text-primary); font-style: italic;"><i class="fa-solid fa-comment-dots" style="color: #3B82F6; font-size: 12px; margin-right: 5px;"></i>' + item.nhanXet + '</span>'
+            var parsedContent = item.noiDung || item.topic || '-';
+            var parsedNhanXet = (item.nhanXet || item.nhan_xet || item["nhận xét"] || item.tutor_comment || item.comment || "").trim();
+            if (!parsedNhanXet && parsedContent.indexOf("---NHAN_XET---") !== -1) {
+                var cParts = parsedContent.split("---NHAN_XET---");
+                parsedContent = cParts[0].trim();
+                parsedNhanXet = cParts.slice(1).join("---NHAN_XET---").trim();
+            }
+
+            var commentHtml = (parsedNhanXet && String(parsedNhanXet).trim() !== "")
+                ? '<span style="color: var(--text-primary); font-style: italic;"><i class="fa-solid fa-comment-dots" style="color: #3B82F6; font-size: 12px; margin-right: 5px;"></i>' + parsedNhanXet + '</span>'
                 : '<span style="color: var(--text-muted); font-style: italic;">—</span>';
 
             var ktDauGioText = (diemDau !== undefined && diemDau !== null && String(diemDau).trim() !== "" && String(diemDau).trim() !== "-")
@@ -623,7 +631,7 @@ function renderStudentView(ketQua) {
                     '<td style="text-align: center; font-weight: 700; color: var(--text-primary);">' + tuanVal + '</td>' +
                     '<td style="white-space: nowrap; text-align: center; color: var(--text-primary); font-weight: 500;">' + rawDateOnly + '</td>' +
                     '<td>' + (item.mon || lopHoc ? ('<span class="subj-chip">' + (item.mon || lopHoc) + '</span>') : '') + '</td>' +
-                    '<td class="cell-noidung">' + (item.noiDung || item.topic || '-') + '</td>' +
+                    '<td class="cell-noidung">' + (parsedContent || '-') + '</td>' +
                     '<td class="cell-nhanxet">' + commentHtml + '</td>' +
                     '<td style="text-align: center;">' + getBtvnBadge(btvnValue) + '</td>' +
                     '<td style="text-align: center; font-weight: 700; font-size: 14px; color:' + ktDauGioColor + ';">' + ktDauGioText + '</td>' +
@@ -648,8 +656,8 @@ function renderStudentView(ketQua) {
             htmlMobile += '  </div>';
             htmlMobile += '  <div class="accordion-body" id="student-accordion-body-' + idx + '" style="display: none;">';
             htmlMobile += '    <div class="accordion-body-row"><span class="accordion-body-label">Môn học</span><span class="accordion-body-val">' + (item.mon || lopHoc || '—') + '</span></div>';
-            htmlMobile += '    <div class="accordion-body-row"><span class="accordion-body-label">Nội dung dạy học</span><span class="accordion-body-val">' + (item.noiDung || item.topic || '—') + '</span></div>';
-            htmlMobile += '    <div class="accordion-body-row"><span class="accordion-body-label">Nhận xét của gia sư</span><span class="accordion-body-val" style="font-style: italic; color: #2563EB; font-weight: 500;">' + (item.nhanXet ? ("<i class='fa-solid fa-comment-dots' style='margin-right: 4px;'></i>" + item.nhanXet) : '—') + '</span></div>';
+            htmlMobile += '    <div class="accordion-body-row"><span class="accordion-body-label">Nội dung dạy học</span><span class="accordion-body-val">' + (parsedContent || '—') + '</span></div>';
+            htmlMobile += '    <div class="accordion-body-row"><span class="accordion-body-label">Nhận xét của gia sư</span><span class="accordion-body-val" style="font-style: italic; color: #2563EB; font-weight: 500;">' + (parsedNhanXet ? ("<i class='fa-solid fa-comment-dots' style='margin-right: 4px;'></i>" + parsedNhanXet) : '—') + '</span></div>';
             htmlMobile += '    <div class="accordion-body-row"><span class="accordion-body-label">Đánh giá bài tập về nhà</span><span class="accordion-body-val">' + getBtvnBadge(btvnValue) + '</span></div>';
             htmlMobile += '    <div class="accordion-body-row"><span class="accordion-body-label">Kiểm tra đầu giờ</span><span class="accordion-body-val" style="font-weight: 700; color:' + ktDauGioColor + ';">' + ktDauGioText + '</span></div>';
             htmlMobile += '    <div class="accordion-body-row"><span class="accordion-body-label">Kiểm tra định kì</span><span class="accordion-body-val" style="font-weight: 700; color:' + ktDinhKiColor + ';">' + ktDinhKiText + '</span></div>';
