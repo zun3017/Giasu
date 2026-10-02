@@ -9743,6 +9743,9 @@ function applyTheme(themeId) {
     calendar.render();
   }
   syncThemeToCalendarIframe();
+  if (typeof updateSettingsThemeUI === 'function') {
+    updateSettingsThemeUI();
+  }
 }
 
 function openThemeSwitcher() {
@@ -9943,6 +9946,7 @@ function applyCustomTheme(silent, explicitHex) {
 
   if (typeof rerenderChartsForTheme === 'function') rerenderChartsForTheme();
   if (typeof calendar !== 'undefined' && calendar && typeof calendar.render === 'function') calendar.render();
+  if (typeof updateSettingsThemeUI === 'function') updateSettingsThemeUI();
   if (!silent && typeof showToast === 'function') showToast('Đã áp dụng màu tùy chỉnh!', 'success');
 }
 
@@ -10134,42 +10138,69 @@ window.toggleDarkMode = toggleDarkMode;
 })();
 
 function renderSettingsThemes() {
-    var grid = document.getElementById('settingsThemeGrid');
-    if (!grid) return;
-
-    var quickThemes = [
-        { id: 'theme-dark-purple', color: '#8E4DFF', name: 'Tím đậm' },
-        { id: 'theme-ocean-blue', color: '#2563EB', name: 'Xanh dương' },
-        { id: 'theme-emerald', color: '#059669', name: 'Xanh lục' },
-        { id: 'theme-sunset-orange', color: '#EA580C', name: 'Cam hoàng hôn' },
-        { id: 'theme-crimson', color: '#DC2626', name: 'Đỏ thẫm' },
-        { id: 'theme-midnight', color: '#334155', name: 'Xám đêm' },
-        { id: 'theme-cyberpunk', color: '#EC4899', name: 'Hồng neon' },
-        { id: 'theme-gold', color: '#D97706', name: 'Vàng kim' }
-    ];
-
-    var currentTheme = localStorage.getItem('tutorTheme') || 'theme-dark-purple';
-
-    grid.innerHTML = quickThemes.map(function(t) {
-        var isActive = (t.id === currentTheme || (currentTheme.startsWith('custom:') && t.color === currentTheme.split(':')[1])) ? ' active' : '';
-        return '<div class="settings-theme-dot' + isActive + '" ' +
-            'style="background: ' + t.color + ';" ' +
-            'title="' + t.name + '" ' +
-            'onclick="applySettingsTheme(\'' + t.id + '\', this)">' +
-            '</div>';
-    }).join('');
+    updateSettingsThemeUI();
 }
 window.renderSettingsThemes = renderSettingsThemes;
 
-function applySettingsTheme(themeId, dotEl) {
+function updateSettingsThemeUI() {
+    var cur = localStorage.getItem('tutorTheme') || 'theme-dark-purple';
+    var nameEl = document.getElementById('settingsThemeActiveName');
+    var descEl = document.getElementById('settingsThemeActiveDesc');
+    var orbEl = document.getElementById('settingsThemeOrbPreview');
+
+    if (nameEl) {
+        if (cur.startsWith('custom:')) {
+            var hex = cur.split(':')[1];
+            nameEl.textContent = 'Màu tùy chỉnh ' + hex.toUpperCase();
+            if (descEl) descEl.textContent = 'Mã màu tự chọn ' + hex.toUpperCase();
+            if (orbEl) {
+                orbEl.style.background = hex;
+                orbEl.style.boxShadow = '0 0 12px ' + hex + '66';
+            }
+        } else {
+            var themeName = (typeof THEME_NAMES !== 'undefined' && THEME_NAMES[cur]) ? THEME_NAMES[cur] : cur;
+            nameEl.textContent = themeName;
+            if (descEl) descEl.textContent = '30 phong cách giao diện & phối màu cá nhân hóa';
+            if (orbEl) {
+                var orbSource = document.querySelector('#themeSwitcherPanel [data-theme="' + cur + '"] .theme-orb, #themeSwitcherPanel [data-theme="' + cur + '"] .theme-dot');
+                if (orbSource && orbSource.style.background) {
+                    orbEl.style.background = orbSource.style.background;
+                } else if (cur === 'theme-dark-purple') {
+                    orbEl.style.background = 'linear-gradient(135deg, #0B0826, #8E4DFF)';
+                } else {
+                    orbEl.style.background = 'var(--color-primary, #8E4DFF)';
+                }
+                orbEl.style.boxShadow = '0 0 12px var(--color-primary-light, rgba(142,77,255,0.4))';
+            }
+        }
+    }
+
+    document.querySelectorAll('.settings-quick-preset').forEach(function(btn) {
+        var isActive = (btn.dataset.theme === cur);
+        btn.classList.toggle('active', isActive);
+        if (isActive) {
+            btn.style.borderColor = 'var(--color-primary, #8E4DFF)';
+            btn.style.background = 'var(--nav-active-bg, rgba(142,77,255,0.15))';
+            btn.style.color = 'var(--color-primary, #8E4DFF)';
+            btn.style.fontWeight = '700';
+        } else {
+            btn.style.borderColor = 'var(--border-color)';
+            btn.style.background = 'var(--bg-card)';
+            btn.style.color = 'var(--text-primary)';
+            btn.style.fontWeight = '500';
+        }
+    });
+}
+window.updateSettingsThemeUI = updateSettingsThemeUI;
+
+function applySettingsTheme(themeId) {
     if (typeof applyTheme === 'function') {
         applyTheme(themeId);
     }
-    document.querySelectorAll('.settings-theme-dot').forEach(function(d) {
-        d.classList.remove('active');
-    });
-    if (dotEl) dotEl.classList.add('active');
-    showToast('Đã đổi màu chủ đạo giao diện!', 'success');
+    updateSettingsThemeUI();
+    if (typeof showToast === 'function') {
+        showToast('Đã áp dụng giao diện mới!', 'success');
+    }
 }
 window.applySettingsTheme = applySettingsTheme;
 

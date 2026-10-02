@@ -1589,29 +1589,57 @@
                 </button>
             </div>
 
-            <!-- 2. GIAO DIỆN & DARK MODE -->
-            <div class="settings-section">
-                <h4 class="settings-section-title">
-                    <i class="fa-solid fa-palette"></i> Giao diện hiển thị
-                </h4>
-
-                <!-- Dark Mode Toggle -->
-                <div class="settings-toggle-row">
-                    <div>
-                        <span class="settings-toggle-label">Chế độ tối (Dark Mode)</span>
-                        <span class="settings-toggle-desc">Tối ưu màu nền dịu mắt khi làm việc buổi tối</span>
-                    </div>
-                    <label class="toggle-switch">
-                        <input type="checkbox" id="darkModeToggle" onchange="toggleDarkMode(this.checked)">
-                        <span class="toggle-slider"></span>
-                    </label>
+            <!-- 2. GIAO DIỆN HIỂN THỊ (ĐỒNG BỘ THEME SWITCHER HỆ THỐNG) -->
+            <div class="settings-section" id="settingsThemeSection">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
+                    <h4 class="settings-section-title" style="margin: 0;">
+                        <i class="fa-solid fa-palette"></i> Giao diện hiển thị
+                    </h4>
+                    <!-- Nút Giao diện chuẩn giao diện bên ngoài -->
+                    <button type="button" class="sidebar-theme-btn" onclick="openThemeSwitcher()" style="width: auto; padding: 6px 14px; font-size: 13px; font-weight: 600; border-radius: 20px; display: inline-flex; align-items: center; gap: 8px; cursor: pointer; background: var(--nav-active-bg); border: 1px solid var(--border-color); color: var(--color-primary); box-shadow: var(--shadow-sm); transition: all 0.2s ease;">
+                        <i class="fa-solid fa-palette"></i>
+                        <span>Giao diện</span>
+                    </button>
                 </div>
 
-                <!-- Theme Palette Dots -->
+                <!-- Thẻ xem trước Giao diện đang dùng -->
+                <div class="settings-theme-active-card" onclick="openThemeSwitcher()" style="display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; background: var(--bg-card-alt, rgba(255,255,255,0.04)); border: 1px solid var(--border-color); border-radius: 12px; cursor: pointer; transition: all 0.2s ease;" title="Bấm để mở bảng 30 kiểu giao diện & tự chọn màu">
+                    <div style="display: flex; align-items: center; gap: 12px; min-width: 0;">
+                        <span id="settingsThemeOrbPreview" class="theme-orb" style="width: 38px; height: 38px; border-radius: 10px; display: inline-block; flex-shrink: 0; background: var(--color-primary, #8E4DFF); box-shadow: 0 4px 10px rgba(0,0,0,0.25);"></span>
+                        <div style="min-width: 0;">
+                            <div id="settingsThemeActiveName" style="font-size: 14px; font-weight: 700; color: var(--text-heading, var(--text-primary)); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Tím Đêm (Gốc)</div>
+                            <div id="settingsThemeActiveDesc" style="font-size: 12px; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">30 phong cách giao diện & phối màu cá nhân hóa</div>
+                        </div>
+                    </div>
+                    <span style="font-size: 12px; color: var(--color-primary); font-weight: 600; display: inline-flex; align-items: center; gap: 4px; flex-shrink: 0;">
+                        Đổi <i class="fa-solid fa-chevron-right" style="font-size: 10px;"></i>
+                    </span>
+                </div>
+
+                <!-- Các mẫu màu đơn nhanh (Đồng bộ nhóm A của Theme Switcher) -->
                 <div style="margin-top: 14px;">
-                    <span style="font-size: 13px; color: var(--text-secondary); font-weight: 600; display: block; margin-bottom: 8px;">Màu chủ đạo nhanh</span>
-                    <div id="settingsThemeGrid" class="settings-theme-grid">
-                        <!-- JS render theme dots -->
+                    <span style="font-size: 12px; color: var(--text-secondary); font-weight: 600; display: block; margin-bottom: 8px;">Màu sắc nhanh</span>
+                    <div class="settings-quick-presets-row" style="display: flex; gap: 8px; flex-wrap: wrap;">
+                        <button type="button" class="settings-quick-preset" data-theme="theme-dark-purple" onclick="applySettingsTheme('theme-dark-purple')" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 11px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-card); color: var(--text-primary); font-size: 12px; font-weight: 500; cursor: pointer; transition: all 0.2s;">
+                            <span style="width: 12px; height: 12px; border-radius: 50%; background: #8E4DFF; display: inline-block;"></span>
+                            <span>Tím Đêm</span>
+                        </button>
+                        <button type="button" class="settings-quick-preset" data-theme="preset-blue" onclick="applySettingsTheme('preset-blue')" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 11px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-card); color: var(--text-primary); font-size: 12px; font-weight: 500; cursor: pointer; transition: all 0.2s;">
+                            <span style="width: 12px; height: 12px; border-radius: 50%; background: #2563EB; display: inline-block;"></span>
+                            <span>Xanh gốc</span>
+                        </button>
+                        <button type="button" class="settings-quick-preset" data-theme="preset-hong-hoa" onclick="applySettingsTheme('preset-hong-hoa')" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 11px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-card); color: var(--text-primary); font-size: 12px; font-weight: 500; cursor: pointer; transition: all 0.2s;">
+                            <span style="width: 12px; height: 12px; border-radius: 50%; background: #E11D48; display: inline-block;"></span>
+                            <span>Hồng hoa</span>
+                        </button>
+                        <button type="button" class="settings-quick-preset" data-theme="preset-matcha" onclick="applySettingsTheme('preset-matcha')" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 11px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-card); color: var(--text-primary); font-size: 12px; font-weight: 500; cursor: pointer; transition: all 0.2s;">
+                            <span style="width: 12px; height: 12px; border-radius: 50%; background: #059669; display: inline-block;"></span>
+                            <span>Matcha Tea</span>
+                        </button>
+                        <button type="button" class="settings-quick-preset" data-theme="preset-linen" onclick="applySettingsTheme('preset-linen')" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 11px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-card); color: var(--text-primary); font-size: 12px; font-weight: 500; cursor: pointer; transition: all 0.2s;">
+                            <span style="width: 12px; height: 12px; border-radius: 50%; background: #854D0E; display: inline-block;"></span>
+                            <span>Linen Cocoa</span>
+                        </button>
                     </div>
                 </div>
             </div>
