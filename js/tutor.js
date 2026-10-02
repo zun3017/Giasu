@@ -987,7 +987,10 @@ function initTutorDiaryFilters() {
         opt.innerText = st.name.trim();
         studentSelect.appendChild(opt);
     });
-    if (prevStudent && prevStudent !== 'all' && studentSelect.querySelector('option[value="' + prevStudent + '"]')) {
+
+    if (currentTutorStudent && currentTutorStudent.name && studentSelect.querySelector('option[value="' + currentTutorStudent.name.trim() + '"]')) {
+        studentSelect.value = currentTutorStudent.name.trim();
+    } else if (prevStudent && prevStudent !== 'all' && studentSelect.querySelector('option[value="' + prevStudent + '"]')) {
         studentSelect.value = prevStudent;
     } else if (students.length > 0) {
         studentSelect.value = students[0].name.trim();
@@ -999,10 +1002,9 @@ function initTutorDiaryFilters() {
         if (st.logs && Array.isArray(st.logs)) {
             st.logs.forEach(function(log) {
                 if (log.ngay) {
-                    var parts = log.ngay.split('/');
-                    if (parts.length >= 3) {
-                        var key = parts[1].padStart(2, '0') + '/' + parts[2];
-                        monthsSet[key] = true;
+                    var my = getMonthYearFromLogDate(log.ngay);
+                    if (my && my.key) {
+                        monthsSet[my.key] = true;
                     }
                 }
             });
@@ -1072,6 +1074,56 @@ function renderTutorDiarySection(reinitFilters) {
         } else if (typeof loadTutorAssignedHomework === 'function') {
             loadTutorAssignedHomework();
         }
+
+        // TỰ ĐỘNG NẠP NHẬT KÝ NẾU HỌC SINH NÀY CHƯA CÓ DỮ LIỆU
+        if (!matchingSt.logs) {
+            var histContainer = document.getElementById('tutorStudentHistory');
+            if (histContainer) {
+                histContainer.innerHTML = '<div style="text-align: center; color: var(--text-muted); padding: 30px; font-style: italic;">' +
+                    '<i class="fa-solid fa-circle-notch fa-spin" style="font-size: 24px; color: var(--color-primary); margin-bottom: 8px; display: block;"></i>' +
+                    'Đang tải dữ liệu nhật ký học tập của ' + matchingSt.name + '...</div>';
+            }
+            if (countBadge) countBadge.innerText = "... buổi học";
+
+            if (typeof google !== 'undefined' && google.script && google.script.run && google.script.run.getStudentDetailsForTutor) {
+                google.script.run
+                    .withSuccessHandler(function(res) {
+                        matchingSt.logs = (res && res.logs) ? res.logs : [];
+                        if (res && res.tuition) matchingSt.tuition = res.tuition;
+                        if (res && res.billing_type) matchingSt.billing_type = res.billing_type;
+                        if (currentTutorStudent && (currentTutorStudent.phone === matchingSt.phone || currentTutorStudent.name === matchingSt.name)) {
+                            currentTutorStudent.logs = matchingSt.logs;
+                            if (matchingSt.tuition) currentTutorStudent.tuition = matchingSt.tuition;
+                            if (matchingSt.billing_type) currentTutorStudent.billing_type = matchingSt.billing_type;
+                        }
+                        if (tutorDataGlobal && tutorDataGlobal.students) {
+                            var fs = tutorDataGlobal.students.find(function(s) {
+                                return s.phone === matchingSt.phone || s.name === matchingSt.name;
+                            });
+                            if (fs) {
+                                fs.logs = matchingSt.logs;
+                                if (matchingSt.tuition) fs.tuition = matchingSt.tuition;
+                                if (matchingSt.billing_type) fs.billing_type = matchingSt.billing_type;
+                            }
+                        }
+                        if (typeof sessionStorage !== 'undefined' && tutorDataGlobal) {
+                            try { sessionStorage.setItem('dashboardData', JSON.stringify(tutorDataGlobal)); } catch (e) {}
+                        }
+                        initTutorDiaryFilters();
+                        renderTutorDiarySection(false);
+                        if (typeof renderInvoice === 'function') renderInvoice();
+                        if (typeof renderTutorChart === 'function') renderTutorChart(matchingSt.logs);
+                    })
+                    .withFailureHandler(function(err) {
+                        console.error("Lỗi nạp nhật ký cho " + matchingSt.name, err);
+                        matchingSt.logs = [];
+                        renderTutorStudentHistory([]);
+                        if (countBadge) countBadge.innerText = "0 buổi học";
+                    })
+                    .getStudentDetailsForTutor(matchingSt.phone, matchingSt.name);
+            }
+            return;
+        }
     }
     
     var selMonth = monthSelect ? monthSelect.value : "all";
@@ -1080,11 +1132,8 @@ function renderTutorDiarySection(reinitFilters) {
     if (matchingSt && matchingSt.logs && Array.isArray(matchingSt.logs)) {
         matchingSt.logs.forEach(function(log) {
             if (selMonth !== 'all' && log.ngay) {
-                var parts = log.ngay.split('/');
-                if (parts.length >= 3) {
-                    var logMonth = parts[1].padStart(2, '0') + '/' + parts[2];
-                    if (logMonth !== selMonth) return;
-                }
+                var my = getMonthYearFromLogDate(log.ngay);
+                if (!my || my.key !== selMonth) return;
             }
             displayLogs.push(log);
         });
@@ -1629,6 +1678,13 @@ function loadAllTutorStudentsLogs(data) {
         if (typeof renderTutorStudentsGrid === 'function') {
             renderTutorStudentsGrid();
         }
+        if (typeof initTutorDiaryFilters === 'function') {
+            initTutorDiaryFilters();
+        }
+        var diarySec = document.getElementById('tutorSectionDiary');
+        if (diarySec && diarySec.style.display !== 'none' && typeof renderTutorDiarySection === 'function') {
+            renderTutorDiarySection(false);
+        }
     }
 
     // Timeout dự phòng 4 giây để đảm bảo giao diện luôn được render dữ liệu đã tải
@@ -1673,6 +1729,10 @@ function loadAllTutorStudentsLogs(data) {
                             if (typeof renderInvoice === 'function') renderInvoice();
                             if (typeof renderTutorChart === 'function') renderTutorChart(currentTutorStudent.logs);
                             if (typeof renderTutorStudentHistory === 'function') renderTutorStudentHistory(currentTutorStudent.logs);
+                        }
+                        var diaryStFilter = document.getElementById('diaryStudentFilter');
+                        if (diaryStFilter && diaryStFilter.value === st.name.trim() && typeof renderTutorDiarySection === 'function') {
+                            renderTutorDiarySection(false);
                         }
                     } catch (e) {
                         console.error("Error setting student logs:", e);
@@ -3538,6 +3598,39 @@ function previewTutorReport() {
             if (studentSelect) studentSelect.value = selStudent;
         }
 
+        var targetSt = students.find(function(st) { return st.name.trim() === selStudent; });
+        if (targetSt && !targetSt.logs) {
+            container.innerHTML = '<div style="text-align: center; color: var(--text-muted); padding: 40px; font-style: italic;">' +
+                '<i class="fa-solid fa-circle-notch fa-spin" style="font-size: 24px; color: var(--color-primary); margin-bottom: 8px; display: block;"></i>' +
+                'Đang tải dữ liệu báo cáo cho ' + targetSt.name + '...</div>';
+            if (exportBtn) exportBtn.style.display = 'none';
+            if (exportPdfBtn) exportPdfBtn.style.display = 'none';
+            if (typeof google !== 'undefined' && google.script && google.script.run && google.script.run.getStudentDetailsForTutor) {
+                google.script.run
+                    .withSuccessHandler(function(res) {
+                        targetSt.logs = (res && res.logs) ? res.logs : [];
+                        if (res && res.tuition) targetSt.tuition = res.tuition;
+                        if (res && res.billing_type) targetSt.billing_type = res.billing_type;
+                        if (tutorDataGlobal && tutorDataGlobal.students) {
+                            var fs = tutorDataGlobal.students.find(function(s) {
+                                return s.phone === targetSt.phone || s.name === targetSt.name;
+                            });
+                            if (fs) {
+                                fs.logs = targetSt.logs;
+                                if (targetSt.tuition) fs.tuition = targetSt.tuition;
+                                if (targetSt.billing_type) fs.billing_type = targetSt.billing_type;
+                            }
+                        }
+                        if (typeof sessionStorage !== 'undefined' && tutorDataGlobal) {
+                            try { sessionStorage.setItem('dashboardData', JSON.stringify(tutorDataGlobal)); } catch(e) {}
+                        }
+                        previewTutorReport();
+                    })
+                    .getStudentDetailsForTutor(targetSt.phone, targetSt.name);
+            }
+            return;
+        }
+
         var flatSessions = [];
         students.forEach(function(st) {
             var sName = st.name.trim();
@@ -4242,6 +4335,12 @@ window.initTutorSidebarState = initTutorSidebarState;
 
             var elAnnStatus = document.getElementById('announcementStatus');
             if (elAnnStatus) elAnnStatus.style.display = 'none';
+
+            // Đồng bộ sang dropdown filter của tab Nhật ký nếu có
+            var diaryFilter = document.getElementById('diaryStudentFilter');
+            if (diaryFilter && currentTutorStudent && currentTutorStudent.name) {
+                diaryFilter.value = currentTutorStudent.name.trim();
+            }
             
             // Mở sẵn trạng thái bài tập theo mặc định
             var hwSec = document.getElementById('tutorHomeworkSection');
@@ -4268,6 +4367,13 @@ window.initTutorSidebarState = initTutorSidebarState;
                 renderInvoice();
                 renderTutorChart(currentTutorStudent.logs);
                 renderTutorStudentHistory(currentTutorStudent.logs);
+            } else {
+                var histContainer = document.getElementById('tutorStudentHistory');
+                if (histContainer) {
+                    histContainer.innerHTML = '<div style="text-align: center; color: var(--text-muted); padding: 30px; font-style: italic;">' +
+                        '<i class="fa-solid fa-circle-notch fa-spin" style="font-size: 24px; color: var(--color-primary); margin-bottom: 8px; display: block;"></i>' +
+                        'Đang tải dữ liệu nhật ký học tập...</div>';
+                }
             }
 
             // Fetch logs for this student to render invoice and stats
@@ -4306,6 +4412,11 @@ window.initTutorSidebarState = initTutorSidebarState;
                             renderTutorStudentHistory(currentTutorStudent.logs);
                             initTuitionMonthFilter();
                             renderTutorTuitionSection();
+                            if (typeof initTutorDiaryFilters === 'function') initTutorDiaryFilters();
+                            var diarySec = document.getElementById('tutorSectionDiary');
+                            if (diarySec && diarySec.style.display !== 'none' && typeof renderTutorDiarySection === 'function') {
+                                renderTutorDiarySection(false);
+                            }
                             // Chỉ cập nhật biểu đồ tổng quan khi toàn bộ học sinh đã nạp xong nhật ký để tránh chớp số liệu thiếu
                             var allLogsReady = tutorDataGlobal && tutorDataGlobal.students && tutorDataGlobal.students.length > 0 && tutorDataGlobal.students.every(function(s) {
                                 return s.logs && Array.isArray(s.logs);
@@ -6268,10 +6379,30 @@ window.initTutorSidebarState = initTutorSidebarState;
             if (!currentTutorStudent) return;
             google.script.run.withSuccessHandler(function(res) {
                 currentTutorStudent.logs = res.logs || [];
+                if (res && res.tuition) currentTutorStudent.tuition = res.tuition;
+                if (res && res.billing_type) currentTutorStudent.billing_type = res.billing_type;
+                if (tutorDataGlobal && tutorDataGlobal.students) {
+                    var fs = tutorDataGlobal.students.find(function(s) {
+                        return s.phone === currentTutorStudent.phone || s.name === currentTutorStudent.name;
+                    });
+                    if (fs) {
+                        fs.logs = currentTutorStudent.logs;
+                        if (currentTutorStudent.tuition) fs.tuition = currentTutorStudent.tuition;
+                        if (currentTutorStudent.billing_type) fs.billing_type = currentTutorStudent.billing_type;
+                    }
+                }
+                if (typeof sessionStorage !== 'undefined' && tutorDataGlobal) {
+                    try { sessionStorage.setItem('dashboardData', JSON.stringify(tutorDataGlobal)); } catch(e) {}
+                }
                 renderInvoice();
                 renderTutorChart(res.logs || []);
                 renderTutorStudentHistory(res.logs || []);
-            }).getStudentDetailsForTutor(currentTutorStudent.phone);
+                if (typeof initTutorDiaryFilters === 'function') initTutorDiaryFilters();
+                var diarySec = document.getElementById('tutorSectionDiary');
+                if (diarySec && diarySec.style.display !== 'none' && typeof renderTutorDiarySection === 'function') {
+                    renderTutorDiarySection(false);
+                }
+            }).getStudentDetailsForTutor(currentTutorStudent.phone, currentTutorStudent.name);
         }
 
         function toggleSelectAllTutorLessons(masterChk) {
@@ -6649,14 +6780,40 @@ window.initTutorSidebarState = initTutorSidebarState;
             var icon = button ? button.querySelector('i') : null;
             if (icon) icon.classList.add('fa-spin');
             
-            google.script.run.withSuccessHandler(function(res) {
-                if (icon) icon.classList.remove('fa-spin');
-                currentTutorStudent.logs = res.logs || [];
-                renderInvoice();
-                renderTutorChart(res.logs || []);
-                renderTutorStudentHistory(res.logs || []);
-                showToast("Đã cập nhật dữ liệu mới nhất!", "success");
-            }).getStudentDetailsForTutor(currentTutorStudent.phone);
+            google.script.run
+                .withSuccessHandler(function(res) {
+                    if (icon) icon.classList.remove('fa-spin');
+                    currentTutorStudent.logs = res.logs || [];
+                    if (res && res.tuition) currentTutorStudent.tuition = res.tuition;
+                    if (res && res.billing_type) currentTutorStudent.billing_type = res.billing_type;
+                    if (tutorDataGlobal && tutorDataGlobal.students) {
+                        var fs = tutorDataGlobal.students.find(function(s) {
+                            return s.phone === currentTutorStudent.phone || s.name === currentTutorStudent.name;
+                        });
+                        if (fs) {
+                            fs.logs = currentTutorStudent.logs;
+                            if (currentTutorStudent.tuition) fs.tuition = currentTutorStudent.tuition;
+                            if (currentTutorStudent.billing_type) fs.billing_type = currentTutorStudent.billing_type;
+                        }
+                    }
+                    if (typeof sessionStorage !== 'undefined' && tutorDataGlobal) {
+                        try { sessionStorage.setItem('dashboardData', JSON.stringify(tutorDataGlobal)); } catch(e) {}
+                    }
+                    renderInvoice();
+                    renderTutorChart(res.logs || []);
+                    renderTutorStudentHistory(res.logs || []);
+                    if (typeof initTutorDiaryFilters === 'function') initTutorDiaryFilters();
+                    var diarySec = document.getElementById('tutorSectionDiary');
+                    if (diarySec && diarySec.style.display !== 'none' && typeof renderTutorDiarySection === 'function') {
+                        renderTutorDiarySection(false);
+                    }
+                    showToast("Đã cập nhật dữ liệu mới nhất!", "success");
+                })
+                .withFailureHandler(function(err) {
+                    if (icon) icon.classList.remove('fa-spin');
+                    showToast("Lỗi cập nhật: " + err.toString(), "error");
+                })
+                .getStudentDetailsForTutor(currentTutorStudent.phone, currentTutorStudent.name);
         }
 
         // --- Edit lesson handlers ---
