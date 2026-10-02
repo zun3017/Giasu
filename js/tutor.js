@@ -151,17 +151,50 @@ function getStudentUnitFee(st) {
 }
 window.getStudentUnitFee = getStudentUnitFee;
 
-// Helper tính tỷ lệ nộp BTVN thực tế từ danh sách nhật ký học sinh
-function calcStudentHwRate(st) {
+// Helper kiểm tra buổi học có phải buổi hủy / nghỉ / vắng không
+function isAbsentLog(l) {
+    if (!l) return false;
+    var rawStatus = l.trangThai || l.chuyenCan || l.attendance_status || l.attendance || l.status || "";
+    var normTt = String(rawStatus).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').trim();
+    var isDaBu = (normTt.includes("da bu") || normTt.includes("hoc bu"));
+    return !isDaBu && (
+        normTt.includes("nghi") || 
+        normTt.includes("huy") || 
+        normTt.includes("vang") || 
+        normTt.includes("off") || 
+        normTt.includes("khong hoc") || 
+        normTt.includes("chua hoc") || 
+        normTt.includes("tam hoan") || 
+        normTt === "v" || 
+        normTt === "n" || 
+        normTt === "x"
+    );
+}
+window.isAbsentLog = isAbsentLog;
+
+// Helper tính tỷ lệ nộp BTVN thực tế từ danh sách nhật ký học sinh (hỗ trợ lọc theo tháng/năm)
+function calcStudentHwRate(st, targetMonth, targetYear) {
     if (!st || !st.logs || !Array.isArray(st.logs) || st.logs.length === 0) {
-        return st.hwRate || st.btvnRate || "--";
+        return "—";
     }
     var totalBtvn = 0;
     var completedBtvn = 0;
     st.logs.forEach(function(l) {
         if (!l) return;
+
+        // Nếu có chỉ định targetMonth và targetYear thì lọc đúng tháng/năm đó
+        if (targetMonth && targetYear) {
+            var rawDate = l.studyDate || l.ngay || "";
+            if (!rawDate) return;
+            var my = getMonthYearFromLogDate(rawDate);
+            if (!my || my.month !== targetMonth || my.year !== targetYear) return;
+        }
+
+        // Loại trừ các buổi hủy / nghỉ / vắng (không học thì không thể tính BTVN)
+        if (isAbsentLog(l)) return;
+
         var btvnStr = String(l.danhGiaBTVN || l.btvn || l.hw_eval || "").trim().toLowerCase();
-        if (!btvnStr || btvnStr === "-" || btvnStr === "không có" || btvnStr === "null" || btvnStr === "chưa có") return;
+        if (!btvnStr || btvnStr === "-" || btvnStr === "—" || btvnStr === "không có" || btvnStr === "null" || btvnStr === "chưa có") return;
         totalBtvn++;
         var pctMatch = btvnStr.match(/(\d+(\.\d+)?)\s*%/);
         if (pctMatch) {
@@ -183,7 +216,7 @@ function calcStudentHwRate(st) {
         }
     });
     if (totalBtvn === 0) {
-        return st.hwRate || st.btvnRate || "--";
+        return "—";
     }
     return Math.round((completedBtvn / totalBtvn) * 100) + "%";
 }
@@ -1480,29 +1513,14 @@ function renderTutorStudentsGrid() {
                 var my = getMonthYearFromLogDate(rawDate);
                 if (!my || my.month !== selM || my.year !== selY) return;
 
-                var rawStatus = l.trangThai || l.chuyenCan || l.attendance_status || l.attendance || l.status || "";
-                var normTt = String(rawStatus).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').trim();
-                var isDaBu = (normTt.includes("da bu") || normTt.includes("hoc bu"));
-                var isAbsent = !isDaBu && (
-                    normTt.includes("nghi") || 
-                    normTt.includes("huy") || 
-                    normTt.includes("vang") || 
-                    normTt.includes("off") || 
-                    normTt.includes("khong hoc") ||
-                    normTt.includes("chua hoc") ||
-                    normTt.includes("tam hoan") ||
-                    normTt === "v" || 
-                    normTt === "n" || 
-                    normTt === "x"
-                );
-                if (!isAbsent) {
+                if (!isAbsentLog(l)) {
                     monthSessions++;
                 }
             });
         }
 
-        // Tỷ lệ nộp BTVN tính thực tế từ lịch sử
-        var hwRate = calcStudentHwRate(st);
+        // Tỷ lệ nộp BTVN tính thực tế từ lịch sử theo tháng đang chọn
+        var hwRate = calcStudentHwRate(st, selM, selY);
 
         // Đơn giá / Học phí
         var unitVal = getStudentUnitFee(st);
