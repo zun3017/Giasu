@@ -1191,7 +1191,7 @@ function renderTutorStudentsGrid() {
         : ((tutorDataGlobal && tutorDataGlobal.students) ? tutorDataGlobal.students : []);
 
     if (!students || students.length === 0) {
-        grid.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; color: rgba(255,255,255,0.4); padding: 40px; font-style: italic; background: var(--bg-card-alt); border: 1px dashed var(--border-color); border-radius: 16px;">' +
+        grid.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; color: var(--text-muted); padding: 40px; font-style: italic; background: var(--bg-card-alt); border: 1px dashed var(--border-color); border-radius: 16px;">' +
             '<i class="fa-solid fa-user-graduate" style="font-size: 32px; color: var(--color-primary); margin-bottom: 10px; display: block;"></i>' +
             'Chưa có học sinh nào. Bấm <b>"Thêm học sinh"</b> để tạo hồ sơ mới.</div>';
         return;
@@ -1425,8 +1425,8 @@ function renderTutorTuitionSection() {
     var mobileHtml = "";
 
     if (!students || students.length === 0) {
-        if (tableBody) tableBody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: rgba(255,255,255,0.4); padding: 30px; font-style: italic;">Chưa có dữ liệu học sinh</td></tr>';
-        if (mobileList) mobileList.innerHTML = '<div style="text-align: center; color: rgba(255,255,255,0.4); padding: 25px; font-style: italic;">Chưa có dữ liệu học sinh</div>';
+        if (tableBody) tableBody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 30px; font-style: italic;">Chưa có dữ liệu học sinh</td></tr>';
+        if (mobileList) mobileList.innerHTML = '<div style="text-align: center; color: var(--text-muted); padding: 25px; font-style: italic;">Chưa có dữ liệu học sinh</div>';
         if (expEl) expEl.innerText = "0đ";
         if (colEl) colEl.innerText = "0đ";
         if (penEl) penEl.innerText = "0đ";
@@ -6212,8 +6212,8 @@ window.initTutorSidebarState = initTutorSidebarState;
                         chkHtml = '<input type="checkbox" class="tutor-lesson-chk" data-rowindex="' + item.rowIndex + '" data-tuan="' + (item.tuan || "") + '" onchange="checkTutorLessonCheckboxSelection(this)" style="cursor: pointer; width: 16px; height: 16px;" title="' + titleText + '" ' + isChecked + '>';
                         mobileChkHtml = '<input type="checkbox" class="tutor-lesson-chk" data-rowindex="' + item.rowIndex + '" data-tuan="' + (item.tuan || "") + '" onclick="event.stopPropagation();" onchange="checkTutorLessonCheckboxSelection(this)" style="margin-right: 8px; width: 16px; height: 16px; cursor: pointer;" title="' + titleText + '" ' + isChecked + '>';
                     } else {
-                        chkHtml = '<span style="color: rgba(255,255,255,0.2); font-size: 12px;">-</span>';
-                        mobileChkHtml = '<span style="color: rgba(255,255,255,0.2); font-size: 12px; margin-right: 8px;">-</span>';
+                        chkHtml = '<span style="color: var(--text-muted); opacity: 0.5; font-size: 12px;">-</span>';
+                        mobileChkHtml = '<span style="color: var(--text-muted); opacity: 0.5; font-size: 12px; margin-right: 8px;">-</span>';
                     }
 
                     // Desktop Row
@@ -8183,18 +8183,18 @@ function loadTutorFeedbacks() {
                 return fb && fb.studentPhone !== 'ADMIN' && fb.studentName !== 'Thông báo hệ thống' && fb.studentName !== 'SYSTEM_MARQUEE';
             });
             if (feedbacks.length === 0) {
-                container.innerHTML = "<div style='text-align: center; color: rgba(255,255,255,0.3); font-style: italic; padding: 25px;'><i class='fa-regular fa-comment-slash' style='font-size: 20px; display: block; margin-bottom: 8px;'></i>Chưa có ý kiến phản hồi nào trong 10 ngày gần đây.</div>";
+                container.innerHTML = "<div style='text-align: center; color: var(--text-muted); font-style: italic; padding: 25px;'><i class='fa-regular fa-comment-slash' style='font-size: 20px; display: block; margin-bottom: 8px; opacity: 0.6;'></i>Chưa có ý kiến phản hồi nào trong 10 ngày gần đây.</div>";
                 return;
             }
             
             var html = "";
             feedbacks.forEach(function(fb) {
-                html += '<div class="agenda-event-card" style="border-left-color: #FFD23F; background: rgba(255, 210, 63, 0.04); border: 1px solid rgba(255, 210, 63, 0.1); border-left-width: 4px; padding: 12px 15px; border-radius: 10px; flex-direction: column; align-items: stretch; cursor: default; gap: 6px;">' +
+                html += '<div class="agenda-event-card" style="border-left-color: var(--color-primary); background: var(--nav-active-bg); border: 1px solid var(--border-color); border-left-width: 4px; padding: 12px 15px; border-radius: 10px; flex-direction: column; align-items: stretch; cursor: default; gap: 6px;">' +
                     '  <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 5px;">' +
-                    '    <span style="font-weight: 800; color: #FFD23F; font-size: 13.5px;"><i class="fa-solid fa-graduation-cap"></i> Phụ huynh em ' + fb.studentName + ' <span style="font-size: 11.5px; color: rgba(255,255,255,0.4); font-weight: normal;">(' + fb.studentPhone + ')</span></span>' +
-                    '    <span style="font-size: 11px; color: rgba(255,255,255,0.4); font-weight: 600;"><i class="fa-regular fa-clock"></i> ' + fb.timestamp + '</span>' +
+                    '    <span style="font-weight: 800; color: var(--color-primary); font-size: 13.5px;"><i class="fa-solid fa-graduation-cap"></i> Phụ huynh em ' + fb.studentName + ' <span style="font-size: 11.5px; color: var(--text-muted); font-weight: normal;">(' + fb.studentPhone + ')</span></span>' +
+                    '    <span style="font-size: 11px; color: var(--text-muted); font-weight: 600;"><i class="fa-regular fa-clock"></i> ' + fb.timestamp + '</span>' +
                     '  </div>' +
-                    '  <div style="font-size: 13px; color: #E2D1FF; line-height: 1.5; font-style: italic; background: rgba(0,0,0,0.2); padding: 8px 12px; border-radius: 8px; margin-top: 4px;">' +
+                    '  <div style="font-size: 13px; color: var(--text-secondary); line-height: 1.5; font-style: italic; background: var(--bg-input); padding: 8px 12px; border-radius: 8px; margin-top: 4px;">' +
                     '    "' + fb.content + '"' +
                     '  </div>' +
                     '</div>';
