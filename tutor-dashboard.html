@@ -1464,8 +1464,8 @@
                 <div class="modal-form-group" style="margin-bottom: 10px;">
                     <label style="font-size: 12px; font-weight: 600;">Mã PIN hiện tại</label>
                     <div style="position: relative;">
-                        <input type="password" id="settingsCurrentPin" placeholder="Nhập mã PIN hiện tại" maxlength="6" style="padding-right: 38px;">
-                        <button type="button" onclick="togglePinInputVisibility('settingsCurrentPin', this)" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--text-secondary); cursor: pointer; padding: 4px;" title="Hiện / Ẩn mã PIN">
+                        <input type="password" id="settingsCurrentPin" placeholder="Nhập mã PIN hiện tại" maxlength="6" style="padding-right: 44px;">
+                        <button type="button" class="pin-toggle-btn" onclick="togglePinInputVisibility('settingsCurrentPin', this)" title="Hiện / Ẩn mã PIN" aria-label="Hiện hoặc ẩn mã PIN">
                             <i class="fa-solid fa-eye"></i>
                         </button>
                     </div>
@@ -1475,8 +1475,8 @@
                     <div class="modal-form-group" style="margin-bottom: 0;">
                         <label style="font-size: 12px; font-weight: 600;">Mã PIN mới (tối thiểu 4 số)</label>
                         <div style="position: relative;">
-                            <input type="password" id="settingsNewPin" placeholder="Nhập mã PIN mới" maxlength="6" style="padding-right: 38px;">
-                            <button type="button" onclick="togglePinInputVisibility('settingsNewPin', this)" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--text-secondary); cursor: pointer; padding: 4px;" title="Hiện / Ẩn mã PIN">
+                            <input type="password" id="settingsNewPin" placeholder="Nhập mã PIN mới" maxlength="6" style="padding-right: 44px;">
+                            <button type="button" class="pin-toggle-btn" onclick="togglePinInputVisibility('settingsNewPin', this)" title="Hiện / Ẩn mã PIN" aria-label="Hiện hoặc ẩn mã PIN">
                                 <i class="fa-solid fa-eye"></i>
                             </button>
                         </div>
@@ -1484,8 +1484,8 @@
                     <div class="modal-form-group" style="margin-bottom: 0;">
                         <label style="font-size: 12px; font-weight: 600;">Xác nhận mã PIN mới</label>
                         <div style="position: relative;">
-                            <input type="password" id="settingsConfirmPin" placeholder="Nhập lại mã PIN mới" maxlength="6" style="padding-right: 38px;">
-                            <button type="button" onclick="togglePinInputVisibility('settingsConfirmPin', this)" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--text-secondary); cursor: pointer; padding: 4px;" title="Hiện / Ẩn mã PIN">
+                            <input type="password" id="settingsConfirmPin" placeholder="Nhập lại mã PIN mới" maxlength="6" style="padding-right: 44px;">
+                            <button type="button" class="pin-toggle-btn" onclick="togglePinInputVisibility('settingsConfirmPin', this)" title="Hiện / Ẩn mã PIN" aria-label="Hiện hoặc ẩn mã PIN">
                                 <i class="fa-solid fa-eye"></i>
                             </button>
                         </div>
@@ -2523,6 +2523,39 @@
         }
         .tuition-receipt-card.template-2-card::before {
             display: none !important;
+        }
+        .pin-toggle-btn {
+            position: absolute !important;
+            right: 4px !important;
+            top: 50% !important;
+            transform: translateY(-50%) !important;
+            width: 38px !important;
+            height: 38px !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            background: transparent !important;
+            border: none !important;
+            border-radius: 8px !important;
+            color: var(--text-secondary) !important;
+            cursor: pointer !important;
+            z-index: 5 !important;
+            padding: 0 !important;
+            font-size: 15px !important;
+            touch-action: manipulation !important;
+            user-select: none !important;
+            transition: color 0.15s ease, background 0.15s ease, transform 0.1s ease !important;
+        }
+        .pin-toggle-btn:hover {
+            color: var(--color-primary) !important;
+            background: rgba(255, 255, 255, 0.08) !important;
+        }
+        .pin-toggle-btn:active {
+            transform: translateY(-50%) scale(0.92) !important;
+            color: var(--color-primary) !important;
+        }
+        .pin-toggle-btn i {
+            pointer-events: none !important;
         }
 
         /* 2-column Toggle Card Grid */
