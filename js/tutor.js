@@ -8639,7 +8639,7 @@ function applyTheme(themeId) {
     '--bg-page-gradient', '--bg-sidebar', '--bg-card', '--bg-card-alt',
     '--bg-input', '--border-color', '--border-card', '--text-primary',
     '--text-secondary', '--text-muted', '--shadow-card', '--shadow-primary',
-    '--is-dark-theme'
+    '--header-bg', '--header-border', '--is-dark-theme'
   ];
   propsToClear.forEach(function(p) { root.style.removeProperty(p); });
 
@@ -8652,6 +8652,15 @@ function applyTheme(themeId) {
   // 3. Kích hoạt theme mới
   root.classList.add(themeId);
   localStorage.setItem('tutorTheme', themeId);
+
+  // Set data-theme cho dark mode CSS selectors
+  var darkThemes = [
+    'theme-dark-purple', 'theme-dreamy-cosmic-full', 'theme-dreamy-cosmic-minimal',
+    'theme-neon-seoul-full', 'theme-neon-seoul-minimal', 'theme-mystic-blue-full',
+    'theme-mystic-blue-minimal', 'theme-blossom-noir-full', 'theme-blossom-noir-minimal',
+    'theme-violet-planet-full', 'theme-violet-planet-minimal'
+  ];
+  root.setAttribute('data-theme', darkThemes.indexOf(themeId) !== -1 ? 'dark' : 'light');
 
   // 4. Đồng bộ active state trong switcher panel
   document.querySelectorAll('#themeSwitcherPanel [data-theme]').forEach(function(el) {
@@ -8795,6 +8804,7 @@ function applyCustomTheme() {
   root.style.setProperty('--shadow-card', '0 4px 16px rgba(0,0,0,0.06)');
   root.style.setProperty('--shadow-primary', '0 4px 15px rgba(' + r + ', ' + g + ', ' + b + ', 0.3)');
   root.style.setProperty('--is-dark-theme', '0');
+  root.setAttribute('data-theme', 'light');
 
   localStorage.setItem('tutorTheme', 'custom:' + hex);
 
@@ -8827,6 +8837,13 @@ function setupCustomColorSync() {
   }
 }
 
+// Export functions to window
+window.THEME_NAMES = THEME_NAMES;
+window.applyTheme = applyTheme;
+window.openThemeSwitcher = openThemeSwitcher;
+window.closeThemeSwitcher = closeThemeSwitcher;
+window.applyCustomTheme = applyCustomTheme;
+
 // Khởi chạy khi DOM sẵn sàng
 document.addEventListener('DOMContentLoaded', function() {
   setupCustomColorSync();
@@ -8838,5 +8855,9 @@ document.addEventListener('DOMContentLoaded', function() {
     if (hexInput) hexInput.value = hex;
     if (picker) picker.value = hex;
     applyCustomTheme();
+  } else if (saved) {
+    applyTheme(saved);
+  } else {
+    applyTheme('theme-dark-purple');
   }
 });

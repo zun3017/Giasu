@@ -61,17 +61,20 @@
             root.style.setProperty('--shadow-card', '0 4px 16px rgba(0,0,0,0.06)');
             root.style.setProperty('--shadow-primary', '0 4px 15px rgba(' + r + ',' + g + ',' + b + ', 0.3)');
             root.style.setProperty('--is-dark-theme', '0');
+            root.setAttribute('data-theme', 'light');
           } else {
             document.documentElement.className = 'theme-dark-purple';
+            document.documentElement.setAttribute('data-theme', 'dark');
           }
         } else {
           document.documentElement.className = t;
+          var darkThemes = ['theme-dark-purple', 'theme-dreamy-cosmic-full', 'theme-dreamy-cosmic-minimal', 'theme-neon-seoul-full', 'theme-neon-seoul-minimal', 'theme-mystic-blue-full', 'theme-mystic-blue-minimal', 'theme-blossom-noir-full', 'theme-blossom-noir-minimal', 'theme-violet-planet-full', 'theme-violet-planet-minimal'];
+          document.documentElement.setAttribute('data-theme', darkThemes.indexOf(t) !== -1 ? 'dark' : 'light');
         }
       })();
     </script>
     <!-- Global CSS -->
-    <link rel="stylesheet" href="css/style.css?v=20261002_v4">
-    <link rel="stylesheet" href="css/public-theme.css?v=20261002_v4">
+    <link rel="stylesheet" href="css/style.css?v=20261002_v5">
     <style>
         /* Đảm bảo nút thu gọn Sidebar luôn hiển thị tròn nguyên vẹn, không bao giờ bị cắt cụt */
         .tutor-sidebar {
@@ -2611,7 +2614,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="js/api.js?v=2.0.9"></script>
-    <script src="js/tutor.js?v=20261002_v9"></script>
+    <script src="js/tutor.js?v=20261002_v10"></script>
     <script>
         function toggleTutorMobileSidebar(force) {
             var sidebar = document.getElementById('tutorSidebar');
