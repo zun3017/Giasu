@@ -6689,12 +6689,13 @@ window.initTutorSidebarState = initTutorSidebarState;
                     var ktDauGioText = (diemDau !== undefined && diemDau !== null && String(diemDau).trim() !== "" && String(diemDau).trim() !== "-" && String(diemDau).trim().toLowerCase() !== "không có")
                         ? diemDau
                         : "—";
-                    var ktDinhKiText = (diemDinh !== undefined && diemDinh !== null && String(diemDinh).trim() !== "" && String(diemDinh).trim() !== "-" && String(diemDinh).trim().toLowerCase() !== "không có")
-                        ? diemDinh
-                        : "—";
+                    var rawDinhStr = (diemDinh !== undefined && diemDinh !== null) ? String(diemDinh).trim() : "";
+                    var lowerDinh = rawDinhStr.toLowerCase();
+                    var hasDiemDinh = (rawDinhStr !== "" && rawDinhStr !== "-" && rawDinhStr !== "—" && lowerDinh !== "không có" && lowerDinh !== "khong co" && lowerDinh !== "null");
+                    var ktDinhKiText = hasDiemDinh ? rawDinhStr : "-";
 
-                    var ktDauGioColor = (ktDauGioText === "—") ? 'var(--text-muted, #94A3B8)' : scoreColor(diemDau);
-                    var ktDinhKiColor = (ktDinhKiText === "—") ? 'var(--text-muted, #94A3B8)' : scoreColor(diemDinh);
+                    var ktDauGioColor = (ktDauGioText === "—" || ktDauGioText === "-") ? 'var(--text-muted, #94A3B8)' : scoreColor(diemDau);
+                    var ktDinhKiColor = hasDiemDinh ? scoreColor(rawDinhStr) : 'var(--text-muted, #94A3B8)';
 
                     var commentHtml = parsedNhanXet 
                         ? "<span style='color: var(--text-primary); font-style: italic;'><i class='fa-solid fa-comment-dots' style='color: var(--color-primary, #3B82F6); font-size: 11px; margin-right: 4px;'></i>" + parsedNhanXet + "</span>" 

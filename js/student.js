@@ -540,12 +540,13 @@ function renderStudentView(ketQua) {
             var ktDauGioText = (diemDau !== undefined && diemDau !== null && String(diemDau).trim() !== "" && String(diemDau).trim() !== "-")
                 ? diemDau
                 : (isAbsent ? 'Không có' : '—');
-            var ktDinhKiText = (diemDinh !== undefined && diemDinh !== null && String(diemDinh).trim() !== "" && String(diemDinh).trim() !== "-")
-                ? diemDinh
-                : (isAbsent ? 'Không có' : '—');
+            var rawDinhStr = (diemDinh !== undefined && diemDinh !== null) ? String(diemDinh).trim() : "";
+            var lowerDinh = rawDinhStr.toLowerCase();
+            var hasDiemDinh = (rawDinhStr !== "" && rawDinhStr !== "-" && rawDinhStr !== "—" && lowerDinh !== "không có" && lowerDinh !== "khong co" && lowerDinh !== "null");
+            var ktDinhKiText = hasDiemDinh ? rawDinhStr : "-";
 
-            var ktDauGioColor = (ktDauGioText === 'Không có' || ktDauGioText === '—') ? 'var(--text-secondary)' : scoreColor(diemDau);
-            var ktDinhKiColor = (ktDinhKiText === 'Không có' || ktDinhKiText === '—') ? 'var(--text-secondary)' : scoreColor(diemDinh);
+            var ktDauGioColor = (ktDauGioText === 'Không có' || ktDauGioText === '—' || ktDauGioText === '-') ? 'var(--text-secondary)' : scoreColor(diemDau);
+            var ktDinhKiColor = hasDiemDinh ? scoreColor(rawDinhStr) : 'var(--text-secondary)';
 
             // --- Desktop Row ---
             htmlLichSu +=
@@ -581,8 +582,8 @@ function renderStudentView(ketQua) {
             htmlMobile += '    <div class="accordion-body-row"><span class="accordion-body-label">Nội dung dạy học</span><span class="accordion-body-val">' + (item.noiDung || item.topic || '—') + '</span></div>';
             htmlMobile += '    <div class="accordion-body-row"><span class="accordion-body-label">Nhận xét của gia sư</span><span class="accordion-body-val" style="font-style: italic; color: #2563EB; font-weight: 500;">' + (item.nhanXet ? ("<i class='fa-solid fa-comment-dots' style='margin-right: 4px;'></i>" + item.nhanXet) : '—') + '</span></div>';
             htmlMobile += '    <div class="accordion-body-row"><span class="accordion-body-label">Đánh giá bài tập về nhà</span><span class="accordion-body-val">' + getBtvnBadge(btvnValue) + '</span></div>';
-            htmlMobile += '    <div class="accordion-body-row"><span class="accordion-body-label">Kiểm tra đầu giờ</span><span class="accordion-body-val" style="font-weight: 700; color:' + scoreColor(diemDau) + ';">' + (diemDau !== undefined && diemDau !== null && diemDau !== '' ? diemDau : '—') + '</span></div>';
-            htmlMobile += '    <div class="accordion-body-row"><span class="accordion-body-label">Kiểm tra định kì</span><span class="accordion-body-val" style="font-weight: 700; color:' + scoreColor(diemDinh) + ';">' + (diemDinh !== undefined && diemDinh !== null && diemDinh !== '' ? diemDinh : '—') + '</span></div>';
+            htmlMobile += '    <div class="accordion-body-row"><span class="accordion-body-label">Kiểm tra đầu giờ</span><span class="accordion-body-val" style="font-weight: 700; color:' + ktDauGioColor + ';">' + ktDauGioText + '</span></div>';
+            htmlMobile += '    <div class="accordion-body-row"><span class="accordion-body-label">Kiểm tra định kì</span><span class="accordion-body-val" style="font-weight: 700; color:' + ktDinhKiColor + ';">' + ktDinhKiText + '</span></div>';
             htmlMobile += '  </div>';
             htmlMobile += '</div>';
         });
