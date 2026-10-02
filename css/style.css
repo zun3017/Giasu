@@ -6367,6 +6367,126 @@ body {
     --shadow-card: 0 4px 16px rgba(0,0,0,0.4) !important;
 }
 
+/* ============================================================
+ * TASK 7 — Onboarding Tour
+ * ============================================================ */
+.onboarding-backdrop {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0, 0, 0, 0.65);
+    z-index: 9998;
+    backdrop-filter: blur(2px);
+    transition: opacity 0.3s;
+}
+
+.onboarding-tooltip {
+    position: fixed;
+    z-index: 10000;
+    background: var(--bg-card, #fff);
+    border-radius: 16px;
+    padding: 20px 24px;
+    max-width: 380px;
+    width: calc(100vw - 40px);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35), 0 0 0 3px var(--color-primary, #3B82F6);
+    animation: tooltipAppear 0.3s ease;
+}
+
+@keyframes tooltipAppear {
+    0% { opacity: 0; transform: translateY(10px); }
+    100% { opacity: 1; transform: translateY(0); }
+}
+
+.onboarding-tooltip-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.onboarding-step-count {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--color-primary, #3B82F6);
+    background: rgba(59, 130, 246, 0.12);
+    padding: 3px 10px;
+    border-radius: 20px;
+}
+
+.onboarding-skip-btn {
+    font-size: 12px;
+    color: var(--text-secondary, #94a3b8);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 6px;
+}
+
+.onboarding-skip-btn:hover {
+    color: var(--text-primary, #1e293b);
+}
+
+.onboarding-title {
+    font-size: 16px;
+    font-weight: 800;
+    color: var(--text-primary, #1e293b);
+    margin: 0 0 6px;
+}
+
+.onboarding-desc {
+    font-size: 13px;
+    color: var(--text-secondary, #64748b);
+    line-height: 1.6;
+    margin: 0 0 16px;
+}
+
+.onboarding-footer {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.onboarding-btn {
+    padding: 8px 18px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    border: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: 0.2s;
+}
+
+.onboarding-btn-primary {
+    background: var(--btn-bg, #3B82F6);
+    color: #fff;
+}
+
+.onboarding-btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.onboarding-btn-secondary {
+    background: var(--bg-card-alt, #f1f5f9);
+    color: var(--text-primary, #1e293b);
+}
+
+.onboarding-btn-secondary:hover {
+    background: var(--border-color, #e2e8f0);
+}
+
+.onboarding-highlight {
+    position: relative;
+    z-index: 9999 !important;
+    box-shadow: 0 0 0 4px var(--color-primary, #3B82F6), 0 0 0 8px rgba(59, 130, 246, 0.25) !important;
+    border-radius: 12px;
+    transition: box-shadow 0.3s;
+}
+
+
 
 
 

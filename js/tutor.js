@@ -4475,6 +4475,11 @@ window.initTutorSidebarState = initTutorSidebarState;
 
             // Nạp nhật ký cho toàn bộ học sinh để hiển thị đúng số buổi và học phí
             loadAllTutorStudentsLogs(data);
+
+            // Task 7: Onboarding Tour cho gia sư lần đầu truy cập
+            if (typeof shouldShowOnboarding === 'function' && shouldShowOnboarding()) {
+                setTimeout(startOnboarding, 1500);
+            }
         }
 
 
@@ -9974,4 +9979,208 @@ function toggleNotifSound(enabled) {
     showToast(enabled ? 'Đã bật âm thanh thông báo' : 'Đã tắt âm thanh thông báo', 'info');
 }
 window.toggleNotifSound = toggleNotifSound;
+
+/* ============================================================
+ * TASK 7 — Onboarding Tour Engine
+ * ============================================================ */
+var currentOnboardingStep = 0;
+var onboardingSteps = [
+    {
+        target: '#tutorKpiGrid',
+        title: '📊 Chỉ số Tổng quan',
+        desc: 'Xem nhanh tổng số học sinh, số buổi đã dạy, tổng giờ dạy và học phí dự tính trong tháng hiện tại.',
+        placement: 'bottom'
+    },
+    {
+        target: '#tutorUpcomingScheduleBox',
+        title: '📅 Lịch dạy sắp tới',
+        desc: 'Theo dõi các ca dạy trong tuần, xem trạng thái buổi học và chuẩn bị trước bài giảng.',
+        placement: 'bottom'
+    },
+    {
+        target: '#revenueBarChartBox',
+        title: '📈 Thống kê & Biểu đồ',
+        desc: 'Biểu đồ trực quan hóa doanh thu và số giờ dạy theo từng tháng giúp bạn dễ dàng theo dõi tiến độ.',
+        placement: 'top'
+    },
+    {
+        target: '.sidebar-nav-item[data-tab="diary"]',
+        title: '📖 Sổ Nhật Ký Buổi Học',
+        desc: 'Nơi bạn điểm danh, ghi nhận xét, chấm điểm đầu giờ/định kì và giao bài tập về nhà cho từng học sinh.',
+        placement: 'right'
+    },
+    {
+        target: '.sidebar-nav-item[data-tab="students"]',
+        title: '👥 Quản lý Học sinh',
+        desc: 'Xem hồ sơ từng học sinh, chỉnh sửa thông tin, xem biểu đồ điểm số và quản lý lịch học.',
+        placement: 'right'
+    },
+    {
+        target: '.sidebar-nav-item[data-tab="tuition"]',
+        title: '💰 Quản lý Học Phí',
+        desc: 'Tính toán học phí tự động, xuất phiếu thu học phí e-Receipt kèm mã QR thanh toán gửi phụ huynh.',
+        placement: 'right'
+    }
+];
+
+function shouldShowOnboarding() {
+    var phone = (tutorDataGlobal && tutorDataGlobal.tutorPhone) ? tutorDataGlobal.tutorPhone : (currentTutorPhone || 'default');
+    return localStorage.getItem('tutorOnboarded_' + phone) !== 'true';
+}
+window.shouldShowOnboarding = shouldShowOnboarding;
+
+function startOnboarding() {
+    currentOnboardingStep = 0;
+    var overlay = document.getElementById('onboardingOverlay');
+    if (overlay) overlay.style.display = 'block';
+    showOnboardingStep(0);
+}
+window.startOnboarding = startOnboarding;
+
+function showOnboardingStep(idx) {
+    if (idx < 0 || idx >= onboardingSteps.length) {
+        finishOnboarding();
+        return;
+    }
+    currentOnboardingStep = idx;
+    var step = onboardingSteps[idx];
+    
+    // Clear previous highlight
+    document.querySelectorAll('.onboarding-highlight').forEach(function(el) {
+        el.classList.remove('onboarding-highlight');
+    });
+
+    var targetEl = document.querySelector(step.target);
+    var tooltip = document.getElementById('onboardingTooltip');
+    var stepCount = document.getElementById('onboardingStepCount');
+    var titleEl = document.getElementById('onboardingTitle');
+    var descEl = document.getElementById('onboardingDesc');
+    var prevBtn = document.getElementById('onboardingPrevBtn');
+    var nextBtn = document.getElementById('onboardingNextBtn');
+
+    if (stepCount) stepCount.innerText = 'Bước ' + (idx + 1) + ' / ' + onboardingSteps.length;
+    if (titleEl) titleEl.innerText = step.title;
+    if (descEl) descEl.innerText = step.desc;
+
+    if (prevBtn) {
+        prevBtn.style.visibility = (idx === 0) ? 'hidden' : 'visible';
+    }
+    if (nextBtn) {
+        nextBtn.innerHTML = (idx === onboardingSteps.length - 1) 
+            ? 'Hoàn thành <i class="fa-solid fa-check"></i>' 
+            : 'Tiếp <i class="fa-solid fa-arrow-right"></i>';
+    }
+
+    if (targetEl) {
+        targetEl.classList.add('onboarding-highlight');
+        try {
+            targetEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        } catch(e) {}
+
+        positionOnboardingTooltip(targetEl, tooltip, step.placement);
+    } else {
+        if (tooltip) {
+            tooltip.style.top = '50%';
+            tooltip.style.left = '50%';
+            tooltip.style.transform = 'translate(-50%, -50%)';
+        }
+    }
+}
+window.showOnboardingStep = showOnboardingStep;
+
+function positionOnboardingTooltip(targetEl, tooltip, placement) {
+    if (!targetEl || !tooltip) return;
+    
+    setTimeout(function() {
+        var rect = targetEl.getBoundingClientRect();
+        var tooltipWidth = Math.min(380, window.innerWidth - 40);
+        var tooltipHeight = tooltip.offsetHeight || 180;
+        
+        var top = 0;
+        var left = 0;
+        tooltip.style.transform = 'none';
+
+        if (window.innerWidth <= 768) {
+            tooltip.style.top = 'auto';
+            tooltip.style.bottom = '20px';
+            tooltip.style.left = '20px';
+            tooltip.style.right = '20px';
+            tooltip.style.width = 'calc(100vw - 40px)';
+            return;
+        }
+
+        tooltip.style.bottom = 'auto';
+        tooltip.style.right = 'auto';
+        tooltip.style.width = tooltipWidth + 'px';
+
+        if (placement === 'bottom') {
+            top = rect.bottom + 16;
+            left = rect.left + (rect.width / 2) - (tooltipWidth / 2);
+        } else if (placement === 'top') {
+            top = rect.top - tooltipHeight - 16;
+            left = rect.left + (rect.width / 2) - (tooltipWidth / 2);
+        } else if (placement === 'right') {
+            top = rect.top + (rect.height / 2) - (tooltipHeight / 2);
+            left = rect.right + 16;
+        } else {
+            top = rect.bottom + 16;
+            left = rect.left;
+        }
+
+        // Clamp inside window boundaries
+        if (left < 20) left = 20;
+        if (left + tooltipWidth > window.innerWidth - 20) {
+            left = window.innerWidth - tooltipWidth - 20;
+        }
+        if (top < 20) top = 20;
+        if (top + tooltipHeight > window.innerHeight - 20) {
+            top = window.innerHeight - tooltipHeight - 20;
+        }
+
+        tooltip.style.top = top + 'px';
+        tooltip.style.left = left + 'px';
+    }, 60);
+}
+
+function nextOnboardingStep() {
+    if (currentOnboardingStep < onboardingSteps.length - 1) {
+        showOnboardingStep(currentOnboardingStep + 1);
+    } else {
+        finishOnboarding();
+    }
+}
+window.nextOnboardingStep = nextOnboardingStep;
+
+function prevOnboardingStep() {
+    if (currentOnboardingStep > 0) {
+        showOnboardingStep(currentOnboardingStep - 1);
+    }
+}
+window.prevOnboardingStep = prevOnboardingStep;
+
+function skipOnboarding() {
+    finishOnboarding();
+}
+window.skipOnboarding = skipOnboarding;
+
+function finishOnboarding() {
+    var overlay = document.getElementById('onboardingOverlay');
+    if (overlay) overlay.style.display = 'none';
+    document.querySelectorAll('.onboarding-highlight').forEach(function(el) {
+        el.classList.remove('onboarding-highlight');
+    });
+    var phone = (tutorDataGlobal && tutorDataGlobal.tutorPhone) ? tutorDataGlobal.tutorPhone : (currentTutorPhone || 'default');
+    localStorage.setItem('tutorOnboarded_' + phone, 'true');
+    showToast('Bạn có thể xem lại hướng dẫn bất cứ lúc nào trong Cài đặt!', 'info');
+}
+window.finishOnboarding = finishOnboarding;
+
+function restartOnboarding() {
+    closeSettingsModal();
+    var phone = (tutorDataGlobal && tutorDataGlobal.tutorPhone) ? tutorDataGlobal.tutorPhone : (currentTutorPhone || 'default');
+    localStorage.removeItem('tutorOnboarded_' + phone);
+    startOnboarding();
+}
+window.restartOnboarding = restartOnboarding;
+
 
