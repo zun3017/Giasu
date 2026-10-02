@@ -5699,10 +5699,28 @@ window.initTutorSidebarState = initTutorSidebarState;
             if (addWrap) addWrap.style.display = "none";
             var addInp = document.getElementById('lesBtvnCustom');
             if (addInp) addInp.value = "";
-            document.getElementById('lesMon').value = "Toán học";
+            document.getElementById('lesMon').value = "Toán";
+            var monWrap = document.getElementById('lesMonCustomWrap');
+            if (monWrap) monWrap.style.display = "none";
+            var monInp = document.getElementById('lesMonCustom');
+            if (monInp) monInp.value = "";
             
             document.getElementById('addLessonModal').style.display = "flex";
         }
+
+        // Helper toggle ô nhập môn học tùy chỉnh khi chọn "Khác"
+        window.toggleMonCustomInput = function(selectId, wrapId, inputId) {
+            var sel = document.getElementById(selectId);
+            var wrap = document.getElementById(wrapId);
+            var inp = document.getElementById(inputId);
+            if (!sel || !wrap) return;
+            if (sel.value === "Khác") {
+                wrap.style.display = "block";
+                if (inp) inp.focus();
+            } else {
+                wrap.style.display = "none";
+            }
+        };
 
         // Helper toggle ô nhập % BTVN tùy chỉnh khi chọn "Khác"
         window.toggleBtvnCustomInput = function(selectId, wrapId, inputId) {
@@ -5728,6 +5746,16 @@ window.initTutorSidebarState = initTutorSidebarState;
             var tuan = document.getElementById('lesTuan').value.trim();
             var ngayVal = document.getElementById('lesNgay').value;
             var mon = document.getElementById('lesMon').value;
+            if (mon === "Khác") {
+                var customMonInp = document.getElementById('lesMonCustom');
+                var customMonVal = customMonInp ? customMonInp.value.trim() : "";
+                if (!customMonVal) {
+                    showToast("Vui lòng nhập tên môn học!", "error");
+                    if (customMonInp) customMonInp.focus();
+                    return;
+                }
+                mon = customMonVal;
+            }
             var trangThai = document.getElementById('lesTrangThai').value;
             var btvn = document.getElementById('lesBtvn').value;
             if (btvn === "Khác") {
@@ -6511,7 +6539,17 @@ window.initTutorSidebarState = initTutorSidebarState;
                 ngayValue = ngayValue + "/" + year;
             }
             document.getElementById('editLesNgay').value = ngayValue;
-            document.getElementById('editLesMon').value = mapSubjectToSelectValue(log.mon);
+            var mappedMon = mapSubjectToSelectValue(log.mon);
+            document.getElementById('editLesMon').value = mappedMon;
+            var editMonWrap = document.getElementById('editLesMonCustomWrap');
+            var editMonInp = document.getElementById('editLesMonCustom');
+            if (mappedMon === "Khác") {
+                if (editMonWrap) editMonWrap.style.display = "block";
+                if (editMonInp) editMonInp.value = log.mon || "";
+            } else {
+                if (editMonWrap) editMonWrap.style.display = "none";
+                if (editMonInp) editMonInp.value = "";
+            }
             
             var tt = log.trangThai || "Đã học";
             if (tt.trim().toLowerCase() === "hủy/nghỉ") {
@@ -6559,6 +6597,16 @@ window.initTutorSidebarState = initTutorSidebarState;
             var tuan = document.getElementById('editLesTuan').value.trim();
             var ngayVal = document.getElementById('editLesNgay').value.trim();
             var mon = document.getElementById('editLesMon').value;
+            if (mon === "Khác") {
+                var customMonInp = document.getElementById('editLesMonCustom');
+                var customMonVal = customMonInp ? customMonInp.value.trim() : "";
+                if (!customMonVal) {
+                    showToast("Vui lòng nhập tên môn học!", "error");
+                    if (customMonInp) customMonInp.focus();
+                    return;
+                }
+                mon = customMonVal;
+            }
             var trangThai = document.getElementById('editLesTrangThai').value;
             var btvn = document.getElementById('editLesBtvn').value;
             if (btvn === "Khác") {
@@ -8374,7 +8422,17 @@ function duplicateLesson(rowIndex) {
     
     // 2. Ghi đè các thông tin cũ của buổi học này (ngoại trừ Ngày dạy)
     document.getElementById('lesTuan').value = log.tuan || "";
-    document.getElementById('lesMon').value = mapSubjectToSelectValue(log.mon);
+    var mappedMon = mapSubjectToSelectValue(log.mon);
+    document.getElementById('lesMon').value = mappedMon;
+    var lesMonWrap = document.getElementById('lesMonCustomWrap');
+    var lesMonInp = document.getElementById('lesMonCustom');
+    if (mappedMon === "Khác") {
+        if (lesMonWrap) lesMonWrap.style.display = "block";
+        if (lesMonInp) lesMonInp.value = (log.mon || "");
+    } else {
+        if (lesMonWrap) lesMonWrap.style.display = "none";
+        if (lesMonInp) lesMonInp.value = "";
+    }
     
     var tt = log.trangThai || "Đã học";
     if (tt.trim().toLowerCase() === "hủy/nghỉ") {
@@ -8408,26 +8466,24 @@ function duplicateLesson(rowIndex) {
 
 // Hàm chuẩn hóa và ánh xạ môn học từ Google Sheet về đúng giá trị option trong thẻ select
 function mapSubjectToSelectValue(val) {
-    if (!val) return "Toán học";
+    if (!val) return "Toán";
     var clean = val.trim().toLowerCase();
     
     // So khớp trực tiếp hoặc từ viết tắt phổ biến
-    if (clean === "toán học" || clean === "toán") return "Toán học";
-    if (clean === "vật lý" || clean === "vật lí" || clean === "lý" || clean === "lí") return "Vật lý";
-    if (clean === "hóa học" || clean === "hóa") return "Hóa học";
-    if (clean === "khoa học tự nhiên" || clean === "khtn" || clean === "sinh" || clean === "sinh học" || clean === "lý, hóa, sinh") return "Khoa học tự nhiên";
-    if (clean === "ngữ văn" || clean === "văn") return "Ngữ văn";
-    if (clean === "tiếng anh" || clean === "anh" || clean === "english") return "Tiếng anh";
+    if (clean === "toán" || clean === "toán học") return "Toán";
+    if (clean === "lý" || clean === "lí" || clean === "vật lý" || clean === "vật lí") return "Lý";
+    if (clean === "anh" || clean === "tiếng anh" || clean === "english") return "Anh";
+    if (clean === "văn" || clean === "ngữ văn") return "Văn";
+    if (clean === "hóa" || clean === "hóa học") return "Hóa";
     
     // Nếu có chứa từ khóa
-    if (clean.indexOf("toán") !== -1) return "Toán học";
-    if (clean.indexOf("lý") !== -1 || clean.indexOf("lí") !== -1 || clean.indexOf("phys") !== -1) return "Vật lý";
-    if (clean.indexOf("hóa") !== -1 || clean.indexOf("chem") !== -1) return "Hóa học";
-    if (clean.indexOf("khoa học") !== -1 || clean.indexOf("tự nhiên") !== -1 || clean.indexOf("khtn") !== -1) return "Khoa học tự nhiên";
-    if (clean.indexOf("văn") !== -1 || clean.indexOf("ngữ") !== -1) return "Ngữ văn";
-    if (clean.indexOf("anh") !== -1 || clean.indexOf("eng") !== -1) return "Tiếng anh";
+    if (clean.indexOf("toán") !== -1) return "Toán";
+    if (clean.indexOf("lý") !== -1 || clean.indexOf("lí") !== -1 || clean.indexOf("phys") !== -1) return "Lý";
+    if (clean.indexOf("anh") !== -1 || clean.indexOf("eng") !== -1) return "Anh";
+    if (clean.indexOf("văn") !== -1 || clean.indexOf("ngữ") !== -1) return "Văn";
+    if (clean.indexOf("hóa") !== -1 || clean.indexOf("chem") !== -1) return "Hóa";
     
-    return "Toán học"; // Mặc định nếu không khớp
+    return "Khác"; // Mặc định chuyển sang Khác để điền tùy chỉnh
 }
 
 // =====================================

@@ -1734,14 +1734,17 @@
             <div class="modal-grid-2">
                 <div class="modal-form-group">
                     <label>Môn học</label>
-                    <select id="lesMon">
-                        <option value="Toán học">Toán học</option>
-                        <option value="Vật lý">Vật lý</option>
-                        <option value="Hóa học">Hóa học</option>
-                        <option value="Khoa học tự nhiên">Khoa học tự nhiên</option>
-                        <option value="Ngữ văn">Ngữ văn</option>
-                        <option value="Tiếng anh">Tiếng anh</option>
+                    <select id="lesMon" onchange="toggleMonCustomInput('lesMon', 'lesMonCustomWrap', 'lesMonCustom')">
+                        <option value="Toán">Toán</option>
+                        <option value="Lý">Lý</option>
+                        <option value="Anh">Anh</option>
+                        <option value="Văn">Văn</option>
+                        <option value="Hóa">Hóa</option>
+                        <option value="Khác">Khác</option>
                     </select>
+                    <div id="lesMonCustomWrap" style="display: none; margin-top: 8px;">
+                        <input type="text" id="lesMonCustom" placeholder="Nhập tên môn học khác...">
+                    </div>
                 </div>
                 <div class="modal-form-group">
                     <label>Trạng thái</label>
@@ -1873,14 +1876,17 @@
                 <div class="modal-grid-2">
                     <div class="modal-form-group">
                         <label>Môn học</label>
-                        <select id="editLesMon">
-                            <option value="Toán học">Toán học</option>
-                            <option value="Vật lý">Vật lý</option>
-                            <option value="Hóa học">Hóa học</option>
-                            <option value="Khoa học tự nhiên">Khoa học tự nhiên</option>
-                            <option value="Ngữ văn">Ngữ văn</option>
-                            <option value="Tiếng anh">Tiếng anh</option>
+                        <select id="editLesMon" onchange="toggleMonCustomInput('editLesMon', 'editLesMonCustomWrap', 'editLesMonCustom')">
+                            <option value="Toán">Toán</option>
+                            <option value="Lý">Lý</option>
+                            <option value="Anh">Anh</option>
+                            <option value="Văn">Văn</option>
+                            <option value="Hóa">Hóa</option>
+                            <option value="Khác">Khác</option>
                         </select>
+                        <div id="editLesMonCustomWrap" style="display: none; margin-top: 8px;">
+                            <input type="text" id="editLesMonCustom" placeholder="Nhập tên môn học khác...">
+                        </div>
                     </div>
                     <div class="modal-form-group">
                         <label>Trạng thái</label>
@@ -2605,7 +2611,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="js/api.js?v=2.0.9"></script>
-    <script src="js/tutor.js?v=20261002_v7"></script>
+    <script src="js/tutor.js?v=20261002_v8"></script>
     <script>
         function toggleTutorMobileSidebar(force) {
             var sidebar = document.getElementById('tutorSidebar');
