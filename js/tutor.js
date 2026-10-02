@@ -2475,39 +2475,21 @@ window.getActiveThemeInvoiceColors = getActiveThemeInvoiceColors;
 
 function getDefaultInvoiceSections(st, isMonthly, unitFeeStr) {
     var subject = (st && st.subject) ? st.subject.toLowerCase() : "";
-    var isMath = subject.includes("toán") || subject.includes("toan") || subject.includes("math") || !subject;
     
-    var feedbackHtml = '';
-    var roadmapHtml = '';
-    
-    if (isMath) {
-        feedbackHtml = 
-            '<div style="margin-bottom: 3px;"><b>Tổng quan:</b></div>' +
-            '<div>+ Chưa chủ động trong quá trình học, thường xuyên thiếu BTVN, trong giờ học hay sao nhãng, nói chuyện riêng, không ôn bài về nhà.</div>' +
-            '<div>+ Trình bày bài chưa chỉn chu, làm ẩu.</div>' +
-            '<div style="margin-top: 6px; margin-bottom: 3px;"><b>Đại số:</b></div>' +
-            '<div>+ Tư duy số học tốt, nắm được cách giải hệ phương trình, bài toán liên quan.</div>' +
-            '<div>+ Thường xuyên sai các lỗi nhỏ vặt trong tính toán.</div>' +
-            '<div style="margin-top: 6px; margin-bottom: 3px;"><b>Hình học:</b></div>' +
-            '<div>+ Giải được các bài toán lượng giác cơ bản</div>' +
-            '<div>+ Cần ôn tập lại các kiến thức liên quan đến tam giác đồng dạng, song song, các đường đặc biệt trong tam giác.</div>';
-            
-        roadmapHtml = 
-            '<div><b>Đại số:</b> Hoàn thành chuyên đề hệ phương trình và bất phương trình</div>' +
-            '<div><b>Hình học:</b> Hoàn thành chuyên đề hệ thức lượng, mở đầu về đường tròn</div>';
-    } else {
-        feedbackHtml = 
-            '<div style="margin-bottom: 3px;"><b>Tổng quan:</b></div>' +
-            '<div>+ Có tinh thần học tập tích cực, tiếp thu bài nhanh và chú ý nghe giảng.</div>' +
-            '<div>+ Hoàn thành đầy đủ bài tập và chủ động hỏi bài khi gặp dạng khó.</div>' +
-            '<div style="margin-top: 6px; margin-bottom: 3px;"><b>Kiến thức & Kỹ năng:</b></div>' +
-            '<div>+ Nắm chắc các nội dung kiến thức trọng tâm đã học trong kỳ vừa qua.</div>' +
-            '<div>+ Kỹ năng làm bài ngày càng tiến bộ và chuẩn xác.</div>';
-            
-        roadmapHtml = 
-            '<div><b>Chuyên đề tới:</b> Tiếp tục củng cố kiến thức trọng tâm và mở rộng các dạng bài nâng cao.</div>' +
-            '<div><b>Mục tiêu:</b> Tối ưu tốc độ làm bài và đạt kết quả xuất sắc trong các bài kiểm tra.</div>';
-    }
+    var feedbackHtml = 
+        '<div style="margin-bottom: 3px;"><b>Tổng quan:</b></div>' +
+        '<div>+ Có tinh thần học tập tích cực, đi học chuyên cần, đúng giờ và tập trung nghe giảng.</div>' +
+        '<div>+ Hoàn thành tốt các bài tập được giao, chủ động trao đổi và hỏi bài khi gặp dạng khó.</div>' +
+        '<div style="margin-top: 6px; margin-bottom: 3px;"><b>Kiến thức & Kỹ năng:</b></div>' +
+        '<div>+ Nắm chắc các kiến thức trọng tâm đã học, tiếp thu bài tốt và hiểu rõ bản chất bài học.</div>' +
+        '<div>+ Kỹ năng làm bài ngày càng tiến bộ, vận dụng tốt phương pháp vào giải quyết bài tập.</div>' +
+        '<div style="margin-top: 6px; margin-bottom: 3px;"><b>Điểm cần cải thiện:</b></div>' +
+        '<div>+ Cần rèn luyện thêm tính cẩn thận khi làm bài để hạn chế các lỗi sơ suất nhỏ.</div>' +
+        '<div>+ Chú ý trình bày bài giải chi tiết, rõ ràng và duy trì thói quen tự ôn luyện đều đặn.</div>';
+        
+    var roadmapHtml = 
+        '<div><b>Kiến thức trọng tâm:</b> Tiếp tục củng cố kiến thức nền tảng và mở rộng các chuyên đề nâng cao.</div>' +
+        '<div><b>Mục tiêu rèn luyện:</b> Tối ưu phương pháp và tốc độ làm bài, hướng tới kết quả xuất sắc trong các kỳ thi.</div>';
 
     var scheduleHtml = '';
     var sSched = null;
@@ -3694,8 +3676,8 @@ function openStudentInvoiceModal(studentName) {
             endDate: eDateVal,
             customTitle: draftObj.customTitle || generateTuitionPeriodTitle(sDateVal, eDateVal, restoredTmpl),
             isCustomTitle: !!draftObj.isCustomTitle,
-            feedbackText: draftObj.feedbackText || "",
-            roadmapText: draftObj.roadmapText || "",
+            feedbackText: (draftObj.feedbackText && (draftObj.feedbackText.indexOf("Chưa chủ động trong quá trình học") !== -1 || draftObj.feedbackText.indexOf("tam giác đồng dạng") !== -1)) ? "" : (draftObj.feedbackText || ""),
+            roadmapText: (draftObj.roadmapText && draftObj.roadmapText.indexOf("Hoàn thành chuyên đề hệ phương trình") !== -1) ? "" : (draftObj.roadmapText || ""),
             scheduleText: draftObj.scheduleText || "",
             tuitionExtraText: draftObj.tuitionExtraText || "",
             footerNoteText: draftObj.footerNoteText || "",
