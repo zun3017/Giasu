@@ -28,8 +28,18 @@ function parseInputDate(str) {
     // Chuẩn hóa, loại bỏ thứ trong tuần như "Thứ 2, ", "Thứ Hai, ", "Chủ Nhật, ", "CN, ", "T2, "
     s = s.replace(/^(thứ\s*[\w\d]+|chủ\s*nhật|cn|t\d+)\s*[,.-]?\s*/i, '').trim();
 
+    // 0. Khớp tiếng Việt: "Ngày DD tháng MM năm YYYY" hoặc "Ngày DD/MM/YYYY"
+    var vnMatch = s.match(/(?:ngày\s*)?(\d{1,2})\s*(?:tháng|\/|-)\s*(\d{1,2})(?:\s*(?:năm|\/|-)\s*(\d{4}))?/i);
+    if (s.toLowerCase().indexOf('ngày') !== -1 && vnMatch) {
+        var d = parseInt(vnMatch[1], 10);
+        var m = parseInt(vnMatch[2], 10) - 1;
+        var y = vnMatch[3] ? parseInt(vnMatch[3], 10) : new Date().getFullYear();
+        var date = new Date(y, m, d, 0, 0, 0, 0);
+        return isNaN(date.getTime()) ? null : date;
+    }
+
     // 1. Khớp ISO YYYY-MM-DD hoặc YYYY/MM/DD
-    var isoMatch = s.match(/(\d{4})[-\/.](\d{1,2})[-\/.](\d{1,2})/);
+    var isoMatch = s.match(/^(\d{4})[-\/.](\d{1,2})[-\/.](\d{1,2})/);
     if (isoMatch) {
         var y = parseInt(isoMatch[1], 10);
         var m = parseInt(isoMatch[2], 10) - 1;
@@ -39,7 +49,7 @@ function parseInputDate(str) {
     }
 
     // 2. Khớp DD/MM/YYYY hoặc DD-MM-YYYY hoặc DD.MM.YYYY
-    var dmyMatch = s.match(/(\d{1,2})[-\/.](\d{1,2})[-\/.](\d{4})/);
+    var dmyMatch = s.match(/^(\d{1,2})[-\/.](\d{1,2})[-\/.](\d{4})/);
     if (dmyMatch) {
         var d = parseInt(dmyMatch[1], 10);
         var m = parseInt(dmyMatch[2], 10) - 1;
@@ -49,7 +59,7 @@ function parseInputDate(str) {
     }
 
     // 3. Khớp DD/MM/YY
-    var dmy2Match = s.match(/(\d{1,2})[-\/.](\d{1,2})[-\/.](\d{2})\b/);
+    var dmy2Match = s.match(/^(\d{1,2})[-\/.](\d{1,2})[-\/.](\d{2})$/);
     if (dmy2Match) {
         var d = parseInt(dmy2Match[1], 10);
         var m = parseInt(dmy2Match[2], 10) - 1;
@@ -58,8 +68,17 @@ function parseInputDate(str) {
         return isNaN(date.getTime()) ? null : date;
     }
 
-    // 4. Khớp DD/MM (mặc định năm hiện tại từ hệ thống)
-    var dmMatch = s.match(/(\d{1,2})[-\/.](\d{1,2})/);
+    // 4. Khớp MM/YYYY hoặc MM-YYYY (ví dụ: "10/2026", "09/2026") -> ngày 1 của tháng đó
+    var myMatch = s.match(/^(\d{1,2})[-\/.](\d{4})$/);
+    if (myMatch) {
+        var m = parseInt(myMatch[1], 10) - 1;
+        var y = parseInt(myMatch[2], 10);
+        var date = new Date(y, m, 1, 0, 0, 0, 0);
+        return isNaN(date.getTime()) ? null : date;
+    }
+
+    // 5. Khớp DD/MM hoặc DD-MM (mặc định năm hiện tại từ hệ thống)
+    var dmMatch = s.match(/^(\d{1,2})[-\/.](\d{1,2})$/);
     if (dmMatch) {
         var d = parseInt(dmMatch[1], 10);
         var m = parseInt(dmMatch[2], 10) - 1;
@@ -84,6 +103,18 @@ window.parseLogDate = parseLogDate;
 
 function getMonthYearFromLogDate(dateStr) {
     if (!dateStr && dateStr !== 0) return null;
+    var s = String(dateStr).trim();
+    // Khớp trực tiếp MM/YYYY (ví dụ: "10/2026")
+    var myDirect = s.match(/^(\d{1,2})\/(\d{4})$/);
+    if (myDirect) {
+        var mDirect = parseInt(myDirect[1], 10);
+        var yDirect = parseInt(myDirect[2], 10);
+        return {
+            month: mDirect,
+            year: yDirect,
+            key: String(mDirect).padStart(2, '0') + '/' + yDirect
+        };
+    }
     var d = parseInputDate(dateStr);
     if (!d || isNaN(d.getTime())) return null;
     var m = d.getMonth() + 1;
@@ -284,6 +315,9 @@ function navigateOverviewMonth(delta) {
     renderUpcomingSchedule(null, tutorOverviewMonth, tutorOverviewYear);
     if (typeof renderOverviewCharts === 'function') {
         renderOverviewCharts(tutorOverviewMonth, tutorOverviewYear);
+    }
+    if (typeof renderTutorStudentsGrid === 'function') {
+        renderTutorStudentsGrid();
     }
 }
 window.navigateOverviewMonth = navigateOverviewMonth;
@@ -1428,16 +1462,23 @@ function renderTutorStudentsGrid() {
         var sObj = schedMap[sName];
         var schedSummary = formatStudentScheduleSummary(sObj);
 
-        // Buổi tháng này
+        // Buổi tháng này / tháng được chọn
         var monthSessions = 0;
         var curDate = new Date();
         var curM = curDate.getMonth() + 1;
         var curY = curDate.getFullYear();
+        var selM = tutorOverviewMonth || curM;
+        var selY = tutorOverviewYear || curY;
+        var isCurrentMonth = (selM === curM && selY === curY);
+        var cardSessionLabel = isCurrentMonth ? "Buổi tháng này" : ("Buổi Tháng " + selM);
+
         if (st.logs && Array.isArray(st.logs)) {
             st.logs.forEach(function(l) {
-                if (!l || !l.ngay) return;
-                var my = getMonthYearFromLogDate(l.ngay);
-                if (!my || my.month !== curM || my.year !== curY) return;
+                if (!l) return;
+                var rawDate = l.studyDate || l.ngay || "";
+                if (!rawDate) return;
+                var my = getMonthYearFromLogDate(rawDate);
+                if (!my || my.month !== selM || my.year !== selY) return;
 
                 var rawStatus = l.trangThai || l.chuyenCan || l.attendance_status || l.attendance || l.status || "";
                 var normTt = String(rawStatus).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').trim();
@@ -1487,7 +1528,7 @@ function renderTutorStudentsGrid() {
             '<div class="student-card-metrics">' +
                 '<div class="card-metric-box">' +
                     '<div class="card-metric-val text-green">' + monthSessions + '</div>' +
-                    '<div class="card-metric-lbl">Buổi tháng này</div>' +
+                    '<div class="card-metric-lbl">' + cardSessionLabel + '</div>' +
                 '</div>' +
                 '<div class="card-metric-box">' +
                     '<div class="card-metric-val" style="color: var(--text-primary);">' + hwRate + '</div>' +
@@ -2509,19 +2550,19 @@ function renderTuitionLivePreview() {
     // Filter logs for this student using startDate and endDate
     var sDate = parseInputDate(state.startDate);
     var eDate = parseInputDate(state.endDate);
-    if (eDate) {
-        eDate.setHours(23, 59, 59, 999);
-    }
+    if (sDate) sDate.setHours(0, 0, 0, 0);
+    if (eDate) eDate.setHours(23, 59, 59, 999);
 
     var studentLogs = [];
     if (st.logs && Array.isArray(st.logs)) {
         st.logs.forEach(function(l) {
-            var lDate = parseLogDate(l.ngay);
+            if (!l) return;
+            var lDate = parseLogDate(l.studyDate || l.ngay);
             if (lDate) {
                 if (sDate && lDate < sDate) return;
                 if (eDate && lDate > eDate) return;
                 studentLogs.push(l);
-            } else {
+            } else if (!sDate && !eDate) {
                 studentLogs.push(l);
             }
         });
@@ -2539,7 +2580,7 @@ function renderTuitionLivePreview() {
 
     studentLogs.forEach(function(log) {
         if (!log) return;
-        var dateText = log.ngay || "";
+        var dateText = log.studyDate || log.ngay || "";
         var dObj = parseInputDate(dateText);
         var shortDateStr = dObj ? (String(dObj.getDate()).padStart(2, '0') + '/' + String(dObj.getMonth() + 1).padStart(2, '0')) : dateText;
         
@@ -2639,7 +2680,9 @@ function renderTuitionLivePreview() {
     var attendedLogs = [];
     if (studentLogs && studentLogs.length > 0) {
         studentLogs.forEach(function(l) {
-            if (!l || !l.ngay) return;
+            if (!l) return;
+            var lDateText = l.studyDate || l.ngay || "";
+            if (!lDateText) return;
             var rawStatus = l.trangThai || l.chuyenCan || l.attendance_status || l.attendance || l.status || "";
             var normTt = String(rawStatus).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').trim();
             var isDaBu = (normTt.includes("da bu") || normTt.includes("hoc bu"));
@@ -2657,8 +2700,8 @@ function renderTuitionLivePreview() {
             );
             if (!isAbsent) {
                 attendedLogs.push(l);
-                var dObj = parseInputDate(l.ngay);
-                var chipLabel = dObj ? (String(dObj.getDate()).padStart(2, '0') + '/' + String(dObj.getMonth() + 1).padStart(2, '0')) : (l.ngay || "");
+                var dObj = parseInputDate(lDateText);
+                var chipLabel = dObj ? (String(dObj.getDate()).padStart(2, '0') + '/' + String(dObj.getMonth() + 1).padStart(2, '0')) : lDateText;
                 dateChipsHtml += '<span style="background: #F3E8FF; color: #6D28D9; border: 1px solid #DDD6FE; font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 6px;">' + chipLabel + '</span>';
             }
         });
@@ -2853,8 +2896,9 @@ function renderTuitionLivePreview() {
                 html += '<div style="font-size: 11px; font-weight: 700; color: #475569; margin-bottom: 6px;"><i class="fa-solid fa-calendar-days" style="color: #7C3AED;"></i> Chi tiết các ngày học (' + attendedLogs.length + ' buổi):</div>';
                 html += '<div style="display: flex; flex-wrap: wrap; gap: 5px;">';
                 attendedLogs.forEach(function(l) {
-                    var dObj = parseInputDate(l.ngay);
-                    var chipLabel = dObj ? (String(dObj.getDate()).padStart(2, '0') + '/' + String(dObj.getMonth() + 1).padStart(2, '0')) : (l.ngay || "");
+                    var lDateText = l.studyDate || l.ngay || "";
+                    var dObj = parseInputDate(lDateText);
+                    var chipLabel = dObj ? (String(dObj.getDate()).padStart(2, '0') + '/' + String(dObj.getMonth() + 1).padStart(2, '0')) : lDateText;
                     html += '<span style="background: #FFFFFF; border: 1px solid #CBD5E1; color: #334155; font-size: 11px; padding: 2px 7px; border-radius: 6px; font-weight: 600;">' + chipLabel + '</span>';
                 });
                 html += '</div>';
@@ -3012,19 +3056,19 @@ function openStudentInvoiceModal(studentName) {
             yr = parseInt(mParts[1], 10);
         }
     } else {
-        // If 'all', check if current month has logs for this student; if not, pick the month with actual logs!
+        // If 'all', check if current month has logs for this student; if not, pick the LATEST month with actual logs!
         var hasLogsInCurrentMonth = false;
         if (st.logs && Array.isArray(st.logs)) {
             for (var i = 0; i < st.logs.length; i++) {
-                var pDate = parseLogDate(st.logs[i].ngay);
+                var pDate = parseLogDate(st.logs[i].studyDate || st.logs[i].ngay);
                 if (pDate && pDate.getMonth() === mo && pDate.getFullYear() === yr) {
                     hasLogsInCurrentMonth = true;
                     break;
                 }
             }
             if (!hasLogsInCurrentMonth && st.logs.length > 0) {
-                for (var i = 0; i < st.logs.length; i++) {
-                    var pDate = parseLogDate(st.logs[i].ngay);
+                for (var i = st.logs.length - 1; i >= 0; i--) {
+                    var pDate = parseLogDate(st.logs[i].studyDate || st.logs[i].ngay);
                     if (pDate) {
                         mo = pDate.getMonth();
                         yr = pDate.getFullYear();
@@ -3065,10 +3109,11 @@ function openStudentInvoiceModal(studentName) {
             var hasLogsInDraft = false;
             var dS = parseInputDate(sDateVal);
             var dE = parseInputDate(eDateVal);
+            if (dS) dS.setHours(0, 0, 0, 0);
             if (dE) dE.setHours(23, 59, 59, 999);
             if (st.logs && Array.isArray(st.logs)) {
                 for (var i = 0; i < st.logs.length; i++) {
-                    var lD = parseLogDate(st.logs[i].ngay);
+                    var lD = parseLogDate(st.logs[i].studyDate || st.logs[i].ngay);
                     if (lD && (!dS || lD >= dS) && (!dE || lD <= dE)) {
                         hasLogsInDraft = true;
                         break;
@@ -3143,17 +3188,19 @@ function openStudentInvoiceModal(studentName) {
     // Filter logs for this student using startDate and endDate
     var sDate = parseInputDate(window.tuitionInvoiceModalState.startDate);
     var eDate = parseInputDate(window.tuitionInvoiceModalState.endDate);
+    if (sDate) sDate.setHours(0, 0, 0, 0);
     if (eDate) eDate.setHours(23, 59, 59, 999);
 
     var studentLogs = [];
     if (st.logs && Array.isArray(st.logs)) {
         st.logs.forEach(function(l) {
-            var lDate = parseLogDate(l.ngay);
+            if (!l) return;
+            var lDate = parseLogDate(l.studyDate || l.ngay);
             if (lDate) {
                 if (sDate && lDate < sDate) return;
                 if (eDate && lDate > eDate) return;
                 studentLogs.push(l);
-            } else {
+            } else if (!sDate && !eDate) {
                 studentLogs.push(l);
             }
         });
@@ -4610,15 +4657,9 @@ window.initTutorSidebarState = initTutorSidebarState;
 
         function parseLessonDate(rawStr) {
             if (!rawStr) return null;
-            var s = String(rawStr).trim();
-            var mIso = s.match(/(\d{4})[-/.](\d{1,2})[-/.](\d{1,2})/);
-            var mDmy = s.match(/(\d{1,2})[-/.](\d{1,2})[-/.](\d{4})/);
-            var mDm = s.match(/(\d{1,2})[-/.](\d{1,2})/);
-            if (mIso) return { year: parseInt(mIso[1], 10), month: parseInt(mIso[2], 10) - 1 };
-            if (mDmy) return { year: parseInt(mDmy[3], 10), month: parseInt(mDmy[2], 10) - 1 };
-            if (mDm) return { year: (new Date()).getFullYear(), month: parseInt(mDm[2], 10) - 1 };
-            var d = new Date(s);
-            return isNaN(d.getTime()) ? null : { year: d.getFullYear(), month: d.getMonth() };
+            var d = parseInputDate(rawStr);
+            if (!d || isNaN(d.getTime())) return null;
+            return { year: d.getFullYear(), month: d.getMonth() };
         }
 
         // --- Render Invoice / Stats ---
