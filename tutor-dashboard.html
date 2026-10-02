@@ -1190,7 +1190,7 @@
             <!-- Lịch sử học tập & Nhận xét chi tiết (Nhật ký các buổi học) -->
             <div class="schedule-section" style="margin-top: 25px; margin-bottom: 30px;">
                 <h3 style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
-                    <span style="display: flex; align-items: center; gap: 10px;"><i class="fa-solid fa-clock-rotate-left"></i> Lịch sử học tập & Nhận xét chi tiết</span>
+                    <span id="tutorStudentHistoryTitle" style="display: flex; align-items: center; gap: 10px;"><i class="fa-solid fa-clock-rotate-left"></i> Lịch sử học tập & Nhận xét chi tiết</span>
                     <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
                         <button type="button" onclick="openAddLessonModal()" class="btn-refresh-history" style="background: var(--btn-bg); border: none; color: var(--btn-text); font-weight: bold; border-radius: 20px; padding: 6px 16px; display: inline-flex; align-items: center; gap: 6px; box-shadow: var(--shadow-primary); cursor: pointer;" title="Thêm buổi học mới"><i class="fa-solid fa-calendar-plus"></i> Thêm buổi học</button>
                         <button type="button" onclick="refreshTutorStudentHistory()" class="btn-refresh-history" title="Làm mới lịch sử" style="cursor: pointer;"><i class="fa-solid fa-arrows-rotate"></i> Làm mới</button>
@@ -2611,7 +2611,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="js/api.js?v=2.0.9"></script>
-    <script src="js/tutor.js?v=20261002_v8"></script>
+    <script src="js/tutor.js?v=20261002_v9"></script>
     <script>
         function toggleTutorMobileSidebar(force) {
             var sidebar = document.getElementById('tutorSidebar');

@@ -61,6 +61,38 @@ function getMonthYearFromLogDate(dateStr) {
 }
 window.getMonthYearFromLogDate = getMonthYearFromLogDate;
 
+function formatDateOnly(dStr) {
+    if (typeof window.formatDateOnly === 'function' && window.formatDateOnly !== formatDateOnly) {
+        return window.formatDateOnly(dStr);
+    }
+    if (!dStr || dStr === "-" || dStr === "null") return "-";
+    var s = String(dStr).trim();
+    s = s.replace(/^(thứ\s*\d+|chủ nhật|cn)\s*[,.-]?\s*/i, '').trim();
+    var day = null, month = null;
+    var mIso = s.match(/^(\d{4})[-/.](\d{1,2})[-/.](\d{1,2})/);
+    if (mIso) {
+        month = parseInt(mIso[2], 10);
+        day = parseInt(mIso[3], 10);
+    } else {
+        var mDmy = s.match(/^(\d{1,2})[-/.](\d{1,2})[-/.](\d{4})/);
+        if (mDmy) {
+            day = parseInt(mDmy[1], 10);
+            month = parseInt(mDmy[2], 10);
+        } else {
+            var mDm = s.match(/^(\d{1,2})[-/.](\d{1,2})/);
+            if (mDm) {
+                day = parseInt(mDm[1], 10);
+                month = parseInt(mDm[2], 10);
+            }
+        }
+    }
+    if (day && month) {
+        return String(day).padStart(2, '0') + '/' + String(month).padStart(2, '0');
+    }
+    return s.split(' ')[0];
+}
+window.formatDateOnly = formatDateOnly;
+
 function formatScheduleCell(val) {
     if (!val || val.trim() === "") {
         return "<span style='color: var(--text-muted); font-weight: normal;'>-</span>";
@@ -6303,20 +6335,66 @@ window.initTutorSidebarState = initTutorSidebarState;
             var container = document.getElementById('tutorStudentHistory');
             if (!container) return;
             
-            var totalBuoi = logs.length;
+            var list = (logs && Array.isArray(logs)) ? logs : [];
+            var totalBuoi = list.length;
+            
+            // Helper màu sắc điểm số
+            function scoreColor(val) {
+                var n = parseFloat(val);
+                if (isNaN(n)) return 'var(--text-secondary, #94A3B8)';
+                if (n >= 9) return '#059669';
+                if (n >= 7) return '#2563EB';
+                if (n >= 5) return '#D97706';
+                return '#DC2626';
+            }
+
+            // Đếm số buổi có mặt và nghỉ học
+            var totalPresent = 0;
+            var totalAbsent = 0;
+            list.forEach(function(l) {
+                if (!l) return;
+                var rawStatus = l.trangThai || l.chuyenCan || l.attendance_status || l.attendance || l.status || "";
+                var normTt = String(rawStatus).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').trim();
+                var isDaBu = (normTt.includes("da bu") || normTt.includes("hoc bu"));
+                var isAbsent = !isDaBu && (
+                    normTt.includes("nghi") || 
+                    normTt.includes("huy") || 
+                    normTt.includes("vang") || 
+                    normTt.includes("off") || 
+                    normTt.includes("khong hoc") ||
+                    normTt.includes("chua hoc") ||
+                    normTt.includes("tam hoan") ||
+                    normTt === "v" || 
+                    normTt === "n" || 
+                    normTt === "x"
+                );
+                if (isAbsent) totalAbsent++;
+                else totalPresent++;
+            });
+
+            // Cập nhật tiêu đề Lịch sử kèm tổng số buổi (Đã học: X • Nghỉ: Y)
+            var historyTitleEl = document.getElementById('tutorStudentHistoryTitle');
+            if (!historyTitleEl) historyTitleEl = document.querySelector('.schedule-section h3 span');
+            if (historyTitleEl) {
+                historyTitleEl.innerHTML = '<i class="fa-solid fa-clock-rotate-left"></i> Lịch sử học tập & Nhận xét chi tiết <span style="font-size: 13px; color: var(--text-secondary, #64748B); font-weight: normal; margin-left: 8px;">(Đã học: <b style="color:#10B981;">' + totalPresent + '</b> • Nghỉ: <b style="color:#EF4444;">' + totalAbsent + '</b>)</span>';
+            }
+
             if (totalBuoi > 0) {
                 var getStatusBadge = function(trangThai) {
-                    var tt = (trangThai || "").trim().toLowerCase();
-                    if (tt.indexOf("đã bù") !== -1 || tt === "học bù") return '<span class="status-badge badge-hocbu">Học bù</span>';
-                    if (tt.indexOf("hủy") !== -1 || tt.indexOf("nghỉ") !== -1 || tt.indexOf("vắng") !== -1 || tt.indexOf("off") !== -1 || tt.indexOf("không học") !== -1) return '<span class="status-badge badge-nghi">Hủy/Nghỉ</span>';
-                    return '<span class="status-badge badge-dahoc">Đã học</span>';
+                    var raw = (trangThai || "").trim();
+                    var tt = raw.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd');
+                    if (tt.includes("da bu") || tt.includes("hoc bu")) return '<span class="status-badge badge-hocbu">Học bù</span>';
+                    if (tt.includes("nghi") || tt.includes("huy") || tt.includes("vang") || tt.includes("off") || tt.includes("khong hoc") || tt === "v" || tt === "n" || tt === "x") {
+                        return '<span class="status-badge badge-nghi">Hủy/Nghỉ</span>';
+                    }
+                    return '<span class="status-badge badge-dahoc">Có mặt</span>';
                 };
+
                 var getBtvnBadge = function(btvn) {
                     var raw = (btvn || "").trim();
                     var bt = raw.toLowerCase();
-                    if (!raw || raw === "-" || raw === "không có") return '<span class="status-badge" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15); color: #A6ADCE;">-</span>';
+                    if (!raw || raw === "-" || raw === "không có") return '<span class="status-badge" style="background: var(--bg-input, #F8FAFC); border: 1px solid var(--border-card, #E2E8F0); color: var(--text-secondary, #94A3B8);">-</span>';
                     
-                    // Kiểm tra phần trăm (ví dụ: "Hoàn thành 90%", "Hoàn thành 75%", "60%")
                     var pctMatch = bt.match(/(\d+(\.\d+)?)\s*%/);
                     if (pctMatch) {
                         var pct = parseFloat(pctMatch[1]);
@@ -6339,71 +6417,90 @@ window.initTutorSidebarState = initTutorSidebarState;
                         return '<span class="status-badge badge-thieu">' + raw + '</span>';
                     }
                     if (bt.indexOf("phụ huynh") !== -1 || bt.indexOf("nhắc") !== -1) {
-                        return '<span class="status-badge badge-hocbu" style="font-size:10.5px; padding:3px 8px;">' + raw + '</span>';
+                        return '<span class="status-badge badge-hocbu" style="font-size:11px; padding:3px 10px; max-width: 220px; white-space: normal; line-height: 1.3; display: inline-block;">' + raw + '</span>';
                     }
-                    return '<span class="status-badge" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15); color: #FFF;">' + raw + '</span>';
+                    return '<span class="status-badge badge-hoanthanh">' + raw + '</span>';
                 };
 
                 var htmlLichSu = "";
                 
                 // 1. Desktop View (Table)
-                htmlLichSu += "<div class='desktop-table-view'>";
-                htmlLichSu += "<table><tr><th style='width: 105px; text-align: center;' title='Tích chọn để đóng học phí hàng loạt cho tất cả các buổi học chưa đóng'><div style='display: flex; align-items: center; justify-content: center; gap: 6px; cursor: pointer;' onclick='var c=document.getElementById(\"tutorSelectAllLessons\"); if(c){c.checked=!c.checked;toggleSelectAllTutorLessons(c);}event.stopPropagation();'><input type='checkbox' id='tutorSelectAllLessons' onchange='toggleSelectAllTutorLessons(this)' onclick='event.stopPropagation();' style='cursor: pointer; width: 15px; height: 15px;' title='Tích chọn để đóng học phí cho tất cả các buổi'><span style='font-size: 12px; font-weight: bold; display: inline-flex; align-items: center; gap: 4px; user-select: none;'><i class='fa-solid fa-wallet' style='color:#10B981;'></i> Đóng tiền</span></div></th><th>Tuần</th><th>Ngày dạy</th><th>Môn</th><th>Nội dung</th><th>Đánh giá BTVN</th><th>KT Đầu giờ</th><th>KT Định kì</th><th>Trạng thái</th><th style='width: 90px; text-align: center;'>Thao tác</th></tr>";
+                htmlLichSu += "<div class='table-wrapper desktop-table-view'>";
+                htmlLichSu += "<table class='history-table tutor-history-table'><thead><tr>" +
+                    "<th style='width: 42px; text-align: center;'>Tuần</th>" +
+                    "<th style='width: 65px; text-align: center;'>Ngày dạy</th>" +
+                    "<th style='width: 70px; text-align: center;'>Môn</th>" +
+                    "<th>Nội dung</th>" +
+                    "<th>Nhận xét của gia sư</th>" +
+                    "<th style='width: 105px; text-align: center;'>Đánh giá BTVN</th>" +
+                    "<th style='width: 70px; text-align: center;'>KT Đầu giờ</th>" +
+                    "<th style='width: 70px; text-align: center;'>KT Định kì</th>" +
+                    "<th style='width: 80px; text-align: center;'>Trạng thái</th>" +
+                    "<th style='width: 75px; text-align: center;'>Thao tác</th>" +
+                    "</tr></thead><tbody>";
                 
                 // 2. Mobile View (Accordion list)
                 var htmlMobile = "<div class='mobile-cards-view'>";
-                htmlMobile += "  <div class='mobile-select-all-container' style='display: flex; align-items: center; gap: 10px; padding: 12px 16px; background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 12px; margin-bottom: 12px;'>";
-                htmlMobile += "      <input type='checkbox' id='tutorSelectAllLessonsMobile' onchange='toggleSelectAllTutorLessons(this)' style='cursor: pointer; width: 16px; height: 16px;' title='Tích chọn để đóng học phí cho tất cả các buổi'>";
-                htmlMobile += "      <label for='tutorSelectAllLessonsMobile' style='cursor: pointer; font-size: 13.5px; font-weight: bold; margin: 0; user-select: none; display: inline-flex; align-items: center; gap: 6px;'><i class='fa-solid fa-wallet' style='color:#10B981;'></i> Đóng học phí tất cả các buổi</label>";
-                htmlMobile += "  </div>";
 
-                logs.slice().reverse().forEach(function(item, idx) {
+                list.slice().reverse().forEach(function(item, idx) {
                     var styleStr = (idx >= 5) ? 'style="display: none;" class="tutor-history-row tutor-hidden-row"' : 'class="tutor-history-row"';
-                    
-                    var isPaid = (item.tienDong || item.paid_status || "").toString().trim().toLowerCase().indexOf("đã đóng") !== -1 || (item.tienDong || item.paid_status || "").toString().trim().toLowerCase() === "true" || item.isPaid === true || item.paid === true;
-                    var rawStatus = item.trangThai || item.chuyenCan || item.attendance_status || item.attendance || item.status || "";
-                    var tt = String(rawStatus).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').trim();
-                    var isDaBu = (tt.indexOf("da bu") !== -1 || tt.indexOf("hoc bu") !== -1);
-                    var isAbsent = !isDaBu && (
-                        tt.indexOf("nghi") !== -1 || 
-                        tt.indexOf("huy") !== -1 || 
-                        tt.indexOf("vang") !== -1 || 
-                        tt.indexOf("off") !== -1 || 
-                        tt.indexOf("khong hoc") !== -1 ||
-                        tt.indexOf("chua hoc") !== -1 ||
-                        tt.indexOf("tam hoan") !== -1 ||
-                        tt === "v" || 
-                        tt === "n" || 
-                        tt === "x"
-                    );
-                    var isPresent = !isAbsent;
-                    
-                    var chkHtml = "";
-                    var mobileChkHtml = "";
-                    if (isPresent || isDaBu) {
-                        var isChecked = isPaid ? "checked" : "";
-                        var titleText = isPaid ? "Đã đóng học phí (Bấm để HỦY đóng tiền)" : "Chưa đóng học phí (Bấm để báo ĐÃ ĐÓNG TIỀN)";
-                        chkHtml = '<input type="checkbox" class="tutor-lesson-chk" data-rowindex="' + item.rowIndex + '" data-tuan="' + (item.tuan || "") + '" onchange="checkTutorLessonCheckboxSelection(this)" style="cursor: pointer; width: 16px; height: 16px;" title="' + titleText + '" ' + isChecked + '>';
-                        mobileChkHtml = '<input type="checkbox" class="tutor-lesson-chk" data-rowindex="' + item.rowIndex + '" data-tuan="' + (item.tuan || "") + '" onclick="event.stopPropagation();" onchange="checkTutorLessonCheckboxSelection(this)" style="margin-right: 8px; width: 16px; height: 16px; cursor: pointer;" title="' + titleText + '" ' + isChecked + '>';
-                    } else {
-                        chkHtml = '<span style="color: var(--text-muted); opacity: 0.5; font-size: 12px;">-</span>';
-                        mobileChkHtml = '<span style="color: var(--text-muted); opacity: 0.5; font-size: 12px; margin-right: 8px;">-</span>';
+                    var btvnValue = (item.btvn || item.danhGiaBTVN || "");
+
+                    var rawDateOnly = formatDateOnly(item.ngay);
+
+                    // Tách Nội dung và Nhận xét của gia sư nếu chúng được ghi chung
+                    var rawContent = item.noiDung || item.topic || "";
+                    var parsedContent = rawContent;
+                    var parsedNhanXet = (item.nhanXet || item.comment || "").trim();
+
+                    if (!parsedNhanXet && rawContent) {
+                        var nxIndex = -1;
+                        var markers = ["Nhận xét:", "nhận xét:", "Nhận xét :", "nhận xét :", "NX:", "nx:"];
+                        for (var m = 0; m < markers.length; m++) {
+                            var pos = rawContent.indexOf(markers[m]);
+                            if (pos !== -1) {
+                                nxIndex = pos;
+                                break;
+                            }
+                        }
+                        if (nxIndex !== -1) {
+                            parsedContent = rawContent.substring(0, nxIndex).trim().replace(/[\.\;\-]\s*$/, '').trim();
+                            parsedNhanXet = rawContent.substring(nxIndex).replace(/^(nhận xét|nhan xet|nx)\s*:\s*/i, '').trim();
+                        }
                     }
+
+                    // Điểm số
+                    var diemDau = item.diemDauGio !== undefined && item.diemDauGio !== null ? item.diemDauGio : item.diemDG;
+                    var diemDinh = item.diemDinhKi !== undefined && item.diemDinhKi !== null ? item.diemDinhKi : item.diemDK;
+
+                    var ktDauGioText = (diemDau !== undefined && diemDau !== null && String(diemDau).trim() !== "" && String(diemDau).trim() !== "-" && String(diemDau).trim().toLowerCase() !== "không có")
+                        ? diemDau
+                        : "—";
+                    var ktDinhKiText = (diemDinh !== undefined && diemDinh !== null && String(diemDinh).trim() !== "" && String(diemDinh).trim() !== "-" && String(diemDinh).trim().toLowerCase() !== "không có")
+                        ? diemDinh
+                        : "—";
+
+                    var ktDauGioColor = (ktDauGioText === "—") ? 'var(--text-muted, #94A3B8)' : scoreColor(diemDau);
+                    var ktDinhKiColor = (ktDinhKiText === "—") ? 'var(--text-muted, #94A3B8)' : scoreColor(diemDinh);
+
+                    var commentHtml = parsedNhanXet 
+                        ? "<span style='color: var(--text-primary); font-style: italic;'><i class='fa-solid fa-comment-dots' style='color: var(--color-primary, #3B82F6); font-size: 11px; margin-right: 4px;'></i>" + parsedNhanXet + "</span>" 
+                        : "<span style='color: var(--text-muted); font-style: italic;'>—</span>";
 
                     // Desktop Row
                     htmlLichSu += "<tr " + styleStr + ">";
-                    htmlLichSu += "<td style='text-align: center;'>" + chkHtml + "</td>";
-                    htmlLichSu += "<td>" + (item.tuan || "") + "</td>";
-                    htmlLichSu += "<td>" + (item.ngay || "") + "</td>";
-                    htmlLichSu += "<td>" + (item.mon || "") + "</td>";
-                    htmlLichSu += "<td>" + (item.noiDung || "") + "</td>";
-                    htmlLichSu += "<td>" + getBtvnBadge(item.btvn) + "</td>";
-                    htmlLichSu += "<td>" + (item.diemDauGio || "") + "</td>";
-                    htmlLichSu += "<td>" + (item.diemDinhKi || "") + "</td>";
-                    htmlLichSu += "<td>" + getStatusBadge(item.trangThai) + "</td>";
+                    htmlLichSu += "<td style='text-align: center; font-weight: 700; color: var(--text-primary);'>" + (item.tuan || "") + "</td>";
+                    htmlLichSu += "<td style='white-space: nowrap; text-align: center; color: var(--text-primary); font-weight: 500;'>" + rawDateOnly + "</td>";
+                    htmlLichSu += "<td style='text-align: center;'>" + (item.mon ? ('<span class="subj-chip">' + item.mon + '</span>') : '') + "</td>";
+                    htmlLichSu += "<td class='cell-noidung'>" + (parsedContent || "—") + "</td>";
+                    htmlLichSu += "<td class='cell-nhanxet'>" + commentHtml + "</td>";
+                    htmlLichSu += "<td style='text-align: center;'>" + getBtvnBadge(btvnValue) + "</td>";
+                    htmlLichSu += "<td style='text-align: center; font-weight: 700; font-size: 14px; color:" + ktDauGioColor + ";'>" + ktDauGioText + "</td>";
+                    htmlLichSu += "<td style='text-align: center; font-weight: 700; font-size: 14px; color:" + ktDinhKiColor + ";'>" + ktDinhKiText + "</td>";
+                    htmlLichSu += "<td style='text-align: center;'>" + getStatusBadge(item.trangThai || item.chuyenCan) + "</td>";
                     htmlLichSu += "<td style='text-align: center; white-space: nowrap;'>" +
                                   "  <button onclick='openEditLessonModal(\"" + item.rowIndex + "\")' class='btn-icon-edit' title='Sửa buổi học' style='margin: 0; padding: 4px;'><i class='fa-solid fa-pen-to-square'></i></button>" +
-                                  "  <button onclick='duplicateLesson(\"" + item.rowIndex + "\")' class='btn-icon-edit' title='Nhân bản buổi học' style='margin: 0 0 0 8px; padding: 4px; color: #10B981;'><i class='fa-solid fa-copy'></i></button>" +
+                                  "  <button onclick='duplicateLesson(\"" + item.rowIndex + "\")' class='btn-icon-edit' title='Nhân bản buổi học' style='margin: 0 0 0 6px; padding: 4px; color: #10B981;'><i class='fa-solid fa-copy'></i></button>" +
                                   "</td>";
                     htmlLichSu += "</tr>";
 
@@ -6412,33 +6509,32 @@ window.initTutorSidebarState = initTutorSidebarState;
                     htmlMobile += "<div " + mobileStyleStr + ">";
                     htmlMobile += "  <div class='accordion-header' onclick='toggleTutorAccordion(" + idx + ")'>";
                     htmlMobile += "    <div style='display: flex; align-items: center;'>";
-                    htmlMobile += "      " + mobileChkHtml;
                     htmlMobile += "      <div class='accordion-header-title'>";
-                    htmlMobile += "        <span>" + (item.tuan || "") + "</span>";
-                    htmlMobile += "        <span class='accordion-header-date'>" + (item.ngay || "") + "</span>";
+                    htmlMobile += "        <span style='font-size: 15px; font-weight: 700; color: var(--text-primary);'>" + (item.tuan || "") + "</span>";
+                    htmlMobile += "        <span class='accordion-header-date'>" + rawDateOnly + "</span>";
                     htmlMobile += "      </div>";
                     htmlMobile += "    </div>";
                     htmlMobile += "    <div class='accordion-header-status'>";
-                    htmlMobile += "      " + getStatusBadge(item.trangThai);
+                    htmlMobile += "      " + getStatusBadge(item.trangThai || item.chuyenCan);
                     htmlMobile += "      <i class='fa-solid fa-chevron-down' id='tutor-chevron-" + idx + "'></i>";
                     htmlMobile += "    </div>";
                     htmlMobile += "  </div>";
-                    htmlMobile += "  <div class='accordion-body' id='tutor-accordion-body-" + idx + "'>";
-                    htmlMobile += "    <div class='accordion-body-row'><span class='accordion-body-label'>Môn học</span><span class='accordion-body-val'>" + (item.mon || "") + "</span></div>";
-                    htmlMobile += "    <div class='accordion-body-row'><span class='accordion-body-label'>Nội dung dạy học</span><span class='accordion-body-val'>" + (item.noiDung || "") + "</span></div>";
-                    htmlMobile += "    <div class='accordion-body-row'><span class='accordion-body-label'>Đánh giá bài tập về nhà</span><span class='accordion-body-val'>" + getBtvnBadge(item.btvn) + "</span></div>";
-                    htmlMobile += "    <div class='accordion-body-row'><span class='accordion-body-label'>Kiểm tra đầu giờ</span><span class='accordion-body-val'>" + (item.diemDauGio || "") + "</span></div>";
-                    htmlMobile += "    <div class='accordion-body-row'><span class='accordion-body-label'>Kiểm tra định kì</span><span class='accordion-body-val'>" + (item.diemDinhKi || "") + "</span></div>";
-                    htmlMobile += "    <div class='accordion-body-row' style='justify-content: space-between; gap: 10px; border-top: 1px dashed rgba(255,255,255,0.05); padding-top: 10px; margin-top: 5px; width: 100%;'>";
-                    htmlMobile += "      <button onclick='duplicateLesson(\"" + item.rowIndex + "\")' class='modal-btn modal-btn-primary' style='flex: 1; border-radius: 20px; font-size: 12px; background: linear-gradient(135deg, #8E4DFF 0%, #5B21B6 100%); border: none; color: #FFF; font-weight: bold; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 6px;'><i class='fa-solid fa-copy'></i> Nhân bản</button>";
-                    htmlMobile += "      <button onclick='openEditLessonModal(\"" + item.rowIndex + "\")' class='modal-btn modal-btn-secondary' style='flex: 1; border-radius: 20px; font-size: 12px; display: inline-flex; align-items: center; justify-content: center; gap: 6px;'><i class='fa-solid fa-pen-to-square'></i> Sửa</button>";
+                    htmlMobile += "  <div class='accordion-body' id='tutor-accordion-body-" + idx + "' style='display: none;'>";
+                    htmlMobile += "    <div class='accordion-body-row'><span class='accordion-body-label'>Môn học</span><span class='accordion-body-val'>" + (item.mon ? ('<span class="subj-chip">' + item.mon + '</span>') : '—') + "</span></div>";
+                    htmlMobile += "    <div class='accordion-body-row'><span class='accordion-body-label'>Nội dung dạy học</span><span class='accordion-body-val' style='font-weight: 500;'>" + (parsedContent || "—") + "</span></div>";
+                    htmlMobile += "    <div class='accordion-body-row'><span class='accordion-body-label'>Nhận xét của gia sư</span><span class='accordion-body-val' style='font-style: italic; color: #2563EB; font-weight: 500;'>" + (parsedNhanXet ? ("<i class='fa-solid fa-comment-dots' style='margin-right: 4px;'></i>" + parsedNhanXet) : 'Chưa có nhận xét') + "</span></div>";
+                    htmlMobile += "    <div class='accordion-body-row'><span class='accordion-body-label'>Đánh giá bài tập về nhà</span><span class='accordion-body-val'>" + getBtvnBadge(btvnValue) + "</span></div>";
+                    htmlMobile += "    <div class='accordion-body-row'><span class='accordion-body-label'>Kiểm tra đầu giờ</span><span class='accordion-body-val' style='font-weight: 700; color:" + ktDauGioColor + ";'>" + ktDauGioText + "</span></div>";
+                    htmlMobile += "    <div class='accordion-body-row'><span class='accordion-body-label'>Kiểm tra định kì</span><span class='accordion-body-val' style='font-weight: 700; color:" + ktDinhKiColor + ";'>" + ktDinhKiText + "</span></div>";
+                    htmlMobile += "    <div class='accordion-actions' style='display: flex; gap: 10px; margin-top: 10px;'>";
+                    htmlMobile += "      <button onclick='duplicateLesson(\"" + item.rowIndex + "\")' class='modal-btn modal-btn-primary' style='flex: 1; border-radius: 20px; font-size: 12px;'><i class='fa-solid fa-copy'></i> Nhân bản</button>";
+                    htmlMobile += "      <button onclick='openEditLessonModal(\"" + item.rowIndex + "\")' class='modal-btn modal-btn-secondary' style='flex: 1; border-radius: 20px; font-size: 12px;'><i class='fa-solid fa-pen-to-square'></i> Sửa</button>";
                     htmlMobile += "    </div>";
                     htmlMobile += "  </div>";
                     htmlMobile += "</div>";
-
                 });
 
-                htmlLichSu += "</table></div>";
+                htmlLichSu += "</tbody></table></div>";
                 htmlMobile += "</div>";
 
                 var totalHtml = htmlLichSu + htmlMobile;
@@ -6450,9 +6546,8 @@ window.initTutorSidebarState = initTutorSidebarState;
                 }
                 
                 container.innerHTML = totalHtml;
-                syncCheckboxAndCheckAll(); // Cập nhật trạng thái của nút chọn tất cả
             } else {
-                container.innerHTML = "<p style='color: #A6ADCE; text-align: center; padding: 20px;'>Học sinh này chưa có dữ liệu nhật ký học tập nào.</p>";
+                container.innerHTML = "<p style='color: var(--text-secondary); text-align: center; padding: 20px;'>Học sinh này chưa có dữ liệu nhật ký học tập nào.</p>";
             }
         }
 
