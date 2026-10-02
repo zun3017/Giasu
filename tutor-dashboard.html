@@ -2514,6 +2514,26 @@
             border-color: var(--color-primary, #7C3AED) !important;
             box-shadow: 0 2px 8px rgba(var(--color-primary-rgb, 124, 58, 237), 0.25);
         }
+        .btn-tuition-help {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #F8FAFC;
+            border: 1px solid #CBD5E1;
+            color: #475569;
+            font-size: 12px;
+            font-weight: 600;
+            padding: 5px 12px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .btn-tuition-help:hover {
+            background: #EDE9FE;
+            border-color: #DDD6FE;
+            color: #7C3AED;
+            transform: translateY(-1px);
+        }
         /* Tuition Receipt Preview Card */
         .tuition-receipt-card {
             width: 100%;
@@ -2804,7 +2824,10 @@
                     </div>
                 </div>
 
-                <div style="display: flex; align-items: center; gap: 12px;">
+                <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                    <button type="button" onclick="startTabOnboarding('invoice', true)" class="btn-tuition-help" title="Xem hướng dẫn sử dụng phiếu học phí">
+                        <i class="fa-solid fa-circle-question" style="color: #7C3AED;"></i> Hướng dẫn
+                    </button>
                     <span style="font-size: 12px; color: #64748B; font-weight: 600;">Chọn mẫu</span>
                     <div class="tuition-template-pills" style="display: inline-flex; background: #FFFFFF; padding: 3px; border-radius: 20px; border: 1px solid #E2E8F0;">
                         <button type="button" id="btnTemplate1" class="btn-template-pill active" onclick="switchTuitionTemplate(1)">

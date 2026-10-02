@@ -2781,7 +2781,7 @@ function buildTuitionModalForm(st, studentLogs) {
     var html = '';
 
     // Box 1: Thông tin học sinh (2 Cột Toggles)
-    html += '<div class="tuition-card-box">';
+    html += '<div id="tuitionBoxStudentInfo" class="tuition-card-box">';
     html += '<div style="font-size: 15px; font-weight: 700; color: #0F172A; margin-bottom: 2px;">Thông tin học sinh</div>';
     html += '<div style="font-size: 12px; color: #64748B; margin-bottom: 12px;">Chọn thông tin hiển thị trên phiếu</div>';
     html += '<div class="tuition-toggle-grid">';
@@ -2942,7 +2942,7 @@ function buildTuitionModalForm(st, studentLogs) {
     html += '</div>'; // End Box 1
 
     // Box 2: Thông tin kỳ học
-    html += '<div class="tuition-card-box">';
+    html += '<div id="tuitionBoxPeriodInfo" class="tuition-card-box">';
     html += '<div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">';
     html += '<span style="background: #7C3AED; color: #FFFFFF; font-size: 11px; font-weight: 800; padding: 2px 7px; border-radius: 6px;">01</span>';
     html += '<div>';
@@ -3779,6 +3779,20 @@ function openStudentInvoiceModal(studentName) {
     
     // Đồng bộ trạng thái nút lưu bản nháp theo dữ liệu học sinh
     updateTuitionDraftButtonUI(restoredDraft);
+
+    // Tự động kích hoạt hướng dẫn nếu gia sư mở tạo phiếu học phí lần đầu
+    var obOverlay = document.getElementById('onboardingOverlay');
+    if (obOverlay && obOverlay.style.display !== 'none' && typeof finishOnboarding === 'function') {
+        finishOnboarding(true);
+    }
+    if (typeof shouldShowTabOnboarding === 'function' && shouldShowTabOnboarding('invoice')) {
+        setTimeout(function() {
+            var curModal = document.getElementById('tutorTuitionInvoiceModal');
+            if (curModal && curModal.style.display !== 'none' && typeof startTabOnboarding === 'function') {
+                startTabOnboarding('invoice');
+            }
+        }, 500);
+    }
 }
 window.openStudentInvoiceModal = openStudentInvoiceModal;
 
@@ -3813,12 +3827,24 @@ function closeStudentInvoiceModal(isExplicitCancel) {
             window.tuitionInvoiceHasUnsavedChanges = false;
             var modal = document.getElementById('tutorTuitionInvoiceModal');
             if (modal) modal.style.display = "none";
+            if (typeof finishOnboarding === 'function') {
+                var obOverlay = document.getElementById('onboardingOverlay');
+                if (obOverlay && obOverlay.style.display !== 'none' && currentOnboardingTab === 'invoice') {
+                    finishOnboarding(true);
+                }
+            }
         });
         return;
     }
     window.tuitionInvoiceHasUnsavedChanges = false;
     var modal = document.getElementById('tutorTuitionInvoiceModal');
     if (modal) modal.style.display = "none";
+    if (typeof finishOnboarding === 'function') {
+        var obOverlay = document.getElementById('onboardingOverlay');
+        if (obOverlay && obOverlay.style.display !== 'none' && currentOnboardingTab === 'invoice') {
+            finishOnboarding(true);
+        }
+    }
 }
 window.closeStudentInvoiceModal = closeStudentInvoiceModal;
 
@@ -11031,7 +11057,8 @@ var TAB_NAMES = {
     diary: 'Nhật ký buổi học',
     calendar: 'Lịch dạy',
     students: 'Học sinh',
-    tuition: 'Học phí'
+    tuition: 'Học phí',
+    invoice: 'Phiếu học phí'
 };
 
 var tabOnboardingSteps = {
@@ -11154,10 +11181,52 @@ var tabOnboardingSteps = {
             desc: 'Xem tình trạng đóng học phí từng học sinh, bấm nút "Hóa đơn" để tạo phiếu học phí kèm mã VietQR gửi phụ huynh.',
             placement: 'top'
         }
+    ],
+    invoice: [
+        {
+            target: '.tuition-template-pills',
+            title: '🎨 Chọn Mẫu Phiếu (Mẫu 1 & Mẫu 2)',
+            desc: 'Chuyển đổi linh hoạt giữa Mẫu 1 (chi tiết từng buổi học, chuyên cần, bài tập về nhà) và Mẫu 2 (tinh gọn, hiện đại, hiển thị lịch học và mã QR thanh toán).',
+            placement: 'bottom'
+        },
+        {
+            target: '#tuitionBoxStudentInfo',
+            title: '⚙️ Bật / Tắt Các Mục Hiển Thị',
+            desc: 'Chủ động bật hoặc tắt các thông tin bạn muốn hiển thị trên phiếu: Tên học sinh, Lớp/Môn, Học phí, Số buổi học, Ngày học, Chiết khấu, Phụ thu và Mã QR.',
+            placement: 'right'
+        },
+        {
+            target: '#tuitionBoxPeriodInfo',
+            title: '📅 Kỳ Học & Tự Động Tính Học Phí',
+            desc: 'Chọn khoảng thời gian (Từ ngày - Đến ngày) để hệ thống tự đếm số buổi học, số giờ và tính học phí chính xác; hoặc tùy chỉnh tiêu đề kỳ học theo ý bạn.',
+            placement: 'right'
+        },
+        {
+            target: '#tuitionInvoicePreviewCol',
+            title: '👁️ Xem Trước Trực Tiếp (Live Preview)',
+            desc: 'Phiếu học phí tự động cập nhật ngay khi bạn thay đổi thông tin ở cột trái. Với Mẫu 2, bạn còn có thể nhấp trực tiếp vào phần nhận xét để sửa lời dặn dò!',
+            placement: 'left'
+        },
+        {
+            target: '#btnTuitionPromptAI',
+            title: '✨ Nút Tạo Prompt AI Nhận Xét',
+            desc: 'Tự động tổng hợp dữ liệu 30 ngày qua (điểm số, chuyên cần, bài tập) thành mẫu Prompt AI hoàn chỉnh (100 - 180 từ). Chỉ cần bấm để sao chép rồi dán vào AI!',
+            placement: 'top'
+        },
+        {
+            target: '.tuition-modal-footer',
+            title: '🚀 Xuất Phiếu & Gửi Phụ Huynh',
+            desc: 'Dễ dàng "Lưu bản nháp" để sửa tiếp sau này, "Xuất PDF" in ấn, "Copy ảnh" để dán ngay (Ctrl+V) vào Zalo/Messenger, hoặc "Xuất phiếu (ảnh)" gửi phụ huynh.',
+            placement: 'top'
+        }
     ]
 };
 
 function getCurrentActiveTutorTab() {
+    var invModal = document.getElementById('tutorTuitionInvoiceModal');
+    if (invModal && invModal.style.display !== 'none') {
+        return 'invoice';
+    }
     var activeItem = document.querySelector('.sidebar-nav-item.active');
     if (activeItem && activeItem.dataset.tab) {
         return activeItem.dataset.tab;
@@ -11292,6 +11361,9 @@ function updateOnboardingPositions() {
     } else if (step.placement === 'right') {
         top = rect.top + (rect.height / 2) - (tooltipHeight / 2);
         left = rect.right + 16;
+    } else if (step.placement === 'left') {
+        top = rect.top + (rect.height / 2) - (tooltipHeight / 2);
+        left = rect.left - tooltipWidth - 16;
     } else {
         top = rect.bottom + 16;
         left = rect.left;
@@ -11354,6 +11426,7 @@ function showOnboardingStep(idx) {
     updateOnboardingPositions();
     setTimeout(updateOnboardingPositions, 150);
     setTimeout(updateOnboardingPositions, 350);
+    setTimeout(updateOnboardingPositions, 600);
 }
 window.showOnboardingStep = showOnboardingStep;
 
@@ -11423,5 +11496,12 @@ function restartOnboarding(resetAll) {
     }
 }
 window.restartOnboarding = restartOnboarding;
+
+function startInvoiceOnboarding(force) {
+    if (typeof startTabOnboarding === 'function') {
+        startTabOnboarding('invoice', force !== false);
+    }
+}
+window.startInvoiceOnboarding = startInvoiceOnboarding;
 
 
