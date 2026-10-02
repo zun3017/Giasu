@@ -5924,6 +5924,7 @@ window.initTutorSidebarState = initTutorSidebarState;
 
             
             document.getElementById('lesNoiDung').value = "";
+            if (document.getElementById('lesNhanXet')) document.getElementById('lesNhanXet').value = "";
             document.getElementById('lesDiemDau').value = "Không có";
             document.getElementById('lesDiemDinhKi').value = "Không có";
             document.getElementById('lesTrangThai').value = "Đã học";
@@ -6010,9 +6011,10 @@ window.initTutorSidebarState = initTutorSidebarState;
             var diemDau = document.getElementById('lesDiemDau').value.trim();
             var diemDinhKi = document.getElementById('lesDiemDinhKi').value.trim();
             var noiDung = document.getElementById('lesNoiDung').value.trim();
+            var nhanXet = document.getElementById('lesNhanXet') ? document.getElementById('lesNhanXet').value.trim() : "";
             
             if(!tuan || !ngayVal || !noiDung) {
-                showToast("Vui lòng nhập đầy đủ Tuần, Ngày học và Nội dung nhận xét!", "error");
+                showToast("Vui lòng nhập đầy đủ Tuần, Ngày học và Nội dung bài học!", "error");
                 return;
             }
             
@@ -6045,7 +6047,8 @@ window.initTutorSidebarState = initTutorSidebarState;
                 btvn: btvn,
                 diemDau: diemDau,
                 diemDinhKi: diemDinhKi,
-                noiDung: noiDung
+                noiDung: noiDung,
+                nhanXet: nhanXet
             };
             
             document.getElementById('prevStudentName').innerText = tempLessonData.studentName;
@@ -6057,6 +6060,8 @@ window.initTutorSidebarState = initTutorSidebarState;
             document.getElementById('prevDiemDau').innerText = tempLessonData.diemDau;
             document.getElementById('prevDiemDinhKi').innerText = tempLessonData.diemDinhKi;
             document.getElementById('prevNoiDung').innerText = tempLessonData.noiDung;
+            var prevNxEl = document.getElementById('prevNhanXet');
+            if (prevNxEl) prevNxEl.innerText = tempLessonData.nhanXet || "—";
             
             document.getElementById('previewLessonModal').style.display = "flex";
         }
@@ -6075,6 +6080,7 @@ window.initTutorSidebarState = initTutorSidebarState;
                 ngay: tempLessonData.ngay,
                 mon: tempLessonData.mon,
                 noiDung: tempLessonData.noiDung,
+                nhanXet: tempLessonData.nhanXet || "",
                 btvn: tempLessonData.btvn,
                 diemDauGio: tempLessonData.diemDau,
                 diemDinhKi: tempLessonData.diemDinhKi,
@@ -6106,6 +6112,7 @@ window.initTutorSidebarState = initTutorSidebarState;
                     ngay: tempLessonData.ngay,
                     mon: tempLessonData.mon,
                     noiDung: tempLessonData.noiDung,
+                    nhanXet: tempLessonData.nhanXet || "",
                     btvn: tempLessonData.btvn,
                     diemDau: tempLessonData.diemDau,
                     diemDinhKi: tempLessonData.diemDinhKi,
@@ -6270,7 +6277,8 @@ window.initTutorSidebarState = initTutorSidebarState;
                             op.data.btvn,
                             op.data.diemDau,
                             op.data.diemDinhKi,
-                            op.data.trangThai
+                            op.data.trangThai,
+                            op.data.nhanXet || ""
                         );
                 } 
                 else if (op.type === 'edit') {
@@ -6316,7 +6324,8 @@ window.initTutorSidebarState = initTutorSidebarState;
                             op.data.btvn,
                             op.data.diemDau,
                             op.data.diemDinhKi,
-                            op.data.trangThai
+                            op.data.trangThai,
+                            op.data.nhanXet || ""
                         );
                 }
                 else if (op.type === 'delete') {
@@ -6669,26 +6678,9 @@ window.initTutorSidebarState = initTutorSidebarState;
 
                     var rawDateOnly = formatDateOnly(item.ngay);
 
-                    // Tách Nội dung và Nhận xét của gia sư nếu chúng được ghi chung
-                    var rawContent = item.noiDung || item.topic || "";
-                    var parsedContent = rawContent;
-                    var parsedNhanXet = (item.nhanXet || item.comment || "").trim();
-
-                    if (!parsedNhanXet && rawContent) {
-                        var nxIndex = -1;
-                        var markers = ["Nhận xét:", "nhận xét:", "Nhận xét :", "nhận xét :", "NX:", "nx:"];
-                        for (var m = 0; m < markers.length; m++) {
-                            var pos = rawContent.indexOf(markers[m]);
-                            if (pos !== -1) {
-                                nxIndex = pos;
-                                break;
-                            }
-                        }
-                        if (nxIndex !== -1) {
-                            parsedContent = rawContent.substring(0, nxIndex).trim().replace(/[\.\;\-]\s*$/, '').trim();
-                            parsedNhanXet = rawContent.substring(nxIndex).replace(/^(nhận xét|nhan xet|nx)\s*:\s*/i, '').trim();
-                        }
-                    }
+                    // Giữ nguyên 100% Nội dung dạy học, không tự ý cắt lời nhận xét
+                    var parsedContent = item.noiDung || item.topic || "";
+                    var parsedNhanXet = (item.nhanXet || item.nhan_xet || item["nhận xét"] || item.tutor_comment || item.comment || "").trim();
 
                     // Điểm số
                     var diemDau = item.diemDauGio !== undefined && item.diemDauGio !== null ? item.diemDauGio : item.diemDG;
@@ -6743,7 +6735,7 @@ window.initTutorSidebarState = initTutorSidebarState;
                     htmlMobile += "  <div class='accordion-body' id='tutor-accordion-body-" + idx + "' style='display: none;'>";
                     htmlMobile += "    <div class='accordion-body-row'><span class='accordion-body-label'>Môn học</span><span class='accordion-body-val'>" + (item.mon ? ('<span class="subj-chip">' + item.mon + '</span>') : '—') + "</span></div>";
                     htmlMobile += "    <div class='accordion-body-row'><span class='accordion-body-label'>Nội dung dạy học</span><span class='accordion-body-val' style='font-weight: 500;'>" + (parsedContent || "—") + "</span></div>";
-                    htmlMobile += "    <div class='accordion-body-row'><span class='accordion-body-label'>Nhận xét của gia sư</span><span class='accordion-body-val' style='font-style: italic; color: #2563EB; font-weight: 500;'>" + (parsedNhanXet ? ("<i class='fa-solid fa-comment-dots' style='margin-right: 4px;'></i>" + parsedNhanXet) : 'Chưa có nhận xét') + "</span></div>";
+                    htmlMobile += "    <div class='accordion-body-row'><span class='accordion-body-label'>Nhận xét của gia sư</span><span class='accordion-body-val' style='font-style: italic; color: #2563EB; font-weight: 500;'>" + (parsedNhanXet ? ("<i class='fa-solid fa-comment-dots' style='margin-right: 4px;'></i>" + parsedNhanXet) : '—') + "</span></div>";
                     htmlMobile += "    <div class='accordion-body-row'><span class='accordion-body-label'>Đánh giá bài tập về nhà</span><span class='accordion-body-val'>" + getBtvnBadge(btvnValue) + "</span></div>";
                     htmlMobile += "    <div class='accordion-body-row'><span class='accordion-body-label'>Kiểm tra đầu giờ</span><span class='accordion-body-val' style='font-weight: 700; color:" + ktDauGioColor + ";'>" + ktDauGioText + "</span></div>";
                     htmlMobile += "    <div class='accordion-body-row'><span class='accordion-body-label'>Kiểm tra định kì</span><span class='accordion-body-val' style='font-weight: 700; color:" + ktDinhKiColor + ";'>" + ktDinhKiText + "</span></div>";
@@ -6926,6 +6918,9 @@ window.initTutorSidebarState = initTutorSidebarState;
             document.getElementById('editLesDiemDau').value = log.diemDauGio || "Không có";
             document.getElementById('editLesDiemDinhKi').value = log.diemDinhKi || "Không có";
             document.getElementById('editLesNoiDung').value = log.noiDung || "";
+            if (document.getElementById('editLesNhanXet')) {
+                document.getElementById('editLesNhanXet').value = log.nhanXet || log.nhan_xet || log["nhận xét"] || log.tutor_comment || "";
+            }
             
             document.getElementById('editLessonModal').style.display = "flex";
         }
@@ -6970,9 +6965,10 @@ window.initTutorSidebarState = initTutorSidebarState;
             var diemDau = document.getElementById('editLesDiemDau').value.trim();
             var diemDinhKi = document.getElementById('editLesDiemDinhKi').value.trim();
             var noiDung = document.getElementById('editLesNoiDung').value.trim();
+            var nhanXet = document.getElementById('editLesNhanXet') ? document.getElementById('editLesNhanXet').value.trim() : "";
             
             if(!tuan || !ngayVal || !noiDung) {
-                showToast("Vui lòng điền đầy đủ Tuần, Ngày học và Nội dung nhận xét!", "error");
+                showToast("Vui lòng điền đầy đủ Tuần, Ngày học và Nội dung bài học!", "error");
                 return;
             }
             
@@ -7008,6 +7004,7 @@ window.initTutorSidebarState = initTutorSidebarState;
                         log.diemDauGio = diemDau;
                         log.diemDinhKi = diemDinhKi;
                         log.noiDung = noiDung;
+                        log.nhanXet = nhanXet;
                     }
                 }
                 
@@ -7031,6 +7028,7 @@ window.initTutorSidebarState = initTutorSidebarState;
                         ngay: dateFormatted,
                         mon: mon,
                         noiDung: noiDung,
+                        nhanXet: nhanXet,
                         btvn: btvn,
                         diemDau: diemDau,
                         diemDinhKi: diemDinhKi,
@@ -8833,6 +8831,9 @@ function duplicateLesson(rowIndex) {
     document.getElementById('lesDiemDau').value = log.diemDauGio || "Không có";
     document.getElementById('lesDiemDinhKi').value = log.diemDinhKi || "Không có";
     document.getElementById('lesNoiDung').value = log.noiDung || "";
+    if (document.getElementById('lesNhanXet')) {
+        document.getElementById('lesNhanXet').value = log.nhanXet || log.nhan_xet || log["nhận xét"] || log.tutor_comment || "";
+    }
     
     showToast("Đã nhân bản dữ liệu buổi học! Vui lòng kiểm tra ngày dạy và nhận xét.", "success");
 }

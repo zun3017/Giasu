@@ -381,6 +381,7 @@ class GoogleScriptRunInstance {
                                 ngay: formatShortDate(e.study_date),
                                 mon: e.subject || "Toán học",
                                 noiDung: e.lesson_content || "",
+                                nhanXet: e.nhan_xet || e["nhận xét"] || e.tutor_comment || e.comment || "",
                                 danhGiaBTVN: e.hw_eval || "Hoàn thành",
                                 btvn: e.hw_eval || "Hoàn thành",
                                 diemDauGio: cleanScore(e.entry_test),
@@ -450,6 +451,7 @@ class GoogleScriptRunInstance {
                         ngay: formatShortDate(e.study_date),
                         mon: e.subject || "Toán học",
                         noiDung: e.lesson_content || "",
+                        nhanXet: e.nhan_xet || e["nhận xét"] || e.tutor_comment || e.comment || "",
                         danhGiaBTVN: e.hw_eval || "Hoàn thành",
                         btvn: e.hw_eval || "Hoàn thành",
                         diemDauGio: cleanScore(e.entry_test),
@@ -525,9 +527,9 @@ class GoogleScriptRunInstance {
             // 3. THÊM / SỬA / XÓA BUỔI HỌC
             // ==========================================
             else if (functionName === 'themBuoiHoc') {
-                const [studentPhone, studentName, tuan, ngayDay, monHoc, noiDung, danhGiaBTVN, diemDauGio, diemDinhKi, trangThai] = args;
+                const [studentPhone, studentName, tuan, ngayDay, monHoc, noiDung, danhGiaBTVN, diemDauGio, diemDinhKi, trangThai, nhanXet] = args;
                 const evalId = `EVAL_${studentPhone}_${Date.now()}`;
-                await supaPost(APP_CONFIG.TABLES.EVALUATIONS, [{
+                const payload = {
                     eval_id: evalId,
                     student_phone: studentPhone,
                     student_name: studentName,
@@ -539,15 +541,26 @@ class GoogleScriptRunInstance {
                     entry_test: diemDauGio ? String(diemDauGio) : "",
                     term_test: diemDinhKi ? String(diemDinhKi) : "",
                     attendance_status: trangThai || "Đã học",
-                    paid_status: "Chưa đóng"
-                }]);
+                    paid_status: "Chưa đóng",
+                    nhan_xet: nhanXet || ""
+                };
+                try {
+                    await supaPost(APP_CONFIG.TABLES.EVALUATIONS, [payload]);
+                } catch (errPost) {
+                    if (String(errPost).includes("nhan_xet") || (errPost && errPost.message && errPost.message.includes("nhan_xet"))) {
+                        delete payload.nhan_xet;
+                        await supaPost(APP_CONFIG.TABLES.EVALUATIONS, [payload]);
+                    } else {
+                        throw errPost;
+                    }
+                }
                 result = { success: true, evalId: evalId };
             }
             
             else if (functionName === 'suaBuoiHoc') {
-                const [rowIndex, tuan, ngayDay, monHoc, noiDung, danhGiaBTVN, diemDauGio, diemDinhKi, trangThai] = args;
+                const [rowIndex, tuan, ngayDay, monHoc, noiDung, danhGiaBTVN, diemDauGio, diemDinhKi, trangThai, nhanXet] = args;
                 const evalId = rowIndex;
-                await supaPatch(APP_CONFIG.TABLES.EVALUATIONS, `eval_id=eq.${encodeURIComponent(evalId)}`, {
+                const patchData = {
                     week_num: String(tuan || "1"),
                     study_date: ngayDay || "",
                     subject: monHoc || "Toán học",
@@ -555,8 +568,19 @@ class GoogleScriptRunInstance {
                     hw_eval: danhGiaBTVN || "Hoàn thành",
                     entry_test: diemDauGio ? String(diemDauGio) : "",
                     term_test: diemDinhKi ? String(diemDinhKi) : "",
-                    attendance_status: trangThai || "Đã học"
-                });
+                    attendance_status: trangThai || "Đã học",
+                    nhan_xet: nhanXet || ""
+                };
+                try {
+                    await supaPatch(APP_CONFIG.TABLES.EVALUATIONS, `eval_id=eq.${encodeURIComponent(evalId)}`, patchData);
+                } catch (errPatch) {
+                    if (String(errPatch).includes("nhan_xet") || (errPatch && errPatch.message && errPatch.message.includes("nhan_xet"))) {
+                        delete patchData.nhan_xet;
+                        await supaPatch(APP_CONFIG.TABLES.EVALUATIONS, `eval_id=eq.${encodeURIComponent(evalId)}`, patchData);
+                    } else {
+                        throw errPatch;
+                    }
+                }
                 result = { success: true };
             }
             
