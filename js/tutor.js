@@ -11083,8 +11083,26 @@ var tabOnboardingSteps = {
         },
         {
             target: '.tutor-sidebar-nav',
-            title: '🧭 Khám phá các mục tiếp theo',
-            desc: 'Nhấp vào các mục bên trái (Báo cáo, Nhật ký, Lịch dạy, Học sinh, Học phí) để quản lý. Mỗi mục sẽ tự động hướng dẫn chi tiết khi bạn mở lần đầu!',
+            title: '🧭 Các Mục Quản Lý Chính',
+            desc: 'Nhấp vào các mục bên trái (Báo cáo, Nhật ký, Lịch dạy, Học sinh, Học phí) để quản lý lớp học. Mỗi mục sẽ tự động hướng dẫn chi tiết khi bạn mở lần đầu!',
+            placement: 'right'
+        },
+        {
+            target: '#sidebarBtnTheme, #mobileBtnTheme',
+            title: '🎨 Đổi Giao Diện & Màu Sắc',
+            desc: 'Nhấp vào đây để chọn hơn 30 bộ màu và phong cách giao diện (Sáng, Tối, Pastel, Hiện đại...) theo sở thích cá nhân của bạn.',
+            placement: 'right'
+        },
+        {
+            target: '#sidebarBtnAccount, #mobileBtnAccount',
+            title: '👤 Quản Lý Tài Khoản Gia Sư',
+            desc: 'Cập nhật ảnh đại diện, họ tên, số điện thoại và thông tin ngân hàng để hệ thống tự động tạo mã VietQR thanh toán trên phiếu học phí.',
+            placement: 'right'
+        },
+        {
+            target: '#sidebarBtnSettings, #mobileBtnSettings',
+            title: '⚙️ Cài Đặt Hệ Thống & Hướng Dẫn',
+            desc: 'Bật/tắt âm thanh chuông báo, cấp quyền thông báo trình duyệt và xem lại hướng dẫn sử dụng của bất kỳ mục nào mỗi khi bạn cần.',
             placement: 'right'
         }
     ],

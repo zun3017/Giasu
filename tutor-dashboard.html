@@ -686,15 +686,15 @@
 
             <!-- Footer Action (Logout & Account) -->
             <div class="tutor-sidebar-footer">
-                <button type="button" class="sidebar-theme-btn" data-title="Giao diện" onclick="openThemeSwitcher()" title="Đổi chủ đề giao diện">
+                <button type="button" id="sidebarBtnTheme" class="sidebar-theme-btn" data-title="Giao diện" onclick="openThemeSwitcher()" title="Đổi chủ đề giao diện">
                     <i class="fa-solid fa-palette"></i>
                     <span>Giao diện</span>
                 </button>
-                <button type="button" class="sidebar-footer-btn" data-title="Tài khoản" onclick="openTutorAccountModal()" title="Cài đặt tài khoản">
+                <button type="button" id="sidebarBtnAccount" class="sidebar-footer-btn" data-title="Tài khoản" onclick="openTutorAccountModal()" title="Cài đặt tài khoản">
                     <i class="fa-solid fa-user-gear"></i>
                     <span>Tài khoản</span>
                 </button>
-                <button type="button" class="sidebar-footer-btn" data-title="Cài đặt" onclick="openSettingsModal()" title="Cài đặt hệ thống">
+                <button type="button" id="sidebarBtnSettings" class="sidebar-footer-btn" data-title="Cài đặt" onclick="openSettingsModal()" title="Cài đặt hệ thống">
                     <i class="fa-solid fa-gear"></i>
                     <span>Cài đặt</span>
                 </button>
@@ -719,13 +719,13 @@
                     </div>
                 </div>
                 <div class="mobile-header-actions">
-                    <button type="button" class="mobile-action-btn theme-btn" onclick="openThemeSwitcher()" title="Đổi giao diện" aria-label="Đổi giao diện">
+                    <button type="button" id="mobileBtnTheme" class="mobile-action-btn theme-btn" onclick="openThemeSwitcher()" title="Đổi giao diện" aria-label="Đổi giao diện">
                         <i class="fa-solid fa-palette"></i>
                     </button>
-                    <button type="button" class="mobile-action-btn settings-btn" onclick="openSettingsModal()" title="Cài đặt" aria-label="Cài đặt">
+                    <button type="button" id="mobileBtnSettings" class="mobile-action-btn settings-btn" onclick="openSettingsModal()" title="Cài đặt" aria-label="Cài đặt">
                         <i class="fa-solid fa-gear"></i>
                     </button>
-                    <button type="button" class="mobile-action-btn account-btn" onclick="openTutorAccountModal()" title="Cài đặt tài khoản" aria-label="Tài khoản">
+                    <button type="button" id="mobileBtnAccount" class="mobile-action-btn account-btn" onclick="openTutorAccountModal()" title="Cài đặt tài khoản" aria-label="Tài khoản">
                         <i class="fa-solid fa-user-gear"></i>
                     </button>
                     <button type="button" class="mobile-action-btn logout-btn" onclick="quayLai()" title="Đăng xuất" aria-label="Đăng xuất">
