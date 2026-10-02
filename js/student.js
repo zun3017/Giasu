@@ -657,13 +657,7 @@ function updateStudentMonthlyStats(monthKey) {
     var ccBadge = document.getElementById('chuyenCanMonthBadge');
     if (ccBadge) ccBadge.textContent = "(" + badgeMonthStr + ")";
 
-    // 2. Cập nhật nhãn trên KPI cards
-    var elLblBuoiHoc = document.getElementById('lblBuoiHoc');
-    if (elLblBuoiHoc) elLblBuoiHoc.innerText = "Số buổi đã học (" + kpiMonthLabel + ")";
-    var elLblBuoiNghi = document.getElementById('lblBuoiNghi');
-    if (elLblBuoiNghi) elLblBuoiNghi.innerText = "Số buổi nghỉ (" + kpiMonthLabel + ")";
-
-    // 3. Lọc danh sách buổi học theo tháng
+    // 2. Lọc danh sách buổi học theo tháng
     var targetLogs = [];
     if (isAll) {
         targetLogs = lichSu.slice();
@@ -674,20 +668,12 @@ function updateStudentMonthlyStats(monthKey) {
         });
     }
 
-    // 4. Tính toán số liệu tháng cho KPI cards
-    var buoiHocThang = 0;
-    var buoiNghiThang = 0;
+    // 3. Tính toán điểm số trung bình tháng cho các thẻ KPI điểm
     var listDiemDauGioThang = [];
     var listDiemDinhKiThang = [];
-    var tongBTVNThang = 0;
-    var completedBTVNThang = 0;
 
     targetLogs.forEach(function(item) {
-        var isAbsent = isAbsentSession(item);
-        if (isAbsent) {
-            buoiNghiThang++;
-        } else {
-            buoiHocThang++;
+        if (!isAbsentSession(item)) {
             var scoreDG = parseFloat(item.diemDauGio);
             var scoreDK = parseFloat(item.diemDinhKi);
             if (!isNaN(scoreDG) && scoreDG >= 0 && scoreDG <= 10) {
@@ -696,38 +682,10 @@ function updateStudentMonthlyStats(monthKey) {
             if (!isNaN(scoreDK) && scoreDK >= 0 && scoreDK <= 10) {
                 listDiemDinhKiThang.push(scoreDK);
             }
-
-            var btvnStr = (item.danhGiaBTVN || item.btvn || "").trim().toLowerCase();
-            if (btvnStr !== "" && btvnStr !== "không có" && btvnStr !== "-" && btvnStr !== "chưa có") {
-                tongBTVNThang++;
-                var pctMatch = btvnStr.match(/(\d+(\.\d+)?)\s*%/);
-                if (pctMatch) {
-                    var pVal = parseFloat(pctMatch[1]);
-                    if (!isNaN(pVal)) {
-                        completedBTVNThang += Math.min(Math.max(pVal / 100.0, 0), 1.0);
-                    }
-                } else if (btvnStr.indexOf("không làm") !== -1 || btvnStr.indexOf("chưa làm") !== -1 || btvnStr.indexOf("chưa nộp") !== -1 || btvnStr === "không") {
-                    completedBTVNThang += 0.0;
-                } else if (btvnStr.indexOf("hoàn thành") !== -1 || btvnStr.indexOf("phụ huynh") !== -1 || btvnStr === "đạt" || btvnStr === "tốt" || btvnStr === "xuất sắc" || btvnStr === "có") {
-                    completedBTVNThang += 1.0;
-                } else if (btvnStr.indexOf("thiếu") !== -1) {
-                    var match = btvnStr.match(/thiếu\s+(\d+)/);
-                    if (match) {
-                        var missingCount = parseInt(match[1], 10);
-                        var completedCount = 5 - missingCount;
-                        if (completedCount < 0) completedCount = 0;
-                        completedBTVNThang += (completedCount / 5.0);
-                    } else {
-                        completedBTVNThang += 0.5;
-                    }
-                } else {
-                    completedBTVNThang += 1.0;
-                }
-            }
         }
     });
 
-    // Điểm đầu giờ
+    // Điểm đầu giờ (tháng)
     var valDiemDauGio = "Chưa có";
     var numDiemDauGio = null;
     if (listDiemDauGioThang.length > 0) {
@@ -739,7 +697,7 @@ function updateStudentMonthlyStats(monthKey) {
     var elDauGio = document.getElementById('valDiemDauGio');
     if (elDauGio) elDauGio.innerText = valDiemDauGio;
 
-    // Điểm định kì
+    // Điểm định kì (tháng)
     var valDiemDinhKi = "Chưa có";
     var numDiemDinhKi = null;
     if (listDiemDinhKiThang.length > 0) {
@@ -751,23 +709,7 @@ function updateStudentMonthlyStats(monthKey) {
     var elDinhKi = document.getElementById('valDiemDinhKi');
     if (elDinhKi) elDinhKi.innerText = valDiemDinhKi;
 
-    // BTVN (%)
-    var valBTVNText = "--";
-    var btvnPercent = null;
-    if (tongBTVNThang > 0) {
-        btvnPercent = Math.round((completedBTVNThang / tongBTVNThang) * 100);
-        valBTVNText = btvnPercent + "%";
-    }
-    var elBTVN = document.getElementById('valBTVN');
-    if (elBTVN) elBTVN.innerText = valBTVNText;
-
-    // Số buổi học & nghỉ
-    var elBuoiHoc = document.getElementById('valBuoiHoc');
-    if (elBuoiHoc) elBuoiHoc.innerText = buoiHocThang + " buổi";
-    var elBuoiNghi = document.getElementById('valBuoiNghi');
-    if (elBuoiNghi) elBuoiNghi.innerText = buoiNghiThang + " buổi";
-
-    // Badges đánh giá
+    // Badges đánh giá điểm số
     function scoreLevelBadge(val) {
         var n = parseFloat(val);
         if (isNaN(n) || val === '-' || val === '' || val === null) return '';
@@ -780,19 +722,6 @@ function updateStudentMonthlyStats(monthKey) {
     if (badgeDauGioEl) badgeDauGioEl.innerHTML = scoreLevelBadge(numDiemDauGio);
     var badgeDinhKiEl = document.getElementById('badgeDinhKiContainer');
     if (badgeDinhKiEl) badgeDinhKiEl.innerHTML = scoreLevelBadge(numDiemDinhKi);
-
-    var elBtvnBadge = document.getElementById('btvnBadgeContainer');
-    if (elBtvnBadge) {
-        if (btvnPercent !== null) {
-            if (btvnPercent === 100) elBtvnBadge.innerHTML = '<div class="medal-badge medal-platinum"><i class="fa-solid fa-trophy"></i> Chăm chỉ Xuất sắc 🏆</div>';
-            else if (btvnPercent >= 90) elBtvnBadge.innerHTML = '<div class="medal-badge medal-gold"><i class="fa-solid fa-medal"></i> Tích cực 🥇</div>';
-            else if (btvnPercent >= 80) elBtvnBadge.innerHTML = '<div class="medal-badge medal-silver"><i class="fa-solid fa-medal"></i> Tiến bộ 🥈</div>';
-            else if (btvnPercent >= 70) elBtvnBadge.innerHTML = '<div class="medal-badge medal-bronze"><i class="fa-solid fa-medal"></i> Cố gắng 🥉</div>';
-            else elBtvnBadge.innerHTML = '<span class="score-badge-xs badge-poor">Cần cố gắng 💪</span>';
-        } else {
-            elBtvnBadge.innerHTML = '';
-        }
-    }
 
     // 5. Render 2 biểu đồ tròn donut tính toán theo danh sách buổi học tháng
     renderDonutCharts(targetLogs);
