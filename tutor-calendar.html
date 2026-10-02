@@ -3081,7 +3081,9 @@
             var sLower = studentName.trim().toLowerCase();
             var pStudents = null;
             try {
-                if (typeof tutorDataGlobal !== 'undefined' && Array.isArray(tutorDataGlobal.students)) {
+                if (window.parent && typeof window.parent.getTutorStudentsResolved === 'function') {
+                    pStudents = window.parent.getTutorStudentsResolved();
+                } else if (typeof tutorDataGlobal !== 'undefined' && Array.isArray(tutorDataGlobal.students)) {
                     pStudents = tutorDataGlobal.students;
                 } else if (window.parent && window.parent.tutorDataGlobal && Array.isArray(window.parent.tutorDataGlobal.students)) {
                     pStudents = window.parent.tutorDataGlobal.students;
@@ -3089,8 +3091,29 @@
             } catch(e) {}
             if (pStudents && Array.isArray(pStudents)) {
                 return pStudents.some(function(st) {
-                    return (st.name || '').trim().toLowerCase() === sLower;
+                    return (st.name || '').trim().toLowerCase() === sLower && (st.phone || st.tuition);
                 });
+            }
+            return false;
+        }
+
+        // Xóa học sinh tự do / học thử khỏi danh sách tạm nếu không còn ca học nào trong tuần
+        function cleanupEmptyTrialStudent(studentName) {
+            if (!studentName || !Array.isArray(tutorScheduleSheetData)) return false;
+            let sLower = studentName.trim().toLowerCase();
+            let idx = tutorScheduleSheetData.findIndex(r => (r.studentName || '').trim().toLowerCase() === sLower);
+            if (idx === -1) return false;
+            let row = tutorScheduleSheetData[idx];
+            let hasAnySlot = allDayKeys.some(function(dk) {
+                let val = (row[dk] || '').trim();
+                return val !== '' && val !== '-';
+            });
+            let isOfficial = isOfficialStudent(studentName);
+            if (!hasAnySlot && !isOfficial) {
+                tutorScheduleSheetData.splice(idx, 1);
+                loadStudentOptions();
+                if (typeof renderSheetTable === 'function') renderSheetTable();
+                return true;
             }
             return false;
         }
@@ -3325,35 +3348,55 @@
                 .getTutorSchedule(userPhone);
         }
 
-        // Đồng bộ dữ liệu sửa đổi lên Store demo hoặc Google Sheets
+        // Đồng bộ dữ liệu sửa đổi lên Store demo hoặc Google Sheets / Supabase
         function saveScheduleToBackend(studentName, onDone) {
             if (isDemoMode) {
                 try {
-                    var store = false ? null : null;
-                    if (!store) {
-                        store = getSafeParentStore();
-                    }
+                    var store = getSafeParentStore();
                     if (store && store.tutorSchedule) {
-                        let row = tutorScheduleSheetData.find(r => r.studentName === studentName);
+                        let row = tutorScheduleSheetData.find(r => (r.studentName || '').trim().toLowerCase() === (studentName || '').trim().toLowerCase());
                         if (row) {
-                            let item = store.tutorSchedule.find(s => s.studentName === studentName);
+                            let item = store.tutorSchedule.find(s => (s.studentName || '').trim().toLowerCase() === (studentName || '').trim().toLowerCase());
                             if (item) {
                                 allDayKeys.forEach(k => item[k] = row[k] || '');
                             } else {
                                 store.tutorSchedule.push(Object.assign({}, row));
                             }
-                            if (false) /* removed */;
-                            safeSaveParentStore(store);
+                        } else {
+                            let isOfficial = isOfficialStudent(studentName);
+                            if (!isOfficial) {
+                                store.tutorSchedule = store.tutorSchedule.filter(s => (s.studentName || '').trim().toLowerCase() !== (studentName || '').trim().toLowerCase());
+                            } else {
+                                let item = store.tutorSchedule.find(s => (s.studentName || '').trim().toLowerCase() === (studentName || '').trim().toLowerCase());
+                                if (item) {
+                                    allDayKeys.forEach(k => item[k] = '');
+                                }
+                            }
                         }
+                        safeSaveParentStore(store);
                     }
                 } catch(e) {}
                 if (onDone) onDone(true);
                 return;
             }
             
-            let studentRow = tutorScheduleSheetData.find(row => row.studentName === studentName);
+            let studentRow = tutorScheduleSheetData.find(row => (row.studentName || '').trim().toLowerCase() === (studentName || '').trim().toLowerCase());
             if (!studentRow) {
-                if (onDone) onDone(true);
+                // Học sinh không còn trong bảng tạm (học sinh học thử bị xóa toàn bộ ca)
+                // Đồng bộ xóa rỗng trên database (Google Sheets / Supabase)
+                if (typeof google !== 'undefined' && google.script && google.script.run && userPhone) {
+                    google.script.run
+                        .withSuccessHandler(function(res) {
+                            if (onDone) onDone(true);
+                        })
+                        .withFailureHandler(function(err) {
+                            console.error("Lỗi xóa lịch học sinh:", err);
+                            if (onDone) onDone(false);
+                        })
+                        .capNhatThoiKhoaBieu(userPhone, studentName, '', '', '', '', '', '', '');
+                } else {
+                    if (onDone) onDone(true);
+                }
                 return;
             }
             
@@ -4851,8 +4894,9 @@
                 let slots = (row[oldDayKey] || '').split('|').map(s => s.trim());
                 slots.splice(props.subIndex, 1);
                 row[oldDayKey] = slots.filter(s => s !== '').join(' | ');
+                cleanupEmptyTrialStudent(row.studentName);
             }
-            saveAndRefetch(row.studentName);
+            saveAndRefetch(row.studentName, null, 'full');
         }
 
         // === ĐIỀU KHIỂN FLOATING POPOVER CHI TIẾT SỰ KIỆN ===
@@ -5028,6 +5072,9 @@
                                 studentRow[oldDayKey] = slots.filter(s => s !== "").join(" | ");
                             }
                         }
+
+                        // Kiểm tra nếu là học sinh tự do / học thử và không còn ca học nào:
+                        cleanupEmptyTrialStudent(sName);
                     }
                     saveAndRefetch(sName, null, 'full');
                 });
@@ -5360,27 +5407,21 @@
                     }
                     if (!deleted && oldDayKey && oldDayKey !== "") {
                         let existing = row[oldDayKey] || "";
-                        if (subIdxStr !== "") {
+                        if (subIdxStr !== "" && !isNaN(parseInt(subIdxStr))) {
                             let slots = existing.split("|").map(s => s.trim());
                             let idx = parseInt(subIdxStr);
                             if (idx >= 0 && idx < slots.length) {
                                 slots.splice(idx, 1);
                                 row[oldDayKey] = slots.filter(s => s !== "").join(" | ");
+                            } else {
+                                row[oldDayKey] = "";
                             }
+                        } else {
+                            row[oldDayKey] = "";
                         }
                     }
                     
-                    // Nếu là học sinh học thử/tự do và sau khi xóa ca này thì không còn ca học nào trên bất kỳ ngày nào:
-                    let hasAnySlot = allDayKeys.some(function(dk) {
-                        let val = (row[dk] || '').trim();
-                        return val !== '' && val !== '-';
-                    });
-                    let isOfficial = isOfficialStudent(sName);
-                    if (!hasAnySlot && !isOfficial) {
-                        tutorScheduleSheetData.splice(studentIdx, 1);
-                        loadStudentOptions();
-                        if (typeof renderSheetTable === 'function') renderSheetTable();
-                    }
+                    cleanupEmptyTrialStudent(sName);
 
                     closeModalForce();
                     saveAndRefetch(sName, null, 'full');

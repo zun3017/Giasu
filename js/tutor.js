@@ -5167,94 +5167,8 @@ window.initTutorSidebarState = initTutorSidebarState;
             }
             // Load Schedule
             google.script.run.withSuccessHandler(function(schedule) {
-                var table = document.getElementById('tutorScheduleTable');
-                if (table) {
-                    table.innerHTML = "<tr><th>Học sinh</th><th>Thứ 2</th><th>Thứ 3</th><th>Thứ 4</th><th>Thứ 5</th><th>Thứ 6</th><th>Thứ 7</th><th>CN</th><th style='width: 50px;'>Sửa</th></tr>";
-                }
-                
-                var mobileContainer = document.getElementById('tutorScheduleMobile');
-                if (mobileContainer) {
-                    mobileContainer.innerHTML = "";
-                }
-                
-                var schedMap = {};
-                if(schedule && schedule.length > 0) {
-                    schedule.forEach(function(s) {
-                        schedMap[s.studentName.trim()] = s;
-                    });
-                }
-                
-                if(tutorDataGlobal && tutorDataGlobal.students) {
-                    var tableHtml = "<tr><th>Học sinh</th><th>Thứ 2</th><th>Thứ 3</th><th>Thứ 4</th><th>Thứ 5</th><th>Thứ 6</th><th>Thứ 7</th><th>CN</th><th style='width: 50px;'>Sửa</th></tr>";
-                    var mobileHtml = "";
-                    
-                    tutorDataGlobal.students.forEach(function(st, idx) {
-                        var s = schedMap[st.name.trim()] || { mon: "", tue: "", wed: "", thu: "", fri: "", sat: "", sun: "" };
-                        
-                        // Desktop Row
-                        tableHtml += "<tr>" +
-                            "<td style='font-weight:700; color:var(--color-primary); text-align: left; padding: 12px 14px; white-space: nowrap;'>" + st.name + "</td>" +
-                            "<td style='text-align: center; padding: 12px 10px;'>" + formatScheduleCell(s.mon) + "</td>" +
-                            "<td style='text-align: center; padding: 12px 10px;'>" + formatScheduleCell(s.tue) + "</td>" +
-                            "<td style='text-align: center; padding: 12px 10px;'>" + formatScheduleCell(s.wed) + "</td>" +
-                            "<td style='text-align: center; padding: 12px 10px;'>" + formatScheduleCell(s.thu) + "</td>" +
-                            "<td style='text-align: center; padding: 12px 10px;'>" + formatScheduleCell(s.fri) + "</td>" +
-                            "<td style='text-align: center; padding: 12px 10px;'>" + formatScheduleCell(s.sat) + "</td>" +
-                            "<td style='text-align: center; padding: 12px 10px;'>" + formatScheduleCell(s.sun) + "</td>" +
-                            "<td style='text-align: center; padding: 12px 10px;'><button onclick='openEditScheduleModal(\"" + st.name.replace(/'/g, "\\'").replace(/"/g, '&quot;') + "\", \"" + (s.mon||"") + "\", \"" + (s.tue||"") + "\", \"" + (s.wed||"") + "\", \"" + (s.thu||"") + "\", \"" + (s.fri||"") + "\", \"" + (s.sat||"") + "\", \"" + (s.sun||"") + "\")' class='btn-icon-edit' style='margin: 0 auto; padding: 6px 10px; display: inline-flex; align-items: center; justify-content: center;' title='Sửa thời khóa biểu'><i class='fa-solid fa-pen-to-square'></i></button></td>" +
-                            "</tr>";
-                            
-                        // Mobile Card (Accordion)
-                        var activeDays = [];
-                        if (s.mon) activeDays.push("T2");
-                        if (s.tue) activeDays.push("T3");
-                        if (s.wed) activeDays.push("T4");
-                        if (s.thu) activeDays.push("T5");
-                        if (s.fri) activeDays.push("T6");
-                        if (s.sat) activeDays.push("T7");
-                        if (s.sun) activeDays.push("CN");
-                        var activeDaysStr = activeDays.length > 0 ? activeDays.join(", ") : "Chưa xếp lịch";
-                        
-                        mobileHtml += "<div class='accordion-item' id='sched-item-" + idx + "'>";
-                        mobileHtml += "  <div class='accordion-header' onclick='toggleTutorScheduleAccordion(" + idx + ")'>";
-                        mobileHtml += "    <div class='accordion-header-title'>";
-                        mobileHtml += "      <span>" + st.name + "</span>";
-                        mobileHtml += "      <span class='accordion-header-date'>" + activeDaysStr + "</span>";
-                        mobileHtml += "    </div>";
-                        mobileHtml += "    <div class='accordion-header-status'>";
-                        mobileHtml += "      <i class='fa-solid fa-chevron-down' id='sched-chevron-" + idx + "'></i>";
-                        mobileHtml += "    </div>";
-                        mobileHtml += "  </div>";
-                        mobileHtml += "  <div class='accordion-body' id='sched-accordion-body-" + idx + "' style='display: none;'>";
-                        
-                        var daysList = [
-                            { label: "Thứ 2", val: s.mon },
-                            { label: "Thứ 3", val: s.tue },
-                            { label: "Thứ 4", val: s.wed },
-                            { label: "Thứ 5", val: s.thu },
-                            { label: "Thứ 6", val: s.fri },
-                            { label: "Thứ 7", val: s.sat },
-                            { label: "Chủ nhật", val: s.sun }
-                        ];
-                        
-                        daysList.forEach(function(day) {
-                            var dayVal = day.val ? day.val : "<span style='color: var(--text-muted); font-weight: 400;'>Trống</span>";
-                            mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>" + day.label + "</span><span class='accordion-body-val' style='color:var(--text-primary); font-weight:600;'>" + dayVal + "</span></div>";
-                        });
-                        
-                        // Edit button at the bottom of accordion body
-                        mobileHtml += "    <div style='margin-top: 10px; text-align: right;'>";
-                        mobileHtml += "      <button onclick='openEditScheduleModal(\"" + st.name.replace(/'/g, "\\'").replace(/"/g, '&quot;') + "\", \"" + (s.mon||"") + "\", \"" + (s.tue||"") + "\", \"" + (s.wed||"") + "\", \"" + (s.thu||"") + "\", \"" + (s.fri||"") + "\", \"" + (s.sat||"") + "\", \"" + (s.sun||"") + "\")' class='action-btn-hw' style='border-color:var(--color-primary); color:var(--color-primary); cursor:pointer;'><i class='fa-solid fa-pen-to-square'></i> Sửa lịch học</button>";
-                        mobileHtml += "    </div>";
-                        
-                        mobileHtml += "  </div>";
-                        mobileHtml += "</div>";
-                    });
-                    
-                    if (table) table.innerHTML = tableHtml;
-                    if (mobileContainer) mobileContainer.innerHTML = mobileHtml;
-                }
                 lastLoadedTutorSchedule = schedule;
+                refreshTutorScheduleDisplay(schedule);
                 renderUpcomingSchedule(schedule);
                 renderTutorStudentsGrid();
             }).getTutorSchedule(currentTutorPhone);
@@ -6698,32 +6612,58 @@ window.initTutorSidebarState = initTutorSidebarState;
                     }
                 }
             });
+            
+            // Lọc danh sách học sinh hiển thị trên TKB: loại bỏ học sinh học thử/tự do nếu không còn ca nào
+            students = students.filter(function(st) {
+                var sName = (st.name || '').trim();
+                var s = schedMap[sName] || schedMap[sName.toLowerCase()] || {};
+                var hasActiveSlot = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'].some(function(k) {
+                    var val = (s[k] || '').trim();
+                    return val !== '' && val !== '-';
+                });
+                
+                // Kiểm tra xem có phải học sinh chính thức không (có phone và nằm trong tutorDataGlobal.students)
+                var isOfficial = false;
+                if (tutorDataGlobal && Array.isArray(tutorDataGlobal.students)) {
+                    isOfficial = tutorDataGlobal.students.some(function(officialSt) {
+                        return (officialSt.name || '').trim().toLowerCase() === sName.toLowerCase() && (officialSt.phone || officialSt.tuition);
+                    });
+                }
+                
+                if (isOfficial) return true;
+                return hasActiveSlot;
+            });
                 
             var table = document.getElementById('tutorScheduleTable');
-            if (table && students && students.length > 0) {
+            if (table) {
                 var tableHtml = "<tr><th>Học sinh</th><th>Thứ 2</th><th>Thứ 3</th><th>Thứ 4</th><th>Thứ 5</th><th>Thứ 6</th><th>Thứ 7</th><th>CN</th><th style='width: 50px;'>Sửa</th></tr>";
-                students.forEach(function(st) {
-                    var s = schedMap[st.name.trim()] || schedMap[st.name.trim().toLowerCase()] || { mon: "", tue: "", wed: "", thu: "", fri: "", sat: "", sun: "" };
-                    tableHtml += "<tr>" +
-                        "<td style='font-weight:700; color:var(--color-primary); text-align: left; padding: 12px 14px; white-space: nowrap;'>" + st.name + "</td>" +
-                        "<td style='text-align: center; padding: 12px 10px;'>" + formatScheduleCell(s.mon) + "</td>" +
-                        "<td style='text-align: center; padding: 12px 10px;'>" + formatScheduleCell(s.tue) + "</td>" +
-                        "<td style='text-align: center; padding: 12px 10px;'>" + formatScheduleCell(s.wed) + "</td>" +
-                        "<td style='text-align: center; padding: 12px 10px;'>" + formatScheduleCell(s.thu) + "</td>" +
-                        "<td style='text-align: center; padding: 12px 10px;'>" + formatScheduleCell(s.fri) + "</td>" +
-                        "<td style='text-align: center; padding: 12px 10px;'>" + formatScheduleCell(s.sat) + "</td>" +
-                        "<td style='text-align: center; padding: 12px 10px;'>" + formatScheduleCell(s.sun) + "</td>" +
-                        "<td style='text-align: center; padding: 12px 10px;'><button onclick='openEditScheduleModal(\"" + st.name.replace(/'/g, "\\'").replace(/"/g, '&quot;') + "\", \"" + (s.mon||"") + "\", \"" + (s.tue||"") + "\", \"" + (s.wed||"") + "\", \"" + (s.thu||"") + "\", \"" + (s.fri||"") + "\", \"" + (s.sat||"") + "\", \"" + (s.sun||"") + "\")' class='btn-icon-edit' style='margin: 0 auto; padding: 6px 10px; display: inline-flex; align-items: center; justify-content: center;' title='Sửa thời khóa biểu'><i class='fa-solid fa-pen-to-square'></i></button></td>" +
-                        "</tr>";
-                });
+                if (students && students.length > 0) {
+                    students.forEach(function(st) {
+                        var s = schedMap[st.name.trim()] || schedMap[st.name.trim().toLowerCase()] || { mon: "", tue: "", wed: "", thu: "", fri: "", sat: "", sun: "" };
+                        tableHtml += "<tr>" +
+                            "<td style='font-weight:700; color:var(--color-primary); text-align: left; padding: 12px 14px; white-space: nowrap;'>" + st.name + "</td>" +
+                            "<td style='text-align: center; padding: 12px 10px;'>" + formatScheduleCell(s.mon) + "</td>" +
+                            "<td style='text-align: center; padding: 12px 10px;'>" + formatScheduleCell(s.tue) + "</td>" +
+                            "<td style='text-align: center; padding: 12px 10px;'>" + formatScheduleCell(s.wed) + "</td>" +
+                            "<td style='text-align: center; padding: 12px 10px;'>" + formatScheduleCell(s.thu) + "</td>" +
+                            "<td style='text-align: center; padding: 12px 10px;'>" + formatScheduleCell(s.fri) + "</td>" +
+                            "<td style='text-align: center; padding: 12px 10px;'>" + formatScheduleCell(s.sat) + "</td>" +
+                            "<td style='text-align: center; padding: 12px 10px;'>" + formatScheduleCell(s.sun) + "</td>" +
+                            "<td style='text-align: center; padding: 12px 10px;'><button onclick='openEditScheduleModal(\"" + st.name.replace(/'/g, "\\'").replace(/"/g, '&quot;') + "\", \"" + (s.mon||"") + "\", \"" + (s.tue||"") + "\", \"" + (s.wed||"") + "\", \"" + (s.thu||"") + "\", \"" + (s.fri||"") + "\", \"" + (s.sat||"") + "\", \"" + (s.sun||"") + "\")' class='btn-icon-edit' style='margin: 0 auto; padding: 6px 10px; display: inline-flex; align-items: center; justify-content: center;' title='Sửa thời khóa biểu'><i class='fa-solid fa-pen-to-square'></i></button></td>" +
+                            "</tr>";
+                    });
+                } else {
+                    tableHtml += "<tr><td colspan='9' style='text-align: center; padding: 25px; color: var(--text-muted);'>Chưa có thời khóa biểu</td></tr>";
+                }
                 table.innerHTML = tableHtml;
             }
             
             var mobileContainer = document.getElementById('tutorScheduleMobile');
-            if (mobileContainer && students && students.length > 0) {
+            if (mobileContainer) {
                 var mobileHtml = "";
-                students.forEach(function(st, idx) {
-                    var s = schedMap[st.name.trim()] || { mon: "", tue: "", wed: "", thu: "", fri: "", sat: "", sun: "" };
+                if (students && students.length > 0) {
+                    students.forEach(function(st, idx) {
+                        var s = schedMap[st.name.trim()] || { mon: "", tue: "", wed: "", thu: "", fri: "", sat: "", sun: "" };
                     var activeDays = [];
                     if (s.mon) activeDays.push("T2");
                     if (s.tue) activeDays.push("T3");
@@ -6767,8 +6707,11 @@ window.initTutorSidebarState = initTutorSidebarState;
                     mobileHtml += "  </div>";
                     mobileHtml += "</div>";
                 });
-                mobileContainer.innerHTML = mobileHtml;
+            } else {
+                mobileHtml = "<div style='text-align: center; padding: 20px; color: var(--text-muted);'>Chưa có thời khóa biểu</div>";
             }
+            mobileContainer.innerHTML = mobileHtml;
+        }
             
             if (typeof renderUpcomingSchedule === 'function') {
                 renderUpcomingSchedule(list);
