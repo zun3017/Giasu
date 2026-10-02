@@ -4135,8 +4135,15 @@ function switchTutorNavTab(element, tabKey) {
     } else if (tabKey === 'calendar') {
         var calFrame = document.getElementById('tutorCalendarIframe');
         if (calFrame) {
+            var curTheme = localStorage.getItem('tutorTheme') || 'theme-dark-purple';
             if (!calFrame.src || calFrame.src.indexOf('tutor-calendar.html') === -1) {
-                calFrame.src = 'tutor-calendar.html?embedded=1';
+                calFrame.src = 'tutor-calendar.html?embedded=1&theme=' + encodeURIComponent(curTheme);
+            }
+            if (typeof syncThemeToCalendarIframe === 'function') {
+                syncThemeToCalendarIframe();
+                setTimeout(syncThemeToCalendarIframe, 60);
+                setTimeout(syncThemeToCalendarIframe, 200);
+                setTimeout(syncThemeToCalendarIframe, 500);
             }
             var triggerCalendarResize = function() {
                 try {
@@ -9055,6 +9062,57 @@ var THEME_NAMES = {
   'theme-claude-minimal': 'Claude · Tối giản (Ấm)'
 };
 
+function syncThemeToCalendarIframe() {
+  var calFrame = document.getElementById('tutorCalendarIframe');
+  if (!calFrame) return;
+
+  var curTheme = null;
+  try { curTheme = localStorage.getItem('tutorTheme'); } catch(e) {}
+  if (!curTheme) {
+    var root = document.documentElement;
+    Array.from(root.classList).forEach(function(cls) {
+      if (cls.startsWith('theme-') || cls.startsWith('preset-')) {
+        curTheme = cls;
+      }
+    });
+  }
+  if (!curTheme) curTheme = 'theme-dark-purple';
+
+  var isCustom = curTheme.startsWith('custom:');
+  var customHex = isCustom ? curTheme.split(':')[1] : null;
+
+  // 1. Gửi qua postMessage (luôn hoạt động ổn định giữa các frame)
+  try {
+    if (calFrame.contentWindow) {
+      if (isCustom) {
+        calFrame.contentWindow.postMessage({ type: 'setCustomTheme', hex: customHex }, '*');
+        calFrame.contentWindow.postMessage('custom:' + customHex, '*');
+      } else {
+        calFrame.contentWindow.postMessage({ type: 'setTheme', themeId: curTheme }, '*');
+        calFrame.contentWindow.postMessage(curTheme, '*');
+      }
+    }
+  } catch(e) {}
+
+  // 2. Gọi trực tiếp hàm nếu iframe cùng origin và đã tải xong
+  try {
+    if (calFrame.contentWindow) {
+      if (isCustom) {
+        if (typeof calFrame.contentWindow.applyCustomTheme === 'function') {
+          var fInput = calFrame.contentWindow.document.getElementById('customColorHex');
+          if (fInput) fInput.value = customHex;
+          calFrame.contentWindow.applyCustomTheme(true, customHex);
+        }
+      } else {
+        if (typeof calFrame.contentWindow.applyTheme === 'function') {
+          calFrame.contentWindow.applyTheme(curTheme);
+        }
+      }
+    }
+  } catch(e) {}
+}
+window.syncThemeToCalendarIframe = syncThemeToCalendarIframe;
+
 function applyTheme(themeId) {
   var root = document.documentElement;
   // 1. Dọn sạch các biến inline do custom theme gán
@@ -9074,14 +9132,15 @@ function applyTheme(themeId) {
   propsToClear.forEach(function(p) { root.style.removeProperty(p); });
 
   // 2. Xóa các class theme cũ
-  var allThemes = Object.keys(THEME_NAMES);
-  allThemes.forEach(function(t) {
-    root.classList.remove(t);
+  Array.from(root.classList).forEach(function(cls) {
+    if (cls.startsWith('theme-') || cls.startsWith('preset-')) {
+      root.classList.remove(cls);
+    }
   });
 
   // 3. Kích hoạt theme mới
   root.classList.add(themeId);
-  localStorage.setItem('tutorTheme', themeId);
+  try { localStorage.setItem('tutorTheme', themeId); } catch(e) {}
 
   // Set data-theme cho dark mode CSS selectors
   var darkThemes = [
@@ -9110,10 +9169,7 @@ function applyTheme(themeId) {
   if (typeof calendar !== 'undefined' && calendar && typeof calendar.render === 'function') {
     calendar.render();
   }
-  var calFrame = document.getElementById('tutorCalendarIframe');
-  if (calFrame && calFrame.contentWindow && typeof calFrame.contentWindow.applyTheme === 'function') {
-    try { calFrame.contentWindow.applyTheme(themeId); } catch(e) {}
-  }
+  syncThemeToCalendarIframe();
 }
 
 function openThemeSwitcher() {
@@ -9257,11 +9313,19 @@ function computeCustomThemeVars(hex) {
 }
 
 // Task 12.7: Custom Color Picker (Áp dụng trọn bộ bảng màu đồng bộ)
-function applyCustomTheme(silent) {
-  var hexInput = document.getElementById('customColorHex');
-  if (!hexInput) return;
-  var hex = hexInput.value.trim();
-  var vars = computeCustomThemeVars(hex);
+function applyCustomTheme(silent, explicitHex) {
+  var hex = explicitHex;
+  if (!hex) {
+    var hexInput = document.getElementById('customColorHex');
+    if (hexInput) hex = hexInput.value.trim();
+  }
+  if (!hex) {
+    try {
+      var cur = localStorage.getItem('tutorTheme');
+      if (cur && cur.startsWith('custom:')) hex = cur.split(':')[1];
+    } catch(e) {}
+  }
+  var vars = hex ? computeCustomThemeVars(hex) : null;
   if (!vars) {
     if (!silent) {
       if (typeof showToast === 'function') {
@@ -9275,8 +9339,11 @@ function applyCustomTheme(silent) {
 
   var root = document.documentElement;
   // Xóa class theme tĩnh
-  var allThemes = Object.keys(THEME_NAMES);
-  allThemes.forEach(function(t) { root.classList.remove(t); });
+  Array.from(root.classList).forEach(function(cls) {
+    if (cls.startsWith('theme-') || cls.startsWith('preset-')) {
+      root.classList.remove(cls);
+    }
+  });
 
   // Thiết lập toàn bộ biến CSS hài hòa
   Object.keys(vars).forEach(function(prop) {
@@ -9284,7 +9351,12 @@ function applyCustomTheme(silent) {
   });
   root.setAttribute('data-theme', 'light');
 
-  localStorage.setItem('tutorTheme', 'custom:' + hex);
+  try { localStorage.setItem('tutorTheme', 'custom:' + hex); } catch(e) {}
+
+  var hexInput = document.getElementById('customColorHex');
+  if (hexInput && hexInput.value.toUpperCase() !== hex.toUpperCase()) hexInput.value = hex.toUpperCase();
+  var picker = document.getElementById('customColorPicker');
+  if (picker && picker.value.toLowerCase() !== hex.toLowerCase()) picker.value = hex;
 
   document.querySelectorAll('#themeSwitcherPanel [data-theme]').forEach(function(el) {
     el.classList.remove('active');
@@ -9293,15 +9365,8 @@ function applyCustomTheme(silent) {
   var label = document.getElementById('themeCurrentLabel');
   if (label) label.textContent = 'Màu tùy chỉnh ' + hex.toUpperCase();
 
-  // Đồng bộ sang Iframe Lịch (nếu có)
-  var calFrame = document.getElementById('tutorCalendarIframe');
-  if (calFrame && calFrame.contentWindow && typeof calFrame.contentWindow.applyCustomTheme === 'function') {
-    try {
-      var fInput = calFrame.contentWindow.document.getElementById('customColorHex');
-      if (fInput) fInput.value = hex;
-      calFrame.contentWindow.applyCustomTheme(true);
-    } catch(e) {}
-  }
+  // Đồng bộ sang Iframe Lịch tức thì
+  syncThemeToCalendarIframe();
 
   if (typeof rerenderChartsForTheme === 'function') rerenderChartsForTheme();
   if (typeof calendar !== 'undefined' && calendar && typeof calendar.render === 'function') calendar.render();
@@ -9335,6 +9400,13 @@ window.closeThemeSwitcher = closeThemeSwitcher;
 window.computeCustomThemeVars = computeCustomThemeVars;
 window.applyCustomTheme = applyCustomTheme;
 
+// Lắng nghe tín hiệu yêu cầu đồng bộ theme từ iframe lịch khi iframe tải xong
+window.addEventListener('message', function(e) {
+  if (e.data && (e.data.type === 'calendarReady' || e.data.type === 'requestTheme')) {
+    syncThemeToCalendarIframe();
+  }
+});
+
 // Khởi chạy khi DOM sẵn sàng
 document.addEventListener('DOMContentLoaded', function() {
   setupCustomColorSync();
@@ -9350,5 +9422,15 @@ document.addEventListener('DOMContentLoaded', function() {
     applyTheme(saved);
   } else {
     applyTheme('theme-dark-purple');
+  }
+
+  // Tự động gắn hook load cho iframe lịch để đồng bộ ngay khi load xong
+  var calFrame = document.getElementById('tutorCalendarIframe');
+  if (calFrame) {
+    calFrame.addEventListener('load', function() {
+      syncThemeToCalendarIframe();
+      setTimeout(syncThemeToCalendarIframe, 100);
+      setTimeout(syncThemeToCalendarIframe, 350);
+    });
   }
 });
