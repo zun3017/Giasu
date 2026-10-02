@@ -107,15 +107,24 @@ function renderTutorKpiCards(data, selM, selY) {
         var unit = (st.tuition && st.tuition > 0) ? Number(st.tuition) : 200000;
         if (st.logs && Array.isArray(st.logs)) {
             st.logs.forEach(function(log) {
-                var inMonth = true;
+                var inMonth = false;
                 if (log.ngay) {
-                    var parts = log.ngay.split('/');
-                    if (parts.length >= 3) {
-                        var m = parseInt(parts[1], 10);
-                        var y = parseInt(parts[2], 10);
-                        if (m !== selM || y !== selY) {
-                            inMonth = false;
+                    var lm = 0, ly = 0;
+                    if (log.ngay.indexOf('/') !== -1) {
+                        var parts = log.ngay.split('/');
+                        if (parts.length >= 3) {
+                            lm = parseInt(parts[1], 10);
+                            ly = parseInt(parts[2], 10);
                         }
+                    } else if (log.ngay.indexOf('-') !== -1) {
+                        var parts = log.ngay.split('-');
+                        if (parts.length >= 3) {
+                            lm = parseInt(parts[1], 10);
+                            ly = parseInt(parts[0], 10);
+                        }
+                    }
+                    if (lm === selM && ly === selY) {
+                        inMonth = true;
                     }
                 }
                 if (inMonth && (log.chuyenCan === "Có mặt" || log.chuyenCan === "present" || !log.chuyenCan)) {
@@ -125,21 +134,6 @@ function renderTutorKpiCards(data, selM, selY) {
             });
         }
     });
-
-    // Fallback: nếu mock data các log không trùng tháng hiện tại và đang ở tháng hiện tại, đếm các buổi gần nhất
-    if (totalSessions === 0 && students.length > 0 && isCurrentMonth) {
-        students.forEach(function(st) {
-            var unit = (st.tuition && st.tuition > 0) ? Number(st.tuition) : 200000;
-            if (st.logs && Array.isArray(st.logs)) {
-                st.logs.forEach(function(log) {
-                    if (log.chuyenCan === "Có mặt" || log.chuyenCan === "present" || !log.chuyenCan) {
-                        totalSessions++;
-                        totalFee += unit;
-                    }
-                });
-            }
-        });
-    }
 
     var totalHours = totalSessions * 1.5;
     var hoursStr = (totalHours % 1 === 0) ? (totalHours + "h") : (totalHours.toFixed(1) + "h");
@@ -394,38 +388,6 @@ function renderRevenueBarChart(selM, selY) {
         }
     }
 
-    // Dữ liệu doanh thu thực tế phù hợp với quy mô gia sư 1-1 (3 học sinh, ~200.000đ/buổi, 8-10 buổi/tháng)
-    // Thu nhập thực tế trung bình mỗi tháng từ 3,6tr đến 6,2tr VNĐ (tổng cả năm ~64,8 triệu VNĐ)
-    var realisticTutorBaseline2026 = {
-        1: 5200000, // 5,2tr
-        2: 3600000, // 3,6tr (tháng Tết)
-        3: 5600000, // 5,6tr
-        4: 5400000, // 5,4tr
-        5: 6000000, // 6,0tr (ôn thi học kỳ 2)
-        6: 6200000, // 6,2tr (cao điểm ôn thi vào 10 & tốt nghiệp THPT)
-        7: 4200000, // 4,2tr (tháng hè)
-        8: 5400000, // 5,4tr (chuẩn bị năm học mới)
-        9: 5800000, // 5,8tr
-        10: 6000000,// 6,0tr
-        11: 5600000,// 5,6tr
-        12: 5800000 // 5,8tr
-    };
-
-    var realisticTutorBaseline2025 = {
-        1: 4800000,
-        2: 3200000,
-        3: 5000000,
-        4: 5200000,
-        5: 5800000,
-        6: 6000000,
-        7: 3800000,
-        8: 5000000,
-        9: 5400000,
-        10: 5600000,
-        11: 5200000,
-        12: 5400000
-    };
-
     // Calculate actual revenue from real student logs in database
     var students = (tutorDataGlobal && tutorDataGlobal.students ? tutorDataGlobal.students : []);
 
@@ -470,8 +432,6 @@ function renderRevenueBarChart(selM, selY) {
         }
     });
 
-    var currentBaseline = (year === 2026) ? realisticTutorBaseline2026 : (year === 2025 ? realisticTutorBaseline2025 : {});
-
     var labels = [];
     var dataValues = [];
     var periodTotal = 0;
@@ -488,13 +448,7 @@ function renderRevenueBarChart(selM, selY) {
 
     for (var m = startMonth; m <= endMonth; m++) {
         labels.push("T" + m);
-        // Ưu tiên số liệu thực tế được ghi nhận từ nhật ký buổi học của học sinh
-        var val = 0;
-        if (actualMonthlyRevenue[m] && actualMonthlyRevenue[m] > 0) {
-            val = actualMonthlyRevenue[m];
-        } else if (currentBaseline[m] !== undefined && currentBaseline[m] > 0) {
-            val = currentBaseline[m];
-        }
+        var val = (actualMonthlyRevenue[m] && actualMonthlyRevenue[m] > 0) ? actualMonthlyRevenue[m] : 0;
         dataValues.push(val);
         periodTotal += val;
     }
@@ -505,7 +459,7 @@ function renderRevenueBarChart(selM, selY) {
     }
 
     var maxVal = Math.max.apply(null, dataValues);
-    if (maxVal <= 0) maxVal = 7000000;
+    if (maxVal <= 0) maxVal = 2000000;
     var trackHeight = maxVal * 1.08;
     var trackData = labels.map(function() { return trackHeight; });
 
@@ -543,7 +497,7 @@ function renderRevenueBarChart(selM, selY) {
                 var v = dataValues[idx] || 0;
                 var text = "";
                 if (v === 0) {
-                    text = "0,0đ";
+                    text = "0đ";
                 } else if (v >= 1000000) {
                     text = (v / 1000000).toFixed(1).replace('.', ',') + 'tr';
                 } else {
@@ -762,16 +716,6 @@ function renderStudentRevenueDonut(selM, selY) {
         totalMonthRevenue += revenue;
     });
 
-    // Fallback in demo mode if total is 0 (so donut shows realistic data for active demo view)
-    if (totalMonthRevenue === 0 && students.length > 0) {
-        studentStats.forEach(function(s, idx) {
-            var simSessions = (idx === 0 ? 5 : (idx === 1 ? 4 : 3));
-            s.sessions = simSessions;
-            s.revenue = simSessions * 200000;
-            totalMonthRevenue += s.revenue;
-        });
-    }
-
     // Sort descending by revenue
     studentStats.sort(function(a, b) {
         return b.revenue - a.revenue;
@@ -824,7 +768,8 @@ function renderStudentRevenueDonut(selM, selY) {
     if (donutData.length === 0) {
         donutLabels = ["Chưa có buổi học"];
         donutData = [1];
-        donutColors = ["rgba(255, 255, 255, 0.1)"];
+        var emptyRingColor = (getComputedStyle(document.documentElement).getPropertyValue('--border-color') || '#E2E8F0').trim();
+        donutColors = [emptyRingColor];
     }
 
     var ctx = canvasEl.getContext('2d');
