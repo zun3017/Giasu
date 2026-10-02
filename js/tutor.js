@@ -408,6 +408,16 @@ function animateCountUp(el, endVal, suffix, duration, isCurrency, decimals) {
 window.animateCountUp = animateCountUp;
 
 function renderTutorKpiCards(data, selM, selY) {
+    // Ẩn skeleton overview và hiện nội dung thực
+    var skeletonEl = document.getElementById('skeletonOverview');
+    if (skeletonEl) skeletonEl.style.display = 'none';
+    var kpiGrid = document.getElementById('tutorKpiGrid');
+    if (kpiGrid) kpiGrid.style.display = '';
+    var scheduleBox = document.getElementById('tutorUpcomingScheduleBox');
+    if (scheduleBox) scheduleBox.style.display = '';
+    var chartBox = document.getElementById('revenueBarChartBox');
+    if (chartBox) chartBox.style.display = '';
+
     var studentCountEl = document.getElementById('kpiStudentCount');
     var sessionCountEl = document.getElementById('kpiSessionCount');
     var totalHoursEl = document.getElementById('kpiTotalHours');
@@ -1526,9 +1536,13 @@ function renderTutorStudentsGrid() {
         : ((tutorDataGlobal && tutorDataGlobal.students) ? tutorDataGlobal.students : []);
 
     if (!students || students.length === 0) {
-        grid.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; color: var(--text-muted); padding: 40px; font-style: italic; background: var(--bg-card-alt); border: 1px dashed var(--border-color); border-radius: 16px;">' +
-            '<i class="fa-solid fa-user-graduate" style="font-size: 32px; color: var(--color-primary); margin-bottom: 10px; display: block;"></i>' +
-            'Chưa có học sinh nào. Bấm <b>"Thêm học sinh"</b> để tạo hồ sơ mới.</div>';
+        grid.innerHTML = '<div style="grid-column: 1 / -1;" class="empty-state">' +
+            '<div class="empty-state-icon"><i class="fa-solid fa-user-graduate"></i></div>' +
+            '<div class="empty-state-title">Chưa có học sinh nào</div>' +
+            '<div class="empty-state-desc">Thêm học sinh đầu tiên để bắt đầu quản lý lịch dạy và điểm số lớp học!</div>' +
+            '<button type="button" class="empty-state-btn" onclick="openAddStudentModal()">' +
+            '<i class="fa-solid fa-plus"></i> Thêm học sinh</button>' +
+            '</div>';
         return;
     }
 
@@ -6897,9 +6911,12 @@ window.initTutorSidebarState = initTutorSidebarState;
                     totalHtml += "</div>";
                 }
                 
-                container.innerHTML = totalHtml;
             } else {
-                container.innerHTML = "<p style='color: var(--text-secondary); text-align: center; padding: 20px;'>Học sinh này chưa có dữ liệu nhật ký học tập nào.</p>";
+                container.innerHTML = '<div class="empty-state">' +
+                    '<div class="empty-state-icon"><i class="fa-solid fa-book-open"></i></div>' +
+                    '<div class="empty-state-title">Chưa có nhật ký buổi học</div>' +
+                    '<div class="empty-state-desc">Nhật ký sẽ xuất hiện sau khi bạn ghi nhận buổi dạy đầu tiên cho học sinh này.</div>' +
+                    '</div>';
             }
         }
 

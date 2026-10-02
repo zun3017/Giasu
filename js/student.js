@@ -208,7 +208,9 @@ function renderStudentView(ketQua) {
     var headerEl = document.querySelector('.header');
     if (headerEl) headerEl.style.display = 'none';
 
-    // Hiện khung kết quả
+    // Ẩn skeleton và hiện khung kết quả
+    var skSt = document.getElementById('skeletonStudent');
+    if (skSt) skSt.style.display = 'none';
     var resBox = document.getElementById('resultBox');
     if (resBox) resBox.style.display = 'block';
     document.body.classList.add('logged-in');
