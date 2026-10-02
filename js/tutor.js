@@ -5549,7 +5549,14 @@ window.initTutorSidebarState = initTutorSidebarState;
             if(!tutorDataGlobal) return;
             document.getElementById('accTutorName').value = tutorDataGlobal.tutorName || "";
             document.getElementById('accTutorPhone').value = tutorDataGlobal.tutorPhone || "";
-            document.getElementById('accTutorPin').value = tutorDataGlobal.tutorPin || "";
+            var accPinEl = document.getElementById('accTutorPin');
+            if (accPinEl) accPinEl.value = tutorDataGlobal.tutorPin || "";
+            var curPinReset = document.getElementById('settingsCurrentPin');
+            var npPinReset = document.getElementById('settingsNewPin');
+            var cpPinReset = document.getElementById('settingsConfirmPin');
+            if (curPinReset) curPinReset.value = '';
+            if (npPinReset) npPinReset.value = '';
+            if (cpPinReset) cpPinReset.value = '';
             document.getElementById('accClassCount').value = tutorDataGlobal.classCount || "0";
             document.getElementById('accUnpaidIncome').value = (tutorDataGlobal.totalUnpaidIncome || 0).toLocaleString('vi-VN') + " VNĐ";
             
@@ -5619,11 +5626,41 @@ window.initTutorSidebarState = initTutorSidebarState;
         function saveTutorAccount() {
             var name = document.getElementById('accTutorName').value.trim();
             var phone = document.getElementById('accTutorPhone').value.trim();
-            var pin = document.getElementById('accTutorPin').value.trim();
+            var pinEl = document.getElementById('accTutorPin');
+            var pin = (pinEl ? pinEl.value.trim() : '') || (tutorDataGlobal ? tutorDataGlobal.tutorPin : '');
             var email = document.getElementById('accTutorEmail') ? document.getElementById('accTutorEmail').value.trim() : "";
             var subjects = document.getElementById('accTutorSubjects') ? document.getElementById('accTutorSubjects').value.trim() : "";
             var experience = document.getElementById('accTutorExperience') ? document.getElementById('accTutorExperience').value.trim() : "";
             
+            // Hỗ trợ đổi PIN nếu người dùng nhập vào form đổi PIN trong modal Tài khoản
+            var nPinInput = document.getElementById('settingsNewPin');
+            var curPinInput = document.getElementById('settingsCurrentPin');
+            var confPinInput = document.getElementById('settingsConfirmPin');
+            if (nPinInput && nPinInput.value.trim()) {
+                var curP = curPinInput ? curPinInput.value.trim() : "";
+                var newP = nPinInput.value.trim();
+                var confP = confPinInput ? confPinInput.value.trim() : "";
+                var truePin = (tutorDataGlobal && tutorDataGlobal.tutorPin ? tutorDataGlobal.tutorPin : "").trim();
+
+                if (!curP) {
+                    showToast("Vui lòng nhập mã PIN hiện tại để đổi mã PIN!", "warning");
+                    return;
+                }
+                if (curP !== truePin) {
+                    showToast("Mã PIN hiện tại không chính xác!", "error");
+                    return;
+                }
+                if (newP.length < 4) {
+                    showToast("Mã PIN mới phải có ít nhất 4 ký tự!", "warning");
+                    return;
+                }
+                if (newP !== confP) {
+                    showToast("Mã PIN xác nhận không khớp!", "error");
+                    return;
+                }
+                pin = newP;
+            }
+
             if(!name || !phone) {
                 showToast("Vui lòng điền đầy đủ Tên và Số điện thoại!", "error");
                 return;
@@ -5668,6 +5705,10 @@ window.initTutorSidebarState = initTutorSidebarState;
                             tutorDataGlobal.tutorName = name;
                             tutorDataGlobal.tutorPhone = phone;
                             tutorDataGlobal.tutorPin = pin;
+                            if (pinEl) pinEl.value = pin;
+                            if (curPinInput) curPinInput.value = '';
+                            if (nPinInput) nPinInput.value = '';
+                            if (confPinInput) confPinInput.value = '';
                             tutorDataGlobal.email = email;
                             tutorDataGlobal.subjects = subjects;
                             tutorDataGlobal.experience = experience;
@@ -10067,10 +10108,27 @@ function closeSettingsModal() {
 }
 window.closeSettingsModal = closeSettingsModal;
 
+function togglePinInputVisibility(inputId, btn) {
+    var inp = document.getElementById(inputId);
+    if (!inp) return;
+    if (inp.type === 'password') {
+        inp.type = 'text';
+        if (btn) btn.innerHTML = '<i class="fa-solid fa-eye-slash"></i>';
+    } else {
+        inp.type = 'password';
+        if (btn) btn.innerHTML = '<i class="fa-solid fa-eye"></i>';
+    }
+}
+window.togglePinInputVisibility = togglePinInputVisibility;
+
 function changePin() {
-    var cur = document.getElementById('settingsCurrentPin').value.trim();
-    var nPin = document.getElementById('settingsNewPin').value.trim();
-    var cPin = document.getElementById('settingsConfirmPin').value.trim();
+    var curEl = document.getElementById('settingsCurrentPin');
+    var npEl = document.getElementById('settingsNewPin');
+    var cpEl = document.getElementById('settingsConfirmPin');
+
+    var cur = curEl ? curEl.value.trim() : '';
+    var nPin = npEl ? npEl.value.trim() : '';
+    var cPin = cpEl ? cpEl.value.trim() : '';
 
     if (!cur) { showToast('Vui lòng nhập mã PIN hiện tại!', 'warning'); return; }
     if (!nPin) { showToast('Vui lòng nhập mã PIN mới!', 'warning'); return; }
@@ -10083,12 +10141,19 @@ function changePin() {
         return;
     }
 
-    var btn = document.querySelector('.settings-action-btn');
-    if (btn) btn.disabled = true;
+    var btn = document.querySelector('.account-security-card .settings-action-btn') || document.querySelector('[onclick="changePin()"]') || document.querySelector('.settings-action-btn');
+    var origText = btn ? btn.innerHTML : '';
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang đổi...';
+    }
 
     google.script.run
         .withSuccessHandler(function(res) {
-            if (btn) btn.disabled = false;
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = origText || '<i class="fa-solid fa-key"></i> Đổi mã PIN';
+            }
             if (res && res.error) {
                 showToast('Lỗi: ' + res.error, 'error');
             } else {
@@ -10098,14 +10163,17 @@ function changePin() {
                 var accPinInput = document.getElementById('accTutorPin');
                 if (accPinInput) accPinInput.value = nPin;
 
-                document.getElementById('settingsCurrentPin').value = '';
-                document.getElementById('settingsNewPin').value = '';
-                document.getElementById('settingsConfirmPin').value = '';
+                if (curEl) curEl.value = '';
+                if (npEl) npEl.value = '';
+                if (cpEl) cpEl.value = '';
                 showToast('Đổi mã PIN bảo mật thành công!', 'success');
             }
         })
         .withFailureHandler(function(err) {
-            if (btn) btn.disabled = false;
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = origText || '<i class="fa-solid fa-key"></i> Đổi mã PIN';
+            }
             showToast('Lỗi kết nối: ' + err.toString(), 'error');
         })
         .capNhatThongTinGiaSu(

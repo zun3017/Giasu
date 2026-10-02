@@ -1448,9 +1448,57 @@
                 <label>Số điện thoại</label>
                 <input type="text" id="accTutorPhone">
             </div>
-            <div class="modal-form-group">
-                <label>Mã PIN đăng nhập</label>
-                <input type="text" id="accTutorPin">
+            <!-- BẢO MẬT & ĐỔI MÃ PIN ĐĂNG NHẬP -->
+            <div class="account-security-card" style="background: var(--bg-card-alt, rgba(255,255,255,0.03)); border: 1px solid var(--border-color); border-radius: 14px; padding: 14px 16px; margin: 14px 0;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <i class="fa-solid fa-shield-halved" style="color: var(--color-primary); font-size: 15px;"></i>
+                        <span style="font-weight: 700; font-size: 13.5px; color: var(--text-heading, var(--text-primary));">Đổi mã PIN bảo mật</span>
+                    </div>
+                    <span style="font-size: 11px; color: var(--text-secondary); background: var(--bg-input); padding: 3px 8px; border-radius: 6px; border: 1px solid var(--border-color);">
+                        Dùng khi đăng nhập
+                    </span>
+                </div>
+
+                <div class="modal-form-group" style="margin-bottom: 10px;">
+                    <label style="font-size: 12px; font-weight: 600;">Mã PIN hiện tại</label>
+                    <div style="position: relative;">
+                        <input type="password" id="settingsCurrentPin" placeholder="Nhập mã PIN hiện tại" maxlength="6" style="padding-right: 38px;">
+                        <button type="button" onclick="togglePinInputVisibility('settingsCurrentPin', this)" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--text-secondary); cursor: pointer; padding: 4px;" title="Hiện / Ẩn mã PIN">
+                            <i class="fa-solid fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="modal-grid-2" style="margin-bottom: 10px;">
+                    <div class="modal-form-group" style="margin-bottom: 0;">
+                        <label style="font-size: 12px; font-weight: 600;">Mã PIN mới (tối thiểu 4 số)</label>
+                        <div style="position: relative;">
+                            <input type="password" id="settingsNewPin" placeholder="Nhập mã PIN mới" maxlength="6" style="padding-right: 38px;">
+                            <button type="button" onclick="togglePinInputVisibility('settingsNewPin', this)" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--text-secondary); cursor: pointer; padding: 4px;" title="Hiện / Ẩn mã PIN">
+                                <i class="fa-solid fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="modal-form-group" style="margin-bottom: 0;">
+                        <label style="font-size: 12px; font-weight: 600;">Xác nhận mã PIN mới</label>
+                        <div style="position: relative;">
+                            <input type="password" id="settingsConfirmPin" placeholder="Nhập lại mã PIN mới" maxlength="6" style="padding-right: 38px;">
+                            <button type="button" onclick="togglePinInputVisibility('settingsConfirmPin', this)" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--text-secondary); cursor: pointer; padding: 4px;" title="Hiện / Ẩn mã PIN">
+                                <i class="fa-solid fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="display: flex; justify-content: flex-end; margin-top: 10px;">
+                    <button type="button" class="settings-action-btn" onclick="changePin()" style="width: auto; padding: 7px 16px; font-size: 12.5px; border-radius: 8px; margin: 0; display: inline-flex; align-items: center; gap: 6px;">
+                        <i class="fa-solid fa-key"></i> Đổi mã PIN
+                    </button>
+                </div>
+
+                <!-- Hidden input để đồng bộ accTutorPin cho các hàm hiện có -->
+                <input type="hidden" id="accTutorPin">
             </div>
             <div class="modal-form-group">
                 <label>Email liên hệ</label>
@@ -1567,29 +1615,7 @@
                 <button type="button" onclick="closeSettingsModal()" class="modal-close">&times;</button>
             </div>
 
-            <!-- 1. ĐỔI MÃ PIN -->
-            <div class="settings-section">
-                <h4 class="settings-section-title">
-                    <i class="fa-solid fa-lock"></i> Đổi mã PIN bảo mật
-                </h4>
-                <div class="modal-form-group">
-                    <label>Mã PIN hiện tại</label>
-                    <input type="password" id="settingsCurrentPin" placeholder="Nhập mã PIN hiện tại" maxlength="6">
-                </div>
-                <div class="modal-form-group">
-                    <label>Mã PIN mới (tối thiểu 4 số)</label>
-                    <input type="password" id="settingsNewPin" placeholder="Nhập mã PIN mới" maxlength="6">
-                </div>
-                <div class="modal-form-group">
-                    <label>Xác nhận mã PIN mới</label>
-                    <input type="password" id="settingsConfirmPin" placeholder="Nhập lại mã PIN mới" maxlength="6">
-                </div>
-                <button type="button" class="settings-action-btn" onclick="changePin()">
-                    <i class="fa-solid fa-key"></i> Đổi mã PIN
-                </button>
-            </div>
-
-            <!-- 2. GIAO DIỆN HIỂN THỊ (ĐỒNG BỘ THEME SWITCHER HỆ THỐNG) -->
+            <!-- 1. GIAO DIỆN HIỂN THỊ (ĐỒNG BỘ THEME SWITCHER HỆ THỐNG) -->
             <div class="settings-section" id="settingsThemeSection">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
                     <h4 class="settings-section-title" style="margin: 0;">
@@ -1644,7 +1670,7 @@
                 </div>
             </div>
 
-            <!-- 3. THÔNG BÁO -->
+            <!-- 2. THÔNG BÁO -->
             <div class="settings-section">
                 <h4 class="settings-section-title">
                     <i class="fa-solid fa-bell"></i> Thông báo & Âm thanh
@@ -1671,7 +1697,7 @@
                 </div>
             </div>
 
-            <!-- 4. HƯỚNG DẪN SỬ DỤNG -->
+            <!-- 3. HƯỚNG DẪN SỬ DỤNG -->
             <div class="settings-section">
                 <h4 class="settings-section-title">
                     <i class="fa-solid fa-circle-question"></i> Hướng dẫn & Trợ giúp
