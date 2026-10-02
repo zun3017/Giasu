@@ -6317,10 +6317,22 @@ body {
 .onboarding-backdrop {
     position: fixed;
     top: 0; left: 0; right: 0; bottom: 0;
-    background: rgba(0, 0, 0, 0.65);
+    background: transparent;
+    z-index: 9997;
+    pointer-events: auto;
+}
+
+.onboarding-spotlight {
+    position: fixed;
     z-index: 9998;
-    backdrop-filter: blur(2px);
-    transition: opacity 0.3s;
+    border-radius: 16px;
+    border: 2.5px solid var(--color-primary, #3B82F6);
+    /* Lớp phủ tối nhẹ xung quanh, khoét lỗ vùng được hướng dẫn 100% trong suốt, sáng rõ nét, không che mờ chữ */
+    box-shadow: 0 0 0 9999px rgba(15, 23, 42, 0.42), 0 0 20px rgba(59, 130, 246, 0.4);
+    pointer-events: none;
+    transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+    display: none;
+    box-sizing: border-box;
 }
 
 .onboarding-tooltip {
@@ -6331,7 +6343,7 @@ body {
     padding: 20px 24px;
     max-width: 380px;
     width: calc(100vw - 40px);
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35), 0 0 0 3px var(--color-primary, #3B82F6);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35), 0 0 0 1px var(--border-color, #e2e8f0);
     animation: tooltipAppear 0.3s ease;
 }
 

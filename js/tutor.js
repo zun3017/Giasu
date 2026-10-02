@@ -10033,9 +10033,96 @@ function startOnboarding() {
     currentOnboardingStep = 0;
     var overlay = document.getElementById('onboardingOverlay');
     if (overlay) overlay.style.display = 'block';
+
+    window.addEventListener('resize', updateOnboardingPositions);
+    window.addEventListener('scroll', updateOnboardingPositions, true);
+
     showOnboardingStep(0);
 }
 window.startOnboarding = startOnboarding;
+
+function updateOnboardingPositions() {
+    if (currentOnboardingStep < 0 || currentOnboardingStep >= onboardingSteps.length) return;
+    var step = onboardingSteps[currentOnboardingStep];
+    var targetEl = document.querySelector(step.target);
+    var spotlight = document.getElementById('onboardingSpotlight');
+    var tooltip = document.getElementById('onboardingTooltip');
+
+    if (!targetEl || !tooltip) {
+        if (spotlight) spotlight.style.display = 'none';
+        if (tooltip) {
+            tooltip.style.top = '50%';
+            tooltip.style.left = '50%';
+            tooltip.style.transform = 'translate(-50%, -50%)';
+        }
+        return;
+    }
+
+    var rect = targetEl.getBoundingClientRect();
+    var pad = 8;
+
+    // Khoét lỗ sáng trực tiếp quanh phần tử mục tiêu (sáng rõ nét 100%, không mờ che chữ)
+    if (spotlight) {
+        spotlight.style.display = 'block';
+        spotlight.style.top = Math.max(0, rect.top - pad) + 'px';
+        spotlight.style.left = Math.max(0, rect.left - pad) + 'px';
+        spotlight.style.width = (rect.width + pad * 2) + 'px';
+        spotlight.style.height = (rect.height + pad * 2) + 'px';
+    }
+
+    // Căn vị trí Tooltip
+    var tooltipWidth = Math.min(380, window.innerWidth - 40);
+    var tooltipHeight = tooltip.offsetHeight || 180;
+    tooltip.style.transform = 'none';
+
+    if (window.innerWidth <= 768) {
+        tooltip.style.top = 'auto';
+        tooltip.style.bottom = '20px';
+        tooltip.style.left = '20px';
+        tooltip.style.right = '20px';
+        tooltip.style.width = 'calc(100vw - 40px)';
+        return;
+    }
+
+    tooltip.style.bottom = 'auto';
+    tooltip.style.right = 'auto';
+    tooltip.style.width = tooltipWidth + 'px';
+
+    var top = 0;
+    var left = 0;
+
+    if (step.placement === 'bottom') {
+        top = rect.bottom + 16;
+        left = rect.left + (rect.width / 2) - (tooltipWidth / 2);
+    } else if (step.placement === 'top') {
+        top = rect.top - tooltipHeight - 16;
+        left = rect.left + (rect.width / 2) - (tooltipWidth / 2);
+    } else if (step.placement === 'right') {
+        top = rect.top + (rect.height / 2) - (tooltipHeight / 2);
+        left = rect.right + 16;
+    } else {
+        top = rect.bottom + 16;
+        left = rect.left;
+    }
+
+    // Tự động lật lên phía trên nếu tràn viền dưới màn hình
+    if (top + tooltipHeight > window.innerHeight - 20) {
+        if (rect.top - tooltipHeight - 16 > 20) {
+            top = rect.top - tooltipHeight - 16;
+        } else {
+            top = window.innerHeight - tooltipHeight - 20;
+        }
+    }
+    if (top < 20) top = 20;
+    if (left < 20) left = 20;
+    if (left + tooltipWidth > window.innerWidth - 20) {
+        left = window.innerWidth - tooltipWidth - 20;
+    }
+
+    tooltip.style.top = top + 'px';
+    tooltip.style.left = left + 'px';
+}
+window.updateOnboardingPositions = updateOnboardingPositions;
 
 function showOnboardingStep(idx) {
     if (idx < 0 || idx >= onboardingSteps.length) {
@@ -10044,14 +10131,8 @@ function showOnboardingStep(idx) {
     }
     currentOnboardingStep = idx;
     var step = onboardingSteps[idx];
-    
-    // Clear previous highlight
-    document.querySelectorAll('.onboarding-highlight').forEach(function(el) {
-        el.classList.remove('onboarding-highlight');
-    });
 
     var targetEl = document.querySelector(step.target);
-    var tooltip = document.getElementById('onboardingTooltip');
     var stepCount = document.getElementById('onboardingStepCount');
     var titleEl = document.getElementById('onboardingTitle');
     var descEl = document.getElementById('onboardingDesc');
@@ -10072,75 +10153,16 @@ function showOnboardingStep(idx) {
     }
 
     if (targetEl) {
-        targetEl.classList.add('onboarding-highlight');
         try {
-            targetEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
         } catch(e) {}
-
-        positionOnboardingTooltip(targetEl, tooltip, step.placement);
-    } else {
-        if (tooltip) {
-            tooltip.style.top = '50%';
-            tooltip.style.left = '50%';
-            tooltip.style.transform = 'translate(-50%, -50%)';
-        }
     }
+
+    updateOnboardingPositions();
+    setTimeout(updateOnboardingPositions, 150);
+    setTimeout(updateOnboardingPositions, 350);
 }
 window.showOnboardingStep = showOnboardingStep;
-
-function positionOnboardingTooltip(targetEl, tooltip, placement) {
-    if (!targetEl || !tooltip) return;
-    
-    setTimeout(function() {
-        var rect = targetEl.getBoundingClientRect();
-        var tooltipWidth = Math.min(380, window.innerWidth - 40);
-        var tooltipHeight = tooltip.offsetHeight || 180;
-        
-        var top = 0;
-        var left = 0;
-        tooltip.style.transform = 'none';
-
-        if (window.innerWidth <= 768) {
-            tooltip.style.top = 'auto';
-            tooltip.style.bottom = '20px';
-            tooltip.style.left = '20px';
-            tooltip.style.right = '20px';
-            tooltip.style.width = 'calc(100vw - 40px)';
-            return;
-        }
-
-        tooltip.style.bottom = 'auto';
-        tooltip.style.right = 'auto';
-        tooltip.style.width = tooltipWidth + 'px';
-
-        if (placement === 'bottom') {
-            top = rect.bottom + 16;
-            left = rect.left + (rect.width / 2) - (tooltipWidth / 2);
-        } else if (placement === 'top') {
-            top = rect.top - tooltipHeight - 16;
-            left = rect.left + (rect.width / 2) - (tooltipWidth / 2);
-        } else if (placement === 'right') {
-            top = rect.top + (rect.height / 2) - (tooltipHeight / 2);
-            left = rect.right + 16;
-        } else {
-            top = rect.bottom + 16;
-            left = rect.left;
-        }
-
-        // Clamp inside window boundaries
-        if (left < 20) left = 20;
-        if (left + tooltipWidth > window.innerWidth - 20) {
-            left = window.innerWidth - tooltipWidth - 20;
-        }
-        if (top < 20) top = 20;
-        if (top + tooltipHeight > window.innerHeight - 20) {
-            top = window.innerHeight - tooltipHeight - 20;
-        }
-
-        tooltip.style.top = top + 'px';
-        tooltip.style.left = left + 'px';
-    }, 60);
-}
 
 function nextOnboardingStep() {
     if (currentOnboardingStep < onboardingSteps.length - 1) {
@@ -10166,9 +10188,12 @@ window.skipOnboarding = skipOnboarding;
 function finishOnboarding() {
     var overlay = document.getElementById('onboardingOverlay');
     if (overlay) overlay.style.display = 'none';
-    document.querySelectorAll('.onboarding-highlight').forEach(function(el) {
-        el.classList.remove('onboarding-highlight');
-    });
+    var spotlight = document.getElementById('onboardingSpotlight');
+    if (spotlight) spotlight.style.display = 'none';
+
+    window.removeEventListener('resize', updateOnboardingPositions);
+    window.removeEventListener('scroll', updateOnboardingPositions, true);
+
     var phone = (tutorDataGlobal && tutorDataGlobal.tutorPhone) ? tutorDataGlobal.tutorPhone : (currentTutorPhone || 'default');
     localStorage.setItem('tutorOnboarded_' + phone, 'true');
     showToast('Bạn có thể xem lại hướng dẫn bất cứ lúc nào trong Cài đặt!', 'info');
