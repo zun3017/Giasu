@@ -516,7 +516,19 @@ function renderUpcomingSchedule(scheduleList, selM, selY) {
     var curY = now.getFullYear();
     var isCurrentMonth = (selM === curM && selY === curY);
 
-    var sched = scheduleList || (lastLoadedTutorSchedule || []);
+    var sched = scheduleList;
+    if (!sched || sched.length === 0) {
+        try {
+            var calFrame = document.getElementById('tutorCalendarIframe');
+            if (calFrame && calFrame.contentWindow && Array.isArray(calFrame.contentWindow.tutorScheduleSheetData) && calFrame.contentWindow.tutorScheduleSheetData.length > 0) {
+                sched = calFrame.contentWindow.tutorScheduleSheetData;
+                lastLoadedTutorSchedule = sched;
+            }
+        } catch(e) {}
+    }
+    if (!sched || sched.length === 0) {
+        sched = lastLoadedTutorSchedule || [];
+    }
     var students = (tutorDataGlobal && tutorDataGlobal.students ? tutorDataGlobal.students : []);
 
     // Helper map subject & style
@@ -545,12 +557,15 @@ function renderUpcomingSchedule(scheduleList, selM, selY) {
             return day + "/" + month + "/" + year;
         }
 
+        var todayDmyStr = formatDmy(today);
+        var tomorrowDmyStr = formatDmy(tomorrow);
+
         var fmtFn = (typeof window.formatDateWithDayOfWeek === 'function') 
             ? window.formatDateWithDayOfWeek 
             : function(str) { return str; };
 
-        var todayDateFormatted = fmtFn(formatDmy(today));
-        var tomorrowDateFormatted = fmtFn(formatDmy(tomorrow));
+        var todayDateFormatted = fmtFn(todayDmyStr);
+        var tomorrowDateFormatted = fmtFn(tomorrowDmyStr);
 
         if (todayTitleEl) {
             todayTitleEl.innerHTML = '<i class="fa-solid fa-sun" style="color: var(--color-primary); margin-right: 6px;"></i> Hôm nay — ' + todayDateFormatted;
@@ -559,26 +574,165 @@ function renderUpcomingSchedule(scheduleList, selM, selY) {
             tomorrowTitleEl.innerHTML = '<i class="fa-solid fa-calendar-day" style="color: var(--color-primary); margin-right: 6px;"></i> Ngày mai — ' + tomorrowDateFormatted;
         }
 
-        function buildItems(dayKey) {
+        // Deduplicate sched by studentName (normalized lowercase)
+        var dedupedSched = [];
+        var seenStudentMap = new Map();
+        if (Array.isArray(sched)) {
+            sched.forEach(function(s) {
+                if (!s || !s.studentName) return;
+                var norm = s.studentName.trim().toLowerCase();
+                if (!seenStudentMap.has(norm)) {
+                    var copy = Object.assign({}, s);
+                    seenStudentMap.set(norm, copy);
+                    dedupedSched.push(copy);
+                } else {
+                    // Nếu có nhiều hàng trùng tên, gộp các ô lịch
+                    var existing = seenStudentMap.get(norm);
+                    dayKeys.forEach(function(dk) {
+                        if (s[dk] && String(s[dk]).trim()) {
+                            if (!existing[dk] || !String(existing[dk]).trim()) {
+                                existing[dk] = String(s[dk]).trim();
+                            } else if (String(existing[dk]).trim() !== String(s[dk]).trim()) {
+                                var exSlots = String(existing[dk]).split('|').map(function(x){ return x.trim(); });
+                                var newSlots = String(s[dk]).split('|').map(function(x){ return x.trim(); });
+                                newSlots.forEach(function(ns) {
+                                    if (ns && !exSlots.includes(ns)) exSlots.push(ns);
+                                });
+                                existing[dk] = exSlots.join(' | ');
+                            }
+                        }
+                    });
+                }
+            });
+        }
+
+        function buildItems(dayKey, targetDateStr) {
             var items = [];
-            if (Array.isArray(sched)) {
-                sched.forEach(function(s) {
-                    var timeSlot = s[dayKey];
-                    if (timeSlot && String(timeSlot).trim() !== "") {
-                        items.push({
-                            studentName: s.studentName.trim(),
-                            time: timeSlot.trim(),
-                            subject: subjectMap[s.studentName.trim()] || "Gia sư 1-1",
-                            color: s.color || ""
+            var seenSlotTimes = new Set(); // tránh trùng lặp cùng 1 học sinh cùng 1 khung giờ
+
+            dedupedSched.forEach(function(s) {
+                var studentDisplayName = s.studentName.trim();
+                var studentNorm = studentDisplayName.toLowerCase();
+
+                // Lấy tất cả các slot có thể áp dụng cho ngày này:
+                // 1. Các slot trong đúng cột dayKey (lịch cố định hàng tuần và ca 1 lần đúng ngày)
+                // 2. Các slot 1 lần có ngày cụ thể trùng với targetDateStr ở bất kỳ cột nào
+                var potentialSlots = [];
+
+                if (s[dayKey] && String(s[dayKey]).trim() !== '') {
+                    var daySlots = String(s[dayKey]).split('|').map(function(x) { return x.trim(); }).filter(function(x) { return x !== ''; });
+                    daySlots.forEach(function(sl) { potentialSlots.push({ slotVal: sl, isMainDay: true }); });
+                }
+
+                dayKeys.forEach(function(otherKey) {
+                    if (otherKey !== dayKey && s[otherKey] && String(s[otherKey]).trim() !== '') {
+                        var otherSlots = String(s[otherKey]).split('|').map(function(x) { return x.trim(); }).filter(function(x) { return x !== ''; });
+                        otherSlots.forEach(function(sl) {
+                            if (sl.includes(targetDateStr)) {
+                                potentialSlots.push({ slotVal: sl, isMainDay: false });
+                            }
                         });
                     }
                 });
-            }
+
+                potentialSlots.forEach(function(slotObj) {
+                    var slotVal = slotObj.slotVal;
+
+                    // 0. Bóc màu session [C:#RRGGBB]
+                    var sessionColor = '';
+                    var colorMatch = slotVal.match(/^\[C:(#[0-9A-Fa-f]{6})\]/);
+                    if (colorMatch) {
+                        sessionColor = colorMatch[1];
+                        slotVal = slotVal.replace(/^\[C:(#[0-9A-Fa-f]{6})\]/, '').trim();
+                    }
+
+                    // 1. Bóc SKIP marker
+                    var skipDates = [];
+                    var rawVal = slotVal;
+                    if (rawVal.includes(' SKIP ')) {
+                        var p = rawVal.split(' SKIP ');
+                        rawVal = p[0].trim();
+                        skipDates = p[1].split(',').map(function(d) { return d.trim(); });
+                    }
+                    if (skipDates.includes(targetDateStr)) return;
+
+                    // 2. Bóc ngày cụ thể (1 lần hoặc RESCHEDULE)
+                    var datePrefixRegex = /^(\d{2})\/(\d{2})\/(\d{4}):\s*/;
+                    var rescheduleRegex = /^RESCHEDULE (\d{2})\/(\d{2})\/(\d{4}):\s*/;
+
+                    var isOneTime = false;
+                    var isReschedule = false;
+                    var eventDateStr = '';
+                    var cleanTimeStr = rawVal;
+
+                    var reschedMatch = rawVal.match(rescheduleRegex);
+                    var dateMatch = rawVal.match(datePrefixRegex);
+
+                    if (reschedMatch) {
+                        isReschedule = true;
+                        eventDateStr = reschedMatch[1] + '/' + reschedMatch[2] + '/' + reschedMatch[3];
+                        cleanTimeStr = rawVal.replace(rescheduleRegex, '').trim();
+                    } else if (dateMatch) {
+                        isOneTime = true;
+                        eventDateStr = dateMatch[1] + '/' + dateMatch[2] + '/' + dateMatch[3];
+                        cleanTimeStr = rawVal.replace(datePrefixRegex, '').trim();
+                    }
+
+                    // Nếu là ca 1 lần hoặc dời lịch mà ngày không khớp targetDateStr thì bỏ qua
+                    if ((isOneTime || isReschedule) && eventDateStr !== targetDateStr) {
+                        return;
+                    }
+                    // Nếu là slot cố định hàng tuần nhưng lại lấy từ cột khác không phải dayKey thì bỏ qua
+                    if (!isOneTime && !isReschedule && !slotObj.isMainDay) {
+                        return;
+                    }
+
+                    // 3. Kiểm tra hủy
+                    var isCancelled = /\[CANCELLED\]|\[HỦY\]|\[HUY\]/i.test(rawVal) || /đã hủy|báo nghỉ|nghỉ học/i.test(cleanTimeStr);
+                    if (isCancelled) return;
+
+                    // 4. Trích xuất giờ
+                    var timeRegex = /(\d{1,2}:\d{2})\s*-\s*(\d{1,2}:\d{2})/;
+                    var timeMatch = cleanTimeStr.match(timeRegex);
+                    if (!timeMatch) return;
+
+                    var timeDisplay = timeMatch[1] + ' - ' + timeMatch[2];
+                    var notes = cleanTimeStr.replace(timeRegex, '').trim().replace(/^[\(\[\s\-]+|[\)\]\s]+$/g, '');
+
+                    // Tránh trùng lặp cùng 1 học sinh cùng 1 giờ
+                    var uniqueKey = studentNorm + '_' + timeDisplay;
+                    if (seenSlotTimes.has(uniqueKey)) return;
+                    seenSlotTimes.add(uniqueKey);
+
+                    var sSubject = subjectMap[studentDisplayName] || s.subject || "Gia sư 1-1";
+                    if (notes) {
+                        sSubject += " (" + notes + ")";
+                    }
+                    if (isOneTime) {
+                        sSubject += " [1 Lần]";
+                    } else if (isReschedule) {
+                        sSubject += " [Dời sang]";
+                    }
+
+                    items.push({
+                        studentName: studentDisplayName,
+                        time: timeDisplay,
+                        subject: sSubject,
+                        color: sessionColor || s.color || ""
+                    });
+                });
+            });
+
+            // Sắp xếp theo giờ tăng dần
+            items.sort(function(a, b) {
+                return (a.time || '').localeCompare(b.time || '');
+            });
+
             return items;
         }
 
-        var todayItems = buildItems(todayKey);
-        var tomorrowItems = buildItems(tomorrowKey);
+        var todayItems = buildItems(todayKey, todayDmyStr);
+        var tomorrowItems = buildItems(tomorrowKey, tomorrowDmyStr);
 
         if (todayCountBadge) todayCountBadge.innerText = todayItems.length + " buổi";
         if (tomorrowCountBadge) tomorrowCountBadge.innerText = tomorrowItems.length + " buổi";
@@ -4195,9 +4349,15 @@ function switchTutorNavTab(element, tabKey) {
     if (tuitionSec) tuitionSec.style.display = (tabKey === 'tuition') ? 'block' : 'none';
 
     if (tabKey === 'overview') {
+        try {
+            var calFrame = document.getElementById('tutorCalendarIframe');
+            if (calFrame && calFrame.contentWindow && Array.isArray(calFrame.contentWindow.tutorScheduleSheetData) && calFrame.contentWindow.tutorScheduleSheetData.length > 0) {
+                lastLoadedTutorSchedule = calFrame.contentWindow.tutorScheduleSheetData;
+            }
+        } catch(e) {}
         updateOverviewMonthSelectorUI();
         renderTutorKpiCards(null, tutorOverviewMonth, tutorOverviewYear);
-        renderUpcomingSchedule(null, tutorOverviewMonth, tutorOverviewYear);
+        renderUpcomingSchedule(lastLoadedTutorSchedule, tutorOverviewMonth, tutorOverviewYear);
         if (typeof renderOverviewCharts === 'function') {
             renderOverviewCharts(tutorOverviewMonth, tutorOverviewYear);
         }
@@ -5789,18 +5949,32 @@ window.initTutorSidebarState = initTutorSidebarState;
             var list = lastLoadedTutorSchedule || [];
             var schedMap = {};
             list.forEach(function(s) {
-                if (s && s.studentName) schedMap[s.studentName.trim()] = s;
+                if (s && s.studentName) {
+                    schedMap[s.studentName.trim()] = s;
+                    schedMap[s.studentName.trim().toLowerCase()] = s;
+                }
             });
             
-            var students = (typeof getTutorStudentsResolved === 'function') 
+            var baseStudents = (typeof getTutorStudentsResolved === 'function') 
                 ? getTutorStudentsResolved() 
                 : ((tutorDataGlobal && tutorDataGlobal.students) ? tutorDataGlobal.students : []);
+            var students = Array.isArray(baseStudents) ? baseStudents.slice() : [];
+            var stNames = new Set(students.map(function(st){ return (st.name || '').trim().toLowerCase(); }));
+            list.forEach(function(s) {
+                if (s && s.studentName && !stNames.has(s.studentName.trim().toLowerCase())) {
+                    stNames.add(s.studentName.trim().toLowerCase());
+                    students.push({
+                        name: s.studentName.trim(),
+                        subject: s.subject || "Gia sư 1-1"
+                    });
+                }
+            });
                 
             var table = document.getElementById('tutorScheduleTable');
             if (table && students && students.length > 0) {
                 var tableHtml = "<tr><th>Học sinh</th><th>Thứ 2</th><th>Thứ 3</th><th>Thứ 4</th><th>Thứ 5</th><th>Thứ 6</th><th>Thứ 7</th><th>CN</th><th style='width: 50px;'>Sửa</th></tr>";
                 students.forEach(function(st) {
-                    var s = schedMap[st.name.trim()] || { mon: "", tue: "", wed: "", thu: "", fri: "", sat: "", sun: "" };
+                    var s = schedMap[st.name.trim()] || schedMap[st.name.trim().toLowerCase()] || { mon: "", tue: "", wed: "", thu: "", fri: "", sat: "", sun: "" };
                     tableHtml += "<tr>" +
                         "<td style='font-weight:700; color:var(--color-primary); text-align: left; padding: 12px 14px; white-space: nowrap;'>" + st.name + "</td>" +
                         "<td style='text-align: center; padding: 12px 10px;'>" + formatScheduleCell(s.mon) + "</td>" +
@@ -9799,10 +9973,19 @@ window.closeThemeSwitcher = closeThemeSwitcher;
 window.computeCustomThemeVars = computeCustomThemeVars;
 window.applyCustomTheme = applyCustomTheme;
 
-// Lắng nghe tín hiệu yêu cầu đồng bộ theme từ iframe lịch khi iframe tải xong
+// Lắng nghe tín hiệu yêu cầu đồng bộ theme và cập nhật lịch từ iframe lịch
 window.addEventListener('message', function(e) {
   if (e.data && (e.data.type === 'calendarReady' || e.data.type === 'requestTheme')) {
     syncThemeToCalendarIframe();
+  }
+  if (e.data && e.data.type === 'tutorScheduleUpdated' && Array.isArray(e.data.schedule)) {
+    lastLoadedTutorSchedule = e.data.schedule;
+    if (typeof renderUpcomingSchedule === 'function') {
+      renderUpcomingSchedule(e.data.schedule);
+    }
+    if (typeof refreshTutorScheduleDisplay === 'function') {
+      refreshTutorScheduleDisplay(e.data.schedule);
+    }
   }
 });
 
@@ -9830,6 +10013,14 @@ document.addEventListener('DOMContentLoaded', function() {
       syncThemeToCalendarIframe();
       setTimeout(syncThemeToCalendarIframe, 100);
       setTimeout(syncThemeToCalendarIframe, 350);
+      try {
+        if (calFrame.contentWindow && Array.isArray(calFrame.contentWindow.tutorScheduleSheetData) && calFrame.contentWindow.tutorScheduleSheetData.length > 0) {
+          lastLoadedTutorSchedule = calFrame.contentWindow.tutorScheduleSheetData;
+          if (typeof renderUpcomingSchedule === 'function') {
+            renderUpcomingSchedule(lastLoadedTutorSchedule);
+          }
+        }
+      } catch(e) {}
     });
   }
 });
