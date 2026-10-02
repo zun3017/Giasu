@@ -2537,6 +2537,85 @@ function getDefaultInvoiceSections(st, isMonthly, unitFeeStr) {
 }
 window.getDefaultInvoiceSections = getDefaultInvoiceSections;
 
+function formatTuitionFeedback(text) {
+    if (!text) return '';
+    // Only apply 3-part structural formatting if text matches structured feedback headers
+    var hasHeaders = /(tổng\s*quan|kiến\s*thức|cải\s*thiện)/i.test(text);
+    if (!hasHeaders) {
+        return text;
+    }
+
+    var clean = text
+        .replace(/<br\s*[\/]?>/gi, '\n')
+        .replace(/<\/div>/gi, '\n')
+        .replace(/<\/p>/gi, '\n')
+        .replace(/<div[^>]*>/gi, '')
+        .replace(/<p[^>]*>/gi, '')
+        .replace(/&nbsp;/gi, ' ');
+    
+    var lines = clean.split('\n').map(function(l) { return l.trim(); }).filter(function(l) { return l.length > 0; });
+    var resultLines = [];
+    var isFirstHeader = true;
+
+    for (var i = 0; i < lines.length; i++) {
+        var rawLine = lines[i];
+        var plain = rawLine.replace(/<[^>]+>/g, '').trim();
+        var headerClean = plain.replace(/[*#_]/g, '').trim().replace(/^\d+[\.\)]\s*/, '').trim();
+
+        var isTongQuan = /^(tổng\s*quan)\s*:?$/i.test(headerClean);
+        var isKienThuc = /^(kiến\s*thức\s*(&|và)?\s*kỹ\s*năng)\s*:?$/i.test(headerClean);
+        var isDiemCaiThien = /^(điểm\s*cần\s*cải\s*thiện|cần\s*cải\s*thiện)\s*:?$/i.test(headerClean);
+
+        if (isTongQuan) {
+            var mt = isFirstHeader ? '0' : '6px';
+            isFirstHeader = false;
+            resultLines.push('<div style="margin-top: ' + mt + '; margin-bottom: 3px;"><b>Tổng quan:</b></div>');
+        } else if (isKienThuc) {
+            var mt = isFirstHeader ? '0' : '6px';
+            isFirstHeader = false;
+            resultLines.push('<div style="margin-top: ' + mt + '; margin-bottom: 3px;"><b>Kiến thức & Kỹ năng:</b></div>');
+        } else if (isDiemCaiThien) {
+            var mt = isFirstHeader ? '0' : '6px';
+            isFirstHeader = false;
+            resultLines.push('<div style="margin-top: ' + mt + '; margin-bottom: 3px;"><b>Điểm cần cải thiện:</b></div>');
+        } else {
+            var lineContent = rawLine
+                .replace(/^[\s•\-\*\+]+/, '')
+                .replace(/^\d+[\.\)]\s*/, '')
+                .trim();
+            lineContent = lineContent.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
+            if (lineContent.length > 0) {
+                resultLines.push('<div>+ ' + lineContent + '</div>');
+            }
+        }
+    }
+    return resultLines.join('');
+}
+window.formatTuitionFeedback = formatTuitionFeedback;
+
+function handleTuitionFeedbackPaste(e) {
+    if (!e) return;
+    var pastedText = '';
+    if (e.clipboardData && e.clipboardData.getData) {
+        pastedText = e.clipboardData.getData('text/plain');
+    } else if (window.clipboardData && window.clipboardData.getData) {
+        pastedText = window.clipboardData.getData('Text');
+    }
+    if (!pastedText || pastedText.trim() === '') return;
+
+    var hasHeaders = /(tổng\s*quan|kiến\s*thức|cải\s*thiện)/i.test(pastedText);
+    if (hasHeaders) {
+        e.preventDefault();
+        var formattedHtml = formatTuitionFeedback(pastedText);
+        var target = e.currentTarget || e.target;
+        if (target && formattedHtml) {
+            target.innerHTML = formattedHtml;
+            onTuitionCustomFieldInput('feedbackText', formattedHtml);
+        }
+    }
+}
+window.handleTuitionFeedbackPaste = handleTuitionFeedbackPaste;
+
 function onTuitionCustomFieldInput(field, val) {
     if (!window.tuitionInvoiceModalState) window.tuitionInvoiceModalState = {};
     window.tuitionInvoiceModalState[field] = val;
@@ -3224,7 +3303,7 @@ function renderTuitionLivePreview() {
         var defaultSections = getDefaultInvoiceSections(st, isMonthly, unitFeeStr);
 
         var feedbackContent = (state.feedbackText !== undefined && state.feedbackText !== "") 
-            ? state.feedbackText 
+            ? formatTuitionFeedback(state.feedbackText) 
             : defaultSections.feedbackHtml;
             
         var roadmapContent = (state.roadmapText !== undefined && state.roadmapText !== "") 
@@ -3337,7 +3416,7 @@ function renderTuitionLivePreview() {
         if (toggles.feedback !== false) {
             html += '<div style="margin-top: 14px;">';
             html += '<div style="font-size: 12.5px; font-weight: 800; color: #7C3AED; text-transform: uppercase; letter-spacing: 0.5px; padding-bottom: 5px; border-bottom: 1.5px solid #F3E8FF; margin-bottom: 8px;"><i class="fa-regular fa-comment-dots" style="color: #7C3AED; margin-right: 5px;"></i>NHẬN XÉT HỌC TẬP</div>';
-            html += '<div id="invFeedbackText" contenteditable="true" style="font-size: 11.5px; color: #1E293B; line-height: 1.6; outline: none; padding: 2px 0;" oninput="onTuitionCustomFieldInput(\'feedbackText\', this.innerHTML)">' + feedbackContent + '</div>';
+            html += '<div id="invFeedbackText" contenteditable="true" style="font-size: 11.5px; color: #1E293B; line-height: 1.6; outline: none; padding: 2px 0;" onpaste="handleTuitionFeedbackPaste(event)" oninput="onTuitionCustomFieldInput(\'feedbackText\', this.innerHTML)">' + feedbackContent + '</div>';
             html += '</div>';
         }
 
@@ -4284,25 +4363,26 @@ function copyTuitionAIPrompt() {
     }
     promptLines.push("");
     promptLines.push("=== YÊU CẦU BẮT BUỘC ĐỐI VỚI AI ===");
-    promptLines.push("Hãy dựa vào toàn bộ dữ liệu thực tế trên để viết phần \"NHẬN XÉT HỌC TẬP\" định kỳ gửi cho phụ huynh. BẮT BUỘC PHẢI CHIA ĐÚNG BỐ CỤC 3 PHẦN theo chuẩn cấu trúc sau:");
+    promptLines.push("Hãy dựa vào toàn bộ dữ liệu thực tế trên để viết phần \"NHẬN XÉT HỌC TẬP\" định kỳ gửi cho phụ huynh. BẮT BUỘC PHẢI CHIA ĐÚNG BỐ CỤC 3 PHẦN và TUÂN THỦ CHÍNH XÁC ĐỊNH DẠNG sau:");
     promptLines.push("");
-    promptLines.push("Tổng quan:");
+    promptLines.push("**Tổng quan:**");
     promptLines.push("+ [Nhận xét về tinh thần, thái độ học tập, tính chuyên cần, đi học đúng giờ và tập trung nghe giảng]");
     promptLines.push("+ [Nhận xét về ý thức làm bài tập về nhà, mức độ hoàn thành BTVN và tính chủ động tương tác/hỏi bài]");
     promptLines.push("");
-    promptLines.push("Kiến thức & Kỹ năng:");
+    promptLines.push("**Kiến thức & Kỹ năng:**");
     promptLines.push("+ [Nhận xét về khả năng tiếp thu bài, mức độ nắm chắc kiến thức trọng tâm bám sát các buổi học trong tháng]");
     promptLines.push("+ [Nhận xét về kỹ năng giải bài tập, điểm số kiểm tra, sự tiến bộ trong tư duy và vận dụng phương pháp]");
     promptLines.push("");
-    promptLines.push("Điểm cần cải thiện:");
+    promptLines.push("**Điểm cần cải thiện:**");
     promptLines.push("+ [Chỉ ra điểm cần khắc phục thực tế, rèn luyện tính cẩn thận khi tính toán/làm bài để tránh lỗi sơ suất]");
     promptLines.push("+ [Định hướng rèn luyện, lời khích lệ chân thành, nhắc nhở cách trình bày hoặc duy trì thói quen tự ôn bài]");
     promptLines.push("");
-    promptLines.push("=== QUY TẮC ĐỊNH DẠNG VÀ VĂN PHONG ===");
-    promptLines.push("1. BỐ CỤC BẮT BUỘC: Phải có đúng 3 tiêu đề chính xác: 'Tổng quan:', 'Kiến thức & Kỹ năng:', 'Điểm cần cải thiện:'. Dưới mỗi tiêu đề phải có đúng 2 gạch đầu dòng bắt đầu bằng dấu cộng '+ ' (mỗi gạch là 1 câu nhận xét súc tích, hoàn chỉnh).");
-    promptLines.push("2. ĐỘ DÀI: Khoảng 120 – 180 từ, súc tích, cô đọng, giàu tính sư phạm.");
-    promptLines.push("3. VĂN PHONG: Trang trọng, chân tình, bám sát các dữ liệu thực tế của học sinh (số buổi học, tỉ lệ BTVN, điểm kiểm tra, ghi chú của gia sư).");
-    promptLines.push("4. ĐỊNH DẠNG ĐẦU RA: CHỈ XUẤT DUY NHẤT ĐOẠN VĂN THEO ĐÚNG MẪU 3 PHẦN TRÊN (không kèm lời chào mở đầu như 'Dưới đây là...', không kèm tiêu đề phụ hay ghi chú ở cuối) để gia sư có thể copy và dán ngay vào phiếu học phí.");
+    promptLines.push("=== QUY TẮC ĐỊNH DẠNG VÀ VĂN PHONG (BẮT BUỘC TUÂN THỦ) ===");
+    promptLines.push("1. TIÊU ĐỀ BẮT BUỘC IN ĐẬM: Ba tiêu đề quan trọng BẮT BUỘC PHẢI IN ĐẬM bằng cú pháp markdown: **Tổng quan:**, **Kiến thức & Kỹ năng:**, **Điểm cần cải thiện:**.");
+    promptLines.push("2. DẤU ĐẦU DÒNG BẮT BUỘC DÙNG DẤU CỘNG '+ ': Dưới mỗi tiêu đề phải có đúng 2 gạch đầu dòng bắt đầu bằng dấu cộng '+ ' (mỗi gạch là 1 câu nhận xét súc tích, hoàn chỉnh). TUYỆT ĐỐI KHÔNG dùng dấu chấm tròn '•', TUYỆT ĐỐI KHÔNG dùng gạch ngang '-'.");
+    promptLines.push("3. ĐỘ DÀI: Khoảng 120 – 180 từ, súc tích, cô đọng, giàu tính sư phạm.");
+    promptLines.push("4. VĂN PHONG: Trang trọng, chân tình, bám sát các dữ liệu thực tế của học sinh (số buổi học, tỉ lệ BTVN, điểm kiểm tra, ghi chú của gia sư).");
+    promptLines.push("5. ĐỊNH DẠNG ĐẦU RA: CHỈ XUẤT DUY NHẤT ĐOẠN VĂN THEO ĐÚNG MẪU 3 PHẦN TRÊN (không kèm lời chào mở đầu như 'Dưới đây là...', không kèm tiêu đề phụ hay ghi chú ở cuối) để gia sư có thể copy và dán ngay vào phiếu học phí.");
 
     var fullPromptText = promptLines.join("\n");
 
