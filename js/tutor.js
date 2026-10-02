@@ -2423,7 +2423,7 @@ function buildTuitionModalForm(st, studentLogs) {
     html += '<div id="wrapperDiscountInput" style="display: ' + (toggles.discount === true ? 'block' : 'none') + '; margin-top: 10px; padding: 10px 12px; background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 10px;">';
     html += '<div style="font-size: 11px; font-weight: 600; color: #64748B; margin-bottom: 4px;">Số tiền giảm trừ học phí:</div>';
     html += '<div style="display: flex; align-items: center; gap: 8px;">';
-    html += '<input type="number" id="inputDiscountFee" min="0" step="10000" value="' + (state.discountAmount || 0) + '" placeholder="0" oninput="onTuitionFeeAdjustmentChange()" style="flex: 1; background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 8px; padding: 6px 10px; color: #EA580C; font-weight: 700; font-size: 13px; outline: none;">';
+    html += '<input type="text" inputmode="numeric" class="currency-input" id="inputDiscountFee" value="' + (state.discountAmount ? formatNumberWithDots(state.discountAmount) : '') + '" placeholder="0" oninput="formatCurrencyInput(this); onTuitionFeeAdjustmentChange()" style="flex: 1; background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 8px; padding: 6px 10px; color: #EA580C; font-weight: 700; font-size: 13px; outline: none;">';
     html += '<span style="font-size: 12px; color: #64748B; font-weight: 600;">VNĐ</span>';
     html += '</div></div>';
 
@@ -2431,7 +2431,7 @@ function buildTuitionModalForm(st, studentLogs) {
     html += '<div id="wrapperSurchargeInput" style="display: ' + (toggles.surcharge === true ? 'block' : 'none') + '; margin-top: 10px; padding: 10px 12px; background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 10px;">';
     html += '<div style="font-size: 11px; font-weight: 600; color: #64748B; margin-bottom: 4px;">Số tiền phụ thu thêm:</div>';
     html += '<div style="display: flex; align-items: center; gap: 8px;">';
-    html += '<input type="number" id="inputSurchargeFee" min="0" step="10000" value="' + (state.surchargeAmount || 0) + '" placeholder="0" oninput="onTuitionFeeAdjustmentChange()" style="flex: 1; background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 8px; padding: 6px 10px; color: #16A34A; font-weight: 700; font-size: 13px; outline: none;">';
+    html += '<input type="text" inputmode="numeric" class="currency-input" id="inputSurchargeFee" value="' + (state.surchargeAmount ? formatNumberWithDots(state.surchargeAmount) : '') + '" placeholder="0" oninput="formatCurrencyInput(this); onTuitionFeeAdjustmentChange()" style="flex: 1; background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 8px; padding: 6px 10px; color: #16A34A; font-weight: 700; font-size: 13px; outline: none;">';
     html += '<span style="font-size: 12px; color: #64748B; font-weight: 600;">VNĐ</span>';
     html += '</div></div>';
 
@@ -2497,7 +2497,7 @@ function onTuitionToggleChange(id, key) {
             if (valEl) valEl.textContent = "0 đ";
         } else {
             var inp = document.getElementById('inputDiscountFee');
-            var val = inp ? (parseInt(inp.value, 10) || 0) : 0;
+            var val = inp ? (parseInt(String(inp.value).replace(/\D/g, ''), 10) || 0) : 0;
             window.tuitionInvoiceModalState.discountAmount = val;
             var valEl = document.getElementById('val_toggleDiscount');
             if (valEl) valEl.textContent = Number(val).toLocaleString('vi-VN') + " đ";
@@ -2513,7 +2513,7 @@ function onTuitionToggleChange(id, key) {
             if (valEl) valEl.textContent = "0 đ";
         } else {
             var inp = document.getElementById('inputSurchargeFee');
-            var val = inp ? (parseInt(inp.value, 10) || 0) : 0;
+            var val = inp ? (parseInt(String(inp.value).replace(/\D/g, ''), 10) || 0) : 0;
             window.tuitionInvoiceModalState.surchargeAmount = val;
             var valEl = document.getElementById('val_toggleSurcharge');
             if (valEl) valEl.textContent = Number(val).toLocaleString('vi-VN') + " đ";
@@ -2529,8 +2529,8 @@ function onTuitionFeeAdjustmentChange() {
     window.tuitionInvoiceHasUnsavedChanges = true;
     var discInp = document.getElementById('inputDiscountFee');
     var surInp = document.getElementById('inputSurchargeFee');
-    var discVal = discInp ? Math.max(0, parseInt(discInp.value, 10) || 0) : 0;
-    var surVal = surInp ? Math.max(0, parseInt(surInp.value, 10) || 0) : 0;
+    var discVal = discInp ? Math.max(0, parseInt(String(discInp.value).replace(/\D/g, ''), 10) || 0) : 0;
+    var surVal = surInp ? Math.max(0, parseInt(String(surInp.value).replace(/\D/g, ''), 10) || 0) : 0;
 
     if (!window.tuitionInvoiceModalState) window.tuitionInvoiceModalState = {};
     window.tuitionInvoiceModalState.discountAmount = discVal;
@@ -5255,14 +5255,14 @@ window.initTutorSidebarState = initTutorSidebarState;
                 var lbl = document.getElementById('addStudentTuitionLabel');
                 var inp = document.getElementById('addStudentTuition');
                 if (lbl) lbl.innerText = (val === 'month') ? "Mức học phí trọn gói / tháng (VNĐ)" : "Mức học phí / buổi (VNĐ)";
-                if (inp) inp.placeholder = (val === 'month') ? "Ví dụ: 2000000" : "Ví dụ: 200000";
+                if (inp) inp.placeholder = (val === 'month') ? "Ví dụ: 2.000.000" : "Ví dụ: 200.000";
             } else if (mode === 'edit') {
                 var rad = document.querySelector('input[name="editStudentBillingType"]:checked');
                 var val = rad ? rad.value : 'session';
                 var lbl = document.getElementById('editStudentTuitionLabel');
                 var inp = document.getElementById('editStudentTuition');
                 if (lbl) lbl.innerText = (val === 'month') ? "Mức học phí trọn gói / tháng (VNĐ)" : "Mức học phí / buổi (VNĐ)";
-                if (inp) inp.placeholder = (val === 'month') ? "Ví dụ: 2000000" : "Ví dụ: 200000";
+                if (inp) inp.placeholder = (val === 'month') ? "Ví dụ: 2.000.000" : "Ví dụ: 200.000";
             }
         }
 

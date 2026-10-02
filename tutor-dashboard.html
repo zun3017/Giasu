@@ -1454,7 +1454,7 @@
             </div>
             <div class="modal-form-group">
                 <label id="addStudentTuitionLabel">Mức học phí / buổi (VNĐ)</label>
-                <input type="number" id="addStudentTuition" placeholder="Ví dụ: 200000">
+                <input type="text" inputmode="numeric" class="currency-input" id="addStudentTuition" placeholder="Ví dụ: 200.000" oninput="formatCurrencyInput(this)">
             </div>
             <div class="modal-form-group">
                 <label>Mã bài tập *</label>
@@ -1561,7 +1561,7 @@
             </div>
             <div class="modal-form-group">
                 <label id="editStudentTuitionLabel">Mức học phí / buổi (VNĐ)</label>
-                <input type="number" id="editStudentTuition">
+                <input type="text" inputmode="numeric" class="currency-input" id="editStudentTuition" placeholder="Ví dụ: 200.000" oninput="formatCurrencyInput(this)">
             </div>
             <div class="modal-form-group">
                 <label>Mã bài tập *</label>
@@ -2647,8 +2647,8 @@
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <script src="js/api.js?v=20261002_v15"></script>
-    <script src="js/tutor.js?v=20261002_v16"></script>
+    <script src="js/api.js?v=20261002_v16"></script>
+    <script src="js/tutor.js?v=20261002_v17"></script>
     <script>
         function toggleTutorMobileSidebar(force) {
             var sidebar = document.getElementById('tutorSidebar');

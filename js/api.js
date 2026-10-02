@@ -202,6 +202,11 @@ window.formatCurrencyInput = function(el) {
         return;
     }
     
+    // Xóa số 0 vô nghĩa ở đầu (ví dụ: 050000 -> 50.000)
+    if (rawVal.length > 1) {
+        rawVal = rawVal.replace(/^0+/, '') || '0';
+    }
+    
     let formatted = rawVal.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
     el.value = formatted;
     
@@ -217,8 +222,24 @@ window.formatNumberWithDots = function(val) {
     if (val === undefined || val === null || val === '') return '';
     let rawVal = String(val).replace(/\D/g, '');
     if (!rawVal) return '';
+    if (rawVal.length > 1) {
+        rawVal = rawVal.replace(/^0+/, '') || '0';
+    }
     return rawVal.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
 };
+
+// Tự động bắt sự kiện định dạng tiền tệ trên toàn hệ thống cho mọi ô nhập giá tiền
+document.addEventListener('input', function(e) {
+    var target = e.target;
+    if (!target) return;
+    if (target.classList && target.classList.contains('currency-input')) {
+        window.formatCurrencyInput(target);
+    } else if (target.getAttribute && target.getAttribute('data-currency') === 'true') {
+        window.formatCurrencyInput(target);
+    } else if (['addStudentTuition', 'editStudentTuition', 'adminStudentTuition', 'eventFee', 'inputDiscountFee', 'inputSurchargeFee'].indexOf(target.id) !== -1) {
+        window.formatCurrencyInput(target);
+    }
+}, true);
 
 // ============================================================================
 // CƠ CHẾ TỰ ĐỘNG DỌN DẸP THÙNG RÁC VÀ Ý KIẾN PHẢN HỒI QUÁ 10 NGÀY (PHÂN VÙNG: GIA SƯ)

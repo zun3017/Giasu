@@ -2719,7 +2719,7 @@
 
                 <div class="form-group">
                     <label>Học phí / buổi (VNĐ)</label>
-                    <input type="number" class="form-control" id="eventFee" placeholder="Ví dụ: 750000" min="0" step="10000">
+                    <input type="text" inputmode="numeric" class="form-control currency-input" id="eventFee" placeholder="Ví dụ: 750.000" oninput="formatCurrencyInput(this)">
                 </div>
 
                 <!-- Trường Ghi chú tùy chọn -->
@@ -3759,7 +3759,7 @@
                     customGroup.style.display = "block";
                     document.getElementById("eventCustomStudentName").required = true;
                     selectPresetColor('');
-                    document.getElementById("eventFee").value = "500000";
+                    document.getElementById("eventFee").value = formatNumberWithDots("500000");
                 } else if (val !== "") {
                     customGroup.style.display = "none";
                     document.getElementById("eventCustomStudentName").required = false;
@@ -3768,7 +3768,7 @@
                     setColorScope('student');
                     selectPresetColor(studentColor);
                     if (stRow && stRow.fee) {
-                        document.getElementById("eventFee").value = stRow.fee;
+                        document.getElementById("eventFee").value = formatNumberWithDots(stRow.fee);
                     }
                 } else {
                     customGroup.style.display = "none";
@@ -4691,7 +4691,7 @@
 
             document.getElementById("eventStartTime").value = startTime;
             document.getElementById("eventEndTime").value = endTime;
-            document.getElementById("eventFee").value = "500000";
+            document.getElementById("eventFee").value = formatNumberWithDots("500000");
             document.getElementById("eventNotes").value = "";
 
             // Reset color picker
@@ -4736,7 +4736,7 @@
 
             document.getElementById("eventStartTime").value = props.startTime;
             document.getElementById("eventEndTime").value = props.endTime;
-            document.getElementById("eventFee").value = props.fee || (tutorScheduleSheetData[props.studentIndex] && tutorScheduleSheetData[props.studentIndex].fee) || 500000;
+            document.getElementById("eventFee").value = formatNumberWithDots(props.fee || (tutorScheduleSheetData[props.studentIndex] && tutorScheduleSheetData[props.studentIndex].fee) || 500000);
             document.getElementById("eventNotes").value = props.notes;
 
             // Set color picker theo cấu hình của event
@@ -4812,7 +4812,7 @@
             if (isNaN(targetStudentIdx)) return;
             let row = tutorScheduleSheetData[targetStudentIdx];
 
-            let feeInputVal = parseInt(document.getElementById("eventFee").value);
+            let feeInputVal = parseInt(String(document.getElementById("eventFee").value).replace(/\D/g, ''), 10);
             if (!isNaN(feeInputVal) && feeInputVal >= 0) {
                 row.fee = feeInputVal;
             }
