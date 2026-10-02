@@ -9,11 +9,11 @@
     </script>
     <meta charset="UTF-8">
     <link rel="icon" type="image/png" href="https://i.postimg.cc/66rKbPmb/trinh-duyet.png">
-    <meta name="viewport" content="width=1200, user-scalable=yes">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Google Calendar style for Tutors - Recurrence Timetable</title>
     <!-- PWA Settings -->
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#0B0826">
+    <meta name="theme-color" content="#F8F3EC">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Gia Sư">
@@ -23,16 +23,117 @@
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Google Apps Script API Client -->
-    <script src="js/api.js?v=2.0.5"></script>
+    <script src="js/api.js?v=202610012235"></script>
     <!-- FullCalendar JS v6 -->
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
     
+    <!-- Themes CSS & Bootstrap -->
+    <link rel="stylesheet" href="css/themes.css">
+    <script>
+      (function() {
+        var t = localStorage.getItem('tutorTheme') || 'theme-dark-purple';
+        if (t.startsWith('custom:')) {
+          var hex = t.split(':')[1];
+          if (/^#[0-9A-Fa-f]{6}$/.test(hex)) {
+            var r = parseInt(hex.slice(1,3),16), g = parseInt(hex.slice(3,5),16), b = parseInt(hex.slice(5,7),16);
+            var lr = Math.round(r + (255-r)*0.5), lg = Math.round(g + (255-g)*0.5), lb = Math.round(b + (255-b)*0.5);
+            var dr = Math.round(r*0.7), dg = Math.round(g*0.7), db = Math.round(b*0.7);
+            var toHex = function(n) { return n.toString(16).padStart(2,'0'); };
+            var root = document.documentElement;
+            root.className = '';
+            root.style.setProperty('--color-primary', hex);
+            root.style.setProperty('--color-primary-light', '#' + toHex(lr) + toHex(lg) + toHex(lb));
+            root.style.setProperty('--color-primary-dark', '#' + toHex(dr) + toHex(dg) + toHex(db));
+            root.style.setProperty('--color-primary-rgb', r + ',' + g + ',' + b);
+            root.style.setProperty('--chart-bar', hex);
+            root.style.setProperty('--btn-bg', hex);
+            root.style.setProperty('--nav-active-bg', 'rgba(' + r + ',' + g + ',' + b + ',0.12)');
+            root.style.setProperty('--nav-active-text', hex);
+            root.style.setProperty('--bg-page', '#FAFAFA');
+            root.style.setProperty('--bg-page-gradient', '#FAFAFA');
+            root.style.setProperty('--bg-sidebar', '#F5F5F5');
+            root.style.setProperty('--bg-card', '#FFFFFF');
+            root.style.setProperty('--bg-card-alt', '#F0F0F0');
+            root.style.setProperty('--bg-input', '#FFFFFF');
+            root.style.setProperty('--border-color', 'rgba(' + r + ',' + g + ',' + b + ', 0.25)');
+            root.style.setProperty('--border-card', '#E5E5E5');
+            root.style.setProperty('--text-primary', '#1A1A1A');
+            root.style.setProperty('--text-secondary', '#555555');
+            root.style.setProperty('--text-muted', '#888888');
+            root.style.setProperty('--shadow-card', '0 4px 16px rgba(0,0,0,0.06)');
+            root.style.setProperty('--shadow-primary', '0 4px 15px rgba(' + r + ',' + g + ',' + b + ', 0.3)');
+            root.style.setProperty('--is-dark-theme', '0');
+          } else {
+            document.documentElement.className = 'theme-dark-purple';
+          }
+        } else {
+          document.documentElement.className = t;
+        }
+
+        // Tự động nhận diện khi được nhúng trong Dashboard (iframe / ?embedded=1)
+        var isEmbedded = false;
+        try {
+          isEmbedded = (window.self !== window.top) || (window.location.search.indexOf('embedded=1') !== -1);
+        } catch(e) {
+          isEmbedded = (window.location.search.indexOf('embedded=1') !== -1);
+        }
+        if (isEmbedded) {
+          document.documentElement.classList.add('is-embedded-calendar');
+          window.addEventListener('DOMContentLoaded', function() {
+            document.body.classList.add('is-embedded-calendar');
+          });
+        }
+      })();
+    </script>
+
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
             font-family: 'Inter', sans-serif;
+        }
+
+        /* === EMBEDDED MODE TRONG DASHBOARD (KHÔNG CHUYỂN TRANG) === */
+        html.is-embedded-calendar,
+        body.is-embedded-calendar {
+            background: transparent !important;
+            padding: 0 !important;
+            height: 100% !important;
+            overflow: hidden !important;
+        }
+        body.is-embedded-calendar .container {
+            background: var(--bg-card, rgba(255, 255, 255, 0.95)) !important;
+            border-bottom: 1px solid var(--border-color, #E5D9CC) !important;
+            padding: 10px 18px !important;
+            border-radius: 16px 16px 0 0 !important;
+        }
+        body.is-embedded-calendar .btn-back-dashboard {
+            display: none !important;
+        }
+        body.is-embedded-calendar .calendar-wrapper {
+            background: var(--bg-card, #FFFFFF) !important;
+            padding: 6px 10px 10px 10px !important;
+            min-height: 480px !important;
+            flex: 1 1 auto !important;
+        }
+        body.is-embedded-calendar .calendar-bottom-bar {
+            background: var(--bg-card, rgba(255, 255, 255, 0.95)) !important;
+            border-top: 1px solid var(--border-color, #E5D9CC) !important;
+            border-radius: 0 0 16px 16px !important;
+        }
+
+        /* Ẩn hoàn toàn thanh cuộn bên phải của FullCalendar - giữ giao diện cố định phẳng đẹp */
+        .fc-scroller,
+        .fc-scroller-liquid-absolute {
+            scrollbar-width: none !important; /* Firefox */
+            -ms-overflow-style: none !important;  /* IE, Edge */
+        }
+        .fc-scroller::-webkit-scrollbar,
+        .fc-scroller-liquid-absolute::-webkit-scrollbar {
+            width: 0 !important;
+            height: 0 !important;
+            display: none !important; /* Chrome, Safari, Opera */
         }
 
         /* === FULL-SCREEN LAYOUT NHƯ GOOGLE CALENDAR === */
@@ -42,8 +143,8 @@
         }
 
         body {
-            background: radial-gradient(circle at 50% 30%, #150F3B 0%, #08051A 100%) no-repeat fixed;
-            color: #FFF;
+            background: #F8F3EC;
+            color: #2D1F0E;
             display: flex;
             flex-direction: column;
         }
@@ -52,8 +153,8 @@
         .container {
             flex-shrink: 0;
             width: 100%;
-            background: rgba(11, 8, 38, 0.85);
-            border-bottom: 1px solid rgba(142, 77, 255, 0.2);
+            background: #F3EDE4;
+            border-bottom: 1px solid #E5D9CC;
             padding: 12px 25px;
             padding-top: calc(constant(safe-area-inset-top, 0px) + 12px);
             padding-top: calc(env(safe-area-inset-top, 0px) + 12px);
@@ -66,7 +167,8 @@
 
         /* Vùng lịch chiếm toàn bộ chiều cao còn lại */
         .calendar-wrapper {
-            flex: 1;
+            flex: 1 1 auto;
+            min-height: 480px;
             overflow: hidden;
             background: transparent;
             padding: 0 10px 10px 10px;
@@ -74,191 +176,945 @@
 
         .calendar-wrapper #calendar {
             height: 100%;
+            min-height: 480px;
         }
 
-        /* --- HEADER & TITLES --- */
-        .calendar-header {
+        /* --- CUSTOM CALENDAR HEADER (TASK 10.2) --- */
+        .calendar-header-custom {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 0;
             flex-wrap: wrap;
-            gap: 10px;
-        }
-
-        .calendar-title-wrap {
-            display: flex;
-            align-items: center;
             gap: 12px;
         }
 
-        .calendar-title-wrap i {
-            font-size: 24px;
-            color: #8E4DFF;
-            text-shadow: 0 0 10px rgba(142, 77, 255, 0.5);
+        .cal-header-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
         }
 
-        .calendar-title-wrap h2 {
-            font-size: 19px;
-            font-weight: 800;
-            background: linear-gradient(135deg, #FFF 0%, #E2D1FF 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+        .cal-header-right {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
         }
 
-        .calendar-subtitle {
+        /* Nút Quay lại Dashboard */
+        .btn-back-dashboard {
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 7px 16px;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 13px;
+            font-family: 'Inter', sans-serif;
+            background: #E8DDD0;
+            border: 1px solid #E5D9CC;
+            color: #2D1F0E;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+        .btn-back-dashboard:hover {
+            background: #DFD2C3;
+            border-color: #D4C3B3;
+            transform: translateY(-1px);
+        }
+
+        /* Nhóm nút điều hướng Lịch (<, >, Hôm nay) */
+        .cal-nav-group {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .cal-nav-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            background: #E8DDD0;
+            border: 1px solid #E5D9CC;
+            color: #2D1F0E;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+        .cal-nav-btn:hover {
+            background: #DFD2C3;
+            border-color: #D4C3B3;
+        }
+        .cal-nav-btn:active {
+            transform: scale(0.95);
+        }
+
+        .cal-today-btn {
+            height: 32px;
+            padding: 0 13px;
+            border-radius: 8px;
+            background: #E8DDD0;
+            border: 1px solid #E5D9CC;
+            color: #2D1F0E;
             font-size: 12.5px;
-            color: #A6ADCE;
-            margin-top: 4px;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            font-family: 'Inter', sans-serif;
+        }
+        .cal-today-btn:hover {
+            background: #DFD2C3;
+            border-color: #D4C3B3;
+        }
+        .cal-today-btn:active {
+            transform: scale(0.95);
         }
 
-        /* --- GOOGLE CALENDAR CUSTOM STYLING (DARK BLUE/PURPLE) --- */
+        /* Tiêu đề Tháng/Năm nổi bật màu tím đậm */
+        .calendar-month-title {
+            font-size: 20px;
+            font-weight: 800;
+            color: #7C3AED;
+            margin: 0;
+            letter-spacing: -0.3px;
+            font-family: 'Inter', sans-serif;
+            display: inline-flex;
+            align-items: center;
+        }
+
+        /* Toggle Filter Pill: "Ẩn đã hủy" */
+        .cal-filter-pill {
+            height: 32px;
+            padding: 0 14px;
+            border-radius: 20px;
+            background: #FFFFFF;
+            border: 1px solid #E5D9CC;
+            color: #6B4226;
+            font-size: 12.5px;
+            font-weight: 600;
+            font-family: 'Inter', sans-serif;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .cal-filter-pill:hover {
+            background: #FAF5EE;
+            border-color: #D4C3B3;
+        }
+        .cal-filter-pill.active {
+            background: #FFF0F6;
+            border-color: #C05E8E;
+            color: #C05E8E;
+            box-shadow: 0 2px 8px rgba(192, 94, 142, 0.2);
+        }
+        .cal-filter-pill.active i {
+            color: #C05E8E;
+        }
+
+        /* View Toggle Pills: Tháng / Tuần / Ngày */
+        .cal-view-pills {
+            display: inline-flex;
+            align-items: center;
+            background: #E8DDD0;
+            padding: 3px;
+            border-radius: 20px;
+            border: 1px solid #E5D9CC;
+        }
+        .cal-view-pill {
+            height: 26px;
+            padding: 0 13px;
+            border-radius: 14px;
+            border: none;
+            background: transparent;
+            color: #6B4226;
+            font-size: 12px;
+            font-weight: 600;
+            font-family: 'Inter', sans-serif;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .cal-view-pill:hover:not(.active) {
+            color: #2D1F0E;
+            background: rgba(255, 255, 255, 0.4);
+        }
+        .cal-view-pill.active {
+            background: #C05E8E;
+            color: #FFFFFF;
+            font-weight: 700;
+            box-shadow: 0 2px 6px rgba(192, 94, 142, 0.28);
+        }
+
+        /* Nút Lịch tóm tắt */
+        .cal-sheet-toggle-btn {
+            height: 32px;
+            padding: 0 13px;
+            border-radius: 20px;
+            background: #E8DDD0;
+            border: 1px solid #E5D9CC;
+            color: #2D1F0E;
+            font-size: 12.5px;
+            font-weight: 600;
+            font-family: 'Inter', sans-serif;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .cal-sheet-toggle-btn:hover {
+            background: #DFD2C3;
+        }
+
+        /* --- BOTTOM BAR: STUDENT LEGEND & STATUS BAR (TASK 10.4) --- */
+        .calendar-bottom-bar {
+            flex-shrink: 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #F3EDE4;
+            border-top: 1px solid #E5D9CC;
+            padding: 8px 20px;
+            gap: 16px;
+            z-index: 10;
+            min-width: 0;
+            overflow: hidden;
+            box-sizing: border-box;
+        }
+
+        .cal-legend-list {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            overflow-x: auto;
+            overflow-y: hidden;
+            scrollbar-width: thin;
+            scrollbar-color: #D5C7B7 transparent;
+            white-space: nowrap;
+            flex: 1 1 0%;
+            min-width: 0;
+            padding-right: 8px;
+        }
+        .cal-legend-list::-webkit-scrollbar {
+            height: 3px;
+        }
+        .cal-legend-list::-webkit-scrollbar-thumb {
+            background: #D5C7B7;
+            border-radius: 4px;
+        }
+
+        .cal-legend-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            font-size: 12.5px;
+            font-weight: 600;
+            color: #2D1F0E;
+            cursor: default;
+            user-select: none;
+            flex-shrink: 0;
+        }
+
+        .cal-legend-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            display: inline-block;
+            flex-shrink: 0;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+        }
+
+        .cal-status-bar {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12.5px;
+            font-weight: 700;
+            color: #6B4226;
+            white-space: nowrap;
+            flex-shrink: 0;
+            background: #E8DDD0;
+            padding: 5px 14px;
+            border-radius: 20px;
+            border: 1px solid #E5D9CC;
+            position: relative;
+            z-index: 2;
+            margin-left: auto;
+        }
+
+        /* --- GOOGLE CALENDAR CUSTOM STYLING (LIGHT CREAM/BEIGE) --- */
         #calendar {
-            background: rgba(12, 8, 39, 0.45);
+            background: transparent;
             border-radius: 16px;
-            border: 1px solid rgba(142, 77, 255, 0.2);
-            padding: 15px;
-            backdrop-filter: blur(10px);
+            border: none;
+            padding: 4px 0;
         }
 
         /* Toolbar buttons */
-        .fc .fc-button-primary {
-            background: rgba(255, 255, 255, 0.05) !important;
-            border: 1px solid rgba(255, 255, 255, 0.45) !important;
-            color: #E2D1FF !important;
-            font-weight: 600 !important;
-            font-size: 13px !important;
-            text-transform: capitalize !important;
+        .fc .fc-toolbar {
+            margin-bottom: 12px !important;
+        }
+
+        /* Toolbar buttons & View toggle pills */
+        .fc .fc-toolbar {
+            margin-bottom: 12px !important;
+        }
+
+        .fc .fc-button-group {
+            background: #E8DDD0 !important;
             border-radius: 30px !important;
+            padding: 3px !important;
+            display: inline-flex !important;
+            gap: 2px !important;
+            border: 1px solid #E5D9CC !important;
+        }
+
+        .fc .fc-button-group .fc-button {
+            border-radius: 20px !important;
+            background: transparent !important;
+            border: none !important;
+            color: #6B4226 !important;
             padding: 6px 16px !important;
-            transition: all 0.3s !important;
+            font-size: 12.5px !important;
+            font-weight: 600 !important;
+            box-shadow: none !important;
+            transition: all 0.2s ease !important;
+            margin: 0 !important;
         }
 
-        .fc .fc-button-primary:hover {
-            background: rgba(142, 77, 255, 0.2) !important;
-            border-color: #8E4DFF !important;
-            color: #FFF !important;
+        .fc .fc-button-group .fc-button:hover {
+            background: rgba(192, 94, 142, 0.1) !important;
+            color: #C05E8E !important;
         }
 
-        .fc .fc-button-active,
-        .fc .fc-button-primary:not(:disabled).fc-button-active {
-            background: linear-gradient(135deg, #8E4DFF 0%, #5B21B6 100%) !important;
-            border-color: #8E4DFF !important;
-            color: #FFFFFF !important;   /* Chữ trắng, rõ ràng trên nền tím */
-            box-shadow: 0 4px 12px rgba(142, 77, 255, 0.4) !important;
+        .fc .fc-button-group .fc-button.fc-button-active,
+        .fc .fc-button-group .fc-button:not(:disabled).fc-button-active {
+            background: #C05E8E !important;
+            color: #FFFFFF !important;
+            box-shadow: 0 2px 8px rgba(192, 94, 142, 0.35) !important;
+            font-weight: 700 !important;
+        }
+
+        .fc .fc-today-button {
+            background: #E8DDD0 !important;
+            border: 1px solid #E5D9CC !important;
+            color: #2D1F0E !important;
+            border-radius: 20px !important;
+            padding: 6px 16px !important;
+            font-weight: 600 !important;
+            font-size: 12.5px !important;
+            transition: all 0.2s !important;
+        }
+
+        .fc .fc-today-button:hover:not(:disabled) {
+            background: #DFD2C3 !important;
+            color: #2D1F0E !important;
+        }
+
+        .fc .fc-prev-button,
+        .fc .fc-next-button {
+            background: #E8DDD0 !important;
+            border: 1px solid #E5D9CC !important;
+            color: #2D1F0E !important;
+            border-radius: 50% !important;
+            width: 32px !important;
+            height: 32px !important;
+            padding: 0 !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            transition: all 0.2s !important;
+        }
+
+        .fc .fc-prev-button:hover,
+        .fc .fc-next-button:hover {
+            background: #DFD2C3 !important;
+            color: #2D1F0E !important;
         }
 
         .fc .fc-toolbar-title {
             font-size: 16px !important;
             font-weight: 800 !important;
-            color: #FFF !important;
+            color: #2D1F0E !important;
             text-transform: capitalize !important;
         }
 
-        /* Table header cells */
-        .fc th {
-            border: 1px solid rgba(255, 255, 255, 0.15) !important;
-            background: rgba(142, 77, 255, 0.07) !important;
-            padding: 8px 0 !important;
+        /* Scrollgrid and table borders */
+        .fc-theme-standard .fc-scrollgrid {
+            border: none !important;
+            background: transparent !important;
+        }
+
+        .fc-timegrid .fc-scrollgrid {
+            border: 1px solid #ECE7F6 !important;
+            background: #FFFFFF !important;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .fc-theme-standard td, 
+        .fc-theme-standard th {
+            border: none !important;
+        }
+
+        .fc-timegrid td, 
+        .fc-timegrid th {
+            border: 1px solid #ECE7F6 !important;
+        }
+
+        /* Table header cells (Thứ 2, 3...) */
+        .fc-col-header {
+            background: transparent !important;
+            border: none !important;
+        }
+
+        .fc th,
+        .fc-col-header-cell {
+            border: none !important;
+            background: transparent !important;
+            padding: 6px 4px 10px 4px !important;
+            text-align: left !important;
+        }
+
+        .fc-timegrid .fc-col-header-cell {
+            border: 1px solid #ECE7F6 !important;
+            background: #FAF9FD !important;
+            padding: 4px 0 !important;
+            text-align: center !important;
         }
 
         .fc-col-header-cell-cushion {
-            color: #E2D1FF !important;
-            font-size: 13px !important;
-            font-weight: 700 !important;
+            color: var(--text-primary) !important;
+            font-size: 12px !important;
+            font-weight: 800 !important;
+            letter-spacing: 0.5px !important;
+            text-transform: uppercase !important;
+            text-decoration: none !important;
+            padding: 0 !important;
+            display: inline-block !important;
+        }
+
+        .fc-timegrid .fc-col-header-cell-cushion {
+            display: block !important;
+            width: 100% !important;
+            padding: 0 !important;
             text-decoration: none !important;
         }
 
+        /* TimeGrid styling */
         .fc-timegrid-slot {
-            border-bottom: 1px solid rgba(255, 255, 255, 0.12) !important; /* Đường kẻ ngang giờ */
-            border-right: 1px solid rgba(255, 255, 255, 0.12) !important;  /* Đường kẻ dọc ngăn cột */
-            height: 24px !important;
+            border-bottom: 1px solid #ECE7F6 !important;
+            border-right: 1px solid #ECE7F6 !important;
+            height: 28px !important;
+            background: #FFFFFF !important;
+        }
+
+        .fc-timegrid-slot-minor {
+            border-bottom: 1px solid #F6F3FA !important;
+        }
+
+        .fc-timegrid-slot-lane {
+            background: #FFFFFF !important;
         }
 
         .fc-timegrid-slot-label {
-            vertical-align: top !important; /* Căn ở đỉnh ô để khớp vị trí dòng kẻ ngang */
+            vertical-align: top !important;
+            background: #FAF9FD !important;
+            border-color: #ECE7F6 !important;
         }
 
         .fc-timegrid-slot-label-cushion {
-            color: #A6ADCE !important;
+            color: #716584 !important;
             font-size: 11px !important;
-            font-weight: 500 !important;
+            font-weight: 600 !important;
             display: inline-block !important;
-            transform: translateY(-50%) !important; /* Nhấc chữ lên giữa dòng kẻ */
-            background: #0F0A30 !important; /* Trùng màu nền xám tối/tím vũ trụ của calendar để che bớt đường kẻ phía dưới */
+            transform: translateY(-50%) !important;
+            background: #FAF9FD !important;
             padding: 0 4px !important;
             position: relative !important;
             z-index: 5 !important;
         }
 
-        .fc-timegrid-axis-frame {
-            color: #A6ADCE !important;
+        .fc-timegrid-axis-frame,
+        .fc-timegrid-axis {
+            color: #716584 !important;
+            background: #FAF9FD !important;
+            border-color: #ECE7F6 !important;
         }
 
-        .fc-theme-standard td, .fc-theme-standard th {
-            border: 1px solid rgba(255, 255, 255, 0.15) !important; /* Đường viền ô lưới rõ trên nền đen */
+        .fc-theme-standard th.fc-timegrid-axis {
+            background: #FAF9FD !important;
+            border-bottom: 1px solid #ECE7F6 !important;
+            border-right: 1px solid #ECE7F6 !important;
         }
 
-        /* Gỡ bỏ màu highlight vàng/đục của cột hôm nay để giữ nền vũ trụ trong suốt */
-        .fc-theme-standard td.fc-day-today {
-            background-color: transparent !important;
+        /* DayGrid (Month view: Thẻ Card độc lập bo tròn) */
+        .fc-daygrid-day {
+            background: transparent !important;
+            border: none !important;
+            padding: 3.5px !important;
         }
 
-        /* Làm nổi bật tiêu đề cột của ngày hôm nay bằng màu tím sáng giống nút Lịch Tuần */
-        .fc th.fc-day-today {
-            background: linear-gradient(135deg, #8E4DFF 0%, #5B21B6 100%) !important;
+        .fc-daygrid-day-frame {
+            background: #FFFFFF !important;
+            border: 1px solid #ECE3D8 !important;
+            border-radius: 12px !important;
+            min-height: 105px !important;
+            height: 100% !important;
+            box-shadow: 0 1px 3px rgba(45, 31, 14, 0.03) !important;
+            transition: all 0.2s ease !important;
+            position: relative !important;
+            display: flex !important;
+            flex-direction: column !important;
+            overflow: hidden !important;
         }
-        .fc th.fc-day-today .fc-col-header-cell-cushion {
+
+        .fc-daygrid-day-frame:hover {
+            border-color: #DCCEC0 !important;
+            box-shadow: 0 3px 10px rgba(45, 31, 14, 0.07) !important;
+        }
+
+        /* Số ngày đặt ở GÓC TRÊN BÊN TRÁI của Card */
+        .fc-daygrid-day-top {
+            display: flex !important;
+            flex-direction: row !important;
+            justify-content: flex-start !important;
+            align-items: center !important;
+            gap: 5px !important;
+            padding: 6px 8px 2px 8px !important;
+            z-index: 2 !important;
+            position: relative !important;
+        }
+
+        .fc-daygrid-day-number {
+            color: var(--text-primary) !important;
+            font-size: 13px !important;
+            font-weight: 700 !important;
+            padding: 0 !important;
+            text-decoration: none !important;
+            line-height: 1 !important;
+        }
+
+        /* Ngày lễ quốc gia Việt Nam (Task 10.3 + Mockup styling) */
+        .fc-vn-holiday-badge {
+            color: #DC2626 !important;
+            font-size: 11px !important;
+            font-weight: 700 !important;
+            padding: 0 2px !important;
+            line-height: 1 !important;
+            letter-spacing: -0.2px !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            gap: 2px !important;
+        }
+
+        .fc-day-other .fc-vn-holiday-badge {
+            opacity: 0.5 !important;
+        }
+
+        /* Minh họa nghệ thuật ngày lễ Quốc khánh 1/9, 2/9 & Tết Trung thu */
+        .fc-day-holiday-quockhanh-1 .fc-daygrid-day-frame {
+            background: linear-gradient(180deg, #FFF1F2 0%, #FFE4E6 40%, #FED7AA 100%) !important;
+            border-color: #FECDD3 !important;
+        }
+
+        .fc-day-holiday-quockhanh-1 .fc-daygrid-day-frame::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 52px;
+            background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 240 60' opacity='0.32'%3E%3Cpath fill='%23E11D48' d='M0,50 L25,50 L25,42 L35,42 L35,50 L55,50 L55,32 L68,32 L68,50 L85,50 L90,24 L102,24 L108,50 L130,50 L136,18 L148,18 L154,50 L175,50 L180,34 L192,34 L198,50 L240,50 L240,60 L0,60 Z'/%3E%3Cpolygon fill='%23DC2626' points='30,32 30,22 42,25'/%3E%3Cline x1='30' y1='22' x2='30' y2='42' stroke='%23DC2626' stroke-width='1.5'/%3E%3C/svg%3E") bottom right no-repeat;
+            background-size: cover;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .fc-day-holiday-quockhanh-2 .fc-daygrid-day-frame {
+            background: linear-gradient(180deg, #FFF1F2 0%, #FFE4E6 40%, #FED7AA 100%) !important;
+            border-color: #FECDD3 !important;
+        }
+
+        .fc-day-holiday-quockhanh-2 .fc-daygrid-day-frame::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 50px;
+            background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 60' opacity='0.3'%3E%3Cpath fill='%23E11D48' d='M40,50 L48,34 L54,34 L54,24 L146,24 L146,34 L152,34 L160,50 Z'/%3E%3Crect x='64' y='32' width='6' height='16' fill='%23FFE4E6'/%3E%3Crect x='78' y='32' width='6' height='16' fill='%23FFE4E6'/%3E%3Crect x='92' y='32' width='6' height='16' fill='%23FFE4E6'/%3E%3Crect x='106' y='32' width='6' height='16' fill='%23FFE4E6'/%3E%3Crect x='120' y='32' width='6' height='16' fill='%23FFE4E6'/%3E%3C/svg%3E") bottom center no-repeat;
+            background-size: contain;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .fc-day-festive-lantern .fc-daygrid-day-frame {
+            background: linear-gradient(180deg, #FEF3C7 0%, #FED7AA 45%, #FDBA74 100%) !important;
+            border-color: #FCD34D !important;
+        }
+
+        .fc-day-festive-lantern .fc-daygrid-day-frame::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 48px;
+            background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 60' opacity='0.28'%3E%3Ccircle cx='30' cy='22' r='9' fill='%23EA580C'/%3E%3Ccircle cx='100' cy='26' r='8' fill='%23D97706'/%3E%3Ccircle cx='170' cy='20' r='11' fill='%23EA580C'/%3E%3C/svg%3E") bottom center no-repeat;
+            background-size: cover;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* Ngày ngoài tháng: Card làm mờ nhẹ */
+        .fc-day-other {
+            background: transparent !important;
+        }
+
+        .fc-day-other .fc-daygrid-day-frame {
+            background: var(--bg-card-alt) !important;
+            border-color: var(--border-card) !important;
+            box-shadow: none !important;
+            opacity: 0.88 !important;
+        }
+
+        .fc-day-other .fc-daygrid-day-number {
+            color: var(--text-muted) !important;
+            font-weight: 600 !important;
+        }
+
+        .fc-day-other .fc-daygrid-day-events {
+            opacity: 0.9 !important;
+        }
+
+        /* Hôm nay (Today highlight): Viền đỏ Card + Badge tròn đỏ số ngày */
+        .fc-daygrid-day.fc-day-today {
+            background: transparent !important;
+        }
+
+        .fc-daygrid-day.fc-day-today .fc-daygrid-day-frame {
+            border: 1.5px solid #E11D48 !important;
+            background: #FFFFFF !important;
+            box-shadow: 0 2px 8px rgba(225, 29, 72, 0.12) !important;
+        }
+
+        .fc-daygrid-day.fc-day-today .fc-daygrid-day-number {
+            background: #E11D48 !important;
             color: #FFFFFF !important;
-            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+            border-radius: 50% !important;
+            width: 20px !important;
+            height: 20px !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            font-size: 11px !important;
+            font-weight: 700 !important;
+            line-height: 1 !important;
+            margin: 0 !important;
         }
 
-        /* Đường chỉ giờ hiện tại (Now Indicator) màu đỏ giống Google Calendar */
+        .fc th.fc-day-today .fc-col-header-cell-cushion {
+            color: #E11D48 !important;
+            font-weight: 800 !important;
+        }
+
+        /* +N buổi nữa link: phong cách chữ xám gọn gàng góc trái */
+        .fc .fc-daygrid-more-link {
+            color: #7D6F63 !important;
+            font-size: 11px !important;
+            font-weight: 500 !important;
+            padding: 2px 4px !important;
+            border-radius: 4px !important;
+            background: transparent !important;
+            margin-left: 4px !important;
+            margin-top: 1px !important;
+            display: inline-block !important;
+            text-decoration: none !important;
+            cursor: pointer !important;
+            z-index: 2 !important;
+            position: relative !important;
+        }
+
+        .fc .fc-daygrid-more-link:hover {
+            color: #2D1F0E !important;
+            background: rgba(45, 31, 14, 0.06) !important;
+        }
+
+        .fc .fc-popover {
+            background: #FDF8F3 !important;
+            border: 1px solid #E5D9CC !important;
+            box-shadow: 0 10px 30px rgba(45, 31, 14, 0.15) !important;
+            border-radius: 12px !important;
+            overflow: hidden !important;
+            z-index: 2500 !important;
+        }
+
+        .fc .fc-popover-header {
+            background: #F3EDE4 !important;
+            border-bottom: 1px solid #E5D9CC !important;
+            padding: 8px 12px !important;
+            color: #2D1F0E !important;
+            font-weight: 700 !important;
+            font-size: 13px !important;
+        }
+
+        .fc .fc-popover-title {
+            color: #2D1F0E !important;
+            font-weight: 700 !important;
+        }
+
+        .fc .fc-popover-close {
+            color: #6B4226 !important;
+            font-size: 14px !important;
+            opacity: 0.8 !important;
+        }
+
+        .fc .fc-popover-close:hover {
+            opacity: 1 !important;
+            color: #2D1F0E !important;
+        }
+
+        .fc .fc-popover-body {
+            padding: 8px !important;
+            background: #FFFFFF !important;
+        }
+
+        /* Now Indicator */
         .fc .fc-timegrid-now-indicator-line {
-            border-color: #EA4335 !important;
+            border-color: #8E4DFF !important;
             border-width: 2px !important;
         }
         .fc .fc-timegrid-now-indicator-arrow {
-            border-left-color: #EA4335 !important;
+            border-left-color: #8E4DFF !important;
         }
 
         /* --- SỰ KIỆN LỊCH (EVENTS) --- */
         .fc-v-event {
-            background: rgba(142, 77, 255, 0.15) !important;
-            border: 1px solid rgba(142, 77, 255, 0.4) !important;
-            border-left: 4px solid #8E4DFF !important;
-            border-radius: 8px !important;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.2) !important;
-            padding: 3px 6px !important;
+            background: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
+            padding: 2px 3px !important;
             cursor: pointer !important;
-            transition: transform 0.2s, box-shadow 0.2s !important;
         }
 
-        .fc-v-event:hover {
-            transform: scale(1.02) !important;
-            box-shadow: 0 6px 15px rgba(142, 77, 255, 0.3) !important;
+        .fc-timegrid-event {
+            margin: 2px 3px 2px 2px !important;
+            border-radius: 8px !important;
+            box-shadow: none !important;
+            border: none !important;
+            background: transparent !important;
+            overflow: visible !important;
+        }
+
+        .fc-timegrid-event .fc-event-main {
+            padding: 0 !important;
+            height: 100% !important;
+            width: 100% !important;
+            display: flex !important;
+            flex-direction: column !important;
+        }
+
+        /* Thẻ ca dạy Tuần (Thiết kế Image 2: bo góc 8px, pastel, 3 dòng rõ ràng) */
+        .fc-week-card-inner {
+            width: 100%;
+            height: 100%;
+            border-radius: 8px;
+            padding: 6px 8px;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            box-sizing: border-box;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+            overflow: hidden;
+            position: relative;
+            user-select: none;
+        }
+
+        .fc-week-card-inner:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .fc-week-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            margin-bottom: 3px;
+            line-height: 1.1;
+        }
+
+        .fc-week-card-time {
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: -0.2px;
+            white-space: nowrap;
+        }
+
+        .fc-week-card-icon {
+            font-size: 10px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-left: 4px;
+            flex-shrink: 0;
+            opacity: 0.85;
+        }
+
+        .fc-week-card-subject {
+            font-size: 12.5px;
+            font-weight: 700;
+            line-height: 1.25;
+            margin-bottom: 3px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .fc-week-card-fee {
+            font-size: 11px;
+            font-weight: 600;
+            line-height: 1.2;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            opacity: 0.9;
+        }
+
+        .fc-timegrid-event-short .fc-week-card-fee {
+            display: none;
+        }
+
+        .fc-timegrid-event-short .fc-week-card-inner {
+            padding: 3px 5px;
+        }
+
+        /* EVENT CHIPS Ở MONTH VIEW: DẠNG VIÊN THUỐC CAPSULE CÓ CHẤM TRÒN MÀU */
+        .fc-daygrid-event {
+            border: none !important;
+            border-radius: 6px !important;
+            margin: 1.5px 3.5px !important;
+            padding: 0 !important;
+            box-shadow: none !important;
+            background: transparent !important;
+            cursor: pointer !important;
+            position: relative !important;
+            z-index: 1 !important;
+        }
+
+        .fc-month-chip-inner {
+            display: flex !important;
+            align-items: center !important;
+            gap: 6px !important;
+            padding: 3px 7px !important;
+            border-radius: 6px !important;
+            font-size: 11.5px !important;
+            line-height: 1.35 !important;
+            white-space: nowrap !important;
+            overflow: hidden !important;
+            text-overflow: ellipsis !important;
+            width: 100% !important;
+            box-sizing: border-box !important;
+            transition: transform 0.15s ease, box-shadow 0.15s ease !important;
+        }
+
+        .fc-month-chip-inner:hover {
+            transform: translateY(-1px) !important;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.12) !important;
+        }
+
+        .fc-chip-dot {
+            width: 7px !important;
+            height: 7px !important;
+            border-radius: 50% !important;
+            flex-shrink: 0 !important;
+            display: inline-block !important;
+            box-shadow: 0 0 2px rgba(0, 0, 0, 0.25) !important;
+        }
+
+        .fc-chip-time {
+            font-weight: 700 !important;
+            font-size: 11px !important;
+            flex-shrink: 0 !important;
+            letter-spacing: -0.2px !important;
+            color: var(--text-primary) !important;
+        }
+
+        .fc-chip-title {
+            font-weight: 600 !important;
+            font-size: 11.5px !important;
+            overflow: hidden !important;
+            text-overflow: ellipsis !important;
+            white-space: nowrap !important;
+            flex: 1 !important;
+            color: var(--text-primary) !important;
         }
 
         .fc-event-main-frame {
-            padding: 2px 4px !important;
+            padding: 1px 3px !important;
         }
 
         .fc-event-time {
             font-size: 10.5px !important;
             font-weight: 700 !important;
-            color: #E2D1FF !important;
+            color: #6B4226 !important;
             margin-bottom: 2px !important;
         }
 
         .fc-event-title {
             font-size: 11.5px !important;
             font-weight: 700 !important;
-            color: #FFF !important;
-            white-space: normal !important; /* Cho phép xuống dòng tự động */
-            word-break: break-word !important; /* Tự động ngắt từ dài */
+            color: #2D1F0E !important;
+            white-space: normal !important;
+            word-break: break-word !important;
         }
 
+        /* Column Header Styles for Week & Day View (Thiết kế Image 2) */
+        .fc-week-header-cell {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 6px 0;
+            gap: 3px;
+            line-height: 1.15;
+            user-select: none;
+        }
 
+        .fc-week-header-day {
+            font-size: 11.5px;
+            font-weight: 600;
+            color: #716584;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .fc-week-header-date {
+            font-size: 12.5px;
+            font-weight: 700;
+            color: #4A3E5D;
+        }
+
+        .fc-week-header-cell.fc-header-today .fc-week-header-day {
+            color: #8E4DFF;
+            font-weight: 700;
+        }
+
+        .fc-week-header-cell.fc-header-today .fc-week-header-date {
+            color: #8E4DFF;
+            font-weight: 800;
+        }
 
         /* --- BẢNG MÀU CHO MODAL --- */
         .color-picker-section {
@@ -274,18 +1130,18 @@
             padding: 5px 0;
             font-size: 11.5px;
             font-weight: 600;
-            border: 1px solid rgba(255,255,255,0.15);
+            border: 1px solid #E5D9CC;
             border-radius: 8px;
             background: transparent;
-            color: #8892B0;
+            color: #6B4226;
             cursor: pointer;
             transition: all 0.2s;
             font-family: 'Inter', sans-serif;
         }
         .color-scope-btn.active {
-            background: rgba(142, 77, 255, 0.2);
-            border-color: rgba(142, 77, 255, 0.6);
-            color: #E2D1FF;
+            background: #FFF0F6;
+            border-color: #C05E8E;
+            color: #C05E8E;
         }
         .color-swatches {
             display: flex;
@@ -304,9 +1160,9 @@
         }
         .color-swatch:hover { transform: scale(1.18); }
         .color-swatch.selected {
-            border-color: #FFF;
+            border-color: #2D1F0E;
             transform: scale(1.15);
-            box-shadow: 0 0 0 2px rgba(255,255,255,0.3);
+            box-shadow: 0 0 0 2px rgba(45, 31, 14, 0.2);
         }
         .color-swatch.selected::after {
             content: '✓';
@@ -325,7 +1181,7 @@
             align-items: center;
             gap: 6px;
             font-size: 11px;
-            color: #8892B0;
+            color: #6B4226;
             margin-top: 7px;
         }
         .color-preview-dot {
@@ -380,11 +1236,11 @@
             left: 0;
             right: 0;
             z-index: 800;
-            background: rgba(11, 8, 38, 0.97);
-            border-top: 2px solid rgba(142, 77, 255, 0.5);
+            background: #FFFFFF;
+            border-top: 2px solid #C05E8E;
             border-radius: 20px 20px 0 0;
             padding: 16px 20px 20px;
-            box-shadow: 0 -8px 40px rgba(91, 46, 255, 0.3);
+            box-shadow: 0 -8px 30px rgba(45, 31, 14, 0.12);
             transform: translateY(100%);
             transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
             max-height: 55vh;
@@ -395,28 +1251,25 @@
             transform: translateY(0);
         }
 
-        .sheet-panel.open ~ .btn-sheet-toggle {
-            display: none !important;
-        }
-
         .btn-sheet-toggle-header {
-            background: rgba(255, 210, 63, 0.15);
-            border: 1px solid rgba(255, 210, 63, 0.4);
-            color: #FFD23F;
+            background: #F3EDE4;
+            border: 1px solid #E5D9CC;
+            color: #6B4226;
             border-radius: 30px;
-            padding: 6px 12px;
-            font-size: 11px;
+            padding: 6px 14px;
+            font-size: 11.5px;
             font-weight: 700;
             cursor: pointer;
-            display: flex;
+            display: inline-flex;
             align-items: center;
-            gap: 5px;
+            gap: 6px;
             transition: all 0.2s;
             font-family: 'Inter', sans-serif;
-            margin-right: 15px;
+            margin-right: 12px;
         }
         .btn-sheet-toggle-header:hover {
-            background: rgba(255, 210, 63, 0.3);
+            background: #E8DDD0;
+            color: #2D1F0E;
             transform: translateY(-1px);
         }
         @media (max-width: 576px) {
@@ -424,8 +1277,6 @@
                 display: none;
             }
         }
-
-
 
         .sheet-panel-header {
             display: flex;
@@ -437,98 +1288,96 @@
         .sheet-title {
             font-size: 13.5px;
             font-weight: 700;
-            color: #FFD23F;
+            color: #2D1F0E;
             display: flex;
             align-items: center;
             gap: 8px;
         }
+        .sheet-title i.fa-table-list {
+            color: #C05E8E;
+        }
 
         .btn-close-panel {
-            background: transparent;
-            border: 1px solid rgba(255,255,255,0.1);
-            color: #A6ADCE;
+            background: #F8F3EC;
+            border: 1px solid #E5D9CC;
+            color: #6B4226;
             border-radius: 50%;
             width: 28px; height: 28px;
             cursor: pointer;
             font-size: 13px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
             transition: 0.2s;
         }
-        .btn-close-panel:hover { background: rgba(255,255,255,0.05); color: #FFF; }
-
-        /* Nút toggle bảng Sheets, nổi ở góc dưới trái */
-        .btn-sheet-toggle {
-            position: fixed;
-            bottom: 25px;
-            left: 25px;
-            z-index: 900;
-            background: rgba(255, 210, 63, 0.1);
-            border: 1px solid rgba(255, 210, 63, 0.4);
-            color: #FFD23F;
-            border-radius: 30px;
-            padding: 8px 16px;
-            font-size: 12px;
-            font-weight: 700;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            transition: all 0.2s;
-            font-family: 'Inter', sans-serif;
-        }
-        .btn-sheet-toggle:hover {
-            background: rgba(255, 210, 63, 0.2);
-            transform: translateY(-2px);
-        }
-
-
+        .btn-close-panel:hover { background: #E8DDD0; color: #2D1F0E; }
 
         .sheet-wrapper {
             overflow-x: auto;
-            border-radius: 10px;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            background: rgba(4, 2, 10, 0.3);
+            border-radius: 12px;
+            border: 1px solid #E5D9CC;
+            background: #FFFFFF;
+            box-shadow: 0 2px 8px rgba(45, 31, 14, 0.04);
         }
 
         .sheet-table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 11px;
+            font-size: 12px;
             text-align: center;
+            background: #FFFFFF;
         }
 
         .sheet-table th, .sheet-table td {
-            padding: 8px 10px;
-            border: 1px solid rgba(255, 255, 255, 0.04);
+            padding: 9px 12px;
+            border: 1px solid #E5D9CC;
             white-space: nowrap;
         }
 
         .sheet-table th {
-            background: rgba(142, 77, 255, 0.12);
-            color: #E2D1FF;
-            font-weight: 600;
+            background: #F3EDE4;
+            color: #6B4226;
+            font-weight: 700;
+            font-size: 12px;
+        }
+
+        .sheet-table td.cell-student {
+            font-weight: 700;
+            color: #2D1F0E;
+            text-align: left;
+            background: #FAF6F0;
+            padding-left: 14px;
         }
 
         .sheet-table td.cell-active {
-            color: #E2D1FF;
-            font-weight: 500;
+            color: #2D1F0E;
+            font-weight: 600;
         }
 
         .sheet-table td.cell-empty {
-            color: #4a4d6b;
+            color: #BFA89A;
             font-style: italic;
         }
         
         .sheet-table td.cell-onetime {
-            color: #FFD23F;
-            font-weight: 600;
+            color: #C05E8E;
+            font-weight: 700;
+            background: rgba(192, 94, 142, 0.08);
+        }
+
+        .sheet-table tbody tr:hover td {
+            background: #FBF8F4;
+        }
+        .sheet-table tbody tr:hover td.cell-student {
+            background: #F5EFE6;
         }
 
         /* --- MODAL HỘP THOẠI (GOOGLE CALENDAR STYLE MODAL) --- */
         .modal-overlay {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.7);
-            backdrop-filter: blur(8px);
+            background: rgba(45, 31, 14, 0.45);
+            backdrop-filter: blur(6px);
             z-index: 1000;
             display: none;
             justify-content: center;
@@ -537,9 +1386,9 @@
         }
 
         .calendar-modal {
-            background: rgba(15, 11, 46, 0.98);
-            border: 1px solid #8E4DFF;
-            box-shadow: 0 0 40px rgba(142, 77, 255, 0.4);
+            background: #FDF8F3;
+            border: 1px solid #E5D9CC;
+            box-shadow: 0 10px 40px rgba(45, 31, 14, 0.15);
             border-radius: 20px;
             width: 100%;
             max-width: 440px;
@@ -547,6 +1396,7 @@
             position: relative;
             transform: scale(0.9);
             transition: all 0.3s;
+            color: #2D1F0E;
         }
 
         .modal-overlay.active {
@@ -561,7 +1411,7 @@
         .recurrence-dialog-overlay {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.65);
+            background: rgba(45, 31, 14, 0.45);
             backdrop-filter: blur(6px);
             z-index: 2000;
             display: none;
@@ -571,9 +1421,9 @@
         .recurrence-dialog-overlay.active { display: flex; }
 
         .recurrence-dialog {
-            background: rgba(18, 13, 55, 0.98);
-            border: 1px solid rgba(142, 77, 255, 0.5);
-            box-shadow: 0 8px 40px rgba(91, 46, 255, 0.35);
+            background: #FDF8F3;
+            border: 1px solid #E5D9CC;
+            box-shadow: 0 8px 40px rgba(45, 31, 14, 0.15);
             border-radius: 16px;
             padding: 24px 28px;
             width: 100%;
@@ -586,12 +1436,12 @@
         .recurrence-dialog h4 {
             font-size: 15px;
             font-weight: 700;
-            color: #E2D1FF;
+            color: #2D1F0E;
             margin-bottom: 6px;
         }
         .recurrence-dialog p {
             font-size: 12px;
-            color: #8892B0;
+            color: #6B4226;
             margin-bottom: 20px;
             line-height: 1.5;
         }
@@ -602,33 +1452,33 @@
             display: flex;
             align-items: flex-start;
             gap: 12px;
-            background: rgba(255,255,255,0.03);
-            border: 1px solid rgba(255,255,255,0.08);
+            background: #FFFFFF;
+            border: 1px solid #E5D9CC;
             border-radius: 12px;
             padding: 13px 15px;
             cursor: pointer;
             transition: all 0.2s;
         }
         .recurrence-option:hover {
-            background: rgba(142,77,255,0.12);
-            border-color: rgba(142,77,255,0.4);
+            background: #FFF0F6;
+            border-color: #C05E8E;
         }
         .recurrence-option.selected {
-            background: rgba(142,77,255,0.15);
-            border-color: #8E4DFF;
+            background: #FFF0F6;
+            border-color: #C05E8E;
         }
         .recurrence-option input[type="radio"] { display: none; }
         .recurrence-radio-dot {
             width: 18px; height: 18px; flex-shrink: 0;
             border-radius: 50%;
-            border: 2px solid rgba(255,255,255,0.3);
+            border: 2px solid #E5D9CC;
             display: flex; align-items: center; justify-content: center;
             margin-top: 1px;
             transition: 0.2s;
         }
         .recurrence-option.selected .recurrence-radio-dot {
-            border-color: #8E4DFF;
-            background: #8E4DFF;
+            border-color: #C05E8E;
+            background: #C05E8E;
         }
         .recurrence-option.selected .recurrence-radio-dot::after {
             content: '';
@@ -638,13 +1488,13 @@
         }
         .recurrence-option-text strong {
             font-size: 13px;
-            color: #E2D1FF;
+            color: #2D1F0E;
             font-weight: 600;
         }
         .recurrence-option-text span {
             display: block;
             font-size: 11px;
-            color: #6B7280;
+            color: #8C786A;
             margin-top: 2px;
         }
 
@@ -655,8 +1505,8 @@
         }
         .btn-rec-cancel {
             background: transparent;
-            border: 1px solid rgba(255,255,255,0.15);
-            color: #A6ADCE;
+            border: 1px solid #E5D9CC;
+            color: #6B4226;
             border-radius: 30px;
             padding: 8px 18px;
             font-size: 13px;
@@ -664,9 +1514,9 @@
             font-family: 'Inter', sans-serif;
             transition: 0.2s;
         }
-        .btn-rec-cancel:hover { border-color: rgba(255,255,255,0.35); color: #FFF; }
+        .btn-rec-cancel:hover { border-color: #C05E8E; color: #2D1F0E; background: #E8DDD0; }
         .btn-rec-ok {
-            background: linear-gradient(135deg, #8E4DFF, #5B21B6);
+            background: #C05E8E;
             border: none;
             color: #FFF;
             border-radius: 30px;
@@ -691,9 +1541,9 @@
             position: fixed;
             z-index: 3000;
             width: 300px;
-            background: rgba(15, 11, 46, 0.98);
-            border: 1px solid rgba(142, 77, 255, 0.45);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(142,77,255,0.08);
+            background: #FDF8F3;
+            border: 1px solid #E5D9CC;
+            box-shadow: 0 8px 32px rgba(45, 31, 14, 0.15);
             border-radius: 14px;
             padding: 12px 16px 18px 16px;
             display: none;
@@ -712,7 +1562,7 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 10px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+            border-bottom: 1px solid #E5D9CC;
             padding-bottom: 8px;
         }
         .detail-actions-left {
@@ -722,7 +1572,7 @@
         .btn-detail-action {
             background: transparent;
             border: none;
-            color: #A6ADCE;
+            color: #6B4226;
             font-size: 14px;
             cursor: pointer;
             width: 30px;
@@ -734,8 +1584,8 @@
             transition: all 0.2s;
         }
         .btn-detail-action:hover {
-            background: rgba(255, 255, 255, 0.1);
-            color: #FFF;
+            background: #E8DDD0;
+            color: #2D1F0E;
         }
         .detail-content {
             display: flex;
@@ -752,36 +1602,35 @@
             width: 11px;
             height: 11px;
             border-radius: 50%;
-            background-color: #8E4DFF;
+            background-color: #C05E8E;
             flex-shrink: 0;
-            box-shadow: 0 0 7px rgba(142, 77, 255, 0.6);
+            box-shadow: 0 0 7px rgba(192, 94, 142, 0.4);
         }
         #detailTitle {
             font-size: 15px;
             font-weight: 700;
-            color: #FFF;
+            color: #2D1F0E;
         }
         .detail-info-item {
             display: flex;
             align-items: flex-start;
             gap: 10px;
-            color: #E2D1FF;
+            color: #6B4226;
             font-size: 12.5px;
             line-height: 1.45;
         }
         .detail-info-item i {
             font-size: 13px;
-            color: #A6ADCE;
+            color: #8C786A;
             margin-top: 2px;
             width: 14px;
             text-align: center;
         }
         .detail-recurrence-info {
             font-size: 11px;
-            color: #8892B0;
+            color: #8C786A;
             margin-top: 2px;
         }
-
 
         .modal-header {
             display: flex;
@@ -793,22 +1642,25 @@
         .modal-header h3 {
             font-size: 16px;
             font-weight: 800;
-            color: #FFD23F;
+            color: #2D1F0E;
             display: flex;
             align-items: center;
             gap: 8px;
+        }
+        .modal-header h3 i {
+            color: #C05E8E;
         }
 
         .btn-close {
             background: transparent;
             border: none;
-            color: #A6ADCE;
+            color: #8C786A;
             font-size: 18px;
             cursor: pointer;
             transition: 0.3s;
         }
 
-        .btn-close:hover { color: #FFF; }
+        .btn-close:hover { color: #2D1F0E; }
 
         .form-group {
             margin-bottom: 16px;
@@ -818,7 +1670,7 @@
             display: block;
             font-size: 11px;
             font-weight: 700;
-            color: #A6ADCE;
+            color: #6B4226;
             text-transform: uppercase;
             margin-bottom: 6px;
             letter-spacing: 0.5px;
@@ -826,19 +1678,19 @@
 
         .form-control {
             width: 100%;
-            background: rgba(4, 2, 10, 0.6);
-            border: 1px solid rgba(142, 77, 255, 0.3);
+            background: #FFFFFF;
+            border: 1px solid #E5D9CC;
             border-radius: 10px;
             padding: 10px 14px;
-            color: #FFF;
+            color: #2D1F0E;
             font-size: 13.5px;
             outline: none;
             transition: all 0.3s;
         }
 
         .form-control:focus {
-            border-color: #8E4DFF;
-            box-shadow: 0 0 10px rgba(142, 77, 255, 0.2);
+            border-color: #C05E8E;
+            box-shadow: 0 0 10px rgba(192, 94, 142, 0.2);
         }
 
         .row-grid {
@@ -869,21 +1721,21 @@
             display: block;
             text-align: center;
             padding: 8px 4px;
-            background: rgba(255, 255, 255, 0.02);
-            border: 1px solid rgba(255, 255, 255, 0.06);
+            background: #F8F3EC;
+            border: 1px solid #E5D9CC;
             border-radius: 8px;
             font-size: 11px;
             font-weight: 600;
-            color: #A6ADCE;
+            color: #6B4226;
             cursor: pointer;
             transition: all 0.2s;
         }
 
         .day-checkbox-item input:checked + .day-checkbox-label {
-            background: rgba(142, 77, 255, 0.25);
-            border-color: #8E4DFF;
-            color: #FFF;
-            box-shadow: 0 0 10px rgba(142, 77, 255, 0.2);
+            background: #FFF0F6;
+            border-color: #C05E8E;
+            color: #C05E8E;
+            box-shadow: 0 0 10px rgba(192, 94, 142, 0.2);
         }
 
         /* Actions Footer Buttons */
@@ -892,7 +1744,7 @@
             justify-content: flex-end;
             gap: 10px;
             margin-top: 25px;
-            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            border-top: 1px solid #E5D9CC;
             padding-top: 15px;
         }
 
@@ -908,13 +1760,13 @@
 
         .btn-cancel {
             background: transparent;
-            color: #A6ADCE;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #6B4226;
+            border: 1px solid #E5D9CC;
         }
-        .btn-cancel:hover { background: rgba(255, 255, 255, 0.03); color: #FFF; }
+        .btn-cancel:hover { background: #E8DDD0; color: #2D1F0E; }
 
         .btn-delete {
-            background: rgba(239, 68, 68, 0.1);
+            background: rgba(239, 68, 68, 0.08);
             color: #EF4444;
             border: 1px solid rgba(239, 68, 68, 0.2);
             margin-right: auto;
@@ -922,12 +1774,12 @@
         .btn-delete:hover { background: #EF4444; color: #FFF; }
 
         .btn-save {
-            background: linear-gradient(135deg, #8E4DFF 0%, #5B21B6 100%);
+            background: #C05E8E;
             color: #FFF;
-            box-shadow: 0 4px 15px rgba(142, 77, 255, 0.3);
+            box-shadow: 0 4px 15px rgba(192, 94, 142, 0.3);
         }
         .btn-save:hover {
-            box-shadow: 0 6px 20px rgba(142, 77, 255, 0.5);
+            box-shadow: 0 6px 20px rgba(192, 94, 142, 0.5);
             transform: translateY(-1px);
         }
 
@@ -939,14 +1791,14 @@
             width: 56px;
             height: 56px;
             border-radius: 28px;
-            background: linear-gradient(135deg, #8E4DFF 0%, #5B21B6 100%);
+            background: #C05E8E;
             color: #FFF;
             display: none;
             justify-content: center;
             align-items: center;
             font-size: 22px;
-            box-shadow: 0 4px 20px rgba(91, 46, 255, 0.5);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 4px 20px rgba(192, 94, 142, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.4);
             cursor: pointer;
             z-index: 900;
             transition: all 0.3s;
@@ -960,38 +1812,105 @@
         @media (max-width: 768px) {
             body { padding: 0 !important; }
             .container { 
-                padding: 10px 15px !important; 
+                flex-direction: column !important;
+                gap: 10px !important;
+                padding: 12px 16px !important; 
                 border-radius: 0 !important; 
-                border-bottom: 1px solid rgba(142, 77, 255, 0.15) !important;
+                border-bottom: 1px solid var(--border-card, #E5D9CC) !important;
             }
-            .calendar-header { margin-bottom: 0px; }
-            .calendar-subtitle { display: none; } /* Ẩn subtitle trên mobile để tiết kiệm diện tích */
+            .header-left h1 { font-size: 18px !important; }
+            .header-right { flex-wrap: wrap !important; gap: 8px !important; width: 100% !important; }
+            .calendar-header-custom {
+                gap: 8px !important;
+                flex-wrap: wrap !important;
+            }
+            .cal-header-left {
+                gap: 8px !important;
+                flex-wrap: wrap !important;
+            }
+            .cal-header-right {
+                gap: 6px !important;
+                flex-wrap: wrap !important;
+                width: 100% !important;
+            }
+
+            /* FullCalendar toolbar & cells */
+            .fc-toolbar {
+                flex-direction: column !important;
+                gap: 8px !important;
+                align-items: flex-start !important;
+            }
+            .fc-toolbar-title { font-size: 16px !important; }
+            .fc-button {
+                font-size: 12px !important;
+                padding: 6px 10px !important;
+                min-height: 36px !important;
+            }
+            .fc-daygrid-day-number { font-size: 12px !important; }
+            .fc-col-header-cell-cushion { font-size: 11px !important; }
+            .fc-event-title { font-size: 10px !important; }
+            .fc-daygrid-event { padding: 1px 3px !important; }
+
+            /* Sheet panel full width trên mobile */
+            .sheet-panel, [class*="sheet"] {
+                width: 100% !important;
+                right: 0 !important;
+                left: 0 !important;
+            }
+            /* Mobile: nút Quay lại thu gọn thành icon ← (không có chữ) */
+            .btn-back-dashboard {
+                padding: 0 !important;
+                width: 32px !important;
+                height: 32px !important;
+                border-radius: 50% !important;
+                justify-content: center !important;
+            }
+            .btn-back-dashboard .btn-back-text {
+                display: none !important;
+            }
+            .calendar-month-title {
+                font-size: 16px !important;
+            }
+            .cal-sheet-btn-text {
+                display: none !important;
+            }
+            .cal-sheet-toggle-btn {
+                padding: 0 !important;
+                width: 32px !important;
+                height: 32px !important;
+                border-radius: 50% !important;
+                justify-content: center !important;
+            }
+            .cal-filter-pill {
+                padding: 0 10px !important;
+                font-size: 11.5px !important;
+                height: 28px !important;
+            }
+            .cal-view-pill {
+                padding: 0 9px !important;
+                font-size: 11.5px !important;
+                height: 24px !important;
+            }
+            .calendar-bottom-bar {
+                padding: 7px 12px !important;
+                flex-direction: column !important;
+                align-items: stretch !important;
+                gap: 6px !important;
+            }
+            .cal-legend-list {
+                gap: 12px !important;
+            }
+            .cal-legend-item {
+                font-size: 11.5px !important;
+            }
+            .cal-status-bar {
+                font-size: 11.5px !important;
+                justify-content: center !important;
+                padding: 4px 10px !important;
+            }
             .calendar-wrapper { padding: 0 4px 4px 4px !important; }
             
             .fab-add { display: flex; }
-
-            .fc .fc-toolbar {
-                display: flex !important;
-                flex-direction: column !important;
-                gap: 8px !important;
-                align-items: stretch !important;
-            }
-            .fc .fc-toolbar-title {
-                text-align: center !important;
-                font-size: 14px !important;
-            }
-            .fc .fc-button-group {
-                width: 100% !important;
-                display: flex !important;
-            }
-            .fc .fc-button {
-                flex: 1 !important;
-                padding: 4px 8px !important;
-                font-size: 11.5px !important;
-            }
-            .fc .fc-today-button {
-                width: 100% !important;
-            }
 
             .fc-timegrid-slot {
                 height: 28px !important; /* Compact trên mobile */
@@ -1051,7 +1970,7 @@
                 display: block;
                 position: fixed;
                 top: 0; left: 0; right: 0; bottom: 0;
-                background: rgba(0, 0, 0, 0.55);
+                background: rgba(45, 31, 14, 0.45);
                 backdrop-filter: blur(2px);
                 z-index: 2999;
                 opacity: 0;
@@ -1074,8 +1993,8 @@
                 max-width: 100% !important;
                 border-radius: 24px 24px 0 0 !important;
                 border: none !important;
-                border-top: 1px solid rgba(142, 77, 255, 0.2) !important;
-                box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.6) !important;
+                border-top: 1px solid #E5D9CC !important;
+                box-shadow: 0 -8px 32px rgba(45, 31, 14, 0.2) !important;
                 padding: 12px 20px 30px 20px !important;
                 transform: translateY(100%) !important;
                 transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
@@ -1092,29 +2011,401 @@
                 display: block;
                 width: 40px;
                 height: 4px;
-                background: rgba(255, 255, 255, 0.25);
+                background: #D4C3B3;
                 border-radius: 2px;
                 margin: 0 auto 12px auto;
             }
+        }
+
+        @media (max-width: 480px) {
+            .fc-toolbar-title { font-size: 14px !important; }
+            .fc-button-group .fc-button, .fc-button { padding: 5px 8px !important; font-size: 11px !important; }
+            .fc-daygrid-day-number { font-size: 11px !important; }
+            .calendar-month-title { font-size: 14px !important; }
+            .cal-header-right { flex-wrap: wrap; gap: 6px; }
+        }
+    
+        /* === THEME OVERRIDES FOR CALENDAR === */
+        body {
+            background-color: var(--bg-page) !important;
+            background-image: var(--bg-page-gradient) !important;
+            color: var(--text-primary) !important;
+        }
+
+        .container {
+            background: var(--bg-sidebar) !important;
+            border-bottom: 1px solid var(--border-card) !important;
+        }
+
+        .btn-back-dashboard {
+            background: var(--bg-input) !important;
+            border: 1px solid var(--border-color) !important;
+            color: var(--text-primary) !important;
+        }
+        .btn-back-dashboard:hover {
+            background: var(--nav-hover-bg) !important;
+            border-color: var(--color-primary) !important;
+        }
+
+        .cal-nav-btn {
+            background: var(--bg-input) !important;
+            border: 1px solid var(--border-color) !important;
+            color: var(--text-primary) !important;
+        }
+        .cal-nav-btn:hover {
+            background: var(--nav-hover-bg) !important;
+            border-color: var(--color-primary) !important;
+        }
+
+        .cal-today-btn {
+            background: var(--bg-input) !important;
+            border: 1px solid var(--border-color) !important;
+            color: var(--text-primary) !important;
+        }
+        .cal-today-btn:hover {
+            background: var(--nav-hover-bg) !important;
+            border-color: var(--color-primary) !important;
+        }
+
+        .calendar-month-title {
+            color: var(--color-primary) !important;
+        }
+
+        .cal-filter-pill {
+            background: var(--bg-card) !important;
+            border: 1px solid var(--border-card) !important;
+            color: var(--text-secondary) !important;
+        }
+        .cal-filter-pill:hover {
+            background: var(--nav-hover-bg) !important;
+            border-color: var(--border-color) !important;
+        }
+        .cal-filter-pill.active {
+            background: var(--nav-active-bg) !important;
+            border-color: var(--color-primary) !important;
+            color: var(--color-primary) !important;
+            box-shadow: var(--shadow-primary) !important;
+        }
+        .cal-filter-pill.active i {
+            color: var(--color-primary) !important;
+        }
+
+        .cal-view-pills {
+            background: var(--bg-input) !important;
+            border: 1px solid var(--border-card) !important;
+        }
+        .cal-view-pill {
+            color: var(--text-secondary) !important;
+        }
+        .cal-view-pill:hover:not(.active) {
+            color: var(--text-primary) !important;
+            background: var(--nav-hover-bg) !important;
+        }
+        .cal-view-pill.active {
+            background: var(--btn-bg) !important;
+            color: var(--btn-text) !important;
+            box-shadow: var(--shadow-primary) !important;
+        }
+
+        .cal-sheet-toggle-btn {
+            background: var(--bg-input) !important;
+            border: 1px solid var(--border-color) !important;
+            color: var(--text-primary) !important;
+        }
+        .cal-sheet-toggle-btn:hover {
+            background: var(--nav-hover-bg) !important;
+            border-color: var(--color-primary) !important;
+        }
+
+        .calendar-bottom-bar {
+            background: var(--bg-sidebar) !important;
+            border-top: 1px solid var(--border-card) !important;
+        }
+        .cal-legend-item {
+            color: var(--text-primary) !important;
+        }
+        .cal-status-bar {
+            background: var(--bg-input) !important;
+            border: 1px solid var(--border-card) !important;
+            color: var(--text-secondary) !important;
+        }
+
+        /* FullCalendar Standard Overrides */
+        .fc-theme-standard .fc-scrollgrid {
+            border: none !important;
+            background: transparent !important;
+        }
+        .fc-timegrid .fc-scrollgrid {
+            border: 1px solid var(--border-card) !important;
+            background: var(--bg-card) !important;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        .fc-timegrid td, .fc-timegrid th {
+            border: 1px solid var(--border-card) !important;
+        }
+        .fc-col-header-cell {
+            border: none !important;
+            background: transparent !important;
+        }
+        .fc-timegrid .fc-col-header-cell {
+            border: 1px solid var(--border-card) !important;
+            background: var(--bg-card-alt) !important;
+        }
+        .fc-col-header-cell-cushion {
+            color: var(--text-primary) !important;
+            font-size: 12px !important;
+            font-weight: 800 !important;
+        }
+        .fc-timegrid-slot {
+            border-bottom: 1px solid var(--border-card) !important;
+            border-right: 1px solid var(--border-card) !important;
+            background: var(--bg-card) !important;
+        }
+        .fc-timegrid-slot-minor {
+            border-bottom: 1px solid var(--border-card) !important;
+        }
+        .fc-timegrid-slot-lane {
+            background: var(--bg-card) !important;
+        }
+        .fc-timegrid-slot-label {
+            background: var(--bg-card-alt) !important;
+            border-color: var(--border-card) !important;
+        }
+        .fc-timegrid-slot-label-cushion {
+            color: var(--text-muted) !important;
+            background: var(--bg-card-alt) !important;
+        }
+        .fc-timegrid-axis-frame, .fc-timegrid-axis {
+            color: var(--text-muted) !important;
+            background: var(--bg-card-alt) !important;
+            border-color: var(--border-card) !important;
+        }
+        .fc-theme-standard th.fc-timegrid-axis {
+            background: var(--bg-card-alt) !important;
+            border-bottom: 1px solid var(--border-card) !important;
+            border-right: 1px solid var(--border-card) !important;
+        }
+        .fc-daygrid-day-frame {
+            background: var(--bg-card) !important;
+            border: 1px solid var(--border-card) !important;
+            box-shadow: var(--shadow-card) !important;
+        }
+        .fc-daygrid-day-frame:hover {
+            border-color: var(--color-primary) !important;
+        }
+        .fc-daygrid-day-number {
+            color: var(--text-primary) !important;
+            font-size: 13px !important;
+            font-weight: 700 !important;
+        }
+        .fc-day-other .fc-daygrid-day-frame {
+            background: var(--bg-page) !important;
+            border-color: var(--border-card) !important;
+            opacity: 0.88 !important;
+        }
+        .fc-day-other .fc-daygrid-day-number {
+            color: var(--text-muted) !important;
+            font-weight: 600 !important;
+        }
+        .fc-daygrid-day.fc-day-today .fc-daygrid-day-frame {
+            border: 1.5px solid var(--color-primary) !important;
+            background: var(--bg-card) !important;
+        }
+        .fc-daygrid-day.fc-day-today .fc-daygrid-day-number {
+            background: var(--color-primary) !important;
+            color: var(--btn-text) !important;
+        }
+        .fc th.fc-day-today .fc-col-header-cell-cushion {
+            color: var(--color-primary) !important;
+        }
+        .fc .fc-daygrid-more-link {
+            color: var(--color-primary, var(--text-primary)) !important;
+            font-weight: 700 !important;
+        }
+        .fc .fc-daygrid-more-link:hover {
+            color: var(--text-primary) !important;
+            background: var(--nav-hover-bg) !important;
+        }
+        .fc .fc-popover {
+            background: var(--bg-card) !important;
+            border: 1px solid var(--border-card) !important;
+            box-shadow: var(--shadow-card) !important;
+        }
+        .fc .fc-popover-header {
+            background: var(--bg-card-alt) !important;
+            border-bottom: 1px solid var(--border-card) !important;
+            color: var(--text-primary) !important;
+        }
+        .fc-timegrid-now-indicator-line {
+            border-color: var(--color-primary) !important;
+        }
+
+        /* Modals & Dialogs */
+        .modal-overlay {
+            background: var(--bg-overlay) !important;
+        }
+        .calendar-modal {
+            background: var(--bg-card) !important;
+            border: 1px solid var(--border-card) !important;
+            box-shadow: var(--shadow-card) !important;
+            color: var(--text-primary) !important;
+        }
+        .recurrence-dialog-overlay {
+            background: var(--bg-overlay) !important;
+        }
+        .recurrence-dialog {
+            background: var(--bg-card) !important;
+            border: 1px solid var(--border-card) !important;
+            box-shadow: var(--shadow-card) !important;
+            color: var(--text-primary) !important;
+        }
+        .recurrence-dialog h4 {
+            color: var(--text-primary) !important;
+        }
+        .recurrence-dialog p {
+            color: var(--text-secondary) !important;
+        }
+        .recurrence-option {
+            background: var(--bg-input) !important;
+            border: 1px solid var(--border-card) !important;
+            color: var(--text-primary) !important;
+        }
+        .recurrence-option:hover, .recurrence-option.selected {
+            background: var(--nav-hover-bg) !important;
+            border-color: var(--color-primary) !important;
+        }
+        .recurrence-option.selected .recurrence-radio-dot {
+            border-color: var(--color-primary) !important;
+            background: var(--color-primary) !important;
+        }
+
+        /* ===== PHASE 17 — CALENDAR MOBILE ===== */
+        @media (max-width: 768px) {
+          .fc-toolbar { flex-direction: column !important; gap: 8px !important; align-items: flex-start !important; }
+          .fc-toolbar-title { font-size: 16px !important; }
+          .fc-button { font-size: 12px !important; padding: 7px 12px !important; min-height: 38px !important; }
+          .fc-button-group .fc-button { padding: 7px 10px !important; }
+
+          /* List view — đẹp nhất mobile */
+          .fc-list-day-cushion {
+            background: var(--nav-hover-bg, #EFF6FF) !important;
+            color: var(--color-primary, #2563EB) !important;
+            font-size: 12.5px !important;
+            font-weight: 800 !important;
+            padding: 10px 14px !important;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+          }
+          [data-theme="dark"] .fc-list-day-cushion,
+          .dark-theme .fc-list-day-cushion {
+            background: var(--bg-card-alt) !important;
+            color: var(--color-primary) !important;
+          }
+          .fc-list-event {
+            cursor: pointer;
+            transition: background 0.15s ease;
+          }
+          .fc-list-event:hover td {
+            background: var(--nav-hover-bg, #F8FAFF) !important;
+          }
+          .fc-list-event td {
+            padding: 12px 14px !important;
+            border-bottom: 1px solid var(--border-card, #ECE7F6) !important;
+            vertical-align: middle !important;
+          }
+          .fc-list-event-time {
+            font-size: 13px !important;
+            font-weight: 700 !important;
+            color: var(--text-primary) !important;
+            white-space: nowrap !important;
+            width: 105px;
+          }
+          .fc-list-event-graphic {
+            padding-right: 0 !important;
+            width: 24px !important;
+          }
+          .fc-list-event-dot {
+            width: 10px !important;
+            height: 10px !important;
+            border-radius: 50% !important;
+            border-width: 5px !important;
+          }
+          .fc-list-event-title {
+            font-size: 13.5px !important;
+            padding-left: 10px !important;
+          }
+          .fc-list-event-title a {
+            color: var(--text-primary) !important;
+            text-decoration: none !important;
+            display: block !important;
+            width: 100% !important;
+          }
+          .fc-list-table {
+            border: none !important;
+            width: 100% !important;
+          }
+          .fc-list-empty-cushion {
+            font-size: 13px !important;
+            color: var(--text-muted) !important;
+          }
+
+          /* Main calendar area padding */
+          .fc { padding: 0 !important; }
+        }
+        @media (max-width: 480px) {
+          .fc-toolbar-title { font-size: 14px !important; }
+          .fc-button { font-size: 11px !important; padding: 6px 8px !important; }
         }
     </style>
 </head>
 <body>
 
-    <!-- HEADER CỐ ĐỊNH -->
+    <!-- HEADER CỐ ĐỊNH (CUSTOM HEADER - TASK 10.2) -->
     <div class="container">
-        <div class="calendar-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
-            <div class="calendar-title-wrap">
-                <i class="fa-regular fa-calendar-check"></i>
-                <div>
-                    <h2>Thời Khóa Biểu & Lịch Dạy</h2>
-                    <p class="calendar-subtitle">Lên lịch lặp lại (Hàng ngày/tuần) hoặc lịch học thử .</p>
-                </div>
-            </div>
-            <div>
-                <a href="tutor-dashboard.html" class="modal-btn modal-btn-secondary" style="text-decoration: none; display: inline-flex; align-items: center; gap: 8px; padding: 10px 22px; border-radius: 20px; font-weight: bold; font-size: 13.5px; font-family: 'Inter', sans-serif; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15); color: #FFF; transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.12)'" onmouseout="this.style.background='rgba(255,255,255,0.06)'">
-                    <i class="fa-solid fa-arrow-left"></i> Quay lại Dashboard
+        <div class="calendar-header-custom">
+            <!-- NHÓM BÊN TRÁI: Quay lại Dashboard + Nút < > + Nút Hôm nay + Tiêu đề Tháng/Năm -->
+            <div class="cal-header-left">
+                <a href="tutor-dashboard.html" class="btn-back-dashboard" title="Quay lại Dashboard">
+                    <i class="fa-solid fa-arrow-left"></i>
+                    <span class="btn-back-text">Quay lại Dashboard</span>
                 </a>
+
+                <div class="cal-nav-group">
+                    <button type="button" class="cal-nav-btn" id="btnCalPrev" onclick="if(calendar) calendar.prev()" title="Tháng trước">
+                        <i class="fa-solid fa-chevron-left"></i>
+                    </button>
+                    <button type="button" class="cal-nav-btn" id="btnCalNext" onclick="if(calendar) calendar.next()" title="Tháng sau">
+                        <i class="fa-solid fa-chevron-right"></i>
+                    </button>
+                    <button type="button" class="cal-today-btn" id="btnCalToday" onclick="if(calendar) calendar.today()" title="Về hôm nay">
+                        Hôm nay
+                    </button>
+                </div>
+
+                <h2 id="calendarHeaderTitle" class="calendar-month-title">Tháng 9 2026</h2>
+            </div>
+
+            <!-- NHÓM BÊN PHẢI: Toggle Filter "Ẩn đã hủy" + Toggle Pills "Tháng / Tuần / Ngày" + Lịch tóm tắt -->
+            <div class="cal-header-right">
+                <!-- Toggle Filter "Ẩn buổi đã hủy" -->
+                <button type="button" class="cal-filter-pill" id="btnToggleHideCancelled" onclick="toggleHideCancelledSessions()" title="Ẩn/hiện các ca học đã bị hủy">
+                    <i class="fa-solid fa-eye-slash"></i>
+                    <span>Ẩn đã hủy</span>
+                </button>
+
+                <!-- Toggle Pills: Tháng / Tuần / Ngày -->
+                <div class="cal-view-pills">
+                    <button type="button" class="cal-view-pill active" id="viewPillMonth" onclick="switchCalendarView('dayGridMonth')">Tháng</button>
+                    <button type="button" class="cal-view-pill" id="viewPillWeek" onclick="switchCalendarView('timeGridWeek')">Tuần</button>
+                    <button type="button" class="cal-view-pill" id="viewPillDay" onclick="switchCalendarView('timeGridDay')">Ngày</button>
+                </div>
+
+                <!-- Nút bật/mở bảng lịch tóm tắt -->
+                <button type="button" class="cal-sheet-toggle-btn" onclick="toggleSheetPanel()" title="Xem bảng phân bổ lịch dạy">
+                    <i class="fa-solid fa-table-list"></i>
+                    <span class="cal-sheet-btn-text">Lịch tóm tắt</span>
+                </button>
             </div>
         </div>
     </div>
@@ -1122,6 +2413,15 @@
     <!-- VÙNG LỊCH CHIẾM TOÀN BỘ PHẦN CÒN LẠI -->
     <div class="calendar-wrapper">
         <div id="calendar"></div>
+    </div>
+
+    <!-- THANH BOTTOM: LEGEND THEO HỌC SINH + STATUS BAR (TASK 10.4) -->
+    <div class="calendar-bottom-bar" id="calendarBottomBar">
+        <div class="cal-legend-list" id="calStudentLegendList"></div>
+        <div class="cal-status-bar" id="calMonthStatusBar">
+            <i class="fa-solid fa-chart-pie" style="color: #C05E8E;"></i>
+            <span id="calStatusText">0 buổi trong tháng · 0 học sinh</span>
+        </div>
     </div>
 
     <!-- BẢNG SHEETS SIMULATOR - PANEL NỔI LÊN TỪ DƯỚI -->
@@ -1158,15 +2458,11 @@
     <!-- Nút FAB tròn nổi góc dưới phải -->
     <button class="fab-add" onclick="openAddEventModal()"><i class="fa-solid fa-plus"></i></button>
 
-    <!-- Nút toggle bảng Sheets, góc dưới trái -->
-    <button class="btn-sheet-toggle" id="sheetToggleBtn" onclick="toggleSheetPanel()">
-        <i class="fa-solid fa-table-list"></i> Xem lịch tóm tắt
-    </button>
 
     <!-- HỘP THOẠI XÁC NHẬN KHI CHỈNH SỬA SỰ KIỆN LẶP LẠI -->
     <div class="recurrence-dialog-overlay" id="recurrenceDialogOverlay">
         <div class="recurrence-dialog">
-            <h4 id="recurrenceDialogTitle"><i class="fa-solid fa-rotate" style="color:#8E4DFF;margin-right:8px;"></i>Chỉnh sửa sự kiện lặp lại</h4>
+            <h4 id="recurrenceDialogTitle"><i class="fa-solid fa-rotate" style="color:#C05E8E;margin-right:8px;"></i>Chỉnh sửa sự kiện lặp lại</h4>
             <p id="recurrenceDialogDesc">Sự kiện này lặp lại hàng tuần. Bạn muốn thay đổi:</p>
             <div class="recurrence-options">
                 <div class="recurrence-option selected" id="recOptThis" onclick="selectRecOption('this')">
@@ -1213,6 +2509,12 @@
                 <div>
                     <div id="detailDateTime">Ngày giờ hiển thị</div>
                     <div id="detailRecurrence" class="detail-recurrence-info">Tần suất lặp</div>
+                </div>
+            </div>
+            <div class="detail-info-item" id="detailFeeContainer">
+                <i class="fa-solid fa-coins" style="color: #10B981;"></i>
+                <div>
+                    <div id="detailFee" style="font-weight: 700; color: #059669;">500.000 đ / buổi</div>
                 </div>
             </div>
             <div class="detail-info-item" id="detailNotesContainer">
@@ -1327,6 +2629,11 @@
                     </div>
                 </div>
 
+                <div class="form-group">
+                    <label>Học phí / buổi (VNĐ)</label>
+                    <input type="number" class="form-control" id="eventFee" placeholder="Ví dụ: 750000" min="0" step="10000">
+                </div>
+
                 <!-- Trường Ghi chú tùy chọn -->
                 <div class="form-group">
                     <label>Ghi chú môn học/nội dung (Tùy chọn)</label>
@@ -1364,11 +2671,11 @@
     <!-- HỘP THOẠI XÁC NHẬN (CONFIRM) WEB-BASED TỰ CUSTOM -->
     <div class="modal-overlay" id="customConfirmModal" style="display: none; z-index: 4000;">
         <div class="calendar-modal" style="max-width: 420px; padding: 25px; text-align: center; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
-            <div style="font-size: 40px; color: #FFD23F; margin-bottom: 15px;"><i class="fa-solid fa-circle-question"></i></div>
-            <h3 style="margin-bottom: 12px; color: #FFF; font-size: 17px; font-weight: bold;">Xác nhận thao tác</h3>
-            <p id="confirmMessageText" style="color: #A6ADCE; font-size: 13.5px; line-height: 1.6; margin-bottom: 25px;"></p>
+            <div style="font-size: 40px; color: var(--color-primary); margin-bottom: 15px;"><i class="fa-solid fa-circle-question"></i></div>
+            <h3 style="margin-bottom: 12px; color: var(--text-heading, var(--text-primary)); font-size: 17px; font-weight: bold;">Xác nhận thao tác</h3>
+            <p id="confirmMessageText" style="color: var(--text-secondary); font-size: 13.5px; line-height: 1.6; margin-bottom: 25px;"></p>
             <div style="display: flex; gap: 12px; justify-content: center;">
-                <button type="button" class="modal-btn modal-btn-secondary" id="btnConfirmCancelWeb" style="padding: 10px 22px; border-radius: 20px; font-weight: bold; font-size: 13px; font-family: 'Inter', sans-serif; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15); color: #FFF; transition: background 0.2s; cursor: pointer;" onmouseover="this.style.background='rgba(255,255,255,0.12)'" onmouseout="this.style.background='rgba(255,255,255,0.06)'">Hủy bỏ</button>
+                <button type="button" class="modal-btn modal-btn-secondary" id="btnConfirmCancelWeb" style="padding: 10px 22px; border-radius: 20px; font-weight: bold; font-size: 13px; font-family: 'Inter', sans-serif; background: var(--bg-input); border: 1px solid var(--border-card); color: var(--text-primary); transition: background 0.2s; cursor: pointer;">Hủy bỏ</button>
                 <button type="button" class="modal-btn modal-btn-primary" id="btnConfirmOkWeb" style="padding: 10px 22px; border-radius: 20px; font-weight: bold; font-size: 13px; font-family: 'Inter', sans-serif; background: linear-gradient(135deg, #EF4444 0%, #B91C1C 100%); border: none; color: #FFF; box-shadow: 0 4px 15px rgba(239, 68, 68, 0.25); cursor: pointer; transition: opacity 0.2s;" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">Đồng ý</button>
             </div>
         </div>
@@ -1377,9 +2684,9 @@
     <!-- HỘP THOẠI THÔNG BÁO (ALERT) WEB-BASED TỰ CUSTOM -->
     <div class="modal-overlay" id="customAlertModal" style="display: none; z-index: 4000;">
         <div class="calendar-modal" style="max-width: 400px; padding: 25px; text-align: center; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
-            <div style="font-size: 40px; color: #8E4DFF; margin-bottom: 15px;" id="alertIcon"><i class="fa-solid fa-circle-info"></i></div>
-            <h3 style="margin-bottom: 12px; color: #FFF; font-size: 17px; font-weight: bold;">Thông báo</h3>
-            <p id="alertMessageText" style="color: #A6ADCE; font-size: 13.5px; line-height: 1.6; margin-bottom: 25px;"></p>
+            <div style="font-size: 40px; color: var(--color-primary); margin-bottom: 15px;" id="alertIcon"><i class="fa-solid fa-circle-info"></i></div>
+            <h3 style="margin-bottom: 12px; color: var(--text-heading, var(--text-primary)); font-size: 17px; font-weight: bold;">Thông báo</h3>
+            <p id="alertMessageText" style="color: var(--text-secondary); font-size: 13.5px; line-height: 1.6; margin-bottom: 25px;"></p>
             <div style="display: flex; justify-content: center;">
                 <button type="button" class="modal-btn modal-btn-primary" id="btnAlertOkWeb" style="padding: 10px 24px; border-radius: 20px; font-weight: bold; font-size: 13px; font-family: 'Inter', sans-serif; background: linear-gradient(135deg, #8E4DFF 0%, #5B21B6 100%); border: none; color: #FFF; box-shadow: 0 4px 15px rgba(142,77,255,0.25); min-width: 100px; cursor: pointer; transition: opacity 0.2s;" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">Đã hiểu</button>
             </div>
@@ -1388,57 +2695,163 @@
 
     <script>
         let calendar = null;
+        window.calendar = null;
 
         const userPhone = sessionStorage.getItem('userPhone');
         const dashDataStr = sessionStorage.getItem('dashboardData');
         let tutorDataGlobal = dashDataStr ? JSON.parse(dashDataStr) : null;
-        const isDemoMode = !userPhone;
+        const isDemoMode = false;
 
-        // Dữ liệu mô phỏng theo cấu trúc sheet Lịch học của bạn.
+        const PRESET_COLORS = [
+            '#8E4DFF', '#10B981', '#F59E0B', '#3B82F6', '#EC4899', '#6366F1',
+            '#D4E7B5', '#DFD6F2', '#F9D5CA', '#BDD7EE', '#FDE8B3', '#6D675E',
+            '#4D9EFF', '#00D2FC', '#4DFFC3', '#4CAF50', '#AEEA00', '#FFD23F'
+        ];
+
+        const STUDENT_DEFAULT_COLORS = {
+            "Lê Minh Thư": "#8E4DFF",
+            "Nguyễn Hoàng Nam": "#10B981",
+            "Phạm Hải Đăng": "#F59E0B"
+        };
+
+        // Dữ liệu thời khóa biểu chuẩn của hệ thống Gia Sư (3 học sinh thực tế)
         let tutorScheduleSheetData = [
             {
-                studentName: "Nguyễn Văn A",
-                color: localStorage.getItem('student_color_Nguyễn Văn A') || "#4D9EFF",
-                mon: "08:00 - 10:00 (Sáng - Toán) | 14:00 - 16:00 (Chiều - Lý)",
-                tue: "",
-                wed: "15:00 - 17:00",
-                thu: "",
-                fri: "",
-                sat: "",
-                sun: ""
-            },
-            {
-                studentName: "Trần Thị B",
-                color: localStorage.getItem('student_color_Trần Thị B') || "#FF6B9D",
-                mon: "",
-                tue: "17:30 - 19:30",
-                wed: "",
-                thu: "17:30 - 19:30 (Vật lý)",
-                fri: "",
-                sat: "",
-                sun: ""
-            },
-            {
-                studentName: "Lê Hoàng C",
-                color: localStorage.getItem('student_color_Lê Hoàng C') || "#4DFFC3",
-                mon: "",
+                studentName: "Lê Minh Thư",
+                subject: "Toán & Vật Lý",
+                color: localStorage.getItem('student_color_Lê Minh Thư') || "#8E4DFF",
+                fee: 200000,
+                mon: "18:00 - 19:30",
                 tue: "",
                 wed: "",
                 thu: "",
-                fri: "09:00 - 11:00",
+                fri: "",
+                sat: "",
+                sun: "08:30 - 10:00"
+            },
+            {
+                studentName: "Nguyễn Hoàng Nam",
+                subject: "Toán 9",
+                color: localStorage.getItem('student_color_Nguyễn Hoàng Nam') || "#10B981",
+                fee: 200000,
+                mon: "",
+                tue: "",
+                wed: "19:30 - 21:00",
+                thu: "",
+                fri: "",
+                sat: "18:00 - 19:30",
+                sun: ""
+            },
+            {
+                studentName: "Phạm Hải Đăng",
+                subject: "Vật Lý 11",
+                color: localStorage.getItem('student_color_Phạm Hải Đăng') || "#F59E0B",
+                fee: 200000,
+                mon: "",
+                tue: "18:00 - 19:30",
+                wed: "",
+                thu: "",
+                fri: "18:00 - 19:30",
                 sat: "",
                 sun: ""
             }
         ];
 
-        // Nếu ở chế độ thật, sẽ fetch lịch từ Sheets thông qua Apps Script
+        // Safe helpers for cross-origin / file:/// parent window access
+        function getSafeParentStore() {
+            try {
+                if (window.parent && window.parent !== window && typeof null === 'function') {
+                    return null();
+                }
+            } catch(e) {}
+            return null;
+        }
+
+        function getSafeParentTutorData() {
+            try {
+                if (window.parent && window.parent !== window && window.parent.tutorDataGlobal) {
+                    return window.parent.tutorDataGlobal;
+                }
+            } catch(e) {}
+            return null;
+        }
+
+        function safeSaveParentStore(store) {
+            try {
+                if (window.parent && window.parent !== window && typeof null === 'function') {
+                    null(store);
+                }
+            } catch(e) {}
+        }
+
+        // Hàm nạp thời khóa biểu từ Store demo hoặc Backend Sheets
         function loadTutorScheduleFromBackend(onSuccess) {
+            var store = (false) ? null : null;
+            if (!store) {
+                store = getSafeParentStore();
+            }
+            if (!tutorDataGlobal && store && store.students) {
+                tutorDataGlobal = { students: store.students };
+            } else if (!tutorDataGlobal) {
+                var pTutorData = getSafeParentTutorData();
+                if (pTutorData) tutorDataGlobal = pTutorData;
+            }
+
             if (isDemoMode) {
+                var sched = (store && store.tutorSchedule && store.tutorSchedule.length > 0) ? store.tutorSchedule : null;
+                if (!sched) {
+                    var pStore = getSafeParentStore();
+                    if (pStore && pStore.tutorSchedule && pStore.tutorSchedule.length > 0) sched = pStore.tutorSchedule;
+                }
+
+                if (sched && sched.length > 0) {
+                    var schedMap = {};
+                    sched.forEach(function(s) {
+                        if (s && s.studentName) {
+                            schedMap[s.studentName.trim()] = s;
+                        }
+                    });
+
+                    var stList = (tutorDataGlobal && tutorDataGlobal.students && tutorDataGlobal.students.length > 0)
+                        ? tutorDataGlobal.students
+                        : (store && store.students && store.students.length > 0 ? store.students : [
+                            { name: "Lê Minh Thư", subject: "Toán & Vật Lý", tuition: 200000 },
+                            { name: "Nguyễn Hoàng Nam", subject: "Toán 9", tuition: 200000 },
+                            { name: "Phạm Hải Đăng", subject: "Vật Lý 11", tuition: 200000 }
+                        ]);
+
+                    tutorScheduleSheetData = [];
+                    stList.forEach(function(st, idx) {
+                        var s = schedMap[st.name.trim()] || { mon: "", tue: "", wed: "", thu: "", fri: "", sat: "", sun: "" };
+                        let defaultCol = s.color || STUDENT_DEFAULT_COLORS[st.name.trim()] || PRESET_COLORS[idx % PRESET_COLORS.length];
+                        let savedColor = localStorage.getItem('student_color_' + st.name.trim()) || defaultCol;
+                        let tuitionVal = st.tuition || (st.fee ? parseInt(String(st.fee).replace(/\D/g, '')) : 200000) || 200000;
+                        let subjName = (st.subject ? st.subject : '') + (st.classLevel ? (' ' + st.classLevel) : '');
+                        if (!subjName.trim()) subjName = st.name.trim();
+
+                        tutorScheduleSheetData.push({
+                            studentName: st.name.trim(),
+                            subject: subjName.trim(),
+                            color: savedColor,
+                            fee: tuitionVal,
+                            mon: s.mon || '',
+                            tue: s.tue || '',
+                            wed: s.wed || '',
+                            thu: s.thu || '',
+                            fri: s.fri || '',
+                            sat: s.sat || '',
+                            sun: s.sun || ''
+                        });
+                    });
+                }
+
+                loadStudentOptions();
+                renderSheetTable();
                 if (onSuccess) onSuccess();
                 return;
             }
-            
-            // Gọi backend getTutorSchedule
+
+            // Gọi backend getTutorSchedule cho tài khoản thật
             google.script.run
                 .withSuccessHandler(function(schedule) {
                     var schedMap = {};
@@ -1450,18 +2863,21 @@
                         });
                     }
                     
-                    // Xây dựng lại mảng tutorScheduleSheetData khớp cấu trúc demo
                     tutorScheduleSheetData = [];
                     if(tutorDataGlobal && tutorDataGlobal.students) {
                         tutorDataGlobal.students.forEach(function(st, idx) {
                             var s = schedMap[st.name.trim()] || { mon: "", tue: "", wed: "", thu: "", fri: "", sat: "", sun: "" };
-                            
-                            // Đọc màu lưu trong localStorage, hoặc gán màu mặc định tuần tự từ danh sách bảng màu
-                            let savedColor = localStorage.getItem('student_color_' + st.name.trim()) || PRESET_COLORS[idx % PRESET_COLORS.length];
-                            
+                            let defaultCol = s.color || STUDENT_DEFAULT_COLORS[st.name.trim()] || PRESET_COLORS[idx % PRESET_COLORS.length];
+                            let savedColor = localStorage.getItem('student_color_' + st.name.trim()) || defaultCol;
+                            let tuitionVal = st.tuition || (st.fee ? parseInt(String(st.fee).replace(/\D/g, '')) : 200000) || 200000;
+                            let subjName = (st.subject ? st.subject : '') + (st.classLevel ? (' ' + st.classLevel) : '');
+                            if (!subjName.trim()) subjName = st.name.trim();
+
                             tutorScheduleSheetData.push({
                                 studentName: st.name.trim(),
+                                subject: subjName.trim(),
                                 color: savedColor,
+                                fee: tuitionVal,
                                 mon: s.mon || '',
                                 tue: s.tue || '',
                                 wed: s.wed || '',
@@ -1473,10 +2889,8 @@
                         });
                     }
                     
-                    // Nạp lại dropdown và bảng Sheets giả lập
                     loadStudentOptions();
                     renderSheetTable();
-                    
                     if (onSuccess) onSuccess();
                 })
                 .withFailureHandler(function(err) {
@@ -1486,9 +2900,28 @@
                 .getTutorSchedule(userPhone);
         }
 
-        // Đồng bộ dữ liệu sửa đổi lên Google Sheets
+        // Đồng bộ dữ liệu sửa đổi lên Store demo hoặc Google Sheets
         function saveScheduleToBackend(studentName, onDone) {
             if (isDemoMode) {
+                try {
+                    var store = false ? null : null;
+                    if (!store) {
+                        store = getSafeParentStore();
+                    }
+                    if (store && store.tutorSchedule) {
+                        let row = tutorScheduleSheetData.find(r => r.studentName === studentName);
+                        if (row) {
+                            let item = store.tutorSchedule.find(s => s.studentName === studentName);
+                            if (item) {
+                                allDayKeys.forEach(k => item[k] = row[k] || '');
+                            } else {
+                                store.tutorSchedule.push(Object.assign({}, row));
+                            }
+                            if (false) /* removed */;
+                            safeSaveParentStore(store);
+                        }
+                    }
+                } catch(e) {}
                 if (onDone) onDone(true);
                 return;
             }
@@ -1584,6 +3017,9 @@
             let startHour = match[1], startMin = match[2], endHour = match[3], endMin = match[4];
             let notes = cleanTimeStr.replace(timeRegex, '').trim().replace(/[\(\)]/g, '').trim();
 
+            let isCancelled = /\[CANCELLED\]|\[HỦY\]|\[HUY\]/i.test(rawVal) || (notes && /đã hủy|báo nghỉ|nghỉ học/i.test(notes));
+            let status = isCancelled ? 'cancelled' : 'active';
+
             // Tính ngày
             let viewStart = calendar.view ? calendar.view.currentStart : new Date();
             let startOfWeek = getStartOfWeek(viewStart);
@@ -1592,7 +3028,7 @@
             if (isOneTime || isReschedule) {
                 let dateParts = oneTimeDateStr.split('/');
                 dateStr = dateParts[2] + '-' + dateParts[1] + '-' + dateParts[0];
-                let evDate  = new Date(dateStr);
+                let evDate  = new Date(parseInt(dateParts[2]), parseInt(dateParts[1]) - 1, parseInt(dateParts[0]), 0, 0, 0);
                 let weekEnd = new Date(startOfWeek);
                 weekEnd.setDate(startOfWeek.getDate() + 7);
                 if (evDate < startOfWeek || evDate >= weekEnd) return null;
@@ -1610,10 +3046,10 @@
                 if (skipDates.includes(skipCheck)) return null;
             }
 
-            let studentDefaultColor = row.color || '#8E4DFF';
+            let studentDefaultColor = row.color || '#C05E8E';
             let eventColor  = sessionColor || studentDefaultColor;
-            let bgColor     = eventColor + '4D';
-            let bdColor     = eventColor + '99';
+            let bgColor     = eventColor + '25';
+            let bdColor     = eventColor + '40';
             let eventType   = isReschedule ? 'rs' : (isOneTime ? 'ot' : 'rp');
 
             return {
@@ -1623,9 +3059,10 @@
                 end:   dateStr + 'T' + endHour.padStart(2,'0')   + ':' + endMin,
                 backgroundColor: bgColor,
                 borderColor: bdColor,
-                textColor: '#FFFFFF',
+                textColor: eventColor,
                 classNames: [isOneTime ? 'event-status-onetime' : 'event-status-recurring'],
                 extendedProps: {
+                    status: status,
                     studentIndex: studentIdx,
                     subIndex: subIdx,
                     studentName: row.studentName,
@@ -1675,14 +3112,24 @@
             } else {
                 // 'full': fallback toàn bộ (chỉ dùng cho drop/resize/delete sau dialog)
                 // Chỉ regenerate từ local memory - KHÔNG gọi backend
-                let currentStart = calendar.view ? calendar.view.currentStart : new Date();
-                let newEvents = generateEventsForCurrentWeek(currentStart);
+                let vType = calendar && calendar.view ? calendar.view.type : 'dayGridMonth';
+                let newEvents;
+                if (vType === 'dayGridMonth' && calendar && calendar.view) {
+                    let rangeInfo = { start: calendar.view.activeStart, end: calendar.view.activeEnd };
+                    newEvents = getEventsForCalendarRange(rangeInfo, vType);
+                } else {
+                    let currentStart = calendar && calendar.view ? calendar.view.currentStart : new Date();
+                    newEvents = generateEventsForCurrentWeek(currentStart);
+                }
                 // Xóa tất cả events hiện tại rồi thêm lại từ memory
                 calendar.getEvents().forEach(e => e.remove());
                 newEvents.forEach(e => calendar.addEvent(e));
             }
 
             renderSheetTable();
+            if (typeof updateMonthBottomBar === 'function' && calendar && calendar.view && calendar.view.type === 'dayGridMonth') {
+                updateMonthBottomBar(calendar.view);
+            }
             if (andThen) andThen();
 
             // --- Debounce sync lên Sheets ---
@@ -1774,21 +3221,6 @@
             };
         }
 
-        if (isDemoMode) {
-            // Thêm dữ liệu lịch học "Một lần - Không lặp" cho học sinh A vào ngày thứ 3 tuần này (ví dụ 21/07/2026) làm mẫu
-            let today = new Date();
-            let currentDayOfWeek = today.getDay();
-            let diffToTue = 2 - currentDayOfWeek; // 2 đại diện cho Thứ 3
-            let sampleTue = new Date(today);
-            sampleTue.setDate(today.getDate() + diffToTue);
-            
-            let sampleTueDateStr = sampleTue.getDate().toString().padStart(2, '0') + "/" + 
-                                   (sampleTue.getMonth() + 1).toString().padStart(2, '0') + "/" + 
-                                   sampleTue.getFullYear();
-            
-            tutorScheduleSheetData[0].tue = sampleTueDateStr + ": 10:00 - 12:00 (Học thử một lần)";
-        }
-
         const dayMap = {
             "mon": 1, "tue": 2, "wed": 3, "thu": 4, "fri": 5, "sat": 6, "sun": 0
         };
@@ -1799,6 +3231,7 @@
 
         function getStartOfWeek(d) {
             let date = new Date(d);
+            date.setHours(0, 0, 0, 0);
             let day = date.getDay();
             let diff = date.getDate() - day + (day === 0 ? -6 : 1);
             return new Date(date.setDate(diff));
@@ -1870,13 +3303,16 @@
 
                         let notes = cleanTimeStr.replace(timeRegex, '').trim().replace(/[\(\)]/g, '').trim();
 
+                        let isCancelled = /\[CANCELLED\]|\[HỦY\]|\[HUY\]/i.test(rawVal) || (notes && /đã hủy|báo nghỉ|nghỉ học/i.test(notes));
+                        let status = isCancelled ? 'cancelled' : 'active';
+
                         // Xác định ngày cụ thể
                         let dateStr = '';
 
                         if (isOneTime || isReschedule) {
                             let dateParts = oneTimeDateStr.split('/');
                             dateStr = dateParts[2] + '-' + dateParts[1] + '-' + dateParts[0];
-                            let evDate  = new Date(dateStr);
+                            let evDate  = new Date(parseInt(dateParts[2]), parseInt(dateParts[1]) - 1, parseInt(dateParts[0]), 0, 0, 0);
                             let weekEnd = new Date(startOfWeek);
                             weekEnd.setDate(startOfWeek.getDate() + 7);
                             if (evDate < startOfWeek || evDate >= weekEnd) return;
@@ -1933,9 +3369,12 @@
                             textColor: '#FFFFFF',
                             classNames: [isOneTime ? 'event-status-onetime' : 'event-status-recurring'],
                             extendedProps: {
+                                status: status,
                                 studentIndex: studentIdx,
                                 subIndex: subIdx,
                                 studentName: row.studentName,
+                                subject: row.subject || row.studentName,
+                                fee: row.fee || 500000,
                                 dayKey: dayKey,
                                 startTime: startHour.padStart(2, '0') + ':' + startMin,
                                 endTime:   endHour.padStart(2, '0')   + ':' + endMin,
@@ -1954,6 +3393,36 @@
                 });
             });
 
+            return events;
+        }
+
+        // Lấy danh sách sự kiện theo khoảng thời gian hiển thị (hỗ trợ Month view và Week/Day view)
+        function getEventsForCalendarRange(info, viewType) {
+            let events = [];
+            if (viewType !== 'dayGridMonth') {
+                events = generateEventsForCurrentWeek(info.start);
+            } else {
+                let cur = getStartOfWeek(new Date(info.start));
+                let endLimit = new Date(info.end);
+                let seen = new Set();
+                while (cur < endLimit) {
+                    let weekEvents = generateEventsForCurrentWeek(cur);
+                    weekEvents.forEach(ev => {
+                        let uniqueKey = ev.id + '_' + ev.start;
+                        if (!seen.has(uniqueKey)) {
+                            seen.add(uniqueKey);
+                            let evClone = Object.assign({}, ev);
+                            evClone.id = uniqueKey;
+                            events.push(evClone);
+                        }
+                    });
+                    cur.setDate(cur.getDate() + 7);
+                }
+            }
+
+            if (window.hideCancelledSessions) {
+                events = events.filter(ev => !(ev.extendedProps && ev.extendedProps.status === 'cancelled'));
+            }
             return events;
         }
 
@@ -1983,7 +3452,7 @@
                 let tr = document.createElement("tr");
                 
                 // Tên học sinh
-                let html = `<td style="font-weight: 700; color: #FFF; text-align: left; background: rgba(255,255,255,0.01);">${row.studentName}</td>`;
+                let html = `<td class="cell-student">${row.studentName}</td>`;
                 
                 // 7 Thứ trong tuần
                 allDayKeys.forEach(dayKey => {
@@ -2028,6 +3497,166 @@
             }
         }
 
+        // ==========================================
+        // CUSTOM CALENDAR HEADER CONTROLS (TASK 10.2)
+        // ==========================================
+        window.hideCancelledSessions = false;
+
+        function toggleHideCancelledSessions() {
+            window.hideCancelledSessions = !window.hideCancelledSessions;
+            let btn = document.getElementById('btnToggleHideCancelled');
+            if (btn) {
+                if (window.hideCancelledSessions) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            }
+            if (calendar) {
+                calendar.refetchEvents();
+                if (calendar.view && calendar.view.type === 'dayGridMonth') {
+                    setTimeout(function() {
+                        updateMonthBottomBar(calendar.view);
+                    }, 50);
+                }
+            }
+        }
+
+        function updateCalendarHeaderTitle(view) {
+            let titleEl = document.getElementById('calendarHeaderTitle');
+            if (!titleEl || !view) return;
+            if (view.type === 'dayGridMonth') {
+                let d = view.currentStart;
+                titleEl.innerText = 'Tháng ' + (d.getMonth() + 1) + ' ' + d.getFullYear();
+            } else {
+                titleEl.innerText = view.title;
+            }
+        }
+
+        function updateActiveViewPills(viewType) {
+            let pillMap = {
+                'dayGridMonth': 'viewPillMonth',
+                'timeGridWeek': 'viewPillWeek',
+                'listWeek': 'viewPillWeek',
+                'timeGridDay': 'viewPillDay',
+                'listDay': 'viewPillDay'
+            };
+            let activeId = pillMap[viewType] || '';
+            ['viewPillMonth', 'viewPillWeek', 'viewPillDay'].forEach(id => {
+                let el = document.getElementById(id);
+                if (el) {
+                    if (id === activeId) {
+                        el.classList.add('active');
+                    } else {
+                        el.classList.remove('active');
+                    }
+                }
+            });
+        }
+
+        function switchCalendarView(viewName) {
+            if (!calendar) return;
+            if (window.innerWidth <= 768 && viewName === 'timeGridWeek') {
+                viewName = 'listWeek';
+            }
+            calendar.changeView(viewName);
+            updateActiveViewPills(viewName);
+        }
+
+        // ==========================================
+        // DANH SÁCH NGÀY LỄ QUỐC GIA VIỆT NAM (TASK 10.3)
+        // ==========================================
+        const VN_HOLIDAYS = {
+            '1/1': 'Tết Dương lịch',
+            '10/3': 'Giỗ Tổ Hùng Vương',
+            '30/4': 'Giải phóng miền Nam',
+            '1/5': 'Quốc tế Lao động',
+            '2/9': 'Quốc khánh'
+        };
+
+        // ==========================================
+        // THANH ĐÁY LỊCH: LEGEND HỌC SINH & STATUS BAR (TASK 10.4)
+        // ==========================================
+        function renderStudentLegend(view) {
+            let legendContainer = document.getElementById('calStudentLegendList');
+            if (!legendContainer) return;
+            legendContainer.innerHTML = '';
+            
+            let displayRows = tutorScheduleSheetData;
+
+            // Nếu đang xem dạng tháng, lọc theo học sinh có buổi học trong tháng đó để đồng bộ chuẩn xác với thanh thống kê
+            if (view && view.type === 'dayGridMonth' && typeof getEventsForCalendarRange === 'function') {
+                let rangeInfo = { start: view.activeStart, end: view.activeEnd };
+                let events = getEventsForCalendarRange(rangeInfo, 'dayGridMonth');
+                let targetMonth = view.currentStart.getMonth();
+                let targetYear = view.currentStart.getFullYear();
+
+                let activeStudentNames = new Set();
+                events.forEach(ev => {
+                    let d = new Date(ev.start);
+                    if (d.getMonth() === targetMonth && d.getFullYear() === targetYear) {
+                        if (ev.extendedProps && ev.extendedProps.studentName) {
+                            activeStudentNames.add(ev.extendedProps.studentName);
+                        }
+                    }
+                });
+
+                if (activeStudentNames.size > 0) {
+                    displayRows = tutorScheduleSheetData.filter(row => activeStudentNames.has(row.studentName));
+                }
+            }
+
+            displayRows.forEach(row => {
+                let studentColor = row.color || '#C05E8E';
+                let item = document.createElement('div');
+                item.className = 'cal-legend-item';
+                item.innerHTML = `<span class="cal-legend-dot" style="background: ${studentColor};"></span>
+                                  <span class="cal-legend-name">${row.studentName}</span>`;
+                legendContainer.appendChild(item);
+            });
+        }
+
+        function updateMonthStatusBar(view) {
+            let statusEl = document.getElementById('calStatusText');
+            if (!statusEl || !view) return;
+            let rangeInfo = { start: view.activeStart, end: view.activeEnd };
+            let events = getEventsForCalendarRange(rangeInfo, 'dayGridMonth');
+            let targetMonth = view.currentStart.getMonth();
+            let targetYear = view.currentStart.getFullYear();
+            
+            // Đếm các ca học thuộc tháng đang xem
+            let monthEvents = events.filter(ev => {
+                let d = new Date(ev.start);
+                return d.getMonth() === targetMonth && d.getFullYear() === targetYear;
+            });
+
+            let sessionCount = monthEvents.length;
+            let studentSet = new Set();
+            monthEvents.forEach(ev => {
+                if (ev.extendedProps && ev.extendedProps.studentName) {
+                    studentSet.add(ev.extendedProps.studentName);
+                }
+            });
+            let studentCount = studentSet.size;
+
+            statusEl.innerText = sessionCount + ' buổi trong tháng · ' + studentCount + ' học sinh';
+        }
+
+        function updateMonthBottomBar(view) {
+            let bar = document.getElementById('calendarBottomBar');
+            if (!bar || !view) return;
+            if (view.type === 'dayGridMonth') {
+                bar.style.display = 'flex';
+                renderStudentLegend(view);
+                updateMonthStatusBar(view);
+            } else {
+                bar.style.display = 'none';
+            }
+            if (calendar) {
+                calendar.updateSize();
+            }
+        }
+
         // Khởi tạo lịch
         document.addEventListener('DOMContentLoaded', function() {
             loadTutorScheduleFromBackend(function() {
@@ -2042,12 +3671,17 @@
                     customGroup.style.display = "block";
                     document.getElementById("eventCustomStudentName").required = true;
                     selectPresetColor('');
+                    document.getElementById("eventFee").value = "500000";
                 } else if (val !== "") {
                     customGroup.style.display = "none";
                     document.getElementById("eventCustomStudentName").required = false;
-                    let studentColor = tutorScheduleSheetData[val].color || '#8E4DFF';
+                    let stRow = tutorScheduleSheetData[val];
+                    let studentColor = (stRow && stRow.color) || '#8E4DFF';
                     setColorScope('student');
                     selectPresetColor(studentColor);
+                    if (stRow && stRow.fee) {
+                        document.getElementById("eventFee").value = stRow.fee;
+                    }
                 } else {
                     customGroup.style.display = "none";
                     document.getElementById("eventCustomStudentName").required = false;
@@ -2056,67 +3690,372 @@
             });
 
             
+            // === BỘ HÀM TẠO MÀU PASTEL & TƯƠNG PHẢN CHO THẺ BUỔI HỌC (THIẾT KẾ IMAGE 2) ===
+            function hexToRgb(hex) {
+                if (!hex) return { r: 142, g: 77, b: 255 };
+                hex = hex.replace('#', '').trim();
+                if (hex.length === 3) {
+                    hex = hex[0] + hex[0] + hex[1] + hex[1] + hex[2] + hex[2];
+                }
+                if (hex.length !== 6) return { r: 142, g: 77, b: 255 };
+                let num = parseInt(hex, 16);
+                if (isNaN(num)) return { r: 142, g: 77, b: 255 };
+                return {
+                    r: (num >> 16) & 255,
+                    g: (num >> 8) & 255,
+                    b: num & 255
+                };
+            }
+
+            function rgbToHex(r, g, b) {
+                return '#' + [r, g, b].map(x => {
+                    let h = Math.round(Math.max(0, Math.min(255, x))).toString(16);
+                    return h.length === 1 ? '0' + h : h;
+                }).join('');
+            }
+
+            
+            function hexToRgbStr(hex) {
+                let rgb = hexToRgb(hex);
+                return rgb.r + ',' + rgb.g + ',' + rgb.b;
+            }
+
+            function darkenColor(hex, amount) {
+                if (!hex || !hex.startsWith('#')) hex = '#8E4DFF';
+                let rgb = hexToRgb(hex);
+                let r = Math.max(0, Math.round(rgb.r * (1 - amount)));
+                let g = Math.max(0, Math.round(rgb.g * (1 - amount)));
+                let b = Math.max(0, Math.round(rgb.b * (1 - amount)));
+                return rgbToHex(r, g, b);
+            }
+
+            function getCardThemeStyles(colorHex) {
+                if (!colorHex || !colorHex.startsWith('#')) {
+                    colorHex = '#8E4DFF';
+                }
+                let rgb = hexToRgb(colorHex);
+                let isDark = getComputedStyle(document.documentElement).getPropertyValue('--is-dark-theme').trim() === '1';
+
+                if (isDark) {
+                    return {
+                        bg: 'rgba(' + rgb.r + ', ' + rgb.g + ', ' + rgb.b + ', 0.32)',
+                        border: colorHex,
+                        text: '#FFFFFF',
+                        icon: '#FFFFFF'
+                    };
+                }
+
+                // Nền sáng: hòa 24% vào nền trắng để tạo nền pastel mịn rõ nét, viền 75%, chữ đen đậm tương phản tuyệt đối
+                let bgR = Math.round(rgb.r * 0.24 + 255 * 0.76);
+                let bgG = Math.round(rgb.g * 0.24 + 255 * 0.76);
+                let bgB = Math.round(rgb.b * 0.24 + 255 * 0.76);
+
+                let bdrR = Math.round(rgb.r * 0.75 + 255 * 0.25);
+                let bdrG = Math.round(rgb.g * 0.75 + 255 * 0.25);
+                let bdrB = Math.round(rgb.b * 0.75 + 255 * 0.25);
+
+                return {
+                    bg: rgbToHex(bgR, bgG, bgB),
+                    border: rgbToHex(bdrR, bdrG, bdrB),
+                    text: 'var(--text-primary)',
+                    icon: colorHex
+                };
+            }
+
             var calendarEl = document.getElementById('calendar');
-            const initialViewType = 'timeGridWeek';
+            const initialViewType = window.innerWidth <= 768 ? 'listWeek' : 'timeGridWeek';
 
             calendar = new FullCalendar.Calendar(calendarEl, {
                 initialView: initialViewType,
+                windowResize: function(arg) {
+                    if (window.innerWidth <= 768) {
+                        calendar.changeView('listWeek');
+                    } else {
+                        calendar.changeView('timeGridWeek');
+                    }
+                },
+                initialDate: isDemoMode ? '2026-09-01' : undefined,
+                now: isDemoMode ? '2026-09-26T08:00:00' : undefined,
                 locale: 'vi',
                 firstDay: 1, // Bắt đầu tuần từ Thứ Hai
                 height: '100%', // Chiếm 100% .calendar-wrapper - chỉ 1 thanh cuộn bên trong
                 timeZone: 'local',
-                slotMinTime: "00:00:00",
-                slotMaxTime: "24:00:00",
-                slotDuration: '00:30:00',   // Chia ô 30 phút - đúng chuẩn Google Calendar
-                scrollTime: '07:00:00',      // Tự động cuộn xuống 7 giờ sáng khi mở lịch
+                dayMaxEvents: 3, // Giới hạn tối đa 3 event mỗi ô ngày ở Month view, hiện +N buổi nữa
+                moreLinkContent: function(args) {
+                    return '+' + args.num + ' buổi nữa';
+                },
+                moreLinkClick: 'popover',
+                eventDisplay: 'block',
+                eventTimeFormat: {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    hour12: false
+                },
+                dayHeaderContent: function(arg) {
+                    const shortDays = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
+                    let dayIdx = arg.date.getDay();
+                    if (arg.view.type === 'dayGridMonth') {
+                        const monthDays = ['CN', 'THỨ 2', 'THỨ 3', 'THỨ 4', 'THỨ 5', 'THỨ 6', 'THỨ 7'];
+                        return monthDays[dayIdx];
+                    } else if (arg.view.type === 'timeGridWeek') {
+                        let d = arg.date.getDate().toString().padStart(2, '0');
+                        let m = (arg.date.getMonth() + 1).toString().padStart(2, '0');
+                        let isToday = arg.isToday;
+                        return {
+                            html: '<div class="fc-week-header-cell ' + (isToday ? 'fc-header-today' : '') + '">' +
+                                  '<div class="fc-week-header-day">' + shortDays[dayIdx] + '</div>' +
+                                  '<div class="fc-week-header-date">' + d + '/' + m + '</div>' +
+                                  '</div>'
+                        };
+                    } else {
+                        // timeGridDay
+                        let daysFull = ['Chủ Nhật', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy'];
+                        let d = arg.date.getDate().toString().padStart(2, '0');
+                        let m = (arg.date.getMonth() + 1).toString().padStart(2, '0');
+                        let y = arg.date.getFullYear();
+                        let isToday = arg.isToday;
+                        return {
+                            html: '<div class="fc-week-header-cell ' + (isToday ? 'fc-header-today' : '') + '">' +
+                                  '<div class="fc-week-header-day">' + daysFull[dayIdx] + '</div>' +
+                                  '<div class="fc-week-header-date">' + d + '/' + m + '/' + y + '</div>' +
+                                  '</div>'
+                        };
+                    }
+                },
+                eventContent: function(arg) {
+                    let isDark = getComputedStyle(document.documentElement).getPropertyValue('--is-dark-theme').trim() === '1';
+
+                    if (arg.view.type === 'dayGridMonth') {
+                        let props = arg.event.extendedProps || {};
+                        let color = props.eventColor || props.color || '#8E4DFF';
+                        let timeStr = props.startTime || (arg.timeText || '');
+                        let titleStr = props.studentName || arg.event.title || '';
+                        if (props.notes && !titleStr.includes(props.notes)) {
+                            if (props.notes.includes('7:00') || props.notes.includes('8:15')) {
+                                titleStr += '_ ' + props.notes;
+                            } else {
+                                titleStr += ' ' + props.notes;
+                            }
+                        }
+                        
+                        let isCancelled = props.status === 'cancelled';
+                        let textDecor = isCancelled ? 'text-decoration: line-through;' : '';
+                        let dotColor = isCancelled ? '#9CA3AF' : color;
+                        let textClr = isCancelled ? '#9CA3AF' : (isDark ? '#FFFFFF' : 'var(--text-primary)');
+                        
+                        let chipBg, chipBorder;
+                        if (isCancelled) {
+                            chipBg = isDark ? 'rgba(255, 255, 255, 0.06)' : '#F1F5F9';
+                            chipBorder = isDark ? 'rgba(255, 255, 255, 0.15)' : '#CBD5E1';
+                        } else if (isDark) {
+                            chipBg = 'rgba(' + hexToRgbStr(color) + ', 0.32)';
+                            chipBorder = color;
+                        } else {
+                            chipBg = 'rgba(' + hexToRgbStr(color) + ', 0.22)';
+                            chipBorder = 'rgba(' + hexToRgbStr(color) + ', 0.80)';
+                        }
+                        
+                        let html = '<div class="fc-month-chip-inner" style="background: ' + chipBg + '; border: 1px solid ' + chipBorder + '; border-left: 3.5px solid ' + dotColor + '; box-shadow: 0 1px 3px rgba(0,0,0,0.06); ' + textDecor + '">' +
+                                   '<span class="fc-chip-dot" style="background-color: ' + dotColor + ';"></span>' +
+                                   (timeStr ? '<span class="fc-chip-time" style="color: ' + textClr + '; font-weight: 700;">' + timeStr + '</span>' : '') +
+                                   '<span class="fc-chip-title" style="color: ' + textClr + '; font-weight: 600;">' + titleStr + '</span>' +
+                                   '</div>';
+                        return { html: html };
+                    }
+
+                    if (arg.view.type === 'timeGridWeek' || arg.view.type === 'timeGridDay') {
+                        let props = arg.event.extendedProps || {};
+                        let color = props.eventColor || props.color || '#8E4DFF';
+                        
+                        let timeStr = '';
+                        if (props.startTime && props.endTime) {
+                            timeStr = props.startTime + '-' + props.endTime;
+                        } else if (arg.timeText) {
+                            timeStr = arg.timeText.replace(/\s+/g, '');
+                        } else {
+                            let s = arg.event.start;
+                            let e = arg.event.end;
+                            if (s && e) {
+                                let sh = s.getHours().toString().padStart(2, '0');
+                                let sm = s.getMinutes().toString().padStart(2, '0');
+                                let eh = e.getHours().toString().padStart(2, '0');
+                                let em = e.getMinutes().toString().padStart(2, '0');
+                                timeStr = sh + ':' + sm + '-' + eh + ':' + em;
+                            }
+                        }
+
+                        let titleStr = props.studentName || arg.event.title || '';
+                        let feeNum = props.fee || 500000;
+                        let feeStr = Number(feeNum).toLocaleString('vi-VN') + ' đ';
+
+                        let theme = getCardThemeStyles(color);
+                        let isCancelled = props.status === 'cancelled';
+                        let cardBg = isCancelled ? '#F3F4F6' : theme.bg;
+                        let cardBorder = isCancelled ? '#D1D5DB' : theme.border;
+                        let textColor = isCancelled ? '#9CA3AF' : (isDark ? '#FFFFFF' : 'var(--text-primary)');
+                        let iconColor = isCancelled ? '#9CA3AF' : (isDark ? '#FFFFFF' : color);
+                        let textDecor = isCancelled ? 'text-decoration: line-through;' : '';
+
+                        let repeatIconHtml = !props.isOneTime
+                            ? '<span class="fc-week-card-icon" style="color: ' + iconColor + ';" title="Lịch lặp lại hàng tuần"><i class="fa-solid fa-repeat"></i></span>'
+                            : '<span class="fc-week-card-icon" style="color: ' + iconColor + '; opacity: 0.65;" title="Buổi học 1 lần"><i class="fa-regular fa-clock"></i></span>';
+
+                        let html = '<div class="fc-week-card-inner" style="background: ' + cardBg + '; border: 1px solid ' + cardBorder + '; border-left: 3.5px solid ' + color + '; color: ' + textColor + '; ' + textDecor + '">' +
+                                   '<div class="fc-week-card-header">' +
+                                       '<span class="fc-week-card-time" style="color: ' + textColor + '; font-weight: 700;">' + timeStr + '</span>' +
+                                       repeatIconHtml +
+                                   '</div>' +
+                                   '<div class="fc-week-card-subject" style="color: ' + textColor + '; font-weight: 700;" title="' + titleStr + '">' + titleStr + '</div>' +
+                                   '<div class="fc-week-card-fee" style="color: ' + (isDark ? 'rgba(255,255,255,0.85)' : 'var(--text-secondary)') + '; font-weight: 600;">' + feeStr + '</div>' +
+                                   '</div>';
+                        return { html: html };
+                    }
+
+                    if (arg.view.type.startsWith('list')) {
+                        let props = arg.event.extendedProps || {};
+                        let color = props.eventColor || props.color || '#8E4DFF';
+                        let studentName = props.studentName || arg.event.title || 'Học sinh';
+                        let subject = props.subject || '';
+                        let notes = props.notes || '';
+                        let feeNum = props.fee || 200000;
+                        let feeStr = Number(feeNum).toLocaleString('vi-VN') + ' đ';
+                        let isCancelled = props.status === 'cancelled';
+                        let isOneTime = props.isOneTime;
+
+                        let textClr = isCancelled ? '#9CA3AF' : (isDark ? '#FFFFFF' : 'var(--text-primary)');
+                        let textDecor = isCancelled ? 'text-decoration: line-through;' : '';
+
+                        let badgeHtml = '';
+                        if (isCancelled) {
+                            badgeHtml = '<span style="font-size: 10.5px; padding: 2px 6px; border-radius: 6px; background: rgba(239, 68, 68, 0.15); color: #EF4444; font-weight: 700; margin-left: 6px;">Đã hủy</span>';
+                        } else if (isOneTime) {
+                            badgeHtml = '<span style="font-size: 10.5px; padding: 2px 6px; border-radius: 6px; background: rgba(245, 158, 11, 0.15); color: #F59E0B; font-weight: 700; margin-left: 6px;">1 Lần</span>';
+                        }
+
+                        let subText = subject && subject !== studentName ? subject : '';
+                        if (notes) {
+                            subText = subText ? (subText + ' · ' + notes) : notes;
+                        }
+                        let subHtml = subText ? '<div style="font-size: 12px; color: var(--text-secondary); margin-top: 2px; font-weight: 500;">' + subText + '</div>' : '';
+
+                        let html = '<div class="fc-list-item-content" style="display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%; ' + textDecor + '">' +
+                                   '  <div style="display: flex; flex-direction: column; min-width: 0; flex: 1;">' +
+                                   '    <div style="display: flex; align-items: center; gap: 4px; flex-wrap: wrap;">' +
+                                   '      <span style="font-size: 14px; font-weight: 700; color: ' + textClr + ';">' + studentName + '</span>' +
+                                   '      ' + badgeHtml +
+                                   '    </div>' +
+                                   '    ' + subHtml +
+                                   '  </div>' +
+                                   '  <div style="font-size: 12.5px; font-weight: 700; color: var(--color-primary); white-space: nowrap; margin-left: 8px;">' +
+                                   '    ' + feeStr +
+                                   '  </div>' +
+                                   '</div>';
+                        return { html: html };
+                    }
+
+                    return null;
+                },
+                slotMinTime: "07:00:00",
+                slotMaxTime: "23:00:00",
+                slotDuration: '00:30:00',   // Chia ô 30 phút
+                slotLabelInterval: '01:00:00', // Chỉ hiện nhãn tròn giờ (7:00, 8:00...) đúng như Image 2
+                scrollTime: '07:00:00',      // Mặc định hiển thị từ 7h sáng
+                slotLabelContent: function(arg) {
+                    let h = arg.date.getHours();
+                    let m = arg.date.getMinutes();
+                    return h + ':' + (m < 10 ? '0' : '') + m;
+                },
                 allDaySlot: false,
                 editable: true,
                 selectable: true,
                 selectMirror: true,          // Hiển thị khối sự kiện ảo xem trước khi kéo thả chọn vùng thời gian
                 selectLongPressDelay: 350,   // Nhấn giữ 350ms trên điện thoại rồi kéo để chọn vùng thời gian
                 eventLongPressDelay: 350,    // Nhấn giữ 350ms trên điện thoại để bắt đầu kéo thả di chuyển sự kiện
-                nowIndicator: true, // Kích hoạt đường chỉ giờ hiện tại màu đỏ giống Google Calendar
+                nowIndicator: true, // Kích hoạt đường chỉ giờ hiện tại
                 eventDidMount: function(info) {
-                    let props = info.event.extendedProps;
-                    let evColor = props.eventColor;
-                    if (evColor) {
-                        info.el.style.setProperty('border-left', '4px solid ' + evColor, 'important');
-                        
-                        // Kỹ thuật che dòng kẻ: Sử dụng nền phụ đè lên (solid #0F0A30) làm lớp dưới cùng 
-                        // và phủ lớp màu của ca học có độ trong suốt 30% (#4D) ở trên.
-                        // Việc này giúp thẻ có màu bán trong suốt đẹp như cũ nhưng hoàn toàn che đi các dòng kẻ lưới bên dưới!
-                        let solidBg = '#0F0A30'; 
-                        info.el.style.setProperty('background', 'linear-gradient(0deg, ' + evColor + '4D, ' + evColor + '4D), ' + solidBg, 'important');
-                        info.el.style.setProperty('border-color', evColor + '99', 'important');
+                    let props = info.event.extendedProps || {};
+                    let evColor = props.eventColor || props.color || '#8E4DFF';
+                    let isDark = getComputedStyle(document.documentElement).getPropertyValue('--is-dark-theme').trim() === '1';
 
-                        // Màu chữ mặc định là trắng sáng trên nền tối
-                        let textC = '#FFFFFF';
-                        info.el.style.setProperty('color', textC, 'important');
+                    if (!info.view.type.startsWith('list')) {
+                        info.el.style.setProperty('background', 'transparent', 'important');
+                        info.el.style.setProperty('border', 'none', 'important');
+                        info.el.style.setProperty('box-shadow', 'none', 'important');
+                        info.el.style.setProperty('padding', '0', 'important');
+                    }
 
-                        let titleEl = info.el.querySelector('.fc-event-title');
-                        if (titleEl) titleEl.style.setProperty('color', textC, 'important');
-                        let timeEl = info.el.querySelector('.fc-event-time');
-                        if (timeEl) timeEl.style.setProperty('color', textC, 'important');
+                    if (info.view.type === 'dayGridMonth') {
+                        var innerChip = info.el.querySelector('.fc-month-chip-inner');
+                        if (innerChip) {
+                            var chipTitle = innerChip.querySelector('.fc-chip-title');
+                            var chipTime = innerChip.querySelector('.fc-chip-time');
+                            if (isDark) {
+                                innerChip.style.setProperty('background', 'rgba(' + hexToRgbStr(evColor) + ', 0.32)', 'important');
+                                innerChip.style.setProperty('border', '1px solid ' + evColor, 'important');
+                                innerChip.style.setProperty('border-left', '3.5px solid ' + evColor, 'important');
+                                innerChip.style.setProperty('box-shadow', '0 1px 3px rgba(0, 0, 0, 0.25)', 'important');
+                                if (chipTitle) chipTitle.style.setProperty('color', '#FFFFFF', 'important');
+                                if (chipTime) chipTime.style.setProperty('color', '#FFFFFF', 'important');
+                            } else {
+                                innerChip.style.setProperty('background', 'rgba(' + hexToRgbStr(evColor) + ', 0.22)', 'important');
+                                innerChip.style.setProperty('border', '1px solid rgba(' + hexToRgbStr(evColor) + ', 0.80)', 'important');
+                                innerChip.style.setProperty('border-left', '3.5px solid ' + evColor, 'important');
+                                innerChip.style.setProperty('box-shadow', '0 1px 3px rgba(0, 0, 0, 0.06)', 'important');
+                                if (chipTitle) chipTitle.style.setProperty('color', 'var(--text-primary)', 'important');
+                                if (chipTime) chipTime.style.setProperty('color', 'var(--text-primary)', 'important');
+                            }
+                        }
+                    }
+
+                    // Xử lý hiển thị buổi học đã hủy
+                    if (props.status === 'cancelled') {
+                        info.el.style.setProperty('opacity', '0.55', 'important');
+                        info.el.classList.add('event-status-cancelled');
                     }
                 },
-                headerToolbar: {
-                    left: 'prev,next today',
-                    center: 'title',
-                    right: 'timeGridWeek,timeGridDay' // Bỏ Danh Sách - chỉ giữ Lịch Tuần và Lịch Ngày
+                headerToolbar: false, // Tắt headerToolbar mặc định vì đã dùng custom header
+                datesSet: function(dateInfo) {
+                    updateCalendarHeaderTitle(dateInfo.view);
+                    updateActiveViewPills(dateInfo.view.type);
+                    updateMonthBottomBar(dateInfo.view);
                 },
-                buttonText: {
-                    today: 'Hôm nay',
-                    week: 'Lịch tuần',
-                    day: 'Lịch ngày',
-                    list: 'Danh sách'
+                dayCellDidMount: function(arg) {
+                    if (arg.view.type !== 'dayGridMonth') return;
+                    let m = arg.date.getMonth() + 1;
+                    let d = arg.date.getDate();
+                    let key = d + '/' + m;
+                    let holidayName = VN_HOLIDAYS[key];
+
+                    // Quốc khánh 1/9, 2/9 & Trung thu 25/9: thêm tranh minh họa
+                    if (d === 1 && m === 9) {
+                        arg.el.classList.add('fc-day-holiday-quockhanh-1');
+                        holidayName = 'Quốc khánh';
+                    } else if (d === 2 && m === 9) {
+                        arg.el.classList.add('fc-day-holiday-quockhanh-2');
+                        holidayName = 'Quốc khánh';
+                    } else if (d === 25 && m === 9) {
+                        arg.el.classList.add('fc-day-festive-lantern');
+                    }
+
+                    if (holidayName) {
+                        let topEl = arg.el.querySelector('.fc-daygrid-day-top');
+                        if (topEl && !topEl.querySelector('.fc-vn-holiday-badge')) {
+                            let holEl = document.createElement('span');
+                            holEl.className = 'fc-vn-holiday-badge';
+                            holEl.title = holidayName;
+                            holEl.innerText = holidayName;
+                            topEl.appendChild(holEl);
+                        }
+                    }
                 },
                 events: function(info, successCallback, failureCallback) {
+                    let vType = this.view ? this.view.type : (calendar && calendar.view ? calendar.view.type : initialViewType);
                     if (isDemoMode) {
-                        let events = generateEventsForCurrentWeek(info.start);
+                        let events = getEventsForCalendarRange(info, vType);
                         successCallback(events);
                     } else {
                         loadTutorScheduleFromBackend(function() {
-                            let events = generateEventsForCurrentWeek(info.start);
+                            let events = getEventsForCalendarRange(info, vType);
                             successCallback(events);
                         });
                     }
@@ -2139,6 +4078,10 @@
                     
                     let startT = start.getHours().toString().padStart(2,'0') + ':' + start.getMinutes().toString().padStart(2,'0');
                     let endT   = end.getHours().toString().padStart(2,'0')   + ':' + end.getMinutes().toString().padStart(2,'0');
+                    if (startT === '00:00' && endT === '00:00') {
+                        startT = '08:00';
+                        endT   = '09:30';
+                    }
                     openCreateEventModal(dayKey, dateStr, startT, endT);
                 },
 
@@ -2191,6 +4134,45 @@
             });
 
             calendar.render();
+            window.calendar = calendar;
+
+            // Đảm bảo FullCalendar luôn tự động cập nhật kích thước ngay khi iframe hiển thị hoặc thay đổi kích thước
+            if (window.ResizeObserver) {
+                try {
+                    var calResizeObs = new ResizeObserver(function() {
+                        if (calendar && typeof calendar.updateSize === 'function') {
+                            calendar.updateSize();
+                        }
+                    });
+                    if (calendarEl) calResizeObs.observe(calendarEl);
+                    if (document.body) calResizeObs.observe(document.body);
+                } catch(e) {}
+            }
+
+            window.addEventListener('resize', function() {
+                if (calendar && typeof calendar.updateSize === 'function') {
+                    calendar.updateSize();
+                }
+            });
+
+            window.addEventListener('message', function(e) {
+                if (e.data === 'updateCalendarSize' || (e.data && e.data.type === 'updateCalendarSize')) {
+                    if (calendar && typeof calendar.updateSize === 'function') {
+                        calendar.updateSize();
+                    }
+                }
+            });
+
+            // Cho phép cuộn ngang danh sách học sinh (legend) bằng con lăn chuột
+            let legendListEl = document.getElementById('calStudentLegendList');
+            if (legendListEl) {
+                legendListEl.addEventListener('wheel', function(e) {
+                    if (e.deltaY !== 0) {
+                        e.preventDefault();
+                        this.scrollLeft += e.deltaY;
+                    }
+                }, { passive: false });
+            }
         });
 
         // --- ĐIỀU KHIỂN FORM HỘP THOẠI MODAL ---
@@ -2467,6 +4449,12 @@
             }
             document.getElementById("detailRecurrence").innerText = recurrenceText;
 
+            const feeEl = document.getElementById("detailFee");
+            if (feeEl) {
+                let fVal = props.fee || 500000;
+                feeEl.innerText = Number(fVal).toLocaleString('vi-VN') + ' đ / buổi';
+            }
+
             const notesContainer = document.getElementById("detailNotesContainer");
             if (props.notes && props.notes.trim() !== "") {
                 document.getElementById("detailNotes").innerText = props.notes;
@@ -2615,6 +4603,7 @@
 
             document.getElementById("eventStartTime").value = startTime;
             document.getElementById("eventEndTime").value = endTime;
+            document.getElementById("eventFee").value = "500000";
             document.getElementById("eventNotes").value = "";
 
             // Reset color picker
@@ -2659,6 +4648,7 @@
 
             document.getElementById("eventStartTime").value = props.startTime;
             document.getElementById("eventEndTime").value = props.endTime;
+            document.getElementById("eventFee").value = props.fee || (tutorScheduleSheetData[props.studentIndex] && tutorScheduleSheetData[props.studentIndex].fee) || 500000;
             document.getElementById("eventNotes").value = props.notes;
 
             // Set color picker theo cấu hình của event
@@ -2734,6 +4724,10 @@
             if (isNaN(targetStudentIdx)) return;
             let row = tutorScheduleSheetData[targetStudentIdx];
 
+            let feeInputVal = parseInt(document.getElementById("eventFee").value);
+            if (!isNaN(feeInputVal) && feeInputVal >= 0) {
+                row.fee = feeInputVal;
+            }
 
             // Đọc màu sắc và scope được chọn
             let selectedColor = document.getElementById("eventColor").value;
@@ -2870,11 +4864,14 @@
             }
         }
 
-        // --- CHƯƠNG TRÌNH CUSTOM MÀU SẮC CHO HỌC SINH/BUỔI HỌC ---
-        const PRESET_COLORS = [
-            '#8E4DFF', '#4D9EFF', '#00D2FC', '#4DFFC3', '#4CAF50', '#AEEA00', 
-            '#FFD23F', '#FF9100', '#FF6B9D', '#FF4D4D', '#90A4AE', '#D1C4E9'
-        ];
+        // PRESET_COLORS đã được khai báo ở đầu script, giữ fallback nếu chưa có
+        if (typeof PRESET_COLORS === 'undefined') {
+            window.PRESET_COLORS = [
+                '#8E4DFF', '#10B981', '#F59E0B', '#3B82F6', '#EC4899', '#6366F1',
+                '#D4E7B5', '#DFD6F2', '#F9D5CA', '#BDD7EE', '#FDE8B3', '#6D675E',
+                '#4D9EFF', '#00D2FC', '#4DFFC3', '#4CAF50', '#AEEA00', '#FFD23F'
+            ];
+        }
 
         function initColorPickerSwatches() {
             let container = document.getElementById("colorSwatches");
@@ -2930,7 +4927,608 @@
         }
     </script>
     <!-- PWA Install Script -->
-    <script src="js/pwa-install.js"></script>
-    <script src="js/scroll-animations.js"></script>
+    <script src="js/pwa-install.js">
+
+// ============================================================================
+// PHASE 12: MULTI-THEME SYSTEM (36 THEMES + CUSTOM COLOR PICKER)
+// ============================================================================
+
+var THEME_NAMES = {
+  'theme-dark-purple': 'Tím Đêm (Gốc)',
+  'preset-blue': 'Xanh gốc',
+  'preset-hong-hoa': 'Hồng hoa',
+  'preset-hong-nhe': 'Hồng nhẹ',
+  'preset-matcha': 'Matcha Tea',
+  'preset-linen': 'Linen Cocoa',
+  'theme-azure-mist-full': 'Azure Mist · Nền & bóng',
+  'theme-azure-mist-minimal': 'Azure Mist · Tối giản',
+  'theme-woodland-cottage-full': 'Woodland Cottage · Nền & bóng',
+  'theme-woodland-cottage-minimal': 'Woodland Cottage · Tối giản',
+  'theme-sage-blush-full': 'Sage Blush · Nền & bóng',
+  'theme-sage-blush-minimal': 'Sage Blush · Tối giản',
+  'theme-golden-caramel-full': 'Golden Caramel · Nền & bóng',
+  'theme-golden-caramel-minimal': 'Golden Caramel · Tối giản',
+  'theme-pastel-alpine-full': 'Pastel Alpine · Nền & bóng',
+  'theme-pastel-alpine-minimal': 'Pastel Alpine · Tối giản',
+  'theme-dreamy-cosmic-full': 'Dreamy Cosmic · Nền & bóng (Tối)',
+  'theme-dreamy-cosmic-minimal': 'Dreamy Cosmic · Tối giản (Tối)',
+  'theme-sunset-meadow-full': 'Sunset Meadow · Nền & bóng',
+  'theme-sunset-meadow-minimal': 'Sunset Meadow · Tối giản',
+  'theme-neon-seoul-full': 'Neon Seoul · Nền & bóng (Tối)',
+  'theme-neon-seoul-minimal': 'Neon Seoul · Tối giản (Tối)',
+  'theme-mystic-blue-full': 'Mystic Blue · Nền & bóng (Tối)',
+  'theme-mystic-blue-minimal': 'Mystic Blue · Tối giản (Tối)',
+  'theme-blue-lime-full': 'Blue Lime · Nền & bóng',
+  'theme-blue-lime-minimal': 'Blue Lime · Tối giản',
+  'theme-cloud-meadow-full': 'Cloud Meadow · Nền & bóng',
+  'theme-cloud-meadow-minimal': 'Cloud Meadow · Tối giản',
+  'theme-soft-blue-white-full': 'Soft Blue · Nền & bóng',
+  'theme-soft-blue-white-minimal': 'Soft Blue · Tối giản',
+  'theme-soft-blue-full': 'Soft Blue · Nền & bóng',
+  'theme-soft-blue-minimal': 'Soft Blue · Tối giản',
+  'theme-blossom-noir-full': 'Blossom Noir · Nền & bóng (Tối)',
+  'theme-blossom-noir-minimal': 'Blossom Noir · Tối giản (Tối)',
+  'theme-violet-planet-full': 'Violet Planet · Nền & bóng (Tối)',
+  'theme-violet-planet-minimal': 'Violet Planet · Tối giản (Tối)',
+  'theme-claude-full': 'Claude · Nền & bóng (Ấm)',
+  'theme-claude-minimal': 'Claude · Tối giản (Ấm)'
+};
+
+function applyTheme(themeId) {
+  var root = document.documentElement;
+  // 1. Dọn sạch các biến inline do custom theme gán
+  var propsToClear = [
+    '--color-primary', '--color-primary-light', '--color-primary-dark',
+    '--color-primary-rgb', '--chart-bar', '--chart-bar-rgb', '--btn-bg',
+    '--btn-text', '--nav-active-bg', '--nav-active-text', '--bg-page',
+    '--bg-page-gradient', '--bg-sidebar', '--bg-card', '--bg-card-alt',
+    '--bg-input', '--border-color', '--border-card', '--text-primary',
+    '--text-secondary', '--text-muted', '--shadow-card', '--shadow-primary',
+    '--is-dark-theme'
+  ];
+  propsToClear.forEach(function(p) { root.style.removeProperty(p); });
+
+  // 2. Xóa các class theme cũ
+  var allThemes = Object.keys(THEME_NAMES);
+  allThemes.forEach(function(t) {
+    root.classList.remove(t);
+  });
+
+  // 3. Kích hoạt theme mới
+  root.classList.add(themeId);
+  localStorage.setItem('tutorTheme', themeId);
+
+  // 4. Đồng bộ active state trong switcher panel
+  document.querySelectorAll('#themeSwitcherPanel [data-theme]').forEach(function(el) {
+    el.classList.toggle('active', el.dataset.theme === themeId);
+  });
+
+  // 5. Cập nhật nhãn theme
+  var label = document.getElementById('themeCurrentLabel');
+  if (label) label.textContent = THEME_NAMES[themeId] || themeId;
+
+  // 6. Cập nhật biểu đồ doanh thu Chart.js (Task 12.6)
+  if (typeof rerenderChartsForTheme === 'function') {
+    rerenderChartsForTheme();
+  }
+
+  // 7. Cập nhật FullCalendar nếu đang ở trang Lịch
+  if (typeof calendar !== 'undefined' && calendar) {
+    if (typeof calendar.refetchEvents === 'function') {
+      calendar.refetchEvents();
+    }
+    if (typeof calendar.render === 'function') {
+      calendar.render();
+    }
+  }
+}
+
+function openThemeSwitcher() {
+  var panel = document.getElementById('themeSwitcherPanel');
+  if (!panel) return;
+  panel.style.display = 'flex';
+
+  var cur = localStorage.getItem('tutorTheme') || 'theme-dark-purple';
+  if (cur.startsWith('custom:')) {
+    var hex = cur.split(':')[1];
+    var p = document.getElementById('customColorPicker');
+    var h = document.getElementById('customColorHex');
+    if (p) p.value = hex;
+    if (h) h.value = hex.toUpperCase();
+    var label = document.getElementById('themeCurrentLabel');
+    if (label) label.textContent = 'Màu tùy chỉnh ' + hex.toUpperCase();
+    document.querySelectorAll('#themeSwitcherPanel [data-theme]').forEach(function(el) {
+      el.classList.remove('active');
+    });
+  } else {
+    document.querySelectorAll('#themeSwitcherPanel [data-theme]').forEach(function(el) {
+      el.classList.toggle('active', el.dataset.theme === cur);
+    });
+    var label = document.getElementById('themeCurrentLabel');
+    if (label) label.textContent = THEME_NAMES[cur] || cur;
+  }
+}
+
+function closeThemeSwitcher() {
+  var panel = document.getElementById('themeSwitcherPanel');
+  if (panel) panel.style.display = 'none';
+}
+
+// Task 12.6: Re-render Chart.js khi đổi theme
+function rerenderChartsForTheme() {
+  if (typeof renderRevenueBarChart === 'function') {
+    renderRevenueBarChart();
+  } else if (typeof revenueBarChartInstance !== 'undefined' && revenueBarChartInstance) {
+    var comp = getComputedStyle(document.documentElement);
+    var chartColor = (comp.getPropertyValue('--chart-bar') || '#4A72E8').trim();
+    var chartRgb = (comp.getPropertyValue('--chart-bar-rgb') || '74, 114, 232').trim();
+    if (revenueBarChartInstance.data.datasets.length > 1) {
+      revenueBarChartInstance.data.datasets[0].backgroundColor = 'rgba(' + chartRgb + ', 0.16)';
+      revenueBarChartInstance.data.datasets[1].backgroundColor = chartColor;
+      revenueBarChartInstance.data.datasets[1].hoverBackgroundColor = chartColor;
+    } else if (revenueBarChartInstance.data.datasets.length === 1) {
+      revenueBarChartInstance.data.datasets[0].borderColor = chartColor;
+      revenueBarChartInstance.data.datasets[0].pointBackgroundColor = chartColor;
+    }
+    revenueBarChartInstance.update();
+  }
+}
+
+// Task 12.7: Custom Color Picker
+function applyCustomTheme() {
+  var hexInput = document.getElementById('customColorHex');
+  if (!hexInput) return;
+  var hex = hexInput.value.trim();
+  if (!/^#[0-9A-Fa-f]{6}$/.test(hex)) {
+    if (typeof showToast === 'function') {
+      showToast('Mã màu không hợp lệ. Vui lòng nhập đúng #RRGGBB (ví dụ: #2563EB)', 'error');
+    } else {
+      alert('Mã màu không hợp lệ. Vui lòng nhập đúng #RRGGBB (ví dụ: #2563EB)');
+    }
+    return;
+  }
+
+  // Parse RGB
+  var r = parseInt(hex.slice(1,3), 16);
+  var g = parseInt(hex.slice(3,5), 16);
+  var b = parseInt(hex.slice(5,7), 16);
+
+  // Phối màu phụ: sáng hơn 50% và tối hơn 30%
+  var lr = Math.round(r + (255 - r) * 0.5);
+  var lg = Math.round(g + (255 - g) * 0.5);
+  var lb = Math.round(b + (255 - b) * 0.5);
+
+  var dr = Math.round(r * 0.7);
+  var dg = Math.round(g * 0.7);
+  var db = Math.round(b * 0.7);
+
+  var toHex = function(n) { return Math.max(0, Math.min(255, n)).toString(16).padStart(2, '0'); };
+
+  var root = document.documentElement;
+  // Xóa class theme tĩnh
+  var allThemes = Object.keys(THEME_NAMES);
+  allThemes.forEach(function(t) { root.classList.remove(t); });
+
+  // Thiết lập biến CSS
+  root.style.setProperty('--color-primary', hex);
+  root.style.setProperty('--color-primary-light', '#' + toHex(lr) + toHex(lg) + toHex(lb));
+  root.style.setProperty('--color-primary-dark', '#' + toHex(dr) + toHex(dg) + toHex(db));
+  root.style.setProperty('--color-primary-rgb', r + ', ' + g + ', ' + b);
+  root.style.setProperty('--chart-bar', hex);
+  root.style.setProperty('--chart-bar-rgb', r + ', ' + g + ', ' + b);
+  root.style.setProperty('--btn-bg', hex);
+  root.style.setProperty('--btn-text', '#FFFFFF');
+  root.style.setProperty('--nav-active-bg', 'rgba(' + r + ', ' + g + ', ' + b + ', 0.12)');
+  root.style.setProperty('--nav-active-text', hex);
+
+  // Giao diện màu tùy chọn luôn ở chế độ sáng thanh lịch
+  root.style.setProperty('--bg-page', '#FAFAFA');
+  root.style.setProperty('--bg-page-gradient', '#FAFAFA');
+  root.style.setProperty('--bg-sidebar', '#F5F5F5');
+  root.style.setProperty('--bg-card', '#FFFFFF');
+  root.style.setProperty('--bg-card-alt', '#F0F0F0');
+  root.style.setProperty('--bg-input', '#FFFFFF');
+  root.style.setProperty('--border-color', 'rgba(' + r + ', ' + g + ', ' + b + ', 0.25)');
+  root.style.setProperty('--border-card', '#E5E5E5');
+  root.style.setProperty('--text-primary', '#1A1A1A');
+  root.style.setProperty('--text-secondary', '#555555');
+  root.style.setProperty('--text-muted', '#888888');
+  root.style.setProperty('--shadow-card', '0 4px 16px rgba(0,0,0,0.06)');
+  root.style.setProperty('--shadow-primary', '0 4px 15px rgba(' + r + ', ' + g + ', ' + b + ', 0.3)');
+  root.style.setProperty('--is-dark-theme', '0');
+
+  localStorage.setItem('tutorTheme', 'custom:' + hex);
+
+  document.querySelectorAll('#themeSwitcherPanel [data-theme]').forEach(function(el) {
+    el.classList.remove('active');
+  });
+
+  var label = document.getElementById('themeCurrentLabel');
+  if (label) label.textContent = 'Màu tùy chỉnh ' + hex.toUpperCase();
+
+  if (typeof rerenderChartsForTheme === 'function') rerenderChartsForTheme();
+  if (typeof calendar !== 'undefined' && calendar && typeof calendar.render === 'function') calendar.render();
+  if (typeof showToast === 'function') showToast('Đã áp dụng màu tùy chỉnh!', 'success');
+}
+
+// Đồng bộ 2 chiều giữa Color Picker & Input HEX
+function setupCustomColorSync() {
+  var picker = document.getElementById('customColorPicker');
+  var hexInput = document.getElementById('customColorHex');
+  if (picker && hexInput) {
+    picker.addEventListener('input', function() {
+      hexInput.value = this.value.toUpperCase();
+    });
+    hexInput.addEventListener('input', function() {
+      var v = this.value.trim();
+      if (/^#[0-9A-Fa-f]{6}$/.test(v)) {
+        picker.value = v;
+      }
+    });
+  }
+}
+
+// Khởi chạy khi DOM sẵn sàng
+document.addEventListener('DOMContentLoaded', function() {
+  setupCustomColorSync();
+  var saved = localStorage.getItem('tutorTheme');
+  if (saved && saved.startsWith('custom:')) {
+    var hex = saved.split(':')[1];
+    var hexInput = document.getElementById('customColorHex');
+    var picker = document.getElementById('customColorPicker');
+    if (hexInput) hexInput.value = hex;
+    if (picker) picker.value = hex;
+    applyCustomTheme();
+  }
+});
+
+    </script>
+
+<!-- ================= THEME SWITCHER MODAL (TASK 12.5) ================= -->
+<div id="themeSwitcherPanel" class="theme-switcher-panel" style="display:none;">
+  <div class="theme-switcher-overlay" onclick="closeThemeSwitcher()"></div>
+  <div class="theme-switcher-content">
+    <div class="theme-switcher-header">
+      <h3>🎨 Chọn giao diện</h3>
+      <button type="button" class="theme-switcher-close" onclick="closeThemeSwitcher()">✕</button>
+    </div>
+
+    <div class="theme-switcher-body">
+      <!-- NHÓM A: Presets màu đơn -->
+      <div class="theme-group-label">Màu sắc đơn</div>
+      <div class="theme-presets-row">
+        <div class="theme-preset-item" data-theme="preset-blue" onclick="applyTheme('preset-blue')">
+          <span class="theme-dot" style="background:#2563EB"></span>
+          <span>Xanh gốc</span>
+          <span class="theme-check">✓</span>
+        </div>
+        <div class="theme-preset-item" data-theme="preset-hong-hoa" onclick="applyTheme('preset-hong-hoa')">
+          <span class="theme-dot" style="background:#E11D48"></span>
+          <span>Hồng hoa</span>
+          <span class="theme-check">✓</span>
+        </div>
+        <div class="theme-preset-item" data-theme="preset-hong-nhe" onclick="applyTheme('preset-hong-nhe')">
+          <span class="theme-dot" style="background:#F472B6"></span>
+          <span>Hồng nhẹ</span>
+          <span class="theme-check">✓</span>
+        </div>
+        <div class="theme-preset-item" data-theme="preset-matcha" onclick="applyTheme('preset-matcha')">
+          <span class="theme-dot" style="background:#059669"></span>
+          <span>Matcha Tea</span>
+          <span class="theme-check">✓</span>
+        </div>
+        <div class="theme-preset-item" data-theme="preset-linen" onclick="applyTheme('preset-linen')">
+          <span class="theme-dot" style="background:#854D0E"></span>
+          <span>Linen Cocoa</span>
+          <span class="theme-check">✓</span>
+        </div>
+      </div>
+
+      <!-- NHÓM B: Giao diện đầy đủ -->
+      <div class="theme-group-label" style="display:flex; justify-content:space-between; align-items:center;">
+        <span>Giao diện đầy đủ</span>
+        <span style="font-size:11px; opacity:0.75; font-weight:normal;">30 kiểu phong cách</span>
+      </div>
+      <div class="theme-full-grid">
+        <!-- Default: Tím Đêm -->
+        <div class="theme-full-item" data-theme="theme-dark-purple" onclick="applyTheme('theme-dark-purple')">
+          <span class="theme-orb" style="background:linear-gradient(135deg,#0B0826,#8E4DFF)"></span>
+          <div class="theme-item-meta">
+            <div class="theme-name">Tím Đêm</div>
+            <div class="theme-variant">Giao diện gốc (Tối)</div>
+          </div>
+          <span class="theme-check">✓</span>
+        </div>
+
+        <!-- 1. Azure Mist -->
+        <div class="theme-full-item" data-theme="theme-azure-mist-full" onclick="applyTheme('theme-azure-mist-full')">
+          <span class="theme-orb" style="background:linear-gradient(135deg,#EEF4FB,#7AB4E8)"></span>
+          <div class="theme-item-meta">
+            <div class="theme-name">Azure Mist</div>
+            <div class="theme-variant">Nền & bóng</div>
+          </div>
+          <span class="theme-check">✓</span>
+        </div>
+        <div class="theme-full-item" data-theme="theme-azure-mist-minimal" onclick="applyTheme('theme-azure-mist-minimal')">
+          <span class="theme-orb" style="background:#7AB4E8"></span>
+          <div class="theme-item-meta">
+            <div class="theme-name">Azure Mist</div>
+            <div class="theme-variant">Tối giản</div>
+          </div>
+          <span class="theme-check">✓</span>
+        </div>
+
+        <!-- 2. Woodland Cottage -->
+        <div class="theme-full-item" data-theme="theme-woodland-cottage-full" onclick="applyTheme('theme-woodland-cottage-full')">
+          <span class="theme-orb" style="background:linear-gradient(135deg,#5C4033,#8B6E58)"></span>
+          <div class="theme-item-meta">
+            <div class="theme-name">Woodland Cottage</div>
+            <div class="theme-variant">Nền & bóng</div>
+          </div>
+          <span class="theme-check">✓</span>
+        </div>
+        <div class="theme-full-item" data-theme="theme-woodland-cottage-minimal" onclick="applyTheme('theme-woodland-cottage-minimal')">
+          <span class="theme-orb" style="background:#8B6E58"></span>
+          <div class="theme-item-meta">
+            <div class="theme-name">Woodland Cottage</div>
+            <div class="theme-variant">Tối giản</div>
+          </div>
+          <span class="theme-check">✓</span>
+        </div>
+
+        <!-- 3. Sage Blush -->
+        <div class="theme-full-item" data-theme="theme-sage-blush-full" onclick="applyTheme('theme-sage-blush-full')">
+          <span class="theme-orb" style="background:linear-gradient(135deg,#6B8E78,#C49A88)"></span>
+          <div class="theme-item-meta">
+            <div class="theme-name">Sage Blush</div>
+            <div class="theme-variant">Nền & bóng</div>
+          </div>
+          <span class="theme-check">✓</span>
+        </div>
+        <div class="theme-full-item" data-theme="theme-sage-blush-minimal" onclick="applyTheme('theme-sage-blush-minimal')">
+          <span class="theme-orb" style="background:#6B8E78"></span>
+          <div class="theme-item-meta">
+            <div class="theme-name">Sage Blush</div>
+            <div class="theme-variant">Tối giản</div>
+          </div>
+          <span class="theme-check">✓</span>
+        </div>
+
+        <!-- 4. Golden Caramel -->
+        <div class="theme-full-item" data-theme="theme-golden-caramel-full" onclick="applyTheme('theme-golden-caramel-full')">
+          <span class="theme-orb" style="background:linear-gradient(135deg,#D48820,#9E6010)"></span>
+          <div class="theme-item-meta">
+            <div class="theme-name">Golden Caramel</div>
+            <div class="theme-variant">Nền & bóng</div>
+          </div>
+          <span class="theme-check">✓</span>
+        </div>
+        <div class="theme-full-item" data-theme="theme-golden-caramel-minimal" onclick="applyTheme('theme-golden-caramel-minimal')">
+          <span class="theme-orb" style="background:#D48820"></span>
+          <div class="theme-item-meta">
+            <div class="theme-name">Golden Caramel</div>
+            <div class="theme-variant">Tối giản</div>
+          </div>
+          <span class="theme-check">✓</span>
+        </div>
+
+        <!-- 5. Pastel Alpine Meadow -->
+        <div class="theme-full-item" data-theme="theme-pastel-alpine-full" onclick="applyTheme('theme-pastel-alpine-full')">
+          <span class="theme-orb" style="background:linear-gradient(135deg,#4A7A50,#98D0A0)"></span>
+          <div class="theme-item-meta">
+            <div class="theme-name">Pastel Alpine</div>
+            <div class="theme-variant">Nền & bóng</div>
+          </div>
+          <span class="theme-check">✓</span>
+        </div>
+        <div class="theme-full-item" data-theme="theme-pastel-alpine-minimal" onclick="applyTheme('theme-pastel-alpine-minimal')">
+          <span class="theme-orb" style="background:#4A7A50"></span>
+          <div class="theme-item-meta">
+            <div class="theme-name">Pastel Alpine</div>
+            <div class="theme-variant">Tối giản</div>
+          </div>
+          <span class="theme-check">✓</span>
+        </div>
+
+        <!-- 6. Dreamy Cosmic Sky -->
+        <div class="theme-full-item" data-theme="theme-dreamy-cosmic-full" onclick="applyTheme('theme-dreamy-cosmic-full')">
+          <span class="theme-orb" style="background:linear-gradient(135deg,#0A0A1A,#A040FF)"></span>
+          <div class="theme-item-meta">
+            <div class="theme-name">Dreamy Cosmic</div>
+            <div class="theme-variant">Nền & bóng (Tối)</div>
+          </div>
+          <span class="theme-check">✓</span>
+        </div>
+        <div class="theme-full-item" data-theme="theme-dreamy-cosmic-minimal" onclick="applyTheme('theme-dreamy-cosmic-minimal')">
+          <span class="theme-orb" style="background:#A040FF"></span>
+          <div class="theme-item-meta">
+            <div class="theme-name">Dreamy Cosmic</div>
+            <div class="theme-variant">Tối giản (Tối)</div>
+          </div>
+          <span class="theme-check">✓</span>
+        </div>
+
+        <!-- 7. Sunset Meadow Breeze -->
+        <div class="theme-full-item" data-theme="theme-sunset-meadow-full" onclick="applyTheme('theme-sunset-meadow-full')">
+          <span class="theme-orb" style="background:linear-gradient(135deg,#D45020,#5C7A40)"></span>
+          <div class="theme-item-meta">
+            <div class="theme-name">Sunset Meadow</div>
+            <div class="theme-variant">Nền & bóng</div>
+          </div>
+          <span class="theme-check">✓</span>
+        </div>
+        <div class="theme-full-item" data-theme="theme-sunset-meadow-minimal" onclick="applyTheme('theme-sunset-meadow-minimal')">
+          <span class="theme-orb" style="background:#D45020"></span>
+          <div class="theme-item-meta">
+            <div class="theme-name">Sunset Meadow</div>
+            <div class="theme-variant">Tối giản</div>
+          </div>
+          <span class="theme-check">✓</span>
+        </div>
+
+        <!-- 8. Neon Seoul -->
+        <div class="theme-full-item" data-theme="theme-neon-seoul-full" onclick="applyTheme('theme-neon-seoul-full')">
+          <span class="theme-orb" style="background:linear-gradient(135deg,#0D0820,#00D4AA)"></span>
+          <div class="theme-item-meta">
+            <div class="theme-name">Neon Seoul</div>
+            <div class="theme-variant">Nền & bóng (Tối)</div>
+          </div>
+          <span class="theme-check">✓</span>
+        </div>
+        <div class="theme-full-item" data-theme="theme-neon-seoul-minimal" onclick="applyTheme('theme-neon-seoul-minimal')">
+          <span class="theme-orb" style="background:#00D4AA"></span>
+          <div class="theme-item-meta">
+            <div class="theme-name">Neon Seoul</div>
+            <div class="theme-variant">Tối giản (Tối)</div>
+          </div>
+          <span class="theme-check">✓</span>
+        </div>
+
+        <!-- 9. Mystic Blue Room -->
+        <div class="theme-full-item" data-theme="theme-mystic-blue-full" onclick="applyTheme('theme-mystic-blue-full')">
+          <span class="theme-orb" style="background:linear-gradient(135deg,#0A1020,#4080D0)"></span>
+          <div class="theme-item-meta">
+            <div class="theme-name">Mystic Blue</div>
+            <div class="theme-variant">Nền & bóng (Tối)</div>
+          </div>
+          <span class="theme-check">✓</span>
+        </div>
+        <div class="theme-full-item" data-theme="theme-mystic-blue-minimal" onclick="applyTheme('theme-mystic-blue-minimal')">
+          <span class="theme-orb" style="background:#4080D0"></span>
+          <div class="theme-item-meta">
+            <div class="theme-name">Mystic Blue</div>
+            <div class="theme-variant">Tối giản (Tối)</div>
+          </div>
+          <span class="theme-check">✓</span>
+        </div>
+
+        <!-- 10. Blue Lime Canopy -->
+        <div class="theme-full-item" data-theme="theme-blue-lime-full" onclick="applyTheme('theme-blue-lime-full')">
+          <span class="theme-orb" style="background:linear-gradient(135deg,#1A5090,#80C820)"></span>
+          <div class="theme-item-meta">
+            <div class="theme-name">Blue Lime</div>
+            <div class="theme-variant">Nền & bóng</div>
+          </div>
+          <span class="theme-check">✓</span>
+        </div>
+        <div class="theme-full-item" data-theme="theme-blue-lime-minimal" onclick="applyTheme('theme-blue-lime-minimal')">
+          <span class="theme-orb" style="background:#1A5090"></span>
+          <div class="theme-item-meta">
+            <div class="theme-name">Blue Lime</div>
+            <div class="theme-variant">Tối giản</div>
+          </div>
+          <span class="theme-check">✓</span>
+        </div>
+
+        <!-- 11. Cloud Meadow -->
+        <div class="theme-full-item" data-theme="theme-cloud-meadow-full" onclick="applyTheme('theme-cloud-meadow-full')">
+          <span class="theme-orb" style="background:linear-gradient(135deg,#5888B0,#6BA870)"></span>
+          <div class="theme-item-meta">
+            <div class="theme-name">Cloud Meadow</div>
+            <div class="theme-variant">Nền & bóng</div>
+          </div>
+          <span class="theme-check">✓</span>
+        </div>
+        <div class="theme-full-item" data-theme="theme-cloud-meadow-minimal" onclick="applyTheme('theme-cloud-meadow-minimal')">
+          <span class="theme-orb" style="background:#5888B0"></span>
+          <div class="theme-item-meta">
+            <div class="theme-name">Cloud Meadow</div>
+            <div class="theme-variant">Tối giản</div>
+          </div>
+          <span class="theme-check">✓</span>
+        </div>
+
+        <!-- 12. Soft Blue + White -->
+        <div class="theme-full-item" data-theme="theme-soft-blue-white-full" onclick="applyTheme('theme-soft-blue-white-full')">
+          <span class="theme-orb" style="background:linear-gradient(135deg,#DCEEFC,#2070C0)"></span>
+          <div class="theme-item-meta">
+            <div class="theme-name">Soft Blue</div>
+            <div class="theme-variant">Nền & bóng</div>
+          </div>
+          <span class="theme-check">✓</span>
+        </div>
+        <div class="theme-full-item" data-theme="theme-soft-blue-white-minimal" onclick="applyTheme('theme-soft-blue-white-minimal')">
+          <span class="theme-orb" style="background:#2070C0"></span>
+          <div class="theme-item-meta">
+            <div class="theme-name">Soft Blue</div>
+            <div class="theme-variant">Tối giản</div>
+          </div>
+          <span class="theme-check">✓</span>
+        </div>
+
+        <!-- 13. Blossom Noir -->
+        <div class="theme-full-item" data-theme="theme-blossom-noir-full" onclick="applyTheme('theme-blossom-noir-full')">
+          <span class="theme-orb" style="background:linear-gradient(135deg,#100810,#D44080)"></span>
+          <div class="theme-item-meta">
+            <div class="theme-name">Blossom Noir</div>
+            <div class="theme-variant">Nền & bóng (Tối)</div>
+          </div>
+          <span class="theme-check">✓</span>
+        </div>
+        <div class="theme-full-item" data-theme="theme-blossom-noir-minimal" onclick="applyTheme('theme-blossom-noir-minimal')">
+          <span class="theme-orb" style="background:#D44080"></span>
+          <div class="theme-item-meta">
+            <div class="theme-name">Blossom Noir</div>
+            <div class="theme-variant">Tối giản (Tối)</div>
+          </div>
+          <span class="theme-check">✓</span>
+        </div>
+
+        <!-- 14. Violet Planet -->
+        <div class="theme-full-item" data-theme="theme-violet-planet-full" onclick="applyTheme('theme-violet-planet-full')">
+          <span class="theme-orb" style="background:linear-gradient(135deg,#0C0618,#9040D0)"></span>
+          <div class="theme-item-meta">
+            <div class="theme-name">Violet Planet</div>
+            <div class="theme-variant">Nền & bóng (Tối)</div>
+          </div>
+          <span class="theme-check">✓</span>
+        </div>
+        <div class="theme-full-item" data-theme="theme-violet-planet-minimal" onclick="applyTheme('theme-violet-planet-minimal')">
+          <span class="theme-orb" style="background:#9040D0"></span>
+          <div class="theme-item-meta">
+            <div class="theme-name">Violet Planet</div>
+            <div class="theme-variant">Tối giản (Tối)</div>
+          </div>
+          <span class="theme-check">✓</span>
+        </div>
+
+        <!-- 15. Claude -->
+        <div class="theme-full-item" data-theme="theme-claude-full" onclick="applyTheme('theme-claude-full')">
+          <span class="theme-orb" style="background:linear-gradient(135deg,#FAF7F2,#CC785C)"></span>
+          <div class="theme-item-meta">
+            <div class="theme-name">Claude</div>
+            <div class="theme-variant">Nền & bóng (Ấm)</div>
+          </div>
+          <span class="theme-check">✓</span>
+        </div>
+        <div class="theme-full-item" data-theme="theme-claude-minimal" onclick="applyTheme('theme-claude-minimal')">
+          <span class="theme-orb" style="background:#CC785C"></span>
+          <div class="theme-item-meta">
+            <div class="theme-name">Claude</div>
+            <div class="theme-variant">Tối giản (Ấm)</div>
+          </div>
+          <span class="theme-check">✓</span>
+        </div>
+      </div>
+
+      <!-- NHÓM C: Màu tùy chọn đơn -->
+      <div class="theme-group-label">Màu tùy chọn đơn</div>
+      <div class="theme-custom-row">
+        <input type="color" id="customColorPicker" value="#2563EB" title="Chọn màu tùy chỉnh">
+        <span style="font-size:12.5px; font-weight:600; color:var(--text-secondary);">Mã HEX:</span>
+        <input type="text" id="customColorHex" class="theme-custom-hex" value="#2563EB" maxlength="7">
+        <button type="button" class="theme-btn-apply-custom" onclick="applyCustomTheme()">Áp dụng màu</button>
+      </div>
+    </div>
+
+    <div class="theme-switcher-footer">
+      <span>Đang dùng: <b class="theme-current-badge" id="themeCurrentLabel">Tím Đêm</b></span>
+      <span style="opacity:0.65; font-size:11px;">Hệ thống 36 Theme</span>
+    </div>
+  </div>
+</div>
+
+<!-- Phase 19: Scroll Animation Engine -->
+<script src="js/scroll-animations.js?v=20261002_scroll"></script>
 </body>
 </html>

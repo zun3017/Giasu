@@ -19,14 +19,68 @@
             return false;
         };
     </script>
-
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@600;700;800&display=swap" rel="stylesheet">
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Themes CSS & Bootstrap -->
+    <link rel="stylesheet" href="css/themes.css">
+    <script>
+      (function() {
+        var t = localStorage.getItem('tutorTheme') || 'theme-dark-purple';
+        if (t.startsWith('custom:')) {
+          var hex = t.split(':')[1];
+          if (/^#[0-9A-Fa-f]{6}$/.test(hex)) {
+            var r = parseInt(hex.slice(1,3),16), g = parseInt(hex.slice(3,5),16), b = parseInt(hex.slice(5,7),16);
+            var lr = Math.round(r + (255-r)*0.5), lg = Math.round(g + (255-g)*0.5), lb = Math.round(b + (255-b)*0.5);
+            var dr = Math.round(r*0.7), dg = Math.round(g*0.7), db = Math.round(b*0.7);
+            var toHex = function(n) { return n.toString(16).padStart(2,'0'); };
+            var root = document.documentElement;
+            root.className = '';
+            root.style.setProperty('--color-primary', hex);
+            root.style.setProperty('--color-primary-light', '#' + toHex(lr) + toHex(lg) + toHex(lb));
+            root.style.setProperty('--color-primary-dark', '#' + toHex(dr) + toHex(dg) + toHex(db));
+            root.style.setProperty('--color-primary-rgb', r + ',' + g + ',' + b);
+            root.style.setProperty('--chart-bar', hex);
+            root.style.setProperty('--btn-bg', hex);
+            root.style.setProperty('--nav-active-bg', 'rgba(' + r + ',' + g + ',' + b + ',0.12)');
+            root.style.setProperty('--nav-active-text', hex);
+            root.style.setProperty('--bg-page', '#FAFAFA');
+            root.style.setProperty('--bg-page-gradient', '#FAFAFA');
+            root.style.setProperty('--bg-sidebar', '#F5F5F5');
+            root.style.setProperty('--bg-card', '#FFFFFF');
+            root.style.setProperty('--bg-card-alt', '#F0F0F0');
+            root.style.setProperty('--bg-input', '#FFFFFF');
+            root.style.setProperty('--border-color', 'rgba(' + r + ',' + g + ',' + b + ', 0.25)');
+            root.style.setProperty('--border-card', '#E5E5E5');
+            root.style.setProperty('--text-primary', '#1A1A1A');
+            root.style.setProperty('--text-secondary', '#555555');
+            root.style.setProperty('--text-muted', '#888888');
+            root.style.setProperty('--header-bg', '#FFFFFF');
+            root.style.setProperty('--header-border', '#E5E5E5');
+            root.style.setProperty('--shadow-card', '0 4px 16px rgba(0,0,0,0.06)');
+            root.style.setProperty('--shadow-primary', '0 4px 15px rgba(' + r + ',' + g + ',' + b + ', 0.3)');
+            root.style.setProperty('--is-dark-theme', '0');
+          } else {
+            document.documentElement.className = 'theme-dark-purple';
+          }
+        } else {
+          document.documentElement.className = t;
+        }
+      })();
+    </script>
     <!-- Global CSS -->
-    <link rel="stylesheet" href="css/style.css?v=3.0.0">
+    <link rel="stylesheet" href="css/style.css?v=20261002_scroll">
+    <link rel="stylesheet" href="css/public-theme.css?v=20261002_scroll">
     <style>
+        /* Đảm bảo nút thu gọn Sidebar luôn hiển thị tròn nguyên vẹn, không bao giờ bị cắt cụt */
+        .tutor-sidebar {
+            overflow: visible !important;
+        }
+        .sidebar-collapse-btn {
+            z-index: 1005 !important;
+        }
+
         /* ================= INVOICE STYLES (APPROVED E-RECEIPT) ================= */
         .invoice-container {
             width: 100% !important;
@@ -186,7 +240,6 @@
             padding: 7px 8px !important;
             line-height: 1.35 !important;
             color: #475569 !important;
-            min-height: 48px !important;
             display: flex !important;
             align-items: center !important;
             box-sizing: border-box !important;
@@ -335,9 +388,9 @@
             to   { opacity: 1; transform: translateY(0); }
         }
         .sync-toast.pending {
-            background: rgba(30, 20, 70, 0.92);
-            border: 1px solid rgba(142, 77, 255, 0.5);
-            color: #C4B5FD;
+            background: var(--btn-bg);
+            border: 1px solid var(--border-color);
+            color: var(--color-primary-light);
         }
         .sync-toast.success {
             background: rgba(16, 185, 129, 0.18);
@@ -349,284 +402,661 @@
             border: 1px solid rgba(239, 68, 68, 0.5);
             color: #FCA5A5;
         }
+
+        /* ===== TUTOR HISTORY TABLE (DESKTOP NO HORIZONTAL SCROLL) ===== */
+        .table-wrapper.desktop-table-view {
+            width: 100% !important;
+            overflow-x: hidden !important;
+            border-radius: 12px;
+            box-sizing: border-box;
+        }
+        .tutor-history-table {
+            width: 100% !important;
+            max-width: 100% !important;
+            min-width: 0 !important;
+            border-collapse: collapse;
+            font-family: Inter, sans-serif;
+            table-layout: auto;
+        }
+        .tutor-history-table th {
+            background: #F0F7FF;
+            color: #64748B;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            padding: 8px 6px !important;
+            text-align: left;
+            border-bottom: 2px solid #DBEAFE;
+            white-space: nowrap;
+            box-sizing: border-box;
+        }
+        [data-theme="dark"] .tutor-history-table th {
+            background: rgba(30, 41, 59, 0.7);
+            color: #94A3B8;
+            border-bottom: 2px solid rgba(59, 130, 246, 0.3);
+        }
+        .tutor-history-table td {
+            padding: 8px 6px !important;
+            border-bottom: 1px solid var(--border-card, #F1F5F9);
+            font-size: 12.5px;
+            color: var(--text-primary, #475569);
+            vertical-align: middle;
+            box-sizing: border-box;
+        }
+        .tutor-history-table tr:hover td {
+            background-color: var(--nav-hover-bg, #F8FAFF);
+        }
+        .tutor-history-table .cell-noidung {
+            min-width: 100px;
+            white-space: normal !important;
+            word-break: break-word;
+            overflow-wrap: break-word;
+            line-height: 1.35;
+            color: var(--text-heading, #1E293B);
+            font-weight: 500;
+            font-size: 12px;
+        }
+        .tutor-history-table .cell-nhanxet {
+            min-width: 120px;
+            white-space: normal !important;
+            word-break: break-word;
+            overflow-wrap: break-word;
+            line-height: 1.35;
+            font-size: 12px;
+            color: var(--text-primary, #334155);
+        }
+
+        /* ===== TUTOR DASHBOARD MOBILE OPTIMIZATIONS (TASK 14.4) ===== */
+        @media (max-width: 768px) {
+            .tutor-kpi-grid {
+                grid-template-columns: 1fr 1fr !important;
+                gap: 12px !important;
+            }
+            .kpi-number, .kpi-value { font-size: 22px !important; }
+            .kpi-label { font-size: 11px !important; }
+            .kpi-card, .tutor-kpi-card { padding: 14px !important; }
+
+            /* Ẩn hoàn toàn bảng desktop trên mobile vì đã có thẻ mở / cards bên dưới */
+            .desktop-table-view,
+            .table-wrapper.desktop-table-view,
+            #tuitionTable,
+            #tutorScheduleTable,
+            .desktop-table-view table {
+                display: none !important;
+            }
+            .mobile-cards-view,
+            #tuitionMobileList,
+            #tutorScheduleMobile {
+                display: block !important;
+            }
+
+            /* Diary entries full width */
+            .diary-entry, .tutor-session-row {
+                flex-direction: column !important;
+                gap: 8px !important;
+            }
+
+            /* Content padding on mobile */
+            .tutor-main-content {
+                padding: 12px 12px calc(30px + env(safe-area-inset-bottom)) 12px !important;
+            }
+
+            /* Tuition banner grid 1 or 2 cols on mobile */
+            .tuition-banner-grid {
+                grid-template-columns: 1fr !important;
+                gap: 10px !important;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .tutor-kpi-grid {
+                grid-template-columns: 1fr 1fr !important;
+                gap: 8px !important;
+            }
+            .tutor-kpi-card { padding: 12px 10px !important; }
+            .kpi-value { font-size: 19px !important; }
+            .kpi-label { font-size: 10.5px !important; }
+            .overview-top-bar {
+                flex-direction: column !important;
+                align-items: flex-start !important;
+                gap: 10px !important;
+            }
+            .month-selector-widget {
+                width: 100% !important;
+                justify-content: space-between !important;
+            }
+        }
+
+        @media (max-width: 360px) {
+            .kpi-number, .kpi-value { font-size: 18px !important; }
+        }
+
+        /* ===== PHASE 17 — TUTOR DASHBOARD MOBILE ===== */
+        @media (max-width: 768px) {
+          /* Sidebar ẩn mặc định, slide từ trái */
+          .tutor-sidebar {
+            position: fixed !important;
+            left: -280px !important; top: 0 !important; bottom: 0 !important;
+            width: 260px !important; z-index: 1050 !important;
+            transition: left 0.3s cubic-bezier(0.4,0,0.2,1) !important;
+            overflow-y: auto; overflow-x: hidden;
+            box-shadow: 4px 0 20px rgba(0,0,0,0.15);
+          }
+          .tutor-sidebar.sidebar-open,
+          .tutor-sidebar.mobile-open { left: 0 !important; }
+
+          /* Overlay mờ */
+          .sidebar-overlay {
+            display: none !important;
+            position: fixed !important;
+            inset: 0 !important;
+            background: rgba(15, 23, 42, 0.65) !important;
+            backdrop-filter: blur(4px) !important;
+            -webkit-backdrop-filter: blur(4px) !important;
+            z-index: 1050 !important;
+            opacity: 0 !important;
+            pointer-events: none !important;
+          }
+          .sidebar-overlay.active {
+            display: block !important;
+            opacity: 1 !important;
+            pointer-events: auto !important;
+          }
+
+          /* Main content full width & header flush to top */
+          .tutor-main-content {
+            margin-left: 0 !important;
+            width: 100% !important;
+            padding: 0 12px 60px 12px !important;
+          }
+          .tutor-mobile-header {
+            margin: 0 -12px 14px -12px !important;
+            width: calc(100% + 24px) !important;
+            background: var(--header-bg, var(--bg-card)) !important;
+          }
+
+          /* KPI grid 2 cột */
+          [class*="kpi-grid"], .kpi-grid, .stats-row, .overview-grid {
+            grid-template-columns: 1fr 1fr !important;
+            gap: 12px !important;
+          }
+          [class*="kpi-number"], .kpi-number, .stat-number { font-size: 22px !important; }
+          [class*="kpi-card"], .kpi-card { padding: 14px !important; }
+
+          /* Bảng học phí scroll ngang */
+          .table-wrapper, [class*="table-wrap"], .fee-table-wrap {
+            overflow-x: auto !important;
+            -webkit-overflow-scrolling: touch;
+          }
+        }
     </style>
 </head>
 <body>
-    <div id="tutorDashboardBox">
-        <!-- Dòng chữ chạy thông báo từ Admin -->
-        <div id="tutorMarqueeContainer" class="smooth-marquee-container">
-            <div class="smooth-marquee-wrapper" id="tutorMarqueeWrapper"></div>
-        </div>
-        <div class="tutor-header">
-            <div>
-                <h2 id="tutorNameDisplay">Xin chào, Gia sư</h2>
-                <p>Tổng quan hệ thống giảng dạy</p>
-            </div>
-            <div style="display: flex; gap: 10px;">
-                <button onclick="openTutorAccountModal()" class="btn-back" style="width: auto; padding: 10px 20px; background: rgba(142,77,255,0.1); border-color: #8E4DFF;"><i class="fa-solid fa-user"></i> Tài khoản</button>
-                <button onclick="quayLai()" class="btn-back" style="width: auto; padding: 10px 20px;"><i class="fa-solid fa-arrow-right-from-bracket"></i> Đăng xuất</button>
-            </div>
-        </div>
+    <div id="tutorDashboardBox" class="tutor-app-layout">
+        <!-- Sidebar Backdrop Overlay on Mobile -->
+        <div class="sidebar-overlay" id="tutorSidebarOverlay" onclick="toggleTutorMobileSidebar(false)"></div>
 
-        <div class="schedule-section">
+        <!-- Sidebar Navigation -->
+        <aside class="tutor-sidebar" id="tutorSidebar" style="overflow: visible !important;">
+            <!-- Sidebar Collapse Toggle Button -->
+            <button type="button" class="sidebar-collapse-btn" id="sidebarCollapseBtn" onclick="toggleTutorSidebar()" title="Thu gọn menu" style="z-index: 1005 !important;">
+                <i class="fa-solid fa-chevron-left" id="sidebarCollapseIcon"></i>
+            </button>
+
+            <!-- Brand / Tutor Profile Header -->
+            <div class="tutor-sidebar-brand">
+                <div style="display: flex; align-items: center; gap: 12px; min-width: 0;">
+                    <div class="sidebar-avatar">
+                        <i class="fa-solid fa-chalkboard-user"></i>
+                    </div>
+                    <div class="sidebar-user-info">
+                        <div class="sidebar-user-title">Gia Sư 4.0</div>
+                        <div class="sidebar-user-name" id="sidebarTutorName">Gia sư</div>
+                    </div>
+                </div>
+                <button type="button" class="sidebar-mobile-close-btn" onclick="toggleTutorMobileSidebar(false)" aria-label="Đóng menu" title="Đóng menu">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- Navigation Menu (6 items) -->
+            <nav class="tutor-sidebar-nav">
+                <button type="button" class="sidebar-nav-item active" data-tab="overview" data-title="Tổng quan" onclick="switchTutorNavTab(this, 'overview')">
+                    <svg class="nav-icon-svg" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="4" y="2.5" width="16" height="19" rx="3.5"></rect>
+                        <line x1="8" y1="7.5" x2="16" y2="7.5"></line>
+                        <line x1="8" y1="11.5" x2="13.5" y2="11.5"></line>
+                        <line x1="8" y1="15.5" x2="10.5" y2="15.5"></line>
+                        <path d="M13.5 15.5l1.8 2 3.7-4"></path>
+                    </svg>
+                    <span>Tổng quan</span>
+                </button>
+                <button type="button" class="sidebar-nav-item" data-tab="reports" data-title="Báo cáo" onclick="switchTutorNavTab(this, 'reports')">
+                    <i class="fa-solid fa-file-image"></i>
+                    <span>Báo cáo</span>
+                </button>
+                <button type="button" class="sidebar-nav-item" data-tab="diary" data-title="Nhật ký buổi học" onclick="switchTutorNavTab(this, 'diary')">
+                    <i class="fa-solid fa-book-open"></i>
+                    <span>Nhật ký buổi học</span>
+                </button>
+                <button type="button" class="sidebar-nav-item" data-tab="calendar" data-title="Lịch dạy" onclick="switchTutorNavTab(this, 'calendar')">
+                    <i class="fa-solid fa-calendar-days"></i>
+                    <span>Lịch dạy</span>
+                </button>
+                <button type="button" class="sidebar-nav-item" data-tab="students" data-title="Học sinh" onclick="switchTutorNavTab(this, 'students')">
+                    <i class="fa-solid fa-user-graduate"></i>
+                    <span>Học sinh</span>
+                </button>
+                <button type="button" class="sidebar-nav-item" data-tab="tuition" data-title="Học phí" onclick="switchTutorNavTab(this, 'tuition')">
+                    <i class="fa-solid fa-money-bill-wave"></i>
+                    <span>Học phí</span>
+                </button>
+            </nav>
+
+            <!-- Footer Action (Logout & Account) -->
+            <div class="tutor-sidebar-footer">
+                <button type="button" class="sidebar-theme-btn" data-title="Giao diện" onclick="openThemeSwitcher()" title="Đổi chủ đề giao diện">
+                    <i class="fa-solid fa-palette"></i>
+                    <span>Giao diện</span>
+                </button>
+                <button type="button" class="sidebar-footer-btn" data-title="Tài khoản" onclick="openTutorAccountModal()" title="Cài đặt tài khoản">
+                    <i class="fa-solid fa-user-gear"></i>
+                    <span>Tài khoản</span>
+                </button>
+                <button type="button" class="sidebar-footer-btn logout" data-title="Đăng xuất" onclick="quayLai()" title="Đăng xuất">
+                    <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                    <span>Đăng xuất</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="tutor-main-content" id="tutorMainContent">
+    <!-- Marquee Announcement from Admin -->
+    <div id="tutorMarqueeContainer" style="display: none; background: rgba(239, 68, 68, 0.15); border-bottom: 1px solid rgba(239, 68, 68, 0.3); padding: 8px 15px;">
+        <div id="tutorMarqueeWrapper"></div>
+    </div>
+
+            <!-- Mobile Sticky Top Header (Only on <= 768px) -->
+            <header class="tutor-mobile-header" id="tutorMobileHeader">
+                <div class="mobile-header-left">
+                    <button type="button" class="tutor-mobile-menu-btn" onclick="toggleTutorMobileSidebar(true)" aria-label="Mở menu" title="Mở danh mục">
+                        <i class="fa-solid fa-bars"></i>
+                    </button>
+                    <div class="mobile-header-brand">
+                        <span class="mobile-brand-title">Gia Sư 4.0</span>
+                        <span class="mobile-brand-name" id="mobileHeaderTutorName">Gia sư</span>
+                    </div>
+                </div>
+                <div class="mobile-header-actions">
+                    <button type="button" class="mobile-action-btn theme-btn" onclick="openThemeSwitcher()" title="Đổi giao diện" aria-label="Đổi giao diện">
+                        <i class="fa-solid fa-palette"></i>
+                    </button>
+                    <button type="button" class="mobile-action-btn account-btn" onclick="openTutorAccountModal()" title="Cài đặt tài khoản" aria-label="Tài khoản">
+                        <i class="fa-solid fa-user-gear"></i>
+                    </button>
+                    <button type="button" class="mobile-action-btn logout-btn" onclick="quayLai()" title="Đăng xuất" aria-label="Đăng xuất">
+                        <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                    </button>
+                </div>
+            </header>
+
+            <div class="tutor-header" style="display: none;">
+                <div>
+                    <h2 id="tutorNameDisplay">Xin chào, Gia sư</h2>
+                    <p>Tổng quan hệ thống giảng dạy</p>
+                </div>
+            </div>
+
+        <!-- SECTION TỔNG QUAN -->
+        <div id="tutorSectionOverview" class="tutor-section" style="display: block;">
+            <!-- Overview Top Bar: Title & Month Selector -->
+            <div class="overview-top-bar" id="overviewTopBar">
+                <div class="overview-top-title">
+                    <h2>
+                        <svg class="overview-title-svg" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--color-primary); vertical-align: -3px; margin-right: 6px; display: inline-block;">
+                            <rect x="4" y="2.5" width="16" height="19" rx="3.5"></rect>
+                            <line x1="8" y1="7.5" x2="16" y2="7.5"></line>
+                            <line x1="8" y1="11.5" x2="13.5" y2="11.5"></line>
+                            <line x1="8" y1="15.5" x2="10.5" y2="15.5"></line>
+                            <path d="M13.5 15.5l1.8 2 3.7-4"></path>
+                        </svg>
+                        <span>Tổng quan</span>
+                    </h2>
+                    <p>Tổng quan hệ thống giảng dạy & theo dõi hiệu suất</p>
+                </div>
+                <div class="month-selector-widget" id="tutorOverviewMonthSelector">
+                    <button type="button" class="month-nav-btn" id="overviewPrevMonthBtn" onclick="navigateOverviewMonth(-1)" title="Tháng trước">
+                        <i class="fa-solid fa-chevron-left"></i>
+                    </button>
+                    <span id="overviewMonthDisplay">Tháng 10/2026</span>
+                    <button type="button" class="month-nav-btn" id="overviewNextMonthBtn" onclick="navigateOverviewMonth(1)" title="Tháng sau" disabled>
+                        <i class="fa-solid fa-chevron-right"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- 4 KPI Cards -->
+            <div class="tutor-kpi-grid reveal-stagger" id="tutorKpiGrid">
+                <!-- Card 1: Số học sinh đang dạy -->
+                <div class="tutor-kpi-card">
+                    <div class="kpi-card-top">
+                        <span class="kpi-label">Học sinh đang dạy</span>
+                        <div class="kpi-icon icon-purple"><i class="fa-solid fa-user-graduate"></i></div>
+                    </div>
+                    <div class="kpi-value text-purple" id="kpiStudentCount">0</div>
+                    <div class="kpi-subtext"><i class="fa-solid fa-arrow-trend-up"></i> Đang theo học</div>
+                </div>
+                <!-- Card 2: Tổng buổi đã dạy tháng này -->
+                <div class="tutor-kpi-card">
+                    <div class="kpi-card-top">
+                        <span class="kpi-label" id="kpiSessionLabel">Buổi dạy tháng này</span>
+                        <div class="kpi-icon icon-green"><i class="fa-solid fa-calendar-check"></i></div>
+                    </div>
+                    <div class="kpi-value text-green" id="kpiSessionCount">0</div>
+                    <div class="kpi-subtext"><i class="fa-solid fa-circle-check"></i> Đã hoàn thành</div>
+                </div>
+                <!-- Card 3: Tổng giờ tích lũy -->
+                <div class="tutor-kpi-card">
+                    <div class="kpi-card-top">
+                        <span class="kpi-label">Tổng giờ tích lũy</span>
+                        <div class="kpi-icon icon-cyan"><i class="fa-solid fa-clock"></i></div>
+                    </div>
+                    <div class="kpi-value text-cyan" id="kpiTotalHours">0h</div>
+                    <div class="kpi-subtext"><i class="fa-solid fa-hourglass-half"></i> Thời lượng dạy</div>
+                </div>
+                <!-- Card 4: Học phí tháng này -->
+                <div class="tutor-kpi-card">
+                    <div class="kpi-card-top">
+                        <span class="kpi-label" id="kpiTuitionLabel">Học phí tháng này</span>
+                        <div class="kpi-icon icon-amber"><i class="fa-solid fa-money-bill-wave"></i></div>
+                    </div>
+                    <div class="kpi-value text-amber" id="kpiTuitionTotal">0đ</div>
+                    <div class="kpi-subtext"><i class="fa-solid fa-coins"></i> Tổng học phí</div>
+                </div>
+            </div>
+
+            <!-- Lịch dạy sắp tới (1 hàng ngang riêng) -->
+            <div class="upcoming-schedule-box reveal" id="tutorUpcomingScheduleBox">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 12px;">
+                    <h3 style="color: var(--text-heading, var(--text-primary)); font-size: 16px; margin: 0; display: flex; align-items: center; gap: 8px;">
+                        <i class="fa-solid fa-calendar-check" style="color: var(--color-primary);"></i>
+                        <span id="upcomingScheduleTitleText">Lịch dạy sắp tới</span>
+                    </h3>
+                    <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+                        <span style="font-size: 12px; color: var(--text-secondary);" id="upcomingScheduleSubtext"><i class="fa-solid fa-bolt" style="color: var(--color-primary);"></i> Hôm nay & Ngày mai</span>
+                        <button type="button" class="upcoming-all-schedule-btn" onclick="openTutorCalendarTab()" style="padding: 5px 12px; font-size: 12px; font-weight: 600; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; background: var(--nav-active-bg); border: 1px solid var(--border-color); color: var(--nav-active-text); transition: all 0.2s ease; cursor: pointer;">
+                            <i class="fa-regular fa-calendar-days" style="color: var(--color-primary);"></i> Xem toàn bộ lịch dạy
+                        </button>
+                    </div>
+                </div>
+                <div class="upcoming-days-grid" id="tutorUpcomingDaysGrid">
+                    <!-- Hôm nay -->
+                    <div class="upcoming-day-column" id="upcomingTodayCol">
+                        <div class="upcoming-day-header">
+                            <span id="upcomingTodayHeaderTitle"><i class="fa-solid fa-sun"></i> Hôm nay</span>
+                            <span style="font-size: 11px; opacity: 0.8;" id="upcomingTodayCountBadge">0 buổi</span>
+                        </div>
+                        <div class="upcoming-items-list" id="upcomingTodayList">
+                            <!-- Items or Empty -->
+                        </div>
+                    </div>
+                    <!-- Ngày mai -->
+                    <div class="upcoming-day-column" id="upcomingTomorrowCol">
+                        <div class="upcoming-day-header">
+                            <span id="upcomingTomorrowHeaderTitle"><i class="fa-solid fa-calendar-day"></i> Ngày mai</span>
+                            <span style="font-size: 11px; opacity: 0.8;" id="upcomingTomorrowCountBadge">0 buổi</span>
+                        </div>
+                        <div class="upcoming-items-list" id="upcomingTomorrowList">
+                            <!-- Items or Empty -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2 Biểu đồ Doanh thu (Chung 1 hàng ngang) -->
+            <div class="overview-charts-grid reveal" id="overviewChartsGrid">
+                <!-- Block: Doanh thu N tháng (Bar Chart - Chuẩn Hình 2) -->
+                <div class="overview-chart-box" id="revenueBarChartBox">
+                    <div style="margin-bottom: 10px;">
+                        <h3 class="overview-chart-title" id="revenueChartTitle" style="font-size: 16px; font-weight: 700; color: var(--text-heading, var(--text-primary)); margin: 0 0 4px 0;">
+                            Doanh thu 12 tháng
+                        </h3>
+                        <div class="revenue-big-total" id="revenuePeriodTotal" style="color: var(--text-primary); font-size: 26px; font-weight: 800; line-height: 1.2;">
+                            64.800.000 đ
+                        </div>
+                    </div>
+                    
+                    <!-- 3 Dropdown Filters in separate row below total (White rounded pills as in Image 2) -->
+                    <div class="overview-chart-filters" style="display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap;">
+                        <!-- Khoảng thời gian -->
+                        <select class="chart-filter-select-img2" id="revenuePeriodFilter" onchange="updateRevenueBarChart()" title="Khoảng thời gian">
+                            <option value="12" selected>12 tháng</option>
+                            <option value="6">6 tháng</option>
+                            <option value="3">3 tháng</option>
+                        </select>
+                        <!-- Loại biểu đồ -->
+                        <select class="chart-filter-select-img2" id="revenueTypeFilter" onchange="updateRevenueBarChart()" title="Loại biểu đồ">
+                            <option value="bar" selected>Biểu đồ cột</option>
+                            <option value="line">Biểu đồ đường</option>
+                        </select>
+                        <!-- Năm -->
+                        <select class="chart-filter-select-img2" id="revenueYearFilter" onchange="updateRevenueBarChart()" title="Năm">
+                            <option value="2026" selected>Năm 2026</option>
+                            <option value="2025">Năm 2025</option>
+                        </select>
+                    </div>
+
+                    <!-- Canvas Wrapper -->
+                    <div class="chart-canvas-container" style="position: relative; height: 230px; width: 100%;">
+                        <canvas id="revenueBarChartCanvas"></canvas>
+                    </div>
+                </div>
+
+                <!-- Block: Doanh thu theo Học sinh (Donut Chart + List) -->
+                <div class="overview-chart-box" id="studentRevenueDonutBox">
+                    <div class="overview-chart-header">
+                        <div>
+                            <h3 class="overview-chart-title" id="studentRevenueTitle">
+                                <i class="fa-solid fa-chart-pie" style="color: #FFD23F;"></i>
+                                <span>Doanh thu theo học sinh</span>
+                            </h3>
+                            <span class="revenue-big-subtext" id="studentRevenueSubtitle">Phân bổ doanh thu tháng này</span>
+                        </div>
+                        
+                        <!-- Month Filter Dropdown -->
+                        <div class="overview-chart-filters">
+                            <select class="chart-filter-select" id="studentRevenueMonthFilter" onchange="renderStudentRevenueDonut()" title="Chọn tháng">
+                                <option value="10/2026" selected>Tháng 10/2026</option>
+                                <option value="9/2026">Tháng 9/2026</option>
+                                <option value="8/2026">Tháng 8/2026</option>
+                                <option value="7/2026">Tháng 7/2026</option>
+                                <option value="6/2026">Tháng 6/2026</option>
+                                <option value="5/2026">Tháng 5/2026</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Chart + List Grid -->
+                    <div class="student-revenue-body">
+                        <!-- Donut Chart with Center Text -->
+                        <div class="student-donut-wrap">
+                            <div class="student-donut-canvas-container">
+                                <canvas id="studentRevenueDonutCanvas"></canvas>
+                                <!-- Center overlay for total -->
+                                <div class="donut-center-total" id="studentDonutCenterTotal">
+                                    <span class="donut-center-label">Tổng thu</span>
+                                    <span class="donut-center-value" id="studentDonutTotalVal">0đ</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Student Revenue List -->
+                        <div class="student-revenue-list" id="studentRevenueList">
+                            <!-- Rendered dynamically -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="schedule-section reveal">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
-                <h3 style="margin: 0; display: flex; align-items: center; gap: 8px;"><i class="fa-regular fa-calendar-alt" style="color: #8E4DFF;"></i> Thời khóa biểu tổng hợp</h3>
-                <a href="tutor-calendar.html" class="modal-btn modal-btn-primary" style="width: auto; padding: 8px 18px; background: linear-gradient(135deg, #8E4DFF 0%, #5B21B6 100%); font-weight: bold; border-radius: 20px; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 15px rgba(142,77,255,0.25); text-decoration: none; font-size: 13px; font-family: 'Inter', sans-serif;">
+                <h3 style="margin: 0; display: flex; align-items: center; gap: 8px;"><i class="fa-regular fa-calendar-alt" style="color: var(--color-primary);"></i> Thời khóa biểu tổng hợp</h3>
+                <button type="button" onclick="openTutorCalendarTab()" class="modal-btn modal-btn-primary" style="width: auto; padding: 8px 18px; background: var(--btn-bg); color: var(--btn-text); font-weight: bold; border-radius: 20px; display: inline-flex; align-items: center; gap: 8px; box-shadow: var(--shadow-primary); text-decoration: none; font-size: 13px; font-family: 'Inter', sans-serif; cursor: pointer;">
                     <i class="fa-solid fa-calendar-days"></i> Quản lý & Tạo thời khóa biểu
-                </a>
+                </button>
             </div>
             
             <div class="table-wrapper desktop-table-view" style="margin-top: 10px; width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; border-radius: 12px;">
                 <table id="tutorScheduleTable" style="min-width: 700px; width: 100%; border-collapse: collapse;">
                     <thead>
                         <tr>
-                            <th style="text-align: left; padding: 12px 14px; background: rgba(91, 46, 255, 0.15); color: #FFF; font-weight: 700;">Học sinh</th>
-                            <th style="text-align: center; padding: 12px 10px; background: rgba(91, 46, 255, 0.15); color: #FFF; font-weight: 700;">Thứ 2</th>
-                            <th style="text-align: center; padding: 12px 10px; background: rgba(91, 46, 255, 0.15); color: #FFF; font-weight: 700;">Thứ 3</th>
-                            <th style="text-align: center; padding: 12px 10px; background: rgba(91, 46, 255, 0.15); color: #FFF; font-weight: 700;">Thứ 4</th>
-                            <th style="text-align: center; padding: 12px 10px; background: rgba(91, 46, 255, 0.15); color: #FFF; font-weight: 700;">Thứ 5</th>
-                            <th style="text-align: center; padding: 12px 10px; background: rgba(91, 46, 255, 0.15); color: #FFF; font-weight: 700;">Thứ 6</th>
-                            <th style="text-align: center; padding: 12px 10px; background: rgba(91, 46, 255, 0.15); color: #FFF; font-weight: 700;">Thứ 7</th>
-                            <th style="text-align: center; padding: 12px 10px; background: rgba(91, 46, 255, 0.15); color: #FFF; font-weight: 700;">CN</th>
-                            <th style="text-align: center; padding: 12px 10px; background: rgba(91, 46, 255, 0.15); color: #FFF; font-weight: 700; width: 50px;">Sửa</th>
+                            <th style="text-align: left; padding: 12px 14px; background: var(--nav-active-bg); color: var(--text-primary); font-weight: 700;">Học sinh</th>
+                            <th style="text-align: center; padding: 12px 10px; background: var(--nav-active-bg); color: var(--text-primary); font-weight: 700;">Thứ 2</th>
+                            <th style="text-align: center; padding: 12px 10px; background: var(--nav-active-bg); color: var(--text-primary); font-weight: 700;">Thứ 3</th>
+                            <th style="text-align: center; padding: 12px 10px; background: var(--nav-active-bg); color: var(--text-primary); font-weight: 700;">Thứ 4</th>
+                            <th style="text-align: center; padding: 12px 10px; background: var(--nav-active-bg); color: var(--text-primary); font-weight: 700;">Thứ 5</th>
+                            <th style="text-align: center; padding: 12px 10px; background: var(--nav-active-bg); color: var(--text-primary); font-weight: 700;">Thứ 6</th>
+                            <th style="text-align: center; padding: 12px 10px; background: var(--nav-active-bg); color: var(--text-primary); font-weight: 700;">Thứ 7</th>
+                            <th style="text-align: center; padding: 12px 10px; background: var(--nav-active-bg); color: var(--text-primary); font-weight: 700;">CN</th>
+                            <th style="text-align: center; padding: 12px 10px; background: var(--nav-active-bg); color: var(--text-primary); font-weight: 700; width: 50px;">Sửa</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <tr><td colspan="9" style="text-align: center; color: rgba(255,255,255,0.3); padding: 20px;">Đang tải thời khóa biểu...</td></tr>
+                        <tr><td colspan="9" style="text-align: center; color: var(--text-muted); padding: 20px;">Đang tải thời khóa biểu...</td></tr>
                     </tbody>
                 </table>
             </div>
 
             <!-- Mobile View -->
             <div class="mobile-cards-view" id="tutorScheduleMobile" style="margin-top: 10px;">
-                <div style="text-align: center; color: rgba(255,255,255,0.3); padding: 15px;">Đang tải thời khóa biểu...</div>
+                <div style="text-align: center; color: var(--text-muted); padding: 15px;">Đang tải thời khóa biểu...</div>
             </div>
         </div>
 
         <!-- Section Ý kiến phụ huynh -->
         <div class="schedule-section" id="tutorFeedbackContainer" style="margin-top: 25px;">
-            <h3 style="display: flex; align-items: center; gap: 8px;"><i class="fa-regular fa-comment-dots" style="color: #FFD23F;"></i> Ý kiến phản hồi của Phụ huynh (10 ngày gần nhất)</h3>
+            <h3 style="display: flex; align-items: center; gap: 8px;"><i class="fa-regular fa-comment-dots" style="color: var(--color-primary);"></i> Ý kiến phản hồi của Phụ huynh (10 ngày gần nhất)</h3>
             <div id="tutorFeedbackList" class="mobile-cards-view" style="display: flex; flex-direction: column; gap: 12px; max-height: 350px; overflow-y: auto; padding-right: 5px; margin-top: 15px;">
-                <div style="text-align: center; color: rgba(255,255,255,0.3); font-style: italic; padding: 20px;">Đang tải ý kiến...</div>
+                <div style="text-align: center; color: var(--text-muted); font-style: italic; padding: 20px;">Đang tải ý kiến...</div>
             </div>
         </div>
+        </div> <!-- End #tutorSectionOverview -->
 
-        <div class="student-buttons-container" id="tutorStudentsList">
-            <!-- Nút chọn học sinh sẽ render ở đây -->
-        </div>
-
-        <div id="tutorStudentDetail">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 15px; flex-wrap: wrap; gap: 10px;">
-                <h3 style="color: #FFF; margin: 0; display: flex; align-items: center; gap: 10px; font-size: 18px;">
-                    Học sinh: <span id="selectedStudentNameHeader" style="color: #FFD23F; font-weight: 800;">...</span>
-                    <button onclick="openEditStudentModal()" class="btn-icon-edit" title="Sửa thông tin học sinh"><i class="fa-solid fa-pen-to-square"></i></button>
-                </h3>
-                <span class="btn-refresh-history" style="background: linear-gradient(135deg, #10B981 0%, #059669 100%); border: none; color: #FFF; font-weight: bold; border-radius: 20px; padding: 8px 20px; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 10px rgba(16,185,129,0.2); font-family: 'Inter', sans-serif; cursor: default;" id="btnTutorHomeworkToggle"><i class="fa-solid fa-book"></i> Bài tập</span>
-            </div>
-
-            <!-- Widget thông báo nhanh cho Phụ huynh / Học sinh -->
-            <div id="tutorQuickAnnouncementWidget" style="background: rgba(142, 77, 255, 0.08); border: 1px dashed rgba(142, 77, 255, 0.3); border-radius: 12px; padding: 15px; margin-bottom: 20px; display: flex; flex-direction: column; gap: 10px;">
-                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 6px;">
-                    <span style="color: #A6ADCE; font-size: 13.5px; font-weight: bold; display: inline-flex; align-items: center; gap: 6px;"><i class="fa-solid fa-bullhorn" style="color: #8E4DFF;"></i> Thông báo nhanh cho phụ huynh</span>
-                    <span id="announcementStatus" style="font-size: 12px; color: #10B981; font-weight: bold; display: none;"><i class="fa-solid fa-circle-check"></i> Đã lưu thành công!</span>
+        <!-- SECTION BÁO CÁO (XUẤT ẢNH) -->
+        <div id="tutorSectionReports" class="tutor-section" style="display: none;">
+            <!-- Filter Toolbar -->
+            <div class="report-filter-toolbar reveal">
+                <div class="report-toolbar-header">
+                    <h3>
+                        <i class="fa-solid fa-file-image" style="color: var(--color-primary);"></i>
+                        <span>Xuất báo cáo học tập & Lịch sử buổi học</span>
+                    </h3>
+                    <p>Chọn khoảng thời gian và học sinh để xuất ảnh PNG hoặc tải file PDF gửi phụ huynh</p>
                 </div>
-                <div style="display: flex; gap: 10px; flex-wrap: wrap; width: 100%;">
-                    <input type="text" id="quickAnnouncementInput" placeholder="Ví dụ: Hôm nay nghỉ học nhé phụ huynh ơi..." style="flex: 1; min-width: 220px; padding: 10px 15px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.25); color: #FFF; font-size: 13.5px; outline: none; transition: border 0.3s;" onfocus="this.style.borderColor='#8E4DFF'" onblur="this.style.borderColor='rgba(255,255,255,0.1)'">
-                    <button onclick="saveQuickAnnouncement()" id="btnSaveQuickAnnouncement" class="modal-btn modal-btn-primary" style="width: auto; padding: 10px 18px; margin: 0; background: linear-gradient(135deg, #8E4DFF 0%, #5B21B6 100%); display: inline-flex; align-items: center; gap: 8px; justify-content: center; font-size: 13.5px; font-weight: bold; border-radius: 8px; box-shadow: 0 4px 12px rgba(142,77,255,0.2);"><i class="fa-solid fa-paper-plane"></i> Gửi thông báo</button>
-                    <button onclick="clearQuickAnnouncement()" id="btnClearQuickAnnouncement" style="width: auto; padding: 10px 18px; margin: 0; background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.4); color: #FCA5A5; display: inline-flex; align-items: center; gap: 8px; justify-content: center; font-size: 13.5px; font-weight: bold; border-radius: 8px; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='rgba(239,68,68,0.25)'; this.style.borderColor='#EF4444';" onmouseout="this.style.background='rgba(239,68,68,0.15)'; this.style.borderColor='rgba(239,68,68,0.4)';"><i class="fa-solid fa-trash-can"></i> Xóa thông báo</button>
-                </div>
-            </div>
 
-            <!-- Section Bài tập (Mở sẵn mặc định) -->
-            <div id="tutorHomeworkSection" style="display: block; overflow: hidden; transition: max-height 0.4s ease-out; margin-bottom: 25px;">
-                <div class="hw-tutor-container" style="background: rgba(11, 8, 38, 0.6); border: 1px solid rgba(142, 77, 255, 0.3); border-radius: 16px; padding: 20px; margin-top: 10px;">
-                    <!-- Menu Tabs -->
-                    <div style="display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 10px;">
-                        <button class="tutor-hw-tab active" id="tabAssignBtn" onclick="switchTutorHwTab('assign')"><i class="fa-solid fa-pen-ruler"></i> Giao bài tập</button>
-                        <button class="tutor-hw-tab" id="tabSubmitBtn" onclick="switchTutorHwTab('submit')"><i class="fa-solid fa-graduation-cap"></i> Học sinh nộp bài</button>
-                    </div>
-
-                    <!-- Nội dung Tab 1: Giao bài tập -->
-                    <div id="tabContentAssign" class="tutor-hw-tab-content">
-                        <div style="display: flex; gap: 15px; margin-bottom: 20px; flex-wrap: wrap;">
-                            <button id="btnShowUploadForm" onclick="switchTutorHwSubTab('upload')" class="modal-btn modal-btn-primary" style="width: auto; background: linear-gradient(135deg, #8E4DFF 0%, #5B21B6 100%);"><i class="fa-solid fa-cloud-arrow-up"></i> Tải bài tập lên</button>
-                            <button id="btnToggleViewAssignedHw" onclick="switchTutorHwSubTab('list')" class="modal-btn modal-btn-secondary" style="width: auto;"><i class="fa-solid fa-list-check"></i> Xem bài tập đã tải</button>
-                        </div>
-
-                        <!-- Form Giao bài tập (mặc định ẩn) -->
-                        <div id="assignHwFormContainer" style="display: block; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.2); border-radius: 12px; padding: 15px; margin-bottom: 20px;">
-                            <h4 style="color: #FFD23F; margin-bottom: 15px; font-size: 15px;"><i class="fa-solid fa-folder-plus"></i> Đăng tải bài tập mới</h4>
-                            <div class="modal-grid-2">
-                                <div class="modal-form-group">
-                                    <label>Tên bài tập *</label>
-                                    <input type="text" id="assignHwTitle" placeholder="Ví dụ: Đề cương Toán tuần 1">
-                                </div>
-                                <div class="modal-form-group">
-                                    <label>Ngày phát hành *</label>
-                                    <input type="text" id="assignHwReleaseDate" placeholder="dd/mm/yyyy (hoặc để trống tự lấy hôm nay)">
-                                </div>
-                            </div>
-                            <div class="modal-form-group" style="margin-top: 10px;">
-                                <label>Chọn file bài tập (Hình ảnh, Word, PDF...)</label>
-                                
-                                <!-- Upload Area cho Desktop -->
-                                <div class="upload-area" id="tutorHwUploadAreaDesktop" onclick="document.getElementById('tutorHwFileInputDesktop').click()" ondragover="event.preventDefault();" ondrop="handleTutorHwDrop(event);" style="padding: 20px; border-style: dashed; background: rgba(4, 2, 10, 0.6); border: 2px dashed rgba(142, 77, 255, 0.4); border-radius: 12px; text-align: center; cursor: pointer; transition: all 0.3s;">
-                                    <i class="fa-solid fa-file-arrow-up" style="font-size: 24px; color: #8E4DFF; margin-bottom: 6px;"></i>
-                                    <div id="tutorHwUploadText" style="font-size: 12px; color: #E2D1FF;">Kéo thả hoặc click chọn file bài tập từ máy...</div>
-                                    <input type="file" id="tutorHwFileInputDesktop" style="display: none;" onclick="event.stopPropagation();" onchange="handleTutorHwFileSelect(event)">
-                                </div>
-
-                                <!-- Upload Area cho Mobile -->
-                                <div class="upload-area" id="tutorHwUploadAreaMobile" style="cursor: default; padding: 20px 15px; border-style: dashed; background: rgba(4, 2, 10, 0.6); border: 2px dashed rgba(142, 77, 255, 0.4); border-radius: 12px; text-align: center;">
-                                    <i class="fa-solid fa-cloud-arrow-up" style="font-size: 28px; margin-bottom: 10px; color: #8E4DFF;"></i>
-                                    <div style="font-size: 13px; font-weight: 600; margin-bottom: 12px; color: #FFF;">Chọn hình ảnh hoặc tài liệu bài tập</div>
-                                    
-                                    <div style="display: flex; flex-direction: column; gap: 10px; width: 100%; max-width: 280px; margin: 0 auto;">
-                                        <!-- Nút chọn ảnh từ thư viện hoặc chụp camera -->
-                                        <button type="button" onclick="document.getElementById('tutorHwImageInputMobile').click()" class="modal-btn modal-btn-primary" style="background: linear-gradient(135deg, #8E4DFF 0%, #5B21B6 100%); border: none; font-size: 13px; padding: 10px 16px; border-radius: 20px; font-weight: bold; width: 100%; justify-content: center; gap: 8px; display: inline-flex; align-items: center; cursor: pointer; color: #FFF; font-family: 'Inter', sans-serif;">
-                                            <i class="fa-solid fa-camera"></i> Chụp ảnh / Chọn Thư viện
-                                        </button>
-                                        <!-- Nút chọn tài liệu PDF/Word -->
-                                        <button type="button" onclick="document.getElementById('tutorHwDocInputMobile').click()" style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); color: #FFF; font-size: 12px; padding: 8px 16px; border-radius: 20px; font-weight: 600; width: 100%; justify-content: center; gap: 6px; cursor: pointer; transition: all 0.3s; display: inline-flex; align-items: center; font-family: 'Inter', sans-serif;">
-                                            <i class="fa-solid fa-file-pdf"></i> Tải Tài liệu (PDF, Word...)
-                                        </button>
-                                    </div>
-                                    
-                                    <!-- Inputs ẩn -->
-                                    <input type="file" id="tutorHwImageInputMobile" style="display: none;" accept="image/*" onclick="event.stopPropagation();" onchange="handleTutorHwFileSelect(event)">
-                                    <input type="file" id="tutorHwDocInputMobile" style="display: none;" accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" onclick="event.stopPropagation();" onchange="handleTutorHwFileSelect(event)">
-                                </div>
-
-                                <!-- Selected File Badge -->
-                                <div id="tutorSelectedFileBox" style="display: none; justify-content: space-between; align-items: center; background: rgba(142, 77, 255, 0.15); padding: 8px 12px; border-radius: 8px; margin-top: 10px; font-size: 12px;">
-                                    <span id="tutorSelectedFileName" style="color: #FFF; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 80%;"></span>
-                                    <button type="button" onclick="clearTutorSelectedFile()" style="background:none; border:none; color:#FF4D4D; cursor:pointer;"><i class="fa-solid fa-times"></i> Hủy</button>
-                                </div>
-                            </div>
-                            <div class="modal-form-group" style="margin-top: 10px;">
-                                <label>Link liên kết bài tập (Ví dụ: Google Forms, Quizizz... nếu có)</label>
-                                <input type="text" id="assignHwLink" placeholder="https://example.com/homework-link">
-                            </div>
-                            <!-- Progress Bar -->
-                            <div class="progress-container" id="tutorHwProgressContainer" style="width: 100%; background: rgba(255,255,255,0.05); border-radius: 10px; height: 8px; margin-top: 15px; overflow: hidden; display: none;">
-                                <div class="progress-bar" id="tutorHwProgressBar" style="height: 100%; background: linear-gradient(90deg, #8E4DFF, #3399FF); width: 0%; transition: width 0.1s linear;"></div>
-                            </div>
-                            <div id="tutorHwProgressText" style="font-size: 11px; color:#3399FF; text-align:right; display:none; font-weight:bold; margin-top:4px;">0%</div>
-
-                            <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 15px;">
-                                <button type="button" onclick="closeAssignHwForm()" class="modal-btn modal-btn-secondary" style="width: auto; padding: 6px 15px; font-size: 13px;">Hủy</button>
-                                <button type="button" onclick="submitAssignedHomework()" class="modal-btn modal-btn-primary" style="width: auto; padding: 6px 15px; font-size: 13px;" id="btnSubmitAssignedHw">Giao bài</button>
-                            </div>
-                        </div>
-
-                        <!-- Danh sách bài tập đã giao (mở sẵn mặc định) -->
-                        <div id="assignedHwListContainer" style="display: none; overflow: hidden;">
-                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 10px;">
-                                <h4 style="color:#FFF; font-size:14px;"><i class="fa-solid fa-list-ol"></i> Lịch sử bài tập đã giao</h4>
-                                <button onclick="openTutorHwTrashModal()" class="action-btn-hw btn-delete"><i class="fa-solid fa-trash-can"></i> Thùng rác bài tập</button>
-                            </div>
-                            <div class="table-wrapper desktop-table-view">
-                                <table>
-                                    <thead>
-                                        <tr>
-                                            <th>Ngày giao</th>
-                                            <th>Tên bài tập</th>
-                                            <th>Đính kèm (File/Link)</th>
-                                            <th style="text-align: center;">Thao tác</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="assignedHwTableBody">
-                                        <!-- Rendered in JS -->
-                                    </tbody>
-                                </table>
-                            </div>
-                            <div id="assignedHwMobile" class="mobile-cards-view">
-                                <!-- Rendered dynamically in tutor.js -->
-                            </div>
+                <div class="report-filter-controls">
+                    <!-- Từ ngày -->
+                    <div class="report-control-group">
+                        <label class="report-control-label" for="reportStartDate"><i class="fa-regular fa-calendar"></i> Từ ngày:</label>
+                        <div class="vn-date-picker-box">
+                            <input type="text" id="reportStartDate" class="report-input-box report-date-input vn-date-input" placeholder="dd/mm/yyyy" maxlength="10" autocomplete="off" onchange="previewTutorReport()">
+                            <button type="button" class="vn-date-picker-icon-btn" tabindex="-1" title="Chọn ngày"><i class="fa-regular fa-calendar"></i></button>
+                            <input type="date" id="reportStartDate_picker" class="vn-hidden-native-picker" tabindex="-1" aria-hidden="true">
                         </div>
                     </div>
 
-                    <!-- Nội dung Tab 2: Học sinh nộp bài -->
-                    <div id="tabContentSubmit" class="tutor-hw-tab-content" style="display: none;">
-                        <h4 style="color:#FFF; font-size:14px; margin-bottom:12px;"><i class="fa-solid fa-list"></i> Các bài tập học sinh đã nộp</h4>
-                        <div class="table-wrapper desktop-table-view">
-                            <table>
-                                <thead>
-                                    <tr>
-                                        <th>Thời gian nộp</th>
-                                        <th>Tên bài học</th>
-                                        <th>Xem bài làm</th>
-                                        <th style="text-align: center;">Chấm điểm</th>
-                                        <th style="text-align: center;">Tải về</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="studentSubmissionsTableBody">
-                                    <!-- Rendered in JS -->
-                                </tbody>
-                            </table>
+                    <!-- Đến ngày -->
+                    <div class="report-control-group">
+                        <label class="report-control-label" for="reportEndDate"><i class="fa-regular fa-calendar-check"></i> Đến ngày:</label>
+                        <div class="vn-date-picker-box">
+                            <input type="text" id="reportEndDate" class="report-input-box report-date-input vn-date-input" placeholder="dd/mm/yyyy" maxlength="10" autocomplete="off" onchange="previewTutorReport()">
+                            <button type="button" class="vn-date-picker-icon-btn" tabindex="-1" title="Chọn ngày"><i class="fa-regular fa-calendar-check"></i></button>
+                            <input type="date" id="reportEndDate_picker" class="vn-hidden-native-picker" tabindex="-1" aria-hidden="true">
                         </div>
-                        <div id="submittedHwMobile" class="mobile-cards-view">
-                            <!-- Rendered dynamically in tutor.js -->
-                        </div>
-                        <div id="submissionViewMoreBtnContainer" style="text-align: center; margin-top: 15px; display: none;">
-                            <button onclick="loadMoreStudentSubmissions()" class="modal-btn modal-btn-secondary" style="width: auto; padding: 8px 25px; border-radius: 20px; font-size: 13px; cursor: pointer; border: 1px solid rgba(142, 77, 255, 0.4);"><i class="fa-solid fa-circle-chevron-down"></i> Xem thêm</button>
-                        </div>
+                    </div>
+
+                    <!-- Học sinh -->
+                    <div class="report-control-group">
+                        <label class="report-control-label" for="reportStudentSelect"><i class="fa-solid fa-user-graduate"></i> Học sinh:</label>
+                        <select id="reportStudentSelect" class="report-input-box report-select" onchange="previewTutorReport()">
+                        </select>
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="report-actions">
+                        <button type="button" id="btnExportReportPng" class="btn-report-export" onclick="exportReportToPng()" style="display: none;">
+                            <i class="fa-solid fa-camera"></i>
+                            <span>Xuất ảnh PNG</span>
+                        </button>
+                        <button type="button" id="btnExportReportPdf" class="btn-report-pdf" onclick="exportReportToPdf()" style="display: none;">
+                            <i class="fa-solid fa-file-pdf"></i>
+                            <span>Xuất file PDF</span>
+                        </button>
                     </div>
                 </div>
             </div>
-            <div class="summary-grid">
-                <div class="summary-card">
-                    <div class="summary-icon icon-purple"><i class="fa-solid fa-money-bill-wave"></i></div>
-                    <div class="summary-info"><span class="summary-label">Doanh thu dự kiến</span><span class="summary-val" id="tutorExpRev">0đ</span></div>
-                </div>
-                <div class="summary-card">
-                    <div class="summary-icon icon-green"><i class="fa-solid fa-check-circle"></i></div>
-                    <div class="summary-info"><span class="summary-label">Đã thanh toán</span><span class="summary-val" id="tutorPaidRev">0đ</span></div>
-                </div>
-                <div class="summary-card">
-                    <div class="summary-icon icon-orange"><i class="fa-solid fa-calendar-check"></i></div>
-                    <div class="summary-info"><span class="summary-label">Tỷ lệ đi học</span><span class="summary-val" id="tutorAttendance">0%</span></div>
+
+            <!-- Preview Container -->
+            <div class="report-preview-wrapper" id="reportPreviewContainer">
+                <div style="text-align: center; color: var(--text-muted); padding: 40px; font-style: italic;">
+                    <i class="fa-solid fa-circle-notch fa-spin" style="font-size: 24px; color: var(--color-primary); margin-bottom: 8px;"></i>
+                    <div>Đang tạo bản xem trước báo cáo...</div>
                 </div>
             </div>
+        </div> <!-- End #tutorSectionReports -->
 
-            <!-- Biểu Đồ Học Tập Của Học Sinh (Gia Sư Xem) -->
-            <div class="chart-box" style="margin-bottom: 30px;">
-                <div class="chart-header" style="justify-content: space-between; flex-wrap: wrap; gap: 10px;">
-                    <div style="display: flex; align-items: center; gap: 10px;">
-                        <i class="fa-solid fa-chart-line"></i>
-                        <h4>Biểu đồ điểm số học tập</h4>
+        <!-- SECTION NHẬT KÝ BUỔI HỌC -->
+        <div id="tutorSectionDiary" class="tutor-section" style="display: none;">
+            <div class="diary-toolbar reveal">
+                <div class="diary-toolbar-title">
+                    <h3 style="color: var(--text-primary); font-size: 18px; margin: 0; display: flex; align-items: center; gap: 8px;">
+                        <i class="fa-solid fa-book-open" style="color: var(--color-primary);"></i>
+                        <span>Nhật ký buổi học & Nhận xét chi tiết</span>
+                    </h3>
+                    <p style="color: var(--text-secondary); font-size: 13px; margin: 4px 0 0 0;">Theo dõi chi tiết tiến độ bài học, chuyên cần và nhận xét cho từng học sinh</p>
+                </div>
+
+                <div class="diary-filters">
+                    <!-- Dropdown Học sinh -->
+                    <div class="diary-filter-item">
+                        <label><i class="fa-solid fa-user-graduate"></i> Học sinh:</label>
+                        <select id="diaryStudentFilter" onchange="filterTutorDiary()">
+                        </select>
+                    </div>
+
+                    <!-- Dropdown Tháng -->
+                    <div class="diary-filter-item">
+                        <label><i class="fa-solid fa-calendar-days"></i> Tháng:</label>
+                        <select id="diaryMonthFilter" onchange="filterTutorDiary()">
+                            <option value="all">Tất cả các tháng</option>
+                        </select>
+                    </div>
+
+                    <!-- Badge tổng số buổi -->
+                    <div class="diary-count-pill" id="diaryTotalSessionsBadge">
+                        0 buổi học
                     </div>
                 </div>
-                <div class="chart-canvas-container">
-                    <canvas id="tutorDiemChart"></canvas>
+            
+            <!-- LEGACY PRODUCTION COMPATIBILITY WRAPPER (Preserving 33 Production IDs) -->
+            <div id="tutorStudentDetail" style="display: none;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <h3 style="color: var(--text-primary); margin: 0; display: flex; align-items: center; gap: 10px; font-size: 15px;">
+                        <span>Hồ sơ chi tiết:</span> <span id="selectedStudentNameHeader" style="color: var(--color-primary); font-weight: bold;">Chưa chọn</span>
+                    </h3>
+                    <button type="button" id="btnToggleInvoice" onclick="toggleInvoiceCollapse()" class="btn-refresh-history" style="background: var(--nav-active-bg); border: 1px solid var(--border-color); color: var(--color-primary); cursor: pointer; padding: 6px 14px; border-radius: 8px; font-size: 12.5px; display: inline-flex; align-items: center; gap: 6px;">
+                        <i class="fa-solid fa-file-invoice-dollar"></i> <span>Hóa đơn học phí</span>
+                    </button>
                 </div>
-            </div>
-
-            <!-- Lịch sử học tập (Gia sư xem & đối chiếu) -->
-            <div class="schedule-section" style="margin-top: 30px; margin-bottom: 30px;">
-                <h3 style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
-                    <span style="display: flex; align-items: center; gap: 10px;"><i class="fa-solid fa-clock-rotate-left"></i> Lịch sử học tập & Nhận xét chi tiết</span>
-                    <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
-                        <button onclick="openAddLessonModal()" class="btn-refresh-history" style="background: linear-gradient(135deg, #8E4DFF 0%, #5B21B6 100%); border: none; color: #FFF; font-weight: bold; border-radius: 20px; padding: 6px 16px; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 4px 10px rgba(142,77,255,0.2);" title="Thêm buổi học mới"><i class="fa-solid fa-calendar-plus"></i> Thêm buổi học</button>
-                        <button onclick="refreshTutorStudentHistory()" class="btn-refresh-history" title="Làm mới lịch sử"><i class="fa-solid fa-arrows-rotate"></i> Làm mới</button>
-                    </div>
-                </h3>
-                <div style="font-size: 13px; color: #A6ADCE; margin-top: -5px; margin-bottom: 15px; display: flex; align-items: center; gap: 6px; line-height: 1.4;">
-                    <i class="fa-solid fa-circle-info" style="color: #8E4DFF; font-size: 14px;"></i>
-                    <span><b>Hướng dẫn:</b> Tích chọn ô vuông ⬜ ở cột <b>Đóng tiền</b> để xác nhận đóng học phí. Tích ô đầu cột để đóng/hủy đóng cho toàn bộ các buổi.</span>
+                <div id="tutorLegacyStatsWrapper" style="display: none;">
+                    <span id="tutorExpRev">0</span>
+                    <span id="tutorPaidRev">0</span>
+                    <span id="tutorAttendance">0</span>
+                    <canvas id="tutorDiemChart" width="400" height="200"></canvas>
                 </div>
-                <div id="tutorStudentHistory" style="margin-top: 15px;">
-                    <!-- Render bảng / accordion lịch sử học sinh ở đây -->
-                </div>
-            </div>
-
-            <!-- Invoice Toggle Button -->
-            <div style="text-align: center; margin-top: 30px; margin-bottom: 20px;">
-                <button onclick="toggleInvoiceCollapse()" class="modal-btn modal-btn-primary" id="btnToggleInvoice" style="width: auto; padding: 12px 30px; font-size: 15px; border-radius: 30px; display: inline-flex; align-items: center; gap: 8px; justify-content: center; background: linear-gradient(135deg, #8E4DFF 0%, #5B21B6 100%); box-shadow: 0 4px 15px rgba(142,77,255,0.3);"><i class="fa-solid fa-file-invoice-dollar"></i> Xuất Hóa Đơn (Phiếu Học Tập)</button>
-            </div>
-
-            <!-- Collapsed Invoice Container -->
-            <div id="invoiceCollapseContainer" style="display: none; margin-top: 20px;">
+                <div id="invoiceCollapseContainer" style="display: none; margin-top: 20px;">
 
                 <div id="invoiceElement" class="invoice-container">
                     <!-- 1. Header -->
@@ -740,7 +1170,291 @@
                     <button class="btn-export" onclick="exportInvoice()"><i class="fa-solid fa-camera"></i> Lưu Ảnh Hóa Đơn</button>
                 </div>
             </div>
-        </div>
+            </div>
+</div>
+
+            <!-- Widget thông báo nhanh cho Phụ huynh / Học sinh -->
+            <div id="tutorQuickAnnouncementWidget" class="reveal" style="background: var(--nav-active-bg); border: 1px dashed var(--border-color); border-radius: 12px; padding: 15px; margin-top: 20px; margin-bottom: 20px; display: flex; flex-direction: column; gap: 10px;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="color: var(--text-secondary); font-size: 13.5px; font-weight: bold; display: inline-flex; align-items: center; gap: 6px;"><i class="fa-solid fa-bullhorn" style="color: var(--color-primary);"></i> Thông báo nhanh cho phụ huynh <span id="announcementStudentBadge" style="color: var(--color-primary); font-size: 13px; font-weight: 700; margin-left: 6px;"></span></span>
+                    <span id="announcementStatus" style="font-size: 12px; color: #10B981; font-weight: bold; display: none;"><i class="fa-solid fa-circle-check"></i> Đã lưu thành công!</span>
+                </div>
+                <div style="display: flex; gap: 10px; flex-wrap: wrap; width: 100%;">
+                    <input type="text" id="quickAnnouncementInput" placeholder="Ví dụ: Hôm nay nghỉ học nhé phụ huynh ơi..." style="flex: 1; min-width: 250px; padding: 10px 15px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-input); color: var(--text-primary); font-size: 13.5px; outline: none; transition: border 0.3s;" onfocus="this.style.borderColor='var(--color-primary)'" onblur="this.style.borderColor='var(--border-color)'">
+                    <button onclick="saveQuickAnnouncement()" id="btnSaveQuickAnnouncement" class="modal-btn modal-btn-primary" style="width: auto; padding: 10px 20px; margin: 0; background: var(--btn-bg); color: var(--btn-text); display: inline-flex; align-items: center; gap: 8px; justify-content: center; font-size: 13.5px; font-weight: bold; border-radius: 8px; box-shadow: var(--shadow-primary);"><i class="fa-solid fa-paper-plane"></i> Gửi thông báo</button> <button onclick="clearQuickAnnouncement()" id="btnClearQuickAnnouncement" style="padding: 10px 16px; font-size: 13px; font-weight: bold; border-radius: 8px; cursor: pointer; white-space: nowrap; background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.4); color: #EF4444;"><i class="fa-solid fa-eraser"></i> Xóa</button>
+                </div>
+            </div>
+
+            <!-- Section Bài tập (Mở sẵn mặc định) -->
+            <div id="tutorHomeworkSection" style="display: block; overflow: hidden; transition: max-height 0.4s ease-out; margin-bottom: 25px;">
+                <button id="btnTutorHomeworkToggle" onclick="toggleTutorHomeworkSection()" style="display:none;" aria-hidden="true"></button>
+                <div class="hw-tutor-container" style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 16px; padding: 20px; margin-top: 10px;">
+                    <!-- Menu Tabs -->
+                    <div style="display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 10px;">
+                        <button class="tutor-hw-tab active" id="tabAssignBtn" onclick="switchTutorHwTab('assign')"><i class="fa-solid fa-pen-ruler"></i> Giao bài tập</button>
+                        <button class="tutor-hw-tab" id="tabSubmitBtn" onclick="switchTutorHwTab('submit')"><i class="fa-solid fa-graduation-cap"></i> Học sinh nộp bài</button>
+                    </div>
+
+                    <!-- Nội dung Tab 1: Giao bài tập -->
+                    <div id="tabContentAssign" class="tutor-hw-tab-content">
+                        <div style="display: flex; gap: 15px; margin-bottom: 20px; flex-wrap: wrap;">
+                            <button id="btnShowUploadForm" onclick="switchTutorHwSubTab('upload')" class="modal-btn modal-btn-primary" style="width: auto; background: var(--btn-bg); color: var(--btn-text);"><i class="fa-solid fa-cloud-arrow-up"></i> Tải bài tập lên</button>
+                            <button id="btnToggleViewAssignedHw" onclick="switchTutorHwSubTab('list')" class="modal-btn modal-btn-secondary" style="width: auto;"><i class="fa-solid fa-list-check"></i> Xem bài tập đã tải</button>
+                        </div>
+
+                        <!-- Form Giao bài tập (mặc định ẩn) -->
+                        <div id="assignHwFormContainer" style="display: block; border: 1px solid var(--border-card); background: var(--bg-card-alt); border-radius: 12px; padding: 15px; margin-bottom: 20px;">
+                            <h4 style="color: var(--color-primary); margin-bottom: 15px; font-size: 15px;"><i class="fa-solid fa-folder-plus"></i> Đăng tải bài tập mới</h4>
+                            <div class="modal-grid-2">
+                                <div class="modal-form-group">
+                                    <label>Tên bài tập *</label>
+                                    <input type="text" id="assignHwTitle" placeholder="Ví dụ: Đề cương Toán tuần 1">
+                                </div>
+                                <div class="modal-form-group">
+                                    <label>Ngày phát hành *</label>
+                                    <input type="text" id="assignHwReleaseDate" placeholder="dd/mm/yyyy (hoặc để trống tự lấy hôm nay)">
+                                </div>
+                            </div>
+                            <div class="modal-form-group" style="margin-top: 10px;">
+                                <label>Chọn file bài tập (Hình ảnh, Word, PDF...)</label>
+                                
+                                <!-- Upload Area cho Desktop -->
+                                <div class="upload-area" id="tutorHwUploadAreaDesktop" onclick="document.getElementById('tutorHwFileInputDesktop').click()" ondragover="event.preventDefault();" ondrop="handleTutorHwDrop(event);" style="padding: 20px; border-style: dashed; background: var(--bg-input); border: 2px dashed var(--border-color); border-radius: 12px; text-align: center; cursor: pointer; transition: all 0.3s;">
+                                    <i class="fa-solid fa-file-arrow-up" style="font-size: 24px; color: var(--color-primary); margin-bottom: 6px;"></i>
+                                    <div id="tutorHwUploadText" style="font-size: 12px; color: var(--text-secondary);">Kéo thả hoặc click chọn file bài tập từ máy...</div>
+                                    <input type="file" id="tutorHwFileInputDesktop" style="display: none;" onclick="event.stopPropagation();" onchange="handleTutorHwFileSelect(event)">
+                                </div>
+
+                                <!-- Upload Area cho Mobile -->
+                                <div class="upload-area" id="tutorHwUploadAreaMobile" style="cursor: default; padding: 20px 15px; border-style: dashed; background: var(--bg-input); border: 2px dashed var(--border-color); border-radius: 12px; text-align: center;">
+                                    <i class="fa-solid fa-cloud-arrow-up" style="font-size: 28px; margin-bottom: 10px; color: var(--color-primary);"></i>
+                                    <div style="font-size: 13px; font-weight: 600; margin-bottom: 12px; color: var(--text-primary);">Chọn hình ảnh hoặc tài liệu bài tập</div>
+                                    
+                                    <div style="display: flex; flex-direction: column; gap: 10px; width: 100%; max-width: 280px; margin: 0 auto;">
+                                        <!-- Nút chọn ảnh từ thư viện hoặc chụp camera -->
+                                        <button type="button" onclick="document.getElementById('tutorHwImageInputMobile').click()" class="modal-btn modal-btn-primary" style="background: var(--btn-bg); border: none; font-size: 13px; padding: 10px 16px; border-radius: 20px; font-weight: bold; width: 100%; justify-content: center; gap: 8px; display: inline-flex; align-items: center; cursor: pointer; color: var(--btn-text); font-family: 'Inter', sans-serif;">
+                                            <i class="fa-solid fa-camera"></i> Chụp ảnh / Chọn Thư viện
+                                        </button>
+                                        <!-- Nút chọn tài liệu PDF/Word -->
+                                        <button type="button" onclick="document.getElementById('tutorHwDocInputMobile').click()" style="background: var(--bg-card-alt); border: 1px solid var(--border-card); color: var(--text-primary); font-size: 12px; padding: 8px 16px; border-radius: 20px; font-weight: 600; width: 100%; justify-content: center; gap: 6px; cursor: pointer; transition: all 0.3s; display: inline-flex; align-items: center; font-family: 'Inter', sans-serif;">
+                                            <i class="fa-solid fa-file-pdf"></i> Tải Tài liệu (PDF, Word...)
+                                        </button>
+                                    </div>
+                                    
+                                    <!-- Inputs ẩn -->
+                                    <input type="file" id="tutorHwImageInputMobile" style="display: none;" accept="image/*" onclick="event.stopPropagation();" onchange="handleTutorHwFileSelect(event)">
+                                    <input type="file" id="tutorHwDocInputMobile" style="display: none;" accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" onclick="event.stopPropagation();" onchange="handleTutorHwFileSelect(event)">
+                                </div>
+
+                                <!-- Selected File Badge -->
+                                <div id="tutorSelectedFileBox" style="display: none; justify-content: space-between; align-items: center; background: var(--nav-active-bg); padding: 8px 12px; border-radius: 8px; margin-top: 10px; font-size: 12px;">
+                                    <span id="tutorSelectedFileName" style="color: var(--text-primary); font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 80%;"></span>
+                                    <button type="button" onclick="clearTutorSelectedFile()" style="background:none; border:none; color:#FF4D4D; cursor:pointer;"><i class="fa-solid fa-times"></i> Hủy</button>
+                                </div>
+                            </div>
+                            <div class="modal-form-group" style="margin-top: 10px;">
+                                <label>Link liên kết bài tập (Ví dụ: Google Forms, Quizizz... nếu có)</label>
+                                <input type="text" id="assignHwLink" placeholder="https://example.com/homework-link">
+                            </div>
+                            <!-- Progress Bar -->
+                            <div class="progress-container" id="tutorHwProgressContainer" style="width: 100%; background: rgba(255,255,255,0.05); border-radius: 10px; height: 8px; margin-top: 15px; overflow: hidden; display: none;">
+                                <div class="progress-bar" id="tutorHwProgressBar" style="height: 100%; background: var(--btn-bg); width: 0%; transition: width 0.1s linear;"></div>
+                            </div>
+                            <div id="tutorHwProgressText" style="font-size: 11px; color:#3399FF; text-align:right; display:none; font-weight:bold; margin-top:4px;">0%</div>
+
+                            <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 15px;">
+                                <button type="button" onclick="closeAssignHwForm()" class="modal-btn modal-btn-secondary" style="width: auto; padding: 6px 15px; font-size: 13px;">Hủy</button>
+                                <button type="button" onclick="submitAssignedHomework()" class="modal-btn modal-btn-primary" style="width: auto; padding: 6px 15px; font-size: 13px;" id="btnSubmitAssignedHw">Giao bài</button>
+                            </div>
+                        </div>
+
+                        <!-- Danh sách bài tập đã giao (mở sẵn mặc định) -->
+                        <div id="assignedHwListContainer" style="display: none; overflow: hidden;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 10px;">
+                                <h4 style="color: var(--text-heading, var(--text-primary)); font-size: 14px;"><i class="fa-solid fa-list-ol" style="color: var(--color-primary);"></i> Lịch sử bài tập đã giao</h4>
+                                <button onclick="openTutorHwTrashModal()" class="action-btn-hw btn-delete"><i class="fa-solid fa-trash-can"></i> Thùng rác bài tập</button>
+                            </div>
+                            <div class="table-wrapper desktop-table-view">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>Ngày giao</th>
+                                            <th>Tên bài tập</th>
+                                            <th>Đính kèm (File/Link)</th>
+                                            <th style="text-align: center;">Thao tác</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="assignedHwTableBody">
+                                        <!-- Rendered in JS -->
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div id="assignedHwMobile" class="mobile-cards-view">
+                                <!-- Rendered dynamically in tutor.js -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Nội dung Tab 2: Học sinh nộp bài -->
+                    <div id="tabContentSubmit" class="tutor-hw-tab-content" style="display: none;">
+                        <h4 style="color: var(--text-heading, var(--text-primary)); font-size: 14px; margin-bottom: 12px;"><i class="fa-solid fa-list" style="color: var(--color-primary);"></i> Các bài tập học sinh đã nộp</h4>
+                        <div class="table-wrapper desktop-table-view">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Thời gian nộp</th>
+                                        <th>Tên bài học</th>
+                                        <th>Xem bài làm</th>
+                                        <th style="text-align: center;">Chấm điểm</th>
+                                        <th style="text-align: center;">Tải về</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="studentSubmissionsTableBody">
+                                    <!-- Rendered in JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                        <div id="submittedHwMobile" class="mobile-cards-view">
+                            <!-- Rendered dynamically in tutor.js -->
+                        </div>
+                        <div id="submissionViewMoreBtnContainer" style="text-align: center; margin-top: 15px; display: none;">
+                            <button onclick="loadMoreStudentSubmissions()" class="modal-btn modal-btn-secondary" style="width: auto; padding: 8px 25px; border-radius: 20px; font-size: 13px; cursor: pointer; border: 1px solid var(--border-color);"><i class="fa-solid fa-circle-chevron-down"></i> Xem thêm</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Lịch sử học tập & Nhận xét chi tiết (Nhật ký các buổi học) -->
+            <div class="schedule-section" style="margin-top: 25px; margin-bottom: 30px;">
+                <h3 style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+                    <span style="display: flex; align-items: center; gap: 10px;"><i class="fa-solid fa-clock-rotate-left"></i> Lịch sử học tập & Nhận xét chi tiết</span>
+                    <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                        <button type="button" onclick="openAddLessonModal()" class="btn-refresh-history" style="background: var(--btn-bg); border: none; color: var(--btn-text); font-weight: bold; border-radius: 20px; padding: 6px 16px; display: inline-flex; align-items: center; gap: 6px; box-shadow: var(--shadow-primary); cursor: pointer;" title="Thêm buổi học mới"><i class="fa-solid fa-calendar-plus"></i> Thêm buổi học</button>
+                        <button type="button" onclick="refreshTutorStudentHistory()" class="btn-refresh-history" title="Làm mới lịch sử" style="cursor: pointer;"><i class="fa-solid fa-arrows-rotate"></i> Làm mới</button>
+                    </div>
+                </h3>
+                <div id="tutorStudentHistory" style="margin-top: 15px;">
+                    <!-- Render bảng / accordion lịch sử học sinh ở đây -->
+                </div>
+            </div>
+        </div> <!-- End #tutorSectionDiary -->
+        
+        <!-- SECTION LỊCH DẠY (FULLCALENDAR NHÚNG TRỰC TIẾP TRONG DASHBOARD - KHÔNG CHUYỂN TRANG) -->
+        <div id="tutorSectionCalendar" class="tutor-section" style="display: none; width: 100%; height: calc(100vh - 28px); min-height: 560px; flex: 1; box-sizing: border-box;">
+            <div class="calendar-embed-wrapper" style="width: 100%; height: 100%; min-height: 560px; flex: 1; background: var(--bg-card, #FFFFFF); border: 1px solid var(--border-card, #E2E8F0); border-radius: 20px; overflow: hidden; box-shadow: var(--shadow-card, 0 4px 16px rgba(0,0,0,0.06)); display: flex; flex-direction: column;">
+                <iframe id="tutorCalendarIframe" src="tutor-calendar.html?embedded=1" style="width: 100%; height: 100%; min-height: 540px; flex: 1; border: none; background: transparent; display: block;" title="Lịch dạy Gia Sư"></iframe>
+            </div>
+        </div> <!-- End #tutorSectionCalendar -->
+
+        <!-- SECTION HỌC SINH -->
+        <div id="tutorSectionStudents" class="tutor-section" style="display: none;">
+            <!-- Header Toolbar: Thêm học sinh + Thùng rác -->
+            <div class="students-toolbar reveal">
+                <div class="students-toolbar-title">
+                    <h3 style="color: var(--text-primary); font-size: 18px; margin: 0; display: flex; align-items: center; gap: 8px;">
+                        <i class="fa-solid fa-user-graduate" style="color: var(--color-primary);"></i>
+                        <span>Danh sách học sinh</span>
+                    </h3>
+                    <p style="color: var(--text-secondary); font-size: 13px; margin: 4px 0 0 0;">Theo dõi tiến độ, lịch cố định, tỷ lệ chuyên cần và quản lý từng học sinh</p>
+                </div>
+                <div class="students-toolbar-actions">
+                    <button type="button" class="btn-student-action btn-add-student" onclick="openAddStudentModal()">
+                        <i class="fa-solid fa-user-plus"></i>
+                        <span>Thêm học sinh</span>
+                    </button>
+                    <button type="button" class="btn-student-action btn-trash-student" onclick="openTrashModal()" title="Thùng rác học sinh">
+                        <i class="fa-solid fa-trash-can"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Grid Thẻ học sinh (2-3 cột desktop, 1 cột mobile) -->
+            <div class="students-cards-grid reveal-stagger" id="tutorStudentsGrid">
+                <!-- Rendered dynamically via renderTutorStudentsGrid() -->
+            </div>
+
+            <div class="student-buttons-container" id="tutorStudentsList" style="display: none;">
+                <!-- Nút chọn học sinh sẽ render ở đây (legacy) -->
+            </div>
+        </div> <!-- End #tutorSectionStudents -->
+
+        <!-- SECTION HỌC PHÍ -->
+        <div id="tutorSectionTuition" class="tutor-section" style="display: none;">
+            <!-- Toolbar: Tiêu đề + Bộ lọc tháng -->
+            <div class="tuition-toolbar reveal">
+                <div class="tuition-toolbar-title">
+                    <h3 style="color: var(--text-heading, var(--text-primary)); font-size: 18px; margin: 0; display: flex; align-items: center; gap: 8px;">
+                        <i class="fa-solid fa-money-bill-wave" style="color: #10B981;"></i>
+                        <span>Quản lý học phí & Thu nhập</span>
+                    </h3>
+                    <p style="color: var(--text-secondary); font-size: 13px; margin: 4px 0 0 0;">Theo dõi tổng thu nhập, tình trạng đóng học phí từng em và xuất hóa đơn phiếu học tập</p>
+                </div>
+                <div class="tuition-filters">
+                    <div class="tuition-filter-item">
+                        <label><i class="fa-solid fa-calendar-days"></i> Kỳ học:</label>
+                        <select id="tuitionMonthFilter" onchange="renderTutorTuitionSection()">
+                            <option value="all">Tất cả các tháng</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3 Banner Cards tổng thu nhập -->
+            <div class="tuition-banner-grid reveal-stagger">
+                <!-- Card 1: Tổng thu dự kiến -->
+                <div class="tuition-banner-card">
+                    <div class="tuition-banner-top">
+                        <span class="tuition-banner-lbl">Tổng thu dự kiến</span>
+                        <div class="tuition-banner-icon icon-purple"><i class="fa-solid fa-calculator"></i></div>
+                    </div>
+                    <div class="tuition-banner-val text-purple" id="tuitionTotalExpected">0đ</div>
+                    <div class="tuition-banner-sub"><i class="fa-solid fa-chart-line"></i> Số buổi × Đơn giá</div>
+                </div>
+                <!-- Card 2: Đã thu -->
+                <div class="tuition-banner-card">
+                    <div class="tuition-banner-top">
+                        <span class="tuition-banner-lbl">Đã thu</span>
+                        <div class="tuition-banner-icon icon-green"><i class="fa-solid fa-circle-check"></i></div>
+                    </div>
+                    <div class="tuition-banner-val text-green" id="tuitionTotalCollected">0đ</div>
+                    <div class="tuition-banner-sub"><i class="fa-solid fa-circle-check"></i> Đã thanh toán thành công</div>
+                </div>
+                <!-- Card 3: Còn phải thu -->
+                <div class="tuition-banner-card">
+                    <div class="tuition-banner-top">
+                        <span class="tuition-banner-lbl">Còn phải thu</span>
+                        <div class="tuition-banner-icon icon-amber"><i class="fa-solid fa-clock-rotate-left"></i></div>
+                    </div>
+                    <div class="tuition-banner-val text-amber" id="tuitionTotalPending">0đ</div>
+                    <div class="tuition-banner-sub"><i class="fa-solid fa-triangle-exclamation"></i> Chưa hoàn tất thanh toán</div>
+                </div>
+            </div>
+
+            <!-- Bảng chi tiết học phí từng học sinh (Desktop Table View) -->
+            <div class="table-wrapper desktop-table-view reveal" style="margin-top: 15px; border-radius: 16px;">
+                <table id="tuitionTable" style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr>
+                            <th style="width: 200px; text-align: left; padding: 12px 14px; background: var(--nav-active-bg); color: var(--text-primary); font-weight: 700;">Học sinh</th>
+                            <th style="width: 110px; text-align: center; padding: 12px 10px; background: var(--nav-active-bg); color: var(--text-primary); font-weight: 700;">Số buổi</th>
+                            <th style="width: 130px; text-align: right; padding: 12px 10px; background: var(--nav-active-bg); color: var(--text-primary); font-weight: 700;">Đơn giá/buổi</th>
+                            <th style="width: 140px; text-align: right; padding: 12px 14px; background: var(--nav-active-bg); color: var(--text-primary); font-weight: 700;">Tổng tiền</th>
+                            <th style="width: 140px; text-align: center; padding: 12px 10px; background: var(--nav-active-bg); color: var(--text-primary); font-weight: 700;">Trạng thái</th>
+                            <th style="width: 140px; text-align: center; padding: 12px 14px; background: var(--nav-active-bg); color: var(--text-primary); font-weight: 700;">Hóa đơn</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tuitionTableBody">
+                        <tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 25px;">Đang tải danh sách học phí...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Mobile Card View cho Học phí -->
+            <div class="mobile-cards-view" id="tuitionMobileList" style="margin-top: 15px;">
+                <div style="text-align: center; color: var(--text-muted); padding: 20px;">Đang tải danh sách học phí...</div>
+            </div>
+        </div> <!-- End #tutorSectionTuition -->
+        </main>
     </div>
                 <!-- ================= TUTOR MODALS ================= -->
     <!-- 1. Modal Quản lý Tài khoản (Account Modal) -->
@@ -772,17 +1486,17 @@
                     <input type="text" id="accUnpaidIncome" class="readonly-value" readonly>
                 </div>
             </div>
-            <div class="modal-form-group" style="text-align: center; display: flex; flex-direction: column; align-items: center; background: rgba(255, 255, 255, 0.03); border: 1px dashed rgba(142, 77, 255, 0.35); border-radius: 14px; padding: 15px; margin-top: 10px;">
-                <label style="text-align: center; width: 100%; font-weight: 700; color: #FFD23F; display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-size: 14px;">
-                    <i class="fa-solid fa-qrcode"></i> Ảnh mã QR thanh toán / chuyển khoản
+            <div class="modal-form-group" style="text-align: center; display: flex; flex-direction: column; align-items: center; background: var(--bg-card-alt); border: 1px dashed var(--border-color); border-radius: 14px; padding: 15px; margin-top: 10px;">
+                <label style="text-align: center; width: 100%; font-weight: 700; color: var(--color-primary); display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-size: 14px;">
+                    <i class="fa-solid fa-qrcode"></i> ẢNH MÃ QR THANH TOÁN / CHUYỂN KHOẢN
                 </label>
-                <span style="color: #A6ADCE; font-size: 12px; margin: 4px 0 10px; line-height: 1.4;">
+                <span style="color: var(--text-secondary); font-size: 12px; margin: 4px 0 10px; line-height: 1.4;">
                     Đăng ảnh mã QR ngân hàng của bạn để hiển thị trên Phiếu học phí gửi cho Phụ huynh
                 </span>
                 
                 <div id="accQrPreviewContainer" style="width: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100px;">
-                    <img id="accQrImg" src="" style="max-width: 220px; max-height: 220px; width: auto; height: auto; border-radius: 12px; border: 1px solid rgba(255,255,255,0.2); object-fit: contain; display: none; box-shadow: 0 4px 20px rgba(0,0,0,0.5); background: #FFF; padding: 6px;">
-                    <div id="accQrText" style="color: #A6ADCE; font-size: 13px; margin: 10px 0;">
+                    <img id="accQrImg" src="" style="max-width: 220px; max-height: 220px; width: auto; height: auto; border-radius: 12px; border: 1px solid var(--border-card); object-fit: contain; display: none; box-shadow: 0 4px 20px rgba(0,0,0,0.5); background: #FFF; padding: 6px;">
+                    <div id="accQrText" style="color: var(--text-secondary); font-size: 13px; margin: 10px 0;">
                         <i class="fa-regular fa-image" style="font-size: 28px; display: block; margin-bottom: 6px; opacity: 0.5;"></i>
                         Chưa có ảnh mã QR
                     </div>
@@ -792,7 +1506,7 @@
                 <input type="file" id="accQrFileInput" accept="image/*" style="display: none;" onchange="handleTutorQrFileSelect(this)">
 
                 <div style="display: flex; gap: 10px; margin-top: 12px; flex-wrap: wrap; justify-content: center;">
-                    <button type="button" onclick="document.getElementById('accQrFileInput').click()" class="modal-btn" style="width: auto; padding: 8px 18px; font-size: 13px; border-radius: 8px; font-weight: bold; display: inline-flex; align-items: center; gap: 6px; background: linear-gradient(135deg, #8E4DFF, #5B21B6); border: 1px solid #A870FF; color: #FFF; cursor: pointer; box-shadow: 0 4px 12px rgba(142,77,255,0.3);">
+                    <button type="button" onclick="document.getElementById('accQrFileInput').click()" class="modal-btn" style="width: auto; padding: 8px 18px; font-size: 13px; border-radius: 8px; font-weight: bold; display: inline-flex; align-items: center; gap: 6px; background: var(--btn-bg); border: 1px solid var(--color-primary); color: var(--btn-text); cursor: pointer; box-shadow: var(--shadow-primary);">
                         <i class="fa-solid fa-cloud-arrow-up"></i> Tải ảnh mã QR lên
                     </button>
                     <button type="button" id="btnRemoveTutorQr" onclick="removeTutorQr()" class="modal-btn" style="width: auto; padding: 8px 14px; font-size: 12px; border-radius: 8px; font-weight: bold; display: none; align-items: center; gap: 5px; background: rgba(239, 68, 68, 0.15); border: 1px solid #EF4444; color: #EF4444; cursor: pointer;">
@@ -802,7 +1516,7 @@
 
                 <!-- Ô dán link ảnh nếu muốn -->
                 <div style="width: 100%; margin-top: 10px; display: flex; align-items: center; gap: 6px;">
-                    <input type="text" id="accQrUrlInput" placeholder="Hoặc dán liên kết ảnh mã QR (URL)..." style="flex: 1; padding: 7px 12px; font-size: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.25); color: #FFF; outline: none;" oninput="handleTutorQrUrlInput(this.value)">
+                    <input type="text" id="accQrUrlInput" placeholder="Hoặc dán liên kết ảnh mã QR (URL)..." style="flex: 1; padding: 7px 12px; font-size: 12px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-input); color: var(--text-primary); outline: none;" oninput="handleTutorQrUrlInput(this.value)">
                 </div>
             </div>
             <div class="modal-footer">
@@ -834,24 +1548,83 @@
             <div class="modal-form-group">
                 <label style="display: block; margin-bottom: 8px;">Hình thức thu học phí <span style="color: #EF4444;">*</span></label>
                 <div style="display: flex; gap: 10px;">
-                    <label style="flex: 1; display: flex; align-items: center; gap: 8px; padding: 9px 12px; background: rgba(255,255,255,0.03); border: 1px solid rgba(142,77,255,0.4); border-radius: 12px; cursor: pointer; color: #FFF; font-size: 13px; margin: 0;">
-                        <input type="radio" name="addStudentBillingType" id="addBillingSession" value="session" checked onchange="toggleBillingTypeLabel('add')" style="accent-color: #8E4DFF; cursor: pointer; width: 16px; height: 16px;">
+                    <label style="flex: 1; display: flex; align-items: center; gap: 8px; padding: 9px 12px; background: var(--nav-active-bg); border: 1px solid var(--border-color); border-radius: 12px; cursor: pointer; color: var(--text-primary); font-size: 13px; margin: 0;">
+                        <input type="radio" name="addStudentBillingType" id="addBillingSession" value="session" checked onchange="toggleBillingTypeLabel('add')" style="accent-color: var(--color-primary); cursor: pointer; width: 16px; height: 16px;">
                         <span>Theo buổi</span>
                     </label>
-                    <label style="flex: 1; display: flex; align-items: center; gap: 8px; padding: 9px 12px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; cursor: pointer; color: #FFF; font-size: 13px; margin: 0;">
-                        <input type="radio" name="addStudentBillingType" id="addBillingMonth" value="month" onchange="toggleBillingTypeLabel('add')" style="accent-color: #8E4DFF; cursor: pointer; width: 16px; height: 16px;">
+                    <label style="flex: 1; display: flex; align-items: center; gap: 8px; padding: 9px 12px; background: var(--bg-input); border: 1px solid var(--border-card); border-radius: 12px; cursor: pointer; color: var(--text-primary); font-size: 13px; margin: 0;">
+                        <input type="radio" name="addStudentBillingType" id="addBillingMonth" value="month" onchange="toggleBillingTypeLabel('add')" style="accent-color: var(--color-primary); cursor: pointer; width: 16px; height: 16px;">
                         <span>Trọn gói tháng</span>
                     </label>
                 </div>
             </div>
             <div class="modal-form-group">
                 <label id="addStudentTuitionLabel">Mức học phí / buổi (VNĐ)</label>
-                <input type="text" inputmode="numeric" id="addStudentTuition" placeholder="Ví dụ: 200.000" oninput="formatCurrencyInput(this)">
+                <input type="number" id="addStudentTuition" placeholder="Ví dụ: 200000">
             </div>
             <div class="modal-form-group">
-                <label>Mã bài tập (Để trống sẽ tự lấy số điện thoại)</label>
-                <input type="text" id="addStudentMaBaiTap" placeholder="Mã nộp bài (Để trống sẽ dùng SĐT)">
+                <label>Mã bài tập *</label>
+                <input type="text" id="addStudentMaBaiTap" placeholder="Mã để đăng nhập nộp bài (Ví dụ: BT101)">
             </div>
+
+            <!-- Chọn thời gian học cố định trong tuần -->
+            <div class="modal-form-group" style="margin-top: 10px;">
+                <label style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                    <span style="font-weight: 600;"><i class="fa-regular fa-clock" style="color: var(--color-primary);"></i> Thời gian học cố định</span>
+                    <span style="font-size: 11.5px; color: var(--text-secondary); font-weight: normal;">Chọn các ngày trong tuần</span>
+                </label>
+                
+                <!-- Day Pills T2 - CN -->
+                <div class="schedule-day-pills" id="addScheduleDays">
+                    <button type="button" class="day-pill" data-day="mon" onclick="toggleScheduleDay('add', 'mon')">T2</button>
+                    <button type="button" class="day-pill" data-day="tue" onclick="toggleScheduleDay('add', 'tue')">T3</button>
+                    <button type="button" class="day-pill" data-day="wed" onclick="toggleScheduleDay('add', 'wed')">T4</button>
+                    <button type="button" class="day-pill" data-day="thu" onclick="toggleScheduleDay('add', 'thu')">T5</button>
+                    <button type="button" class="day-pill" data-day="fri" onclick="toggleScheduleDay('add', 'fri')">T6</button>
+                    <button type="button" class="day-pill" data-day="sat" onclick="toggleScheduleDay('add', 'sat')">T7</button>
+                    <button type="button" class="day-pill" data-day="sun" onclick="toggleScheduleDay('add', 'sun')">CN</button>
+                </div>
+
+                <!-- Khung giờ học -->
+                <div style="display: flex; gap: 8px; align-items: center; margin-top: 10px; flex-wrap: wrap;">
+                    <div style="flex: 1; min-width: 140px;">
+                        <select id="addScheduleTimeSelect" onchange="handleScheduleTimeSelectChange('add')" style="width: 100%; padding: 9px 12px; background: var(--bg-input); border: 1px solid var(--border-color); border-radius: 8px; color: var(--text-primary); font-size: 13px;">
+                            <option value="18:00 - 19:30">18:00 - 19:30 (Tối ca 1)</option>
+                            <option value="19:00 - 20:30" selected>19:00 - 20:30 (Tối ca 2)</option>
+                            <option value="19:30 - 21:00">19:30 - 21:00 (Tối ca 3)</option>
+                            <option value="14:00 - 15:30">14:00 - 15:30 (Chiều)</option>
+                            <option value="15:30 - 17:00">15:30 - 17:00 (Chiều muộn)</option>
+                            <option value="08:00 - 09:30">08:00 - 09:30 (Sáng ca 1)</option>
+                            <option value="09:30 - 11:00">09:30 - 11:00 (Sáng ca 2)</option>
+                            <option value="custom">Khung giờ khác...</option>
+                        </select>
+                    </div>
+                    <div id="addScheduleTimeCustomWrap" style="display: none; flex: 1; min-width: 140px;">
+                        <input type="text" id="addScheduleTimeCustom" placeholder="Ví dụ: 19:00 - 21:00" oninput="handleScheduleCustomTimeInput('add')" style="width: 100%; padding: 9px 12px; background: var(--bg-input); border: 1px solid var(--border-color); border-radius: 8px; color: var(--text-primary); font-size: 13px;">
+                    </div>
+                </div>
+
+                <!-- Tóm tắt lịch đã chọn -->
+                <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 6px; margin-top: 8px;">
+                    <div id="addScheduleSummary" style="font-size: 12px; color: #6EE7B7; font-weight: 500;"><i class="fa-solid fa-calendar-check"></i> Chưa chọn ngày học</div>
+                    <button type="button" onclick="toggleDetailedSchedule('add')" style="background:none; border:none; color:var(--color-primary-light); font-size:11.5px; cursor:pointer; padding:0; text-decoration:underline;"><i class="fa-solid fa-sliders"></i> Chỉnh giờ riêng từng ngày</button>
+                </div>
+
+                <!-- Chi tiết từng ngày (mặc định ẩn) -->
+                <div id="addDetailedScheduleBox" style="display: none; margin-top: 10px; padding: 12px; background: var(--bg-card-alt); border: 1px dashed var(--border-color); border-radius: 10px;">
+                    <div style="font-size: 11.5px; color: var(--color-primary); margin-bottom: 8px; font-weight: 600;"><i class="fa-solid fa-clock"></i> Khung giờ riêng từng ngày:</div>
+                    <div class="modal-grid-2" style="gap: 8px;">
+                        <div><label style="font-size: 11.5px; margin-bottom: 3px;">Thứ 2:</label><input type="text" id="addSchMon" placeholder="Trống" oninput="syncFromDetailedSchedule('add')" style="padding: 6px 10px; font-size: 12px;"></div>
+                        <div><label style="font-size: 11.5px; margin-bottom: 3px;">Thứ 3:</label><input type="text" id="addSchTue" placeholder="Trống" oninput="syncFromDetailedSchedule('add')" style="padding: 6px 10px; font-size: 12px;"></div>
+                        <div><label style="font-size: 11.5px; margin-bottom: 3px;">Thứ 4:</label><input type="text" id="addSchWed" placeholder="Trống" oninput="syncFromDetailedSchedule('add')" style="padding: 6px 10px; font-size: 12px;"></div>
+                        <div><label style="font-size: 11.5px; margin-bottom: 3px;">Thứ 5:</label><input type="text" id="addSchThu" placeholder="Trống" oninput="syncFromDetailedSchedule('add')" style="padding: 6px 10px; font-size: 12px;"></div>
+                        <div><label style="font-size: 11.5px; margin-bottom: 3px;">Thứ 6:</label><input type="text" id="addSchFri" placeholder="Trống" oninput="syncFromDetailedSchedule('add')" style="padding: 6px 10px; font-size: 12px;"></div>
+                        <div><label style="font-size: 11.5px; margin-bottom: 3px;">Thứ 7:</label><input type="text" id="addSchSat" placeholder="Trống" oninput="syncFromDetailedSchedule('add')" style="padding: 6px 10px; font-size: 12px;"></div>
+                    </div>
+                    <div style="margin-top: 8px;"><label style="font-size: 11.5px; margin-bottom: 3px;">Chủ nhật:</label><input type="text" id="addSchSun" placeholder="Trống" oninput="syncFromDetailedSchedule('add')" style="padding: 6px 10px; font-size: 12px;"></div>
+                </div>
+            </div>
+
             <div class="modal-footer">
                 <button onclick="closeAddStudentModal()" class="modal-btn modal-btn-secondary">Hủy</button>
                 <button onclick="saveNewStudent()" class="modal-btn modal-btn-primary">Thêm mới</button>
@@ -882,24 +1655,83 @@
             <div class="modal-form-group">
                 <label style="display: block; margin-bottom: 8px;">Hình thức thu học phí <span style="color: #EF4444;">*</span></label>
                 <div style="display: flex; gap: 10px;">
-                    <label style="flex: 1; display: flex; align-items: center; gap: 8px; padding: 9px 12px; background: rgba(255,255,255,0.03); border: 1px solid rgba(142,77,255,0.4); border-radius: 12px; cursor: pointer; color: #FFF; font-size: 13px; margin: 0;">
-                        <input type="radio" name="editStudentBillingType" id="editBillingSession" value="session" checked onchange="toggleBillingTypeLabel('edit')" style="accent-color: #8E4DFF; cursor: pointer; width: 16px; height: 16px;">
+                    <label style="flex: 1; display: flex; align-items: center; gap: 8px; padding: 9px 12px; background: var(--nav-active-bg); border: 1px solid var(--border-color); border-radius: 12px; cursor: pointer; color: var(--text-primary); font-size: 13px; margin: 0;">
+                        <input type="radio" name="editStudentBillingType" id="editBillingSession" value="session" checked onchange="toggleBillingTypeLabel('edit')" style="accent-color: var(--color-primary); cursor: pointer; width: 16px; height: 16px;">
                         <span>Theo buổi</span>
                     </label>
-                    <label style="flex: 1; display: flex; align-items: center; gap: 8px; padding: 9px 12px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; cursor: pointer; color: #FFF; font-size: 13px; margin: 0;">
-                        <input type="radio" name="editStudentBillingType" id="editBillingMonth" value="month" onchange="toggleBillingTypeLabel('edit')" style="accent-color: #8E4DFF; cursor: pointer; width: 16px; height: 16px;">
+                    <label style="flex: 1; display: flex; align-items: center; gap: 8px; padding: 9px 12px; background: var(--bg-input); border: 1px solid var(--border-card); border-radius: 12px; cursor: pointer; color: var(--text-primary); font-size: 13px; margin: 0;">
+                        <input type="radio" name="editStudentBillingType" id="editBillingMonth" value="month" onchange="toggleBillingTypeLabel('edit')" style="accent-color: var(--color-primary); cursor: pointer; width: 16px; height: 16px;">
                         <span>Trọn gói tháng</span>
                     </label>
                 </div>
             </div>
             <div class="modal-form-group">
                 <label id="editStudentTuitionLabel">Mức học phí / buổi (VNĐ)</label>
-                <input type="text" inputmode="numeric" id="editStudentTuition" placeholder="Ví dụ: 200.000" oninput="formatCurrencyInput(this)">
+                <input type="number" id="editStudentTuition">
             </div>
             <div class="modal-form-group">
-                <label>Mã bài tập (Để trống sẽ tự lấy số điện thoại)</label>
+                <label>Mã bài tập *</label>
                 <input type="text" id="editStudentMaBaiTap" placeholder="Mã để đăng nhập nộp bài (Ví dụ: BT101)">
             </div>
+
+            <!-- Chọn thời gian học cố định trong tuần -->
+            <div class="modal-form-group" style="margin-top: 10px;">
+                <label style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                    <span style="font-weight: 600;"><i class="fa-regular fa-clock" style="color: var(--color-primary);"></i> Thời gian học cố định</span>
+                    <span style="font-size: 11.5px; color: var(--text-secondary); font-weight: normal;">Chọn các ngày trong tuần</span>
+                </label>
+                
+                <!-- Day Pills T2 - CN -->
+                <div class="schedule-day-pills" id="editScheduleDays">
+                    <button type="button" class="day-pill" data-day="mon" onclick="toggleScheduleDay('edit', 'mon')">T2</button>
+                    <button type="button" class="day-pill" data-day="tue" onclick="toggleScheduleDay('edit', 'tue')">T3</button>
+                    <button type="button" class="day-pill" data-day="wed" onclick="toggleScheduleDay('edit', 'wed')">T4</button>
+                    <button type="button" class="day-pill" data-day="thu" onclick="toggleScheduleDay('edit', 'thu')">T5</button>
+                    <button type="button" class="day-pill" data-day="fri" onclick="toggleScheduleDay('edit', 'fri')">T6</button>
+                    <button type="button" class="day-pill" data-day="sat" onclick="toggleScheduleDay('edit', 'sat')">T7</button>
+                    <button type="button" class="day-pill" data-day="sun" onclick="toggleScheduleDay('edit', 'sun')">CN</button>
+                </div>
+
+                <!-- Khung giờ học -->
+                <div style="display: flex; gap: 8px; align-items: center; margin-top: 10px; flex-wrap: wrap;">
+                    <div style="flex: 1; min-width: 140px;">
+                        <select id="editScheduleTimeSelect" onchange="handleScheduleTimeSelectChange('edit')" style="width: 100%; padding: 9px 12px; background: var(--bg-input); border: 1px solid var(--border-color); border-radius: 8px; color: var(--text-primary); font-size: 13px;">
+                            <option value="18:00 - 19:30">18:00 - 19:30 (Tối ca 1)</option>
+                            <option value="19:00 - 20:30" selected>19:00 - 20:30 (Tối ca 2)</option>
+                            <option value="19:30 - 21:00">19:30 - 21:00 (Tối ca 3)</option>
+                            <option value="14:00 - 15:30">14:00 - 15:30 (Chiều)</option>
+                            <option value="15:30 - 17:00">15:30 - 17:00 (Chiều muộn)</option>
+                            <option value="08:00 - 09:30">08:00 - 09:30 (Sáng ca 1)</option>
+                            <option value="09:30 - 11:00">09:30 - 11:00 (Sáng ca 2)</option>
+                            <option value="custom">Khung giờ khác...</option>
+                        </select>
+                    </div>
+                    <div id="editScheduleTimeCustomWrap" style="display: none; flex: 1; min-width: 140px;">
+                        <input type="text" id="editScheduleTimeCustom" placeholder="Ví dụ: 19:00 - 21:00" oninput="handleScheduleCustomTimeInput('edit')" style="width: 100%; padding: 9px 12px; background: var(--bg-input); border: 1px solid var(--border-color); border-radius: 8px; color: var(--text-primary); font-size: 13px;">
+                    </div>
+                </div>
+
+                <!-- Tóm tắt lịch đã chọn -->
+                <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 6px; margin-top: 8px;">
+                    <div id="editScheduleSummary" style="font-size: 12px; color: #6EE7B7; font-weight: 500;"><i class="fa-solid fa-calendar-check"></i> Chưa chọn ngày học</div>
+                    <button type="button" onclick="toggleDetailedSchedule('edit')" style="background:none; border:none; color:var(--color-primary-light); font-size:11.5px; cursor:pointer; padding:0; text-decoration:underline;"><i class="fa-solid fa-sliders"></i> Chỉnh giờ riêng từng ngày</button>
+                </div>
+
+                <!-- Chi tiết từng ngày (mặc định ẩn) -->
+                <div id="editDetailedScheduleBox" style="display: none; margin-top: 10px; padding: 12px; background: var(--bg-card-alt); border: 1px dashed var(--border-color); border-radius: 10px;">
+                    <div style="font-size: 11.5px; color: var(--color-primary); margin-bottom: 8px; font-weight: 600;"><i class="fa-solid fa-clock"></i> Khung giờ riêng từng ngày:</div>
+                    <div class="modal-grid-2" style="gap: 8px;">
+                        <div><label style="font-size: 11.5px; margin-bottom: 3px;">Thứ 2:</label><input type="text" id="editSchMon" placeholder="Trống" oninput="syncFromDetailedSchedule('edit')" style="padding: 6px 10px; font-size: 12px;"></div>
+                        <div><label style="font-size: 11.5px; margin-bottom: 3px;">Thứ 3:</label><input type="text" id="editSchTue" placeholder="Trống" oninput="syncFromDetailedSchedule('edit')" style="padding: 6px 10px; font-size: 12px;"></div>
+                        <div><label style="font-size: 11.5px; margin-bottom: 3px;">Thứ 4:</label><input type="text" id="editSchWed" placeholder="Trống" oninput="syncFromDetailedSchedule('edit')" style="padding: 6px 10px; font-size: 12px;"></div>
+                        <div><label style="font-size: 11.5px; margin-bottom: 3px;">Thứ 5:</label><input type="text" id="editSchThu" placeholder="Trống" oninput="syncFromDetailedSchedule('edit')" style="padding: 6px 10px; font-size: 12px;"></div>
+                        <div><label style="font-size: 11.5px; margin-bottom: 3px;">Thứ 6:</label><input type="text" id="editSchFri" placeholder="Trống" oninput="syncFromDetailedSchedule('edit')" style="padding: 6px 10px; font-size: 12px;"></div>
+                        <div><label style="font-size: 11.5px; margin-bottom: 3px;">Thứ 7:</label><input type="text" id="editSchSat" placeholder="Trống" oninput="syncFromDetailedSchedule('edit')" style="padding: 6px 10px; font-size: 12px;"></div>
+                    </div>
+                    <div style="margin-top: 8px;"><label style="font-size: 11.5px; margin-bottom: 3px;">Chủ nhật:</label><input type="text" id="editSchSun" placeholder="Trống" oninput="syncFromDetailedSchedule('edit')" style="padding: 6px 10px; font-size: 12px;"></div>
+                </div>
+            </div>
+
             <div class="modal-footer" style="justify-content: space-between;">
                 <button onclick="confirmDeleteStudent()" class="modal-btn" style="background: rgba(239, 68, 68, 0.1); border: 1px solid #EF4444; color: #EF4444; border-radius: 20px; padding: 8px 16px; cursor: pointer; display: flex; align-items: center; gap: 6px;"><i class="fa-solid fa-trash-can"></i> Xóa học sinh</button>
                 <div style="display: flex; gap: 8px;">
@@ -914,9 +1746,9 @@
     <div id="pinConfirmModal" class="modal-overlay" style="z-index: 1003;">
         <div class="modal-content" style="max-width: 400px; text-align: center;">
             <div style="font-size: 40px; color: #EF4444; margin-bottom: 15px;"><i class="fa-solid fa-shield-halved"></i></div>
-            <h3 style="color: #FFF; margin: 0 0 10px; font-size: 18px;">Xác thực mã PIN</h3>
-            <p style="color: #A6ADCE; font-size: 14px; margin: 0 0 15px; text-align: center;">Vui lòng nhập mã PIN đăng nhập để xác nhận xóa học sinh.</p>
-            <input type="password" id="confirmTutorPinInput" placeholder="Nhập mã PIN của bạn" style="text-align: center; font-size: 18px; letter-spacing: 5px; text-indent: 5px; width: 100%; padding: 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.15); background: rgba(0,0,0,0.2); color: #FFF; margin-bottom: 20px; outline: none;">
+            <h3 style="color: var(--text-primary); margin: 0 0 10px; font-size: 18px;">Xác thực mã PIN</h3>
+            <p style="color: var(--text-secondary); font-size: 14px; margin: 0 0 15px; text-align: center;">Vui lòng nhập mã PIN đăng nhập để xác nhận xóa học sinh.</p>
+            <input type="password" id="confirmTutorPinInput" placeholder="Nhập mã PIN của bạn" style="text-align: center; font-size: 18px; letter-spacing: 5px; text-indent: 5px; width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-input); color: var(--text-primary); margin-bottom: 20px; outline: none;">
             <div style="display: flex; justify-content: center; gap: 10px;">
                 <button onclick="closePinConfirmModal()" class="modal-btn modal-btn-secondary" style="width: 100px;">Hủy</button>
                 <button onclick="submitPinVerifyForDelete()" class="modal-btn modal-btn-primary" style="width: 100px; background: #EF4444; border-color: #EF4444;">Xác nhận</button>
@@ -932,7 +1764,7 @@
                 <span class="modal-close" onclick="closeTrashModal()">&times;</span>
             </div>
             <div class="modal-body" style="max-height: 50vh; overflow-y: auto; padding: 15px;">
-                <p style="color: #A6ADCE; font-size: 13px; margin-bottom: 15px; line-height: 1.4;"><i class="fa-solid fa-triangle-exclamation" style="color: #FFD23F;"></i> Các học sinh trong thùng rác sẽ bị <b>xóa hoàn toàn</b> khỏi hệ thống sau <b>10 ngày</b> kể từ ngày xóa.</p>
+                <p style="color: var(--text-secondary); font-size: 13px; margin-bottom: 15px; line-height: 1.4;"><i class="fa-solid fa-triangle-exclamation" style="color: #FFD23F;"></i> Các học sinh trong thùng rác sẽ bị <b>xóa hoàn toàn</b> khỏi hệ thống sau <b>10 ngày</b> kể từ ngày xóa.</p>
                 <div id="trashStudentList" style="display: flex; flex-direction: column; gap: 10px;">
                     <!-- Render danh sách học sinh đã xóa -->
                 </div>
@@ -951,7 +1783,7 @@
                 <span class="modal-close" onclick="closeTutorHwTrashModal()">&times;</span>
             </div>
             <div class="modal-body" style="max-height: 50vh; overflow-y: auto; padding: 15px;">
-                <p style="color: #A6ADCE; font-size: 13px; margin-bottom: 15px; line-height: 1.4;"><i class="fa-solid fa-triangle-exclamation" style="color: #FFD23F;"></i> Các bài tập trong thùng rác sẽ bị <b>dọn dẹp hoàn toàn</b> giải phóng bộ nhớ sau **1 ngày (24 giờ)** kể từ lúc xóa.</p>
+                <p style="color: var(--text-secondary); font-size: 13px; margin-bottom: 15px; line-height: 1.4;"><i class="fa-solid fa-triangle-exclamation" style="color: #FFD23F;"></i> Các bài tập trong thùng rác sẽ bị <b>dọn dẹp hoàn toàn</b> giải phóng bộ nhớ sau **1 ngày (24 giờ)** kể từ lúc xóa.</p>
                 <div class="table-wrapper">
                     <table>
                         <thead>
@@ -990,14 +1822,14 @@
             </div>
             <div class="modal-form-group" style="margin-top: 10px;">
                 <label>Chọn file bài tập mới (Nếu muốn thay thế file cũ)</label>
-                <div class="upload-area" id="tutorEditHwUploadArea" onclick="document.getElementById('tutorEditHwFileInput').click()" style="padding: 20px; border-style: dashed; background: rgba(4, 2, 10, 0.6); border: 2px dashed rgba(142, 77, 255, 0.4); border-radius: 12px; text-align: center; cursor: pointer; transition: all 0.3s;">
-                    <i class="fa-solid fa-file-arrow-up" style="font-size: 24px; color: #8E4DFF; margin-bottom: 6px;"></i>
-                    <div id="tutorEditHwUploadText" style="font-size: 12px; color: #E2D1FF;">Kéo thả hoặc click chọn file bài tập từ máy...</div>
+                <div class="upload-area" id="tutorEditHwUploadArea" onclick="document.getElementById('tutorEditHwFileInput').click()" style="padding: 20px; border-style: dashed; background: var(--bg-input); border: 2px dashed var(--border-color); border-radius: 12px; text-align: center; cursor: pointer; transition: all 0.3s;">
+                    <i class="fa-solid fa-file-arrow-up" style="font-size: 24px; color: var(--color-primary); margin-bottom: 6px;"></i>
+                    <div id="tutorEditHwUploadText" style="font-size: 12px; color: var(--text-secondary);">Kéo thả hoặc click chọn file bài tập từ máy...</div>
                     <input type="file" id="tutorEditHwFileInput" style="display: none;" onchange="handleTutorEditHwFileSelect(event)">
                 </div>
                 <!-- Selected File Badge -->
-                <div id="tutorEditSelectedFileBox" style="display: none; justify-content: space-between; align-items: center; background: rgba(142, 77, 255, 0.15); padding: 8px 12px; border-radius: 8px; margin-top: 10px; font-size: 12px;">
-                    <span id="tutorEditSelectedFileName" style="color: #FFF; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 80%;"></span>
+                <div id="tutorEditSelectedFileBox" style="display: none; justify-content: space-between; align-items: center; background: var(--nav-active-bg); padding: 8px 12px; border-radius: 8px; margin-top: 10px; font-size: 12px;">
+                    <span id="tutorEditSelectedFileName" style="color: var(--text-primary); font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 80%;"></span>
                     <button onclick="clearTutorEditSelectedFile()" style="background:none; border:none; color:#FF4D4D; cursor:pointer;"><i class="fa-solid fa-times"></i> Hủy</button>
                 </div>
             </div>
@@ -1007,7 +1839,7 @@
             </div>
             <!-- Progress Bar -->
             <div class="progress-container" id="tutorEditHwProgressContainer" style="width: 100%; background: rgba(255,255,255,0.05); border-radius: 10px; height: 8px; margin-top: 15px; overflow: hidden; display: none;">
-                <div class="progress-bar" id="tutorEditHwProgressBar" style="height: 100%; background: linear-gradient(90deg, #8E4DFF, #3399FF); width: 0%; transition: width 0.1s linear;"></div>
+                <div class="progress-bar" id="tutorEditHwProgressBar" style="height: 100%; background: var(--btn-bg); width: 0%; transition: width 0.1s linear;"></div>
             </div>
             <div id="tutorEditHwProgressText" style="font-size: 11px; color:#3399FF; text-align:right; display:none; font-weight:bold; margin-top:4px;">0%</div>
 
@@ -1069,8 +1901,8 @@
                 </select>
                 <div id="lesBtvnCustomWrap" style="display: none; margin-top: 8px;">
                     <div style="display: flex; align-items: center; gap: 8px;">
-                        <input type="number" id="lesBtvnCustom" min="0" max="100" placeholder="Nhập % hoàn thành (ví dụ: 60)" style="flex: 1; padding: 10px 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; color: #FFF;">
-                        <span style="font-weight: bold; color: #FFD23F; font-size: 15px;">%</span>
+                        <input type="number" id="lesBtvnCustom" min="0" max="100" placeholder="Nhập % hoàn thành (ví dụ: 60)" style="flex: 1; padding: 10px 12px; background: var(--bg-input); border: 1px solid var(--border-color); border-radius: 8px; color: var(--text-primary);">
+                        <span style="font-weight: bold; color: var(--color-primary); font-size: 15px;">%</span>
                     </div>
                 </div>
             </div>
@@ -1085,8 +1917,12 @@
                 </div>
             </div>
             <div class="modal-form-group">
-                <label>Nội dung bài học & Nhận xét</label>
-                <textarea id="lesNoiDung" rows="3" placeholder="Nhập nội dung giảng dạy và nhận xét chi tiết..."></textarea>
+                <label>Nội dung bài học</label>
+                <input type="text" id="lesNoiDung" placeholder="Ví dụ: Ôn tập Đại số đầu năm, Căn bậc hai & Hằng đẳng thức...">
+            </div>
+            <div class="modal-form-group">
+                <label><i class="fa-solid fa-comment-dots" style="color: var(--color-primary); margin-right: 4px;"></i> Nhận xét buổi học (gửi cho PH & HS)</label>
+                <textarea id="lesNhanXet" rows="3" placeholder="Nhập nhận xét về tinh thần học tập, nắm bài, làm BTVN hoặc lý do nghỉ học..."></textarea>
             </div>
             <div class="modal-footer">
                 <button onclick="closeAddLessonModal()" class="modal-btn modal-btn-secondary">Đóng</button>
@@ -1102,7 +1938,7 @@
                 <h3><i class="fa-solid fa-clipboard-check"></i> Xác nhận thông tin buổi học</h3>
                 <button onclick="closePreviewLessonModal()" class="modal-close">&times;</button>
             </div>
-            <p style="font-size: 13px; color: #A6ADCE; text-align: left; margin: 0 0 10px;">Vui lòng kiểm tra kỹ các thông tin dưới đây trước khi lưu vào hệ thống:</p>
+            <p style="font-size: 13px; color: var(--text-secondary); text-align: left; margin: 0 0 10px;">Vui lòng kiểm tra kỹ các thông tin dưới đây trước khi đăng lên Google Sheet:</p>
             <div class="preview-box">
                 <div class="preview-row">
                     <span class="preview-label">Học sinh:</span>
@@ -1137,8 +1973,12 @@
                     <span class="preview-val" id="prevDiemDinhKi">...</span>
                 </div>
                 <div style="margin-top: 10px; text-align: left;">
-                    <span class="preview-label" style="display: block; margin-bottom: 4px;">Nội dung & nhận xét:</span>
-                    <div id="prevNoiDung" style="background: rgba(0,0,0,0.2); padding: 8px 12px; border-radius: 8px; font-size: 13px; max-height: 100px; overflow-y: auto;">...</div>
+                    <span class="preview-label" style="display: block; margin-bottom: 4px;">Nội dung bài học:</span>
+                    <div id="prevNoiDung" style="background: var(--bg-card-alt); padding: 8px 12px; border-radius: 8px; font-size: 13px; margin-bottom: 8px;">...</div>
+                </div>
+                <div style="margin-top: 8px; text-align: left;">
+                    <span class="preview-label" style="display: block; margin-bottom: 4px;"><i class="fa-solid fa-comment-dots" style="color: var(--color-primary); margin-right: 4px;"></i> Nhận xét gia sư:</span>
+                    <div id="prevNhanXet" style="background: var(--bg-card-alt); padding: 8px 12px; border-radius: 8px; font-size: 13px; max-height: 100px; overflow-y: auto; color: var(--text-primary); font-style: italic;">...</div>
                 </div>
             </div>
             <div class="modal-footer">
@@ -1200,8 +2040,8 @@
                     </select>
                     <div id="editLesBtvnCustomWrap" style="display: none; margin-top: 8px;">
                         <div style="display: flex; align-items: center; gap: 8px;">
-                            <input type="number" id="editLesBtvnCustom" min="0" max="100" placeholder="Nhập % hoàn thành (ví dụ: 60)" style="flex: 1; padding: 10px 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; color: #FFF;">
-                            <span style="font-weight: bold; color: #FFD23F; font-size: 15px;">%</span>
+                            <input type="number" id="editLesBtvnCustom" min="0" max="100" placeholder="Nhập % hoàn thành (ví dụ: 60)" style="flex: 1; padding: 10px 12px; background: var(--bg-input); border: 1px solid var(--border-color); border-radius: 8px; color: var(--text-primary);">
+                            <span style="font-weight: bold; color: var(--color-primary); font-size: 15px;">%</span>
                         </div>
                     </div>
                 </div>
@@ -1216,8 +2056,12 @@
                     </div>
                 </div>
                 <div class="modal-form-group">
-                    <label>Nội dung bài học & nhận xét</label>
-                    <textarea id="editLesNoiDung" rows="3" placeholder="Nhập nội dung giảng dạy và nhận xét chi tiết..."></textarea>
+                    <label>Nội dung bài học</label>
+                    <input type="text" id="editLesNoiDung" placeholder="Ví dụ: Ôn tập Đại số đầu năm...">
+                </div>
+                <div class="modal-form-group">
+                    <label><i class="fa-solid fa-comment-dots" style="color: var(--color-primary); margin-right: 4px;"></i> Nhận xét buổi học (gửi cho PH & HS)</label>
+                    <textarea id="editLesNhanXet" rows="3" placeholder="Nhập nhận xét về tinh thần học tập, nắm bài, làm BTVN hoặc lý do nghỉ học..."></textarea>
                 </div>
             </div>
             <div class="modal-footer" style="justify-content: space-between;">
@@ -1240,7 +2084,7 @@
             <div class="modal-body">
                 <div class="modal-form-group">
                     <label>Học sinh</label>
-                    <input type="text" id="schStudentName" readonly style="background: rgba(0,0,0,0.2); color: #A6ADCE;">
+                    <input type="text" id="schStudentName" readonly style="background: var(--bg-input); color: var(--text-secondary);">
                 </div>
                 <div class="modal-grid-2">
                     <div class="modal-form-group">
@@ -1286,14 +2130,481 @@
 
     <!-- Admin Account settings modal -->
         <!-- 6. Custom Confirm Modal -->
-    <div id="customConfirmModal" class="modal-overlay" style="z-index: 2000;">
+    <div id="customConfirmModal" class="modal-overlay" style="z-index: 2000;" onclick="if(event.target === this) this.style.display = 'none';">
         <div class="modal-content" style="max-width: 400px; text-align: center;">
-            <div style="font-size: 40px; color: #FFD23F; margin-bottom: 15px;"><i class="fa-solid fa-circle-question"></i></div>
-            <h3 style="color: #FFF; margin: 0 0 10px; font-size: 18px;">Xác nhận yêu cầu</h3>
-            <p id="confirmModalMessage" style="color: #A6ADCE; font-size: 14px; line-height: 1.5; margin: 0 0 20px; text-align: center;"></p>
+            <div style="font-size: 40px; color: var(--color-primary); margin-bottom: 15px;"><i class="fa-solid fa-circle-question"></i></div>
+            <h3 style="color: var(--text-heading, var(--text-primary)); margin: 0 0 10px; font-size: 18px;">Xác nhận yêu cầu</h3>
+            <p id="confirmModalMessage" style="color: var(--text-secondary); font-size: 14px; line-height: 1.5; margin: 0 0 20px; text-align: center;"></p>
             <div style="display: flex; justify-content: center; gap: 10px;">
                 <button id="btnConfirmCancel" class="modal-btn modal-btn-secondary" style="width: 100px;">Hủy</button>
                 <button id="btnConfirmOk" class="modal-btn modal-btn-primary" style="width: 100px;">Đồng ý</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Xem & Tạo Hóa Đơn Học Phí (2 Cột Nâng Cấp) -->
+    <style>
+        .tuition-modal-dialog {
+            width: 95%;
+            max-width: 1100px;
+            min-width: 320px;
+            max-height: 92vh;
+            background: #F8FAFC;
+            border: 1px solid #E2E8F0;
+            border-radius: 20px;
+            box-shadow: 0 25px 70px rgba(0,0,0,0.5);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            color: #0F172A;
+            padding: 0 !important;
+            box-sizing: border-box;
+            margin: auto;
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+        .tuition-modal-header {
+            padding: 16px 24px;
+            border-bottom: 1px solid #E2E8F0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #F8FAFC;
+            flex-wrap: wrap;
+            gap: 12px;
+            box-sizing: border-box;
+        }
+        .tuition-modal-close {
+            background: none;
+            border: none;
+            font-size: 22px;
+            color: #64748B;
+            cursor: pointer;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+        .tuition-modal-close:hover {
+            background: #E2E8F0;
+            color: #0F172A;
+        }
+        .tuition-modal-body-grid {
+            display: grid;
+            grid-template-columns: 48% 52%;
+            flex: 1;
+            overflow: hidden;
+            background: #F8FAFC;
+            box-sizing: border-box;
+        }
+        .tuition-col-left {
+            padding: 18px 20px;
+            overflow-y: auto;
+            max-height: calc(92vh - 135px);
+            border-right: 1px solid #E2E8F0;
+            box-sizing: border-box;
+            background: #F8FAFC;
+        }
+        .tuition-col-right {
+            padding: 18px 20px;
+            overflow-y: auto;
+            max-height: calc(92vh - 135px);
+            background: #F8FAFC;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .tuition-modal-footer {
+            padding: 12px 24px;
+            border-top: 1px solid #E2E8F0;
+            background: #F8FAFC;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            box-sizing: border-box;
+            border-radius: 0 0 20px 20px;
+        }
+        .btn-tuition-action {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            border-radius: 10px;
+            font-size: 12.5px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-sizing: border-box;
+            padding: 8px 16px;
+            background: #FFFFFF;
+            border: 1px solid #CBD5E1;
+            color: #334155;
+        }
+        .btn-tuition-action:hover {
+            transform: translateY(-1px);
+            background: #F1F5F9;
+        }
+        .btn-draft-saved {
+            background: #F5F3FF !important;
+            border-color: #DDD6FE !important;
+            color: #6D28D9 !important;
+            font-weight: 700 !important;
+        }
+        .btn-draft-saved:hover {
+            background: #EDE9FE !important;
+            border-color: #C4B5FD !important;
+        }
+        .btn-tuition-primary {
+            background: linear-gradient(135deg, #7C3AED 0%, #6D28D9 100%) !important;
+            border: 1px solid #6D28D9 !important;
+            color: #FFFFFF !important;
+            font-weight: 700 !important;
+            box-shadow: 0 4px 12px rgba(124, 58, 237, 0.25) !important;
+        }
+        .btn-tuition-primary:hover {
+            background: linear-gradient(135deg, #6D28D9 0%, #5B21B6 100%) !important;
+            transform: translateY(-1px);
+        }
+        .btn-template-pill {
+            padding: 5px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            border: 1px solid #E2E8F0;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: transparent;
+            color: #64748B;
+        }
+        .btn-template-pill.active {
+            background: #7C3AED !important;
+            color: #FFFFFF !important;
+            border-color: #7C3AED !important;
+            box-shadow: 0 2px 8px rgba(124, 58, 237, 0.25);
+        }
+        /* Tuition Receipt Preview Card */
+        .tuition-receipt-card {
+            width: 100%;
+            max-width: 480px;
+            margin: 0 auto;
+            background: #FFFFFF;
+            border: 1px solid #E2E8F0;
+            border-radius: 24px;
+            padding: 24px 20px 20px 20px;
+            box-shadow: 0 20px 50px -10px rgba(109, 40, 217, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.04);
+            box-sizing: border-box;
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            color: #0F172A;
+            position: relative;
+            overflow: hidden;
+        }
+        .tuition-receipt-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 6px;
+            background: linear-gradient(90deg, #8E4DFF 0%, #3B82F6 50%, #10B981 100%);
+        }
+
+        /* 2-column Toggle Card Grid */
+        .tuition-card-box {
+            background: #FFFFFF;
+            border: 1px solid #E2E8F0;
+            border-radius: 16px;
+            padding: 16px 18px;
+            margin-bottom: 14px;
+            box-sizing: border-box;
+        }
+        .tuition-toggle-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        .tuition-toggle-card {
+            background: #FFFFFF;
+            border: 1px solid #E2E8F0;
+            border-radius: 12px;
+            padding: 10px 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.2s ease;
+            box-sizing: border-box;
+        }
+        .tuition-toggle-card:hover {
+            border-color: #CBD5E1;
+            box-shadow: 0 2px 8px rgba(124, 58, 237, 0.04);
+        }
+        .tuition-toggle-label {
+            font-size: 11px;
+            color: #64748B;
+            font-weight: 500;
+        }
+        .tuition-toggle-val {
+            font-size: 13.5px;
+            font-weight: 800;
+            color: #0F172A;
+            margin-top: 2px;
+        }
+        .tuition-switch {
+            position: relative;
+            display: inline-block;
+            width: 44px;
+            height: 24px;
+            flex-shrink: 0;
+            margin: 0;
+        }
+        .tuition-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+            position: absolute;
+        }
+        .tuition-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #CBD5E1;
+            transition: .25s;
+            border-radius: 24px;
+        }
+        .tuition-slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .25s;
+            border-radius: 50%;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+        }
+        .tuition-switch input:checked + .tuition-slider {
+            background-color: #7C3AED !important;
+            box-shadow: 0 0 8px rgba(124, 58, 237, 0.35);
+        }
+        .tuition-switch input:checked + .tuition-slider:before {
+            transform: translateX(20px);
+        }
+        @media (max-width: 768px) {
+            .tuition-modal-dialog {
+                width: 96% !important;
+                max-height: 92vh !important;
+                border-radius: 18px !important;
+            }
+            .tuition-modal-body-grid {
+                grid-template-columns: 1fr !important;
+                overflow-y: auto !important;
+                max-height: calc(92vh - 150px) !important;
+            }
+            .tuition-col-left {
+                max-height: none !important;
+                border-right: none !important;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+                padding: 16px !important;
+                overflow-y: visible !important;
+            }
+            .tuition-col-right {
+                max-height: none !important;
+                padding: 16px !important;
+                overflow-y: visible !important;
+            }
+            .tuition-modal-header {
+                padding: 12px 16px !important;
+            }
+            .tuition-modal-footer {
+                padding: 12px 16px !important;
+                flex-direction: column !important;
+                gap: 8px !important;
+            }
+            .tuition-modal-footer > div {
+                width: 100% !important;
+                display: flex !important;
+                gap: 8px !important;
+                justify-content: space-between !important;
+            }
+            .tuition-modal-footer button {
+                flex: 1 1 auto !important;
+                padding: 8px 10px !important;
+                font-size: 12px !important;
+                justify-content: center !important;
+            }
+        }
+        @media print {
+            @page {
+                margin: 10mm;
+                size: auto;
+            }
+            body {
+                background: #FFFFFF !important;
+                color: #000000 !important;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+            /* Hide all navigation, sidebars, headers, other modals, toasts, controls */
+            .tutor-sidebar,
+            .tutor-header,
+            .tutor-main,
+            .modal-overlay:not(#tutorTuitionInvoiceModal),
+            #toastContainer,
+            .tuition-modal-header,
+            .tuition-col-left,
+            .tuition-modal-footer,
+            #fullscreenLightbox,
+            .bottom-nav {
+                display: none !important;
+            }
+            #tutorTuitionInvoiceModal {
+                position: static !important;
+                display: block !important;
+                background: transparent !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                border: none !important;
+                box-shadow: none !important;
+                width: 100% !important;
+                height: auto !important;
+                overflow: visible !important;
+            }
+            .tuition-modal-dialog {
+                position: static !important;
+                display: block !important;
+                background: transparent !important;
+                border: none !important;
+                box-shadow: none !important;
+                width: 100% !important;
+                max-width: none !important;
+                max-height: none !important;
+                overflow: visible !important;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+            .tuition-modal-body-grid {
+                display: block !important;
+                background: transparent !important;
+                overflow: visible !important;
+                border: none !important;
+            }
+            .tuition-col-right {
+                display: block !important;
+                background: transparent !important;
+                max-height: none !important;
+                overflow: visible !important;
+                padding: 0 !important;
+                margin: 0 auto !important;
+                border: none !important;
+            }
+            #tuitionInvoiceModalBody {
+                width: 100% !important;
+                max-width: 500px !important;
+                margin: 0 auto !important;
+            }
+            #tuitionInvoiceCard {
+                display: block !important;
+                width: 100% !important;
+                max-width: 500px !important;
+                margin: 0 auto !important;
+                box-shadow: none !important;
+                border: 1px solid #CBD5E1 !important;
+                background: #FFFFFF !important;
+                color: #0F172A !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+                page-break-inside: avoid !important;
+            }
+        }
+    </style>
+    <div id="tutorTuitionInvoiceModal" class="modal-overlay" style="z-index: 1080; display: none;" onclick="if(event.target === this) closeStudentInvoiceModal(true);">
+        <div class="modal-content tuition-modal-dialog">
+            <!-- Header: Title + Subtitle | "Chọn mẫu" + Pills Mẫu 1 / Mẫu 2 + Close X -->
+            <div class="tuition-modal-header">
+                <div>
+                    <h3 style="color: #0F172A; font-size: 18px; font-weight: 800; margin: 0;">Tạo Phiếu Học Phí</h3>
+                    <div style="font-size: 12px; color: #64748B; margin-top: 3px;">
+                        <span id="tuitionModalHeaderSubtitle">GV. Thầy Trần Hoàng Nam · STK 0123456789</span>
+                        <span id="tuitionModalStudentName" style="display: none;">--</span>
+                        <span id="tuitionModalStudentBadge" style="display: none;">Học sinh</span>
+                        <span id="tuitionModalBankInfo" style="display: none;">STK: 0123456789 (MB Bank)</span>
+                    </div>
+                </div>
+
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <span style="font-size: 12px; color: #64748B; font-weight: 600;">Chọn mẫu</span>
+                    <div class="tuition-template-pills" style="display: inline-flex; background: #FFFFFF; padding: 3px; border-radius: 20px; border: 1px solid #E2E8F0;">
+                        <button type="button" id="btnTemplate1" class="btn-template-pill active" onclick="switchTuitionTemplate(1)">
+                            Mẫu 1
+                        </button>
+                        <button type="button" id="btnTemplate2" class="btn-template-pill" onclick="switchTuitionTemplate(2)">
+                            Mẫu 2
+                        </button>
+                    </div>
+
+                    <button type="button" onclick="closeStudentInvoiceModal(true)" class="tuition-modal-close" title="Đóng">&times;</button>
+                </div>
+            </div>
+
+            <!-- Body Grid: Left (~48%) + Right (~52%) -->
+            <div class="tuition-modal-body-grid">
+                <!-- Cột trái (form, ~48%) -->
+                <div id="tuitionInvoiceFormCol" class="tuition-col-left">
+                    <div id="tuitionFormLoadingPlaceholder" style="text-align: center; padding: 48px 20px; color: #64748B;">
+                        <i class="fa-solid fa-circle-notch fa-spin" style="font-size: 28px; color: #7C3AED; margin-bottom: 12px; display: block;"></i>
+                        <div style="font-size: 14px; font-weight: 600; color: #0F172A;">Đang tải form...</div>
+                        <div style="font-size: 12px; color: #64748B; margin-top: 4px;">Tùy chỉnh các trường thông tin hiển thị trên phiếu</div>
+                    </div>
+                </div>
+
+                <!-- Cột phải (live preview, ~52%) -->
+                <div id="tuitionInvoicePreviewCol" class="tuition-col-right">
+                    <!-- Top Bar: Phiếu hiển thị trực tiếp • Mẫu 1 | TRỰC TIẾP -->
+                    <div style="width: 100%; max-width: 480px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                        <div>
+                            <div id="tuitionPreviewTitle" style="font-size: 13.5px; font-weight: 700; color: #0F172A;">Phiếu hiển thị trực tiếp • Mẫu 1</div>
+                            <div style="font-size: 11.5px; color: #64748B; margin-top: 1px;">Tự cập nhật ngay khi nội dung thay đổi.</div>
+                        </div>
+                        <div style="display: inline-flex; align-items: center; gap: 6px; background: #E6F7F0; border: 1px solid #A7F3D0; color: #059669; font-size: 11px; font-weight: 800; padding: 4px 10px; border-radius: 20px; letter-spacing: 0.5px;">
+                            <span style="width: 7px; height: 7px; border-radius: 50%; background: #10B981; display: inline-block;"></span>
+                            TRỰC TIẾP
+                        </div>
+                    </div>
+
+                    <div id="tuitionInvoiceModalBody" style="width: 100%; max-width: 480px;">
+                        <div id="tuitionPreviewPlaceholder" style="text-align: center; padding: 48px 20px; color: #64748B;">
+                            <i class="fa-solid fa-eye" style="font-size: 28px; color: #7C3AED; margin-bottom: 12px; display: block;"></i>
+                            <div style="font-size: 14px; font-weight: 600; color: #0F172A;">Bản xem trước phiếu học phí...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer: 5 buttons on LEFT, restored draft note on RIGHT -->
+            <div class="tuition-modal-footer">
+                <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                    <button type="button" id="btnTuitionCancel" onclick="closeStudentInvoiceModal(true)" class="btn-tuition-action">
+                        Hủy bỏ
+                    </button>
+                    <button type="button" id="btnTuitionSaveDraft" onclick="saveTuitionDraftModal()" class="btn-tuition-action" title="Lưu bản nháp phiếu học phí này">
+                        <i class="fa-regular fa-bookmark"></i> <span>Lưu bản nháp</span>
+                    </button>
+                    <button type="button" id="btnTuitionExportPdf" onclick="exportTuitionModalPdf()" class="btn-tuition-action">
+                        <i class="fa-solid fa-file-pdf" style="color: #EF4444;"></i> Xuất PDF
+                    </button>
+                    <button type="button" id="btnTuitionCopyImage" onclick="copyTuitionModalImage()" class="btn-tuition-action">
+                        <i class="fa-regular fa-copy" style="color: #3B82F6;"></i> Copy ảnh
+                    </button>
+                    <button type="button" id="btnExportTuitionInvoice" onclick="exportTuitionModalInvoice()" class="btn-tuition-action btn-tuition-primary">
+                        <i class="fa-solid fa-camera"></i> Xuất phiếu (ảnh)
+                    </button>
+                </div>
+                <div id="tuitionDraftRestoredWrapper" style="display: none; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 600; color: #10B981; margin-left: auto;">
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+                    <span id="tuitionDraftRestoredText">Đã khôi phục bản nháp lần trước</span>
+                </div>
             </div>
         </div>
     </div>
@@ -1305,23 +2616,23 @@
     <div id="previewSubmissionModal" class="modal-overlay" style="z-index: 1050;">
         <div class="modal-card" style="max-width: 920px; width: 95%; height: 86vh; padding: 20px; border-radius: 22px; background: #0D0826; border: 1px solid rgba(142, 77, 255, 0.4); box-shadow: 0 15px 50px rgba(0,0,0,0.9); display: flex; flex-direction: column;">
             <div class="modal-header" style="margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 12px;">
-                <h3 style="color: #FFD23F; font-size: 18px; font-weight: 800; display: flex; align-items: center; gap: 8px; margin: 0;">
-                    <i class="fa-solid fa-file-lines" style="color: #8E4DFF;"></i> Xem bài làm: <span id="previewStudentNameTitle" style="color: #FFF;"></span>
+                <h3 style="color: var(--text-heading); font-size: 18px; font-weight: 800; display: flex; align-items: center; gap: 8px; margin: 0;">
+                    <i class="fa-solid fa-file-lines" style="color: var(--color-primary);"></i> Xem bài làm: <span id="previewStudentNameTitle" style="color: var(--text-primary);"></span>
                 </h3>
                 <div style="display: flex; align-items: center; gap: 10px;">
-                    <button id="btnPreviewGradeDirect" onclick="openGradeModalFromPreview()" style="background: rgba(249,115,22,0.2); border: 1px solid #F97316; color: #FED7AA; padding: 6px 14px; border-radius: 10px; font-weight: 700; font-size: 12px; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+                    <button id="btnPreviewGradeDirect" onclick="openGradeModalFromPreview()" style="background: var(--nav-active-bg); border: 1px solid var(--border-color); color: var(--text-primary); padding: 6px 14px; border-radius: 10px; font-weight: 700; font-size: 12px; cursor: pointer; display: flex; align-items: center; gap: 6px;">
                         <i class="fa-solid fa-pen"></i> Chấm điểm ngay
                     </button>
-                    <a id="btnPreviewExternalLink" href="" target="_blank" style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); color: #FFF; padding: 6px 12px; border-radius: 10px; font-size: 12px; text-decoration: none; font-weight: 600; display: flex; align-items: center; gap: 5px;">
+                    <a id="btnPreviewExternalLink" href="" target="_blank" style="background: var(--bg-input); border: 1px solid var(--border-card); color: var(--text-primary); padding: 6px 12px; border-radius: 10px; font-size: 12px; text-decoration: none; font-weight: 600; display: flex; align-items: center; gap: 5px;">
                         <i class="fa-solid fa-arrow-up-right-from-square"></i> Mở tab mới
                     </a>
-                    <button class="btn-close-modal" onclick="closeSubmissionPreviewModal()" style="background: none; border: none; color: #A6ADCE; font-size: 24px; cursor: pointer; padding: 0 5px; line-height: 1;">&times;</button>
+                    <button class="btn-close-modal" onclick="closeSubmissionPreviewModal()" style="background: none; border: none; color: var(--text-secondary); font-size: 24px; cursor: pointer; padding: 0 5px; line-height: 1;">&times;</button>
                 </div>
             </div>
             <div style="flex: 1; position: relative; background: #050314; border-radius: 12px; overflow: hidden; border: 1px solid rgba(255,255,255,0.05); display: flex; flex-direction: column;">
                 <div id="previewLoadingSpinner" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #A5B4FC; text-align: center; z-index: 1;">
-                    <i class="fa-solid fa-circle-notch fa-spin" style="font-size: 32px; margin-bottom: 10px; color: #8E4DFF;"></i>
-                    <div style="font-size: 13px; color: #A6ADCE;">Đang tải bản xem trước bài làm...</div>
+                    <i class="fa-solid fa-circle-notch fa-spin" style="font-size: 32px; margin-bottom: 10px; color: var(--color-primary);"></i>
+                    <div style="font-size: 13px; color: var(--text-secondary);">Đang tải bản xem trước bài làm...</div>
                 </div>
                 <iframe id="submissionPreviewIframe" src="" style="width: 100%; height: 100%; border: none; position: relative; z-index: 2;" onload="document.getElementById('previewLoadingSpinner').style.display='none';"></iframe>
                 <div id="customGalleryContainer" style="display: none; width: 100%; height: 100%; position: relative; z-index: 3; overflow-y: auto; padding: 20px; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; align-content: start;"></div>
@@ -1337,31 +2648,31 @@
 
     <!-- MODAL: Chấm Điểm & Nhận Xét Bài Nộp -->
     <div id="tutorGradeModal" class="modal-overlay" style="z-index: 1100;">
-        <div class="modal-card" style="max-width: 460px; width: 92%; padding: 25px; border-radius: 20px; background: #0D0826; border: 1px solid rgba(249, 115, 22, 0.4); box-shadow: 0 10px 40px rgba(0,0,0,0.85);">
-            <div class="modal-header" style="margin-bottom: 18px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 12px;">
-                <h3 style="color: #FFD23F; font-size: 18px; font-weight: 800; display: flex; align-items: center; gap: 8px; margin: 0;">
+        <div class="modal-card" style="max-width: 460px; width: 92%; padding: 25px; border-radius: 20px; background: var(--bg-card); border: 1px solid var(--border-card); box-shadow: var(--shadow-card);">
+            <div class="modal-header" style="margin-bottom: 18px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-card); padding-bottom: 12px;">
+                <h3 style="color: var(--text-heading); font-size: 18px; font-weight: 800; display: flex; align-items: center; gap: 8px; margin: 0;">
                     <i class="fa-solid fa-pen-to-square" style="color: #F97316;"></i> Chấm điểm bài làm
                 </h3>
-                <button class="btn-close-modal" onclick="closeGradeModal()" style="background: none; border: none; color: #A6ADCE; font-size: 24px; cursor: pointer; padding: 0 5px; line-height: 1;">&times;</button>
+                <button class="btn-close-modal" onclick="closeGradeModal()" style="background: none; border: none; color: var(--text-secondary); font-size: 24px; cursor: pointer; padding: 0 5px; line-height: 1;">&times;</button>
             </div>
             
             <div style="margin-bottom: 15px;">
-                <label style="display: block; color: #A6ADCE; font-size: 12px; font-weight: 700; margin-bottom: 6px;">HỌC SINH</label>
-                <input type="text" id="gradeStudentNameInput" readonly style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; padding: 10px 14px; color: #FFF; font-weight: 700; font-size: 14px; width: 100%; outline: none;">
+                <label style="display: block; color: var(--text-secondary); font-size: 12px; font-weight: 700; margin-bottom: 6px;">HỌC SINH</label>
+                <input type="text" id="gradeStudentNameInput" readonly style="background: var(--bg-input); border-color: var(--border-color); color: var(--text-primary); opacity:0.7; /* overridden for: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; padding: 10px 14px; color: #FFF; font-weight: 700; font-size: 14px; width: 100%; outline: none;">
             </div>
 
             <div style="margin-bottom: 15px;">
-                <label style="display: block; color: #A6ADCE; font-size: 12px; font-weight: 700; margin-bottom: 6px;">ĐIỂM SỐ <span style="color:#EF4444;">*</span></label>
-                <input type="text" id="gradeScoreInput" placeholder="Ví dụ: 8.5, 9, 10..." style="background: rgba(255,255,255,0.03); border: 1px solid rgba(249, 115, 22, 0.4); border-radius: 10px; padding: 12px 14px; color: #FFD23F; font-weight: 800; font-size: 16px; width: 100%; outline: none;">
+                <label style="display: block; color: var(--text-secondary); font-size: 12px; font-weight: 700; margin-bottom: 6px;">ĐIỂM SỐ <span style="color:#EF4444;">*</span></label>
+                <input type="text" id="gradeScoreInput" placeholder="Ví dụ: 8.5, 9, 10..." style="background: var(--bg-input); border: 1px solid var(--border-color); border-radius: 10px; padding: 12px 14px; color: var(--text-primary); font-weight: 800; font-size: 16px; width: 100%; outline: none;">
             </div>
 
             <div style="margin-bottom: 20px;">
-                <label style="display: block; color: #A6ADCE; font-size: 12px; font-weight: 700; margin-bottom: 6px;">NHẬN XÉT CỦA GIA SƯ</label>
-                <textarea id="gradeCommentInput" rows="3" placeholder="Nhập nhận xét (Bài làm tốt, trình bày sạch, chú ý câu 3...)" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; padding: 10px 14px; color: #FFF; font-size: 13.5px; width: 100%; outline: none; font-family: 'Inter', sans-serif; resize: vertical;"></textarea>
+                <label style="display: block; color: var(--text-secondary); font-size: 12px; font-weight: 700; margin-bottom: 6px;">NHẬN XÉT CỦA GIA SƯ</label>
+                <textarea id="gradeCommentInput" rows="3" placeholder="Nhập nhận xét (Bài làm tốt, trình bày sạch, chú ý câu 3...)" style="background: var(--bg-input); border: 1px solid var(--border-color); border-radius: 10px; padding: 10px 14px; color: var(--text-primary); font-size: 13.5px; width: 100%; outline: none; font-family: 'Inter', sans-serif; resize: vertical;"></textarea>
             </div>
 
             <div style="display: flex; gap: 10px;">
-                <button onclick="closeGradeModal()" style="flex: 1; padding: 12px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); border-radius: 12px; color: #FFF; font-weight: 600; cursor: pointer;">
+                <button onclick="closeGradeModal()" style="flex: 1; padding: 12px; background: var(--bg-input); border: 1px solid var(--border-card); border-radius: 12px; color: var(--text-primary); font-weight: 600; cursor: pointer;">
                     Hủy bỏ
                 </button>
                 <button id="btnSaveSubmissionGrade" onclick="saveTutorGrade()" style="flex: 1.5; padding: 12px; background: linear-gradient(135deg, #F97316 0%, #EA580C 100%); border: none; border-radius: 12px; color: #FFF; font-weight: bold; font-size: 14px; cursor: pointer; box-shadow: 0 4px 15px rgba(249,115,22,0.35); display: flex; align-items: center; justify-content: center; gap: 6px;">
@@ -1395,9 +2706,46 @@
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <script src="js/api.js?v=2.0.9"></script>
-    <script src="js/tutor.js?v=2.0.9"></script>
+    <script src="js/api.js?v=202610012235"></script>
+    <script src="js/tutor.js?v=202610012235"></script>
     <script>
+        function toggleTutorMobileSidebar(force) {
+            var sidebar = document.getElementById('tutorSidebar');
+            var overlay = document.getElementById('tutorSidebarOverlay');
+            if (!sidebar) return;
+            var isOpen = typeof force === 'boolean' ? force : !sidebar.classList.contains('mobile-open');
+            if (isOpen) {
+                sidebar.classList.add('mobile-open');
+                if (overlay) overlay.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            } else {
+                sidebar.classList.remove('mobile-open');
+                if (overlay) overlay.classList.remove('active');
+                document.body.style.overflow = '';
+            }
+        }
+        window.toggleTutorMobileSidebar = toggleTutorMobileSidebar;
+
+        function openTutorSidebar() {
+            toggleTutorMobileSidebar(true);
+        }
+        function closeTutorSidebar() {
+            toggleTutorMobileSidebar(false);
+        }
+        window.openTutorSidebar = openTutorSidebar;
+        window.closeTutorSidebar = closeTutorSidebar;
+
+        // Swipe trái → đóng sidebar mobile
+        var _txStart = 0;
+        document.addEventListener('touchstart', function(e) {
+            if (e.touches && e.touches[0]) _txStart = e.touches[0].clientX;
+        }, { passive: true });
+        document.addEventListener('touchend', function(e) {
+            if (e.changedTouches && e.changedTouches[0] && (e.changedTouches[0].clientX - _txStart < -60)) {
+                closeTutorSidebar();
+            }
+        }, { passive: true });
+
         window.addEventListener('DOMContentLoaded', () => {
             var data = JSON.parse(sessionStorage.getItem('dashboardData'));
             var role = sessionStorage.getItem('userRole');
@@ -1409,10 +2757,32 @@
             }
             
             // Set hidden fields
-            document.getElementById('maHocSinh').value = phone;
-            document.getElementById('maPin').value = pin;
+            if (document.getElementById('maHocSinh')) document.getElementById('maHocSinh').value = phone;
+            if (document.getElementById('maPin')) document.getElementById('maPin').value = pin;
             
             renderTutorView(data);
+
+            var mobName = document.getElementById('mobileHeaderTutorName');
+            if (mobName && data.tutorName) mobName.innerText = data.tutorName;
+
+            // Kích hoạt tab nếu có hash hoặc query param
+            var hash = window.location.hash.toLowerCase();
+            var search = window.location.search.toLowerCase();
+            if (hash.includes('calendar') || search.includes('tab=calendar')) {
+                openTutorCalendarTab();
+            } else if (hash.includes('reports') || search.includes('tab=reports')) {
+                var rBtn = document.querySelector('.sidebar-nav-item[data-tab="reports"]');
+                if (rBtn) switchTutorNavTab(rBtn, 'reports');
+            } else if (hash.includes('diary') || search.includes('tab=diary')) {
+                var dBtn = document.querySelector('.sidebar-nav-item[data-tab="diary"]');
+                if (dBtn) switchTutorNavTab(dBtn, 'diary');
+            } else if (hash.includes('students') || search.includes('tab=students')) {
+                var sBtn = document.querySelector('.sidebar-nav-item[data-tab="students"]');
+                if (sBtn) switchTutorNavTab(sBtn, 'students');
+            } else if (hash.includes('tuition') || search.includes('tab=tuition')) {
+                var tBtn = document.querySelector('.sidebar-nav-item[data-tab="tuition"]');
+                if (tBtn) switchTutorNavTab(tBtn, 'tuition');
+            }
 
             // Tự động đồng bộ dữ liệu mới nhất từ máy chủ trong nền
             if (typeof refreshTutorDashboard === 'function') {
@@ -1422,6 +2792,352 @@
     </script>
     <!-- PWA Install Script -->
     <script src="js/pwa-install.js"></script>
-    <script src="js/scroll-animations.js"></script>
+
+<!-- ================= THEME SWITCHER MODAL (TASK 12.5) ================= -->
+<div id="themeSwitcherPanel" class="theme-switcher-panel" style="display:none;">
+  <div class="theme-switcher-overlay" onclick="closeThemeSwitcher()"></div>
+  <div class="theme-switcher-content">
+    <div class="theme-switcher-header">
+      <h3>🎨 Chọn giao diện</h3>
+      <button type="button" class="theme-switcher-close" onclick="closeThemeSwitcher()">✕</button>
+    </div>
+
+    <div class="theme-switcher-body">
+      <!-- NHÓM A: Presets màu đơn -->
+      <div class="theme-group-label">Màu sắc đơn</div>
+      <div class="theme-presets-row">
+        <div class="theme-preset-item" data-theme="preset-blue" onclick="applyTheme('preset-blue')">
+          <span class="theme-dot" style="background:#2563EB"></span>
+          <span>Xanh gốc</span>
+          <span class="theme-check">✓</span>
+        </div>
+        <div class="theme-preset-item" data-theme="preset-hong-hoa" onclick="applyTheme('preset-hong-hoa')">
+          <span class="theme-dot" style="background:#E11D48"></span>
+          <span>Hồng hoa</span>
+          <span class="theme-check">✓</span>
+        </div>
+        <div class="theme-preset-item" data-theme="preset-hong-nhe" onclick="applyTheme('preset-hong-nhe')">
+          <span class="theme-dot" style="background:#F472B6"></span>
+          <span>Hồng nhẹ</span>
+          <span class="theme-check">✓</span>
+        </div>
+        <div class="theme-preset-item" data-theme="preset-matcha" onclick="applyTheme('preset-matcha')">
+          <span class="theme-dot" style="background:#059669"></span>
+          <span>Matcha Tea</span>
+          <span class="theme-check">✓</span>
+        </div>
+        <div class="theme-preset-item" data-theme="preset-linen" onclick="applyTheme('preset-linen')">
+          <span class="theme-dot" style="background:#854D0E"></span>
+          <span>Linen Cocoa</span>
+          <span class="theme-check">✓</span>
+        </div>
+      </div>
+
+      <!-- NHÓM B: Giao diện đầy đủ -->
+      <div class="theme-group-label" style="display:flex; justify-content:space-between; align-items:center;">
+        <span>Giao diện đầy đủ</span>
+        <span style="font-size:11px; opacity:0.75; font-weight:normal;">30 kiểu phong cách</span>
+      </div>
+      <div class="theme-full-grid">
+        <!-- Default: Tím Đêm -->
+        <div class="theme-full-item" data-theme="theme-dark-purple" onclick="applyTheme('theme-dark-purple')">
+          <span class="theme-orb" style="background:linear-gradient(135deg,#0B0826,#8E4DFF)"></span>
+          <div class="theme-item-meta">
+            <div class="theme-name">Tím Đêm</div>
+            <div class="theme-variant">Giao diện gốc (Tối)</div>
+          </div>
+          <span class="theme-check">✓</span>
+        </div>
+
+        <!-- 1. Azure Mist -->
+        <div class="theme-full-item" data-theme="theme-azure-mist-full" onclick="applyTheme('theme-azure-mist-full')">
+          <span class="theme-orb" style="background:linear-gradient(135deg,#EEF4FB,#7AB4E8)"></span>
+          <div class="theme-item-meta">
+            <div class="theme-name">Azure Mist</div>
+            <div class="theme-variant">Nền & bóng</div>
+          </div>
+          <span class="theme-check">✓</span>
+        </div>
+        <div class="theme-full-item" data-theme="theme-azure-mist-minimal" onclick="applyTheme('theme-azure-mist-minimal')">
+          <span class="theme-orb" style="background:#7AB4E8"></span>
+          <div class="theme-item-meta">
+            <div class="theme-name">Azure Mist</div>
+            <div class="theme-variant">Tối giản</div>
+          </div>
+          <span class="theme-check">✓</span>
+        </div>
+
+        <!-- 2. Woodland Cottage -->
+        <div class="theme-full-item" data-theme="theme-woodland-cottage-full" onclick="applyTheme('theme-woodland-cottage-full')">
+          <span class="theme-orb" style="background:linear-gradient(135deg,#5C4033,#8B6E58)"></span>
+          <div class="theme-item-meta">
+            <div class="theme-name">Woodland Cottage</div>
+            <div class="theme-variant">Nền & bóng</div>
+          </div>
+          <span class="theme-check">✓</span>
+        </div>
+        <div class="theme-full-item" data-theme="theme-woodland-cottage-minimal" onclick="applyTheme('theme-woodland-cottage-minimal')">
+          <span class="theme-orb" style="background:#8B6E58"></span>
+          <div class="theme-item-meta">
+            <div class="theme-name">Woodland Cottage</div>
+            <div class="theme-variant">Tối giản</div>
+          </div>
+          <span class="theme-check">✓</span>
+        </div>
+
+        <!-- 3. Sage Blush -->
+        <div class="theme-full-item" data-theme="theme-sage-blush-full" onclick="applyTheme('theme-sage-blush-full')">
+          <span class="theme-orb" style="background:linear-gradient(135deg,#6B8E78,#C49A88)"></span>
+          <div class="theme-item-meta">
+            <div class="theme-name">Sage Blush</div>
+            <div class="theme-variant">Nền & bóng</div>
+          </div>
+          <span class="theme-check">✓</span>
+        </div>
+        <div class="theme-full-item" data-theme="theme-sage-blush-minimal" onclick="applyTheme('theme-sage-blush-minimal')">
+          <span class="theme-orb" style="background:#6B8E78"></span>
+          <div class="theme-item-meta">
+            <div class="theme-name">Sage Blush</div>
+            <div class="theme-variant">Tối giản</div>
+          </div>
+          <span class="theme-check">✓</span>
+        </div>
+
+        <!-- 4. Golden Caramel -->
+        <div class="theme-full-item" data-theme="theme-golden-caramel-full" onclick="applyTheme('theme-golden-caramel-full')">
+          <span class="theme-orb" style="background:linear-gradient(135deg,#D48820,#9E6010)"></span>
+          <div class="theme-item-meta">
+            <div class="theme-name">Golden Caramel</div>
+            <div class="theme-variant">Nền & bóng</div>
+          </div>
+          <span class="theme-check">✓</span>
+        </div>
+        <div class="theme-full-item" data-theme="theme-golden-caramel-minimal" onclick="applyTheme('theme-golden-caramel-minimal')">
+          <span class="theme-orb" style="background:#D48820"></span>
+          <div class="theme-item-meta">
+            <div class="theme-name">Golden Caramel</div>
+            <div class="theme-variant">Tối giản</div>
+          </div>
+          <span class="theme-check">✓</span>
+        </div>
+
+        <!-- 5. Pastel Alpine Meadow -->
+        <div class="theme-full-item" data-theme="theme-pastel-alpine-full" onclick="applyTheme('theme-pastel-alpine-full')">
+          <span class="theme-orb" style="background:linear-gradient(135deg,#4A7A50,#98D0A0)"></span>
+          <div class="theme-item-meta">
+            <div class="theme-name">Pastel Alpine</div>
+            <div class="theme-variant">Nền & bóng</div>
+          </div>
+          <span class="theme-check">✓</span>
+        </div>
+        <div class="theme-full-item" data-theme="theme-pastel-alpine-minimal" onclick="applyTheme('theme-pastel-alpine-minimal')">
+          <span class="theme-orb" style="background:#4A7A50"></span>
+          <div class="theme-item-meta">
+            <div class="theme-name">Pastel Alpine</div>
+            <div class="theme-variant">Tối giản</div>
+          </div>
+          <span class="theme-check">✓</span>
+        </div>
+
+        <!-- 6. Dreamy Cosmic Sky -->
+        <div class="theme-full-item" data-theme="theme-dreamy-cosmic-full" onclick="applyTheme('theme-dreamy-cosmic-full')">
+          <span class="theme-orb" style="background:linear-gradient(135deg,#0A0A1A,#A040FF)"></span>
+          <div class="theme-item-meta">
+            <div class="theme-name">Dreamy Cosmic</div>
+            <div class="theme-variant">Nền & bóng (Tối)</div>
+          </div>
+          <span class="theme-check">✓</span>
+        </div>
+        <div class="theme-full-item" data-theme="theme-dreamy-cosmic-minimal" onclick="applyTheme('theme-dreamy-cosmic-minimal')">
+          <span class="theme-orb" style="background:#A040FF"></span>
+          <div class="theme-item-meta">
+            <div class="theme-name">Dreamy Cosmic</div>
+            <div class="theme-variant">Tối giản (Tối)</div>
+          </div>
+          <span class="theme-check">✓</span>
+        </div>
+
+        <!-- 7. Sunset Meadow Breeze -->
+        <div class="theme-full-item" data-theme="theme-sunset-meadow-full" onclick="applyTheme('theme-sunset-meadow-full')">
+          <span class="theme-orb" style="background:linear-gradient(135deg,#D45020,#5C7A40)"></span>
+          <div class="theme-item-meta">
+            <div class="theme-name">Sunset Meadow</div>
+            <div class="theme-variant">Nền & bóng</div>
+          </div>
+          <span class="theme-check">✓</span>
+        </div>
+        <div class="theme-full-item" data-theme="theme-sunset-meadow-minimal" onclick="applyTheme('theme-sunset-meadow-minimal')">
+          <span class="theme-orb" style="background:#D45020"></span>
+          <div class="theme-item-meta">
+            <div class="theme-name">Sunset Meadow</div>
+            <div class="theme-variant">Tối giản</div>
+          </div>
+          <span class="theme-check">✓</span>
+        </div>
+
+        <!-- 8. Neon Seoul -->
+        <div class="theme-full-item" data-theme="theme-neon-seoul-full" onclick="applyTheme('theme-neon-seoul-full')">
+          <span class="theme-orb" style="background:linear-gradient(135deg,#0D0820,#00D4AA)"></span>
+          <div class="theme-item-meta">
+            <div class="theme-name">Neon Seoul</div>
+            <div class="theme-variant">Nền & bóng (Tối)</div>
+          </div>
+          <span class="theme-check">✓</span>
+        </div>
+        <div class="theme-full-item" data-theme="theme-neon-seoul-minimal" onclick="applyTheme('theme-neon-seoul-minimal')">
+          <span class="theme-orb" style="background:#00D4AA"></span>
+          <div class="theme-item-meta">
+            <div class="theme-name">Neon Seoul</div>
+            <div class="theme-variant">Tối giản (Tối)</div>
+          </div>
+          <span class="theme-check">✓</span>
+        </div>
+
+        <!-- 9. Mystic Blue Room -->
+        <div class="theme-full-item" data-theme="theme-mystic-blue-full" onclick="applyTheme('theme-mystic-blue-full')">
+          <span class="theme-orb" style="background:linear-gradient(135deg,#0A1020,#4080D0)"></span>
+          <div class="theme-item-meta">
+            <div class="theme-name">Mystic Blue</div>
+            <div class="theme-variant">Nền & bóng (Tối)</div>
+          </div>
+          <span class="theme-check">✓</span>
+        </div>
+        <div class="theme-full-item" data-theme="theme-mystic-blue-minimal" onclick="applyTheme('theme-mystic-blue-minimal')">
+          <span class="theme-orb" style="background:#4080D0"></span>
+          <div class="theme-item-meta">
+            <div class="theme-name">Mystic Blue</div>
+            <div class="theme-variant">Tối giản (Tối)</div>
+          </div>
+          <span class="theme-check">✓</span>
+        </div>
+
+        <!-- 10. Blue Lime Canopy -->
+        <div class="theme-full-item" data-theme="theme-blue-lime-full" onclick="applyTheme('theme-blue-lime-full')">
+          <span class="theme-orb" style="background:linear-gradient(135deg,#1A5090,#80C820)"></span>
+          <div class="theme-item-meta">
+            <div class="theme-name">Blue Lime</div>
+            <div class="theme-variant">Nền & bóng</div>
+          </div>
+          <span class="theme-check">✓</span>
+        </div>
+        <div class="theme-full-item" data-theme="theme-blue-lime-minimal" onclick="applyTheme('theme-blue-lime-minimal')">
+          <span class="theme-orb" style="background:#1A5090"></span>
+          <div class="theme-item-meta">
+            <div class="theme-name">Blue Lime</div>
+            <div class="theme-variant">Tối giản</div>
+          </div>
+          <span class="theme-check">✓</span>
+        </div>
+
+        <!-- 11. Cloud Meadow -->
+        <div class="theme-full-item" data-theme="theme-cloud-meadow-full" onclick="applyTheme('theme-cloud-meadow-full')">
+          <span class="theme-orb" style="background:linear-gradient(135deg,#5888B0,#6BA870)"></span>
+          <div class="theme-item-meta">
+            <div class="theme-name">Cloud Meadow</div>
+            <div class="theme-variant">Nền & bóng</div>
+          </div>
+          <span class="theme-check">✓</span>
+        </div>
+        <div class="theme-full-item" data-theme="theme-cloud-meadow-minimal" onclick="applyTheme('theme-cloud-meadow-minimal')">
+          <span class="theme-orb" style="background:#5888B0"></span>
+          <div class="theme-item-meta">
+            <div class="theme-name">Cloud Meadow</div>
+            <div class="theme-variant">Tối giản</div>
+          </div>
+          <span class="theme-check">✓</span>
+        </div>
+
+        <!-- 12. Soft Blue + White -->
+        <div class="theme-full-item" data-theme="theme-soft-blue-white-full" onclick="applyTheme('theme-soft-blue-white-full')">
+          <span class="theme-orb" style="background:linear-gradient(135deg,#DCEEFC,#2070C0)"></span>
+          <div class="theme-item-meta">
+            <div class="theme-name">Soft Blue</div>
+            <div class="theme-variant">Nền & bóng</div>
+          </div>
+          <span class="theme-check">✓</span>
+        </div>
+        <div class="theme-full-item" data-theme="theme-soft-blue-white-minimal" onclick="applyTheme('theme-soft-blue-white-minimal')">
+          <span class="theme-orb" style="background:#2070C0"></span>
+          <div class="theme-item-meta">
+            <div class="theme-name">Soft Blue</div>
+            <div class="theme-variant">Tối giản</div>
+          </div>
+          <span class="theme-check">✓</span>
+        </div>
+
+        <!-- 13. Blossom Noir -->
+        <div class="theme-full-item" data-theme="theme-blossom-noir-full" onclick="applyTheme('theme-blossom-noir-full')">
+          <span class="theme-orb" style="background:linear-gradient(135deg,#100810,#D44080)"></span>
+          <div class="theme-item-meta">
+            <div class="theme-name">Blossom Noir</div>
+            <div class="theme-variant">Nền & bóng (Tối)</div>
+          </div>
+          <span class="theme-check">✓</span>
+        </div>
+        <div class="theme-full-item" data-theme="theme-blossom-noir-minimal" onclick="applyTheme('theme-blossom-noir-minimal')">
+          <span class="theme-orb" style="background:#D44080"></span>
+          <div class="theme-item-meta">
+            <div class="theme-name">Blossom Noir</div>
+            <div class="theme-variant">Tối giản (Tối)</div>
+          </div>
+          <span class="theme-check">✓</span>
+        </div>
+
+        <!-- 14. Violet Planet -->
+        <div class="theme-full-item" data-theme="theme-violet-planet-full" onclick="applyTheme('theme-violet-planet-full')">
+          <span class="theme-orb" style="background:linear-gradient(135deg,#0C0618,#9040D0)"></span>
+          <div class="theme-item-meta">
+            <div class="theme-name">Violet Planet</div>
+            <div class="theme-variant">Nền & bóng (Tối)</div>
+          </div>
+          <span class="theme-check">✓</span>
+        </div>
+        <div class="theme-full-item" data-theme="theme-violet-planet-minimal" onclick="applyTheme('theme-violet-planet-minimal')">
+          <span class="theme-orb" style="background:#9040D0"></span>
+          <div class="theme-item-meta">
+            <div class="theme-name">Violet Planet</div>
+            <div class="theme-variant">Tối giản (Tối)</div>
+          </div>
+          <span class="theme-check">✓</span>
+        </div>
+
+        <!-- 15. Claude -->
+        <div class="theme-full-item" data-theme="theme-claude-full" onclick="applyTheme('theme-claude-full')">
+          <span class="theme-orb" style="background:linear-gradient(135deg,#FAF7F2,#CC785C)"></span>
+          <div class="theme-item-meta">
+            <div class="theme-name">Claude</div>
+            <div class="theme-variant">Nền & bóng (Ấm)</div>
+          </div>
+          <span class="theme-check">✓</span>
+        </div>
+        <div class="theme-full-item" data-theme="theme-claude-minimal" onclick="applyTheme('theme-claude-minimal')">
+          <span class="theme-orb" style="background:#CC785C"></span>
+          <div class="theme-item-meta">
+            <div class="theme-name">Claude</div>
+            <div class="theme-variant">Tối giản (Ấm)</div>
+          </div>
+          <span class="theme-check">✓</span>
+        </div>
+      </div>
+
+      <!-- NHÓM C: Màu tùy chọn đơn -->
+      <div class="theme-group-label">Màu tùy chọn đơn</div>
+      <div class="theme-custom-row">
+        <input type="color" id="customColorPicker" value="#2563EB" title="Chọn màu tùy chỉnh">
+        <span style="font-size:12.5px; font-weight:600; color:var(--text-secondary);">Mã HEX:</span>
+        <input type="text" id="customColorHex" class="theme-custom-hex" value="#2563EB" maxlength="7">
+        <button type="button" class="theme-btn-apply-custom" onclick="applyCustomTheme()">Áp dụng màu</button>
+      </div>
+    </div>
+
+    <div class="theme-switcher-footer">
+      <span>Đang dùng: <b class="theme-current-badge" id="themeCurrentLabel">Tím Đêm</b></span>
+      <span style="opacity:0.65; font-size:11px;">Hệ thống 36 Theme</span>
+    </div>
+  </div>
+</div>
+
+<!-- Phase 19: Scroll Animation Engine -->
+<script src="js/scroll-animations.js?v=20261002_scroll"></script>
 </body>
 </html>

@@ -1,5 +1,5 @@
 // Service Worker - Ngăn iOS PWA reload trang khi chọn file từ camera/gallery
-const CACHE_NAME = 'giasu-tutor-v1';
+const CACHE_NAME = 'giasu-tutor-v2';
 
 // Các file cần cache để offline + ngăn reload
 const STATIC_ASSETS = [
