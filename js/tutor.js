@@ -8917,9 +8917,13 @@ function applyTheme(themeId) {
     '--color-primary-rgb', '--chart-bar', '--chart-bar-rgb', '--btn-bg',
     '--btn-text', '--nav-active-bg', '--nav-active-text', '--bg-page',
     '--bg-page-gradient', '--bg-sidebar', '--bg-card', '--bg-card-alt',
-    '--bg-input', '--border-color', '--border-card', '--text-primary',
+    '--bg-input', '--bg-overlay', '--border-color', '--border-card', '--text-primary',
     '--text-secondary', '--text-muted', '--shadow-card', '--shadow-primary',
-    '--header-bg', '--header-border', '--is-dark-theme'
+    '--header-bg', '--header-border', '--is-dark-theme',
+    '--color-accent-kpi', '--kpi-number-color', '--text-heading',
+    '--sidebar-border', '--scrollbar-thumb', '--glass-bg', '--glass-border',
+    '--glass-shadow', '--glass-blur', '--glass-inner', '--glass-inner-border',
+    '--nav-btn-text', '--nav-hover-bg'
   ];
   propsToClear.forEach(function(p) { root.style.removeProperty(p); });
 
@@ -9020,70 +9024,118 @@ function rerenderChartsForTheme() {
   }
 }
 
-// Task 12.7: Custom Color Picker
-function applyCustomTheme() {
-  var hexInput = document.getElementById('customColorHex');
-  if (!hexInput) return;
-  var hex = hexInput.value.trim();
-  if (!/^#[0-9A-Fa-f]{6}$/.test(hex)) {
-    if (typeof showToast === 'function') {
-      showToast('Mã màu không hợp lệ. Vui lòng nhập đúng #RRGGBB (ví dụ: #2563EB)', 'error');
-    } else {
-      alert('Mã màu không hợp lệ. Vui lòng nhập đúng #RRGGBB (ví dụ: #2563EB)');
-    }
-    return;
-  }
-
-  // Parse RGB
+// Hàm tính toán trọn bộ bảng màu hài hòa từ mã HEX người dùng chọn
+function computeCustomThemeVars(hex) {
+  if (!/^#[0-9A-Fa-f]{6}$/.test(hex)) return null;
   var r = parseInt(hex.slice(1,3), 16);
   var g = parseInt(hex.slice(3,5), 16);
   var b = parseInt(hex.slice(5,7), 16);
 
-  // Phối màu phụ: sáng hơn 50% và tối hơn 30%
-  var lr = Math.round(r + (255 - r) * 0.5);
-  var lg = Math.round(g + (255 - g) * 0.5);
-  var lb = Math.round(b + (255 - b) * 0.5);
-
-  var dr = Math.round(r * 0.7);
-  var dg = Math.round(g * 0.7);
-  var db = Math.round(b * 0.7);
-
   var toHex = function(n) { return Math.max(0, Math.min(255, n)).toString(16).padStart(2, '0'); };
+
+  // Màu sáng (+40% độ sáng)
+  var lr = Math.round(r + (255 - r) * 0.4);
+  var lg = Math.round(g + (255 - g) * 0.4);
+  var lb = Math.round(b + (255 - b) * 0.4);
+  var hexLight = '#' + toHex(lr) + toHex(lg) + toHex(lb);
+
+  // Màu đậm tương phản cao cho tiêu đề và chữ (-35% độ sáng)
+  var dr = Math.round(r * 0.65);
+  var dg = Math.round(g * 0.65);
+  var db = Math.round(b * 0.65);
+  var hexDark = '#' + toHex(dr) + toHex(dg) + toHex(db);
+
+  // Các sắc thái pastel dịu mắt để tạo nền dải gradient
+  var bgr1 = Math.round(r + (255 - r) * 0.86);
+  var bgg1 = Math.round(g + (255 - g) * 0.86);
+  var bgb1 = Math.round(b + (255 - b) * 0.86);
+  var hexBg1 = '#' + toHex(bgr1) + toHex(bgg1) + toHex(bgb1);
+
+  var bgr2 = Math.round(r + (255 - r) * 0.93);
+  var bgg2 = Math.round(g + (255 - g) * 0.93);
+  var bgb2 = Math.round(b + (255 - b) * 0.93);
+  var hexBg2 = '#' + toHex(bgr2) + toHex(bgg2) + toHex(bgb2);
+
+  var bgr3 = Math.round(r + (255 - r) * 0.97);
+  var bgg3 = Math.round(g + (255 - g) * 0.97);
+  var bgb3 = Math.round(b + (255 - b) * 0.97);
+  var hexBgPage = '#' + toHex(bgr3) + toHex(bgg3) + toHex(bgb3);
+
+  var pageGradient = 'radial-gradient(ellipse at 20% 30%, ' + hexBg1 + ' 0%, transparent 50%), ' +
+                     'radial-gradient(ellipse at 80% 15%, ' + hexBg2 + ' 0%, transparent 45%), ' +
+                     'radial-gradient(ellipse at 50% 75%, ' + hexBg1 + ' 0%, transparent 55%), ' +
+                     'linear-gradient(135deg, ' + hexBgPage + ', ' + hexBg2 + ')';
+
+  return {
+    '--color-primary': hex,
+    '--color-primary-light': hexLight,
+    '--color-primary-dark': hexDark,
+    '--color-primary-rgb': r + ', ' + g + ', ' + b,
+    '--color-accent-kpi': hex,
+    '--kpi-number-color': '#0F172A',
+    '--text-heading': hexDark,
+    '--chart-bar': hex,
+    '--chart-bar-rgb': r + ', ' + g + ', ' + b,
+    '--btn-bg': 'linear-gradient(135deg, ' + hex + ', ' + hexDark + ')',
+    '--btn-text': '#FFFFFF',
+    '--nav-active-bg': 'rgba(' + r + ', ' + g + ', ' + b + ', 0.14)',
+    '--nav-active-text': hexDark,
+    '--nav-hover-bg': 'rgba(' + r + ', ' + g + ', ' + b + ', 0.06)',
+    '--nav-btn-text': '#334155',
+    '--bg-page': hexBgPage,
+    '--bg-page-gradient': pageGradient,
+    '--bg-sidebar': hexBg2,
+    '--bg-card': '#FFFFFF',
+    '--bg-card-alt': hexBg2,
+    '--bg-input': '#FFFFFF',
+    '--bg-overlay': 'rgba(0, 0, 0, 0.4)',
+    '--border-color': 'rgba(' + r + ', ' + g + ', ' + b + ', 0.25)',
+    '--border-card': 'rgba(' + r + ', ' + g + ', ' + b + ', 0.16)',
+    '--sidebar-border': 'rgba(' + r + ', ' + g + ', ' + b + ', 0.2)',
+    '--scrollbar-thumb': 'rgba(' + r + ', ' + g + ', ' + b + ', 0.35)',
+    '--text-primary': '#0F172A',
+    '--text-secondary': '#475569',
+    '--text-muted': '#94A3B8',
+    '--header-bg': 'rgba(' + bgr3 + ', ' + bgg3 + ', ' + bgb3 + ', 0.95)',
+    '--header-border': 'rgba(' + r + ', ' + g + ', ' + b + ', 0.15)',
+    '--shadow-card': '0 4px 18px rgba(' + r + ', ' + g + ', ' + b + ', 0.08)',
+    '--shadow-primary': '0 4px 16px rgba(' + r + ', ' + g + ', ' + b + ', 0.28)',
+    '--glass-bg': 'rgba(255, 255, 255, 0.65)',
+    '--glass-border': 'rgba(255, 255, 255, 0.85)',
+    '--glass-shadow': '0 8px 32px rgba(' + r + ', ' + g + ', ' + b + ', 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.9)',
+    '--glass-blur': '16px',
+    '--glass-inner': 'rgba(255, 255, 255, 0.6)',
+    '--glass-inner-border': 'rgba(255, 255, 255, 0.8)',
+    '--is-dark-theme': '0'
+  };
+}
+
+// Task 12.7: Custom Color Picker (Áp dụng trọn bộ bảng màu đồng bộ)
+function applyCustomTheme(silent) {
+  var hexInput = document.getElementById('customColorHex');
+  if (!hexInput) return;
+  var hex = hexInput.value.trim();
+  var vars = computeCustomThemeVars(hex);
+  if (!vars) {
+    if (!silent) {
+      if (typeof showToast === 'function') {
+        showToast('Mã màu không hợp lệ. Vui lòng nhập đúng #RRGGBB (ví dụ: #2563EB)', 'error');
+      } else {
+        alert('Mã màu không hợp lệ. Vui lòng nhập đúng #RRGGBB (ví dụ: #2563EB)');
+      }
+    }
+    return;
+  }
 
   var root = document.documentElement;
   // Xóa class theme tĩnh
   var allThemes = Object.keys(THEME_NAMES);
   allThemes.forEach(function(t) { root.classList.remove(t); });
 
-  // Thiết lập biến CSS
-  root.style.setProperty('--color-primary', hex);
-  root.style.setProperty('--color-primary-light', '#' + toHex(lr) + toHex(lg) + toHex(lb));
-  root.style.setProperty('--color-primary-dark', '#' + toHex(dr) + toHex(dg) + toHex(db));
-  root.style.setProperty('--color-primary-rgb', r + ', ' + g + ', ' + b);
-  root.style.setProperty('--chart-bar', hex);
-  root.style.setProperty('--chart-bar-rgb', r + ', ' + g + ', ' + b);
-  root.style.setProperty('--btn-bg', hex);
-  root.style.setProperty('--btn-text', '#FFFFFF');
-  root.style.setProperty('--nav-active-bg', 'rgba(' + r + ', ' + g + ', ' + b + ', 0.12)');
-  root.style.setProperty('--nav-active-text', hex);
-
-  // Giao diện màu tùy chọn luôn ở chế độ sáng thanh lịch
-  root.style.setProperty('--bg-page', '#FAFAFA');
-  root.style.setProperty('--bg-page-gradient', '#FAFAFA');
-  root.style.setProperty('--bg-sidebar', '#F5F5F5');
-  root.style.setProperty('--bg-card', '#FFFFFF');
-  root.style.setProperty('--bg-card-alt', '#F0F0F0');
-  root.style.setProperty('--bg-input', '#FFFFFF');
-  root.style.setProperty('--border-color', 'rgba(' + r + ', ' + g + ', ' + b + ', 0.25)');
-  root.style.setProperty('--border-card', '#E5E5E5');
-  root.style.setProperty('--text-primary', '#1A1A1A');
-  root.style.setProperty('--text-secondary', '#555555');
-  root.style.setProperty('--text-muted', '#888888');
-  root.style.setProperty('--header-bg', '#FFFFFF');
-  root.style.setProperty('--header-border', '#E5E5E5');
-  root.style.setProperty('--shadow-card', '0 4px 16px rgba(0,0,0,0.06)');
-  root.style.setProperty('--shadow-primary', '0 4px 15px rgba(' + r + ', ' + g + ', ' + b + ', 0.3)');
-  root.style.setProperty('--is-dark-theme', '0');
+  // Thiết lập toàn bộ biến CSS hài hòa
+  Object.keys(vars).forEach(function(prop) {
+    root.style.setProperty(prop, vars[prop]);
+  });
   root.setAttribute('data-theme', 'light');
 
   localStorage.setItem('tutorTheme', 'custom:' + hex);
@@ -9095,23 +9147,35 @@ function applyCustomTheme() {
   var label = document.getElementById('themeCurrentLabel');
   if (label) label.textContent = 'Màu tùy chỉnh ' + hex.toUpperCase();
 
+  // Đồng bộ sang Iframe Lịch (nếu có)
+  var calFrame = document.getElementById('tutorCalendarIframe');
+  if (calFrame && calFrame.contentWindow && typeof calFrame.contentWindow.applyCustomTheme === 'function') {
+    try {
+      var fInput = calFrame.contentWindow.document.getElementById('customColorHex');
+      if (fInput) fInput.value = hex;
+      calFrame.contentWindow.applyCustomTheme(true);
+    } catch(e) {}
+  }
+
   if (typeof rerenderChartsForTheme === 'function') rerenderChartsForTheme();
   if (typeof calendar !== 'undefined' && calendar && typeof calendar.render === 'function') calendar.render();
-  if (typeof showToast === 'function') showToast('Đã áp dụng màu tùy chỉnh!', 'success');
+  if (!silent && typeof showToast === 'function') showToast('Đã áp dụng màu tùy chỉnh!', 'success');
 }
 
-// Đồng bộ 2 chiều giữa Color Picker & Input HEX
+// Đồng bộ 2 chiều giữa Color Picker & Input HEX kèm Live Preview tức thì
 function setupCustomColorSync() {
   var picker = document.getElementById('customColorPicker');
   var hexInput = document.getElementById('customColorHex');
   if (picker && hexInput) {
     picker.addEventListener('input', function() {
       hexInput.value = this.value.toUpperCase();
+      applyCustomTheme(true); // Xem trước tức thì khi kéo chọn màu!
     });
     hexInput.addEventListener('input', function() {
       var v = this.value.trim();
       if (/^#[0-9A-Fa-f]{6}$/.test(v)) {
         picker.value = v;
+        applyCustomTheme(true); // Xem trước tức thì khi nhập mã HEX!
       }
     });
   }
@@ -9122,6 +9186,7 @@ window.THEME_NAMES = THEME_NAMES;
 window.applyTheme = applyTheme;
 window.openThemeSwitcher = openThemeSwitcher;
 window.closeThemeSwitcher = closeThemeSwitcher;
+window.computeCustomThemeVars = computeCustomThemeVars;
 window.applyCustomTheme = applyCustomTheme;
 
 // Khởi chạy khi DOM sẵn sàng
@@ -9134,7 +9199,7 @@ document.addEventListener('DOMContentLoaded', function() {
     var picker = document.getElementById('customColorPicker');
     if (hexInput) hexInput.value = hex;
     if (picker) picker.value = hex;
-    applyCustomTheme();
+    applyCustomTheme(true);
   } else if (saved) {
     applyTheme(saved);
   } else {
