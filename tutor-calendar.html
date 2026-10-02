@@ -3281,6 +3281,9 @@
                             }, '*');
                         } catch(e) {}
                     }
+                    if (typeof calendar !== 'undefined' && calendar && typeof calendar.refetchEvents === 'function') {
+                        calendar.refetchEvents();
+                    }
                     if (onSuccess) onSuccess();
                 })
                 .withFailureHandler(function(err) {
@@ -3486,36 +3489,23 @@
         function saveAndRefetch(studentName, andThen, mode, newEventSpec, oldFcEvent) {
             mode = mode || 'full';
 
-            // --- Cập nhật calendar UI ngay lập tức ---
-            if (mode === 'remove' && oldFcEvent) {
-                try { oldFcEvent.remove(); } catch(e) {}
-
-            } else if (mode === 'add' && newEventSpec) {
-                let evObj = buildFCEventObj(newEventSpec.studentIdx, newEventSpec.dayKey, newEventSpec.subIdx);
-                if (evObj) calendar.addEvent(evObj);
-
-            } else if (mode === 'replace') {
-                if (oldFcEvent) try { oldFcEvent.remove(); } catch(e) {}
-                if (newEventSpec) {
-                    let evObj = buildFCEventObj(newEventSpec.studentIdx, newEventSpec.dayKey, newEventSpec.subIdx);
-                    if (evObj) calendar.addEvent(evObj);
-                }
-
-            } else {
-                // 'full': fallback toàn bộ (chỉ dùng cho drop/resize/delete sau dialog)
-                // Chỉ regenerate từ local memory - KHÔNG gọi backend
-                let vType = calendar && calendar.view ? calendar.view.type : 'dayGridMonth';
+            // --- Cập nhật calendar UI ngay lập tức từ bộ nhớ ---
+            if (typeof calendar !== 'undefined' && calendar && typeof calendar.refetchEvents === 'function') {
+                calendar.refetchEvents();
+            } else if (typeof calendar !== 'undefined' && calendar) {
+                let vType = calendar.view ? calendar.view.type : 'dayGridMonth';
                 let newEvents;
-                if (vType === 'dayGridMonth' && calendar && calendar.view) {
+                if (vType === 'dayGridMonth') {
                     let rangeInfo = { start: calendar.view.activeStart, end: calendar.view.activeEnd };
                     newEvents = getEventsForCalendarRange(rangeInfo, vType);
                 } else {
-                    let currentStart = calendar && calendar.view ? calendar.view.currentStart : new Date();
+                    let currentStart = calendar.view ? calendar.view.currentStart : new Date();
                     newEvents = generateEventsForCurrentWeek(currentStart);
                 }
-                // Xóa tất cả events hiện tại rồi thêm lại từ memory
-                calendar.getEvents().forEach(e => e.remove());
-                newEvents.forEach(e => calendar.addEvent(e));
+                try {
+                    calendar.getEvents().forEach(e => e.remove());
+                    newEvents.forEach(e => calendar.addEvent(e));
+                } catch(e) {}
             }
 
             renderSheetTable();
@@ -4450,15 +4440,8 @@
                 },
                 events: function(info, successCallback, failureCallback) {
                     let vType = this.view ? this.view.type : (calendar && calendar.view ? calendar.view.type : initialViewType);
-                    if (isDemoMode) {
-                        let events = getEventsForCalendarRange(info, vType);
-                        successCallback(events);
-                    } else {
-                        loadTutorScheduleFromBackend(function() {
-                            let events = getEventsForCalendarRange(info, vType);
-                            successCallback(events);
-                        });
-                    }
+                    let events = getEventsForCalendarRange(info, vType);
+                    successCallback(events);
                 },
 
                 eventClick: function(info) {
@@ -4976,21 +4959,45 @@
             let studentRow = (props.studentIndex !== undefined && tutorScheduleSheetData && tutorScheduleSheetData[props.studentIndex])
                 ? tutorScheduleSheetData[props.studentIndex]
                 : (Array.isArray(tutorScheduleSheetData) ? tutorScheduleSheetData.find(s => s && s.studentName && s.studentName.trim().toLowerCase() === (props.studentName || '').trim().toLowerCase()) : null);
-            let studentIdx = studentRow ? tutorScheduleSheetData.indexOf(studentRow) : props.studentIndex;
             let oldDayKey  = props.dayKey;
-            let _fcEvent = activeFcEvent; // lưu tham chiếu trước khi đóng popover
+            let sName = (studentRow && studentRow.studentName) || props.studentName || "";
 
             if (props.isOneTime) {
-                showWebConfirm("Bạn có chắc chắn muốn xóa ca học một lần này của <b>" + (props.studentName || "") + "</b> không?", function() {
-                    if (studentRow && oldDayKey) {
-                        let existing = studentRow[oldDayKey] || "";
-                        let slots = existing.split("|").map(s => s.trim());
-                        slots.splice(props.subIndex, 1);
-                        studentRow[oldDayKey] = slots.filter(s => s !== "").join(" | ");
+                closeDetailModalForce();
+                showWebConfirm("Bạn có chắc chắn muốn xóa ca học một lần này của <b>" + (sName || "học sinh") + "</b> không?", function() {
+                    if (studentRow) {
+                        let deleted = false;
+                        // 1. Tìm chính xác theo ngày DD/MM/YYYY trong ô oldDayKey
+                        if (oldDayKey && props.oneTimeDateStr && studentRow[oldDayKey]) {
+                            let slots = studentRow[oldDayKey].split("|").map(s => s.trim());
+                            let idx = slots.findIndex(s => s.includes(props.oneTimeDateStr));
+                            if (idx !== -1) {
+                                slots.splice(idx, 1);
+                                studentRow[oldDayKey] = slots.filter(s => s !== "").join(" | ");
+                                deleted = true;
+                            }
+                        }
+                        // 2. Quét qua tất cả các thứ trong tuần để tìm slot chứa ngày đó
+                        if (!deleted && props.oneTimeDateStr) {
+                            allDayKeys.forEach(dk => {
+                                let val = studentRow[dk] || "";
+                                if (val.includes(props.oneTimeDateStr)) {
+                                    let slots = val.split("|").map(s => s.trim()).filter(s => !s.includes(props.oneTimeDateStr));
+                                    studentRow[dk] = slots.join(" | ");
+                                    deleted = true;
+                                }
+                            });
+                        }
+                        // 3. Fallback: dùng subIndex trên oldDayKey
+                        if (!deleted && oldDayKey && props.subIndex !== undefined && studentRow[oldDayKey]) {
+                            let slots = studentRow[oldDayKey].split("|").map(s => s.trim());
+                            if (props.subIndex >= 0 && props.subIndex < slots.length) {
+                                slots.splice(props.subIndex, 1);
+                                studentRow[oldDayKey] = slots.filter(s => s !== "").join(" | ");
+                            }
+                        }
                     }
-                    saveAndRefetch(props.studentName, function() {
-                        closeDetailModalForce();
-                    }, 'remove', null, _fcEvent);
+                    saveAndRefetch(sName, null, 'full');
                 });
             } else {
                 closeDetailModalForce();
@@ -4999,7 +5006,7 @@
                     props: props,
                     start: new Date(props.date)
                 };
-                showRecurrenceDialog('Bạn muốn xóa ca dạy lặp lại của <b>' + (props.studentName || "") + '</b> vào ' + (oldDayKey ? oldDayKey.toUpperCase() : "") + '?', true);
+                showRecurrenceDialog('Bạn muốn xóa ca dạy lặp lại của <b>' + (sName || "") + '</b> vào ' + (oldDayKey ? oldDayKey.toUpperCase() : "") + '?', true);
             }
         }
 
@@ -5291,27 +5298,49 @@
             }, _mode, { studentIdx: targetStudentIdx, dayKey: finalTargetKey, subIdx: newSubIdx }, _oldFcEvent);
         }
 
-        // Xóa ca học cố định (hỗ trợ multi-slot)
+        // Xóa ca học cố định hoặc một lần (hỗ trợ multi-slot)
         function deleteEvent() {
             let studentIdx = parseInt(document.getElementById("eventStudentIndex").value);
             let subIdxStr  = document.getElementById("eventSubIndex").value;
             let oldDayKey = document.getElementById("eventOldDay").value;
-            let _fcEvent = activeFcEvent; // lưu tham chiếu trước khi đóng modal
+            let repeatMode = document.getElementById("eventRepeatMode").value;
+            let specDate = document.getElementById("eventSpecificDate").value;
 
-            if (!isNaN(studentIdx) && tutorScheduleSheetData && tutorScheduleSheetData[studentIdx] && oldDayKey !== "") {
-                let sName = tutorScheduleSheetData[studentIdx].studentName;
+            if (!isNaN(studentIdx) && tutorScheduleSheetData && tutorScheduleSheetData[studentIdx]) {
+                let row = tutorScheduleSheetData[studentIdx];
+                let sName = row.studentName;
                 showWebConfirm("Bạn có chắc chắn muốn xóa ca học này của <b>" + sName + "</b> không?", function() {
-                    let existing = tutorScheduleSheetData[studentIdx][oldDayKey] || "";
-                    if (subIdxStr !== "") {
-                        let slots = existing.split("|").map(s => s.trim());
-                        slots.splice(parseInt(subIdxStr), 1);
-                        tutorScheduleSheetData[studentIdx][oldDayKey] = slots.filter(s => s !== "").join(" | ");
-                    } else {
-                        tutorScheduleSheetData[studentIdx][oldDayKey] = "";
+                    let deleted = false;
+                    // Nếu là ca một lần (có ngày cụ thể)
+                    if (repeatMode === "none" && specDate) {
+                        let parts = specDate.split("-");
+                        if (parts.length === 3) {
+                            let dateStrVN = parts[2] + "/" + parts[1] + "/" + parts[0];
+                            allDayKeys.forEach(dk => {
+                                let val = row[dk] || "";
+                                if (val.includes(dateStrVN)) {
+                                    let slots = val.split("|").map(s => s.trim()).filter(s => !s.includes(dateStrVN));
+                                    row[dk] = slots.join(" | ");
+                                    deleted = true;
+                                }
+                            });
+                        }
                     }
-                    saveAndRefetch(sName, function() {
-                        closeModalForce();
-                    }, 'remove', null, _fcEvent);
+                    if (!deleted && oldDayKey && oldDayKey !== "") {
+                        let existing = row[oldDayKey] || "";
+                        if (subIdxStr !== "") {
+                            let slots = existing.split("|").map(s => s.trim());
+                            let idx = parseInt(subIdxStr);
+                            if (idx >= 0 && idx < slots.length) {
+                                slots.splice(idx, 1);
+                                row[oldDayKey] = slots.filter(s => s !== "").join(" | ");
+                            }
+                        } else {
+                            row[oldDayKey] = "";
+                        }
+                    }
+                    closeModalForce();
+                    saveAndRefetch(sName, null, 'full');
                 });
             }
         }
