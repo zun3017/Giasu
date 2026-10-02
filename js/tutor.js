@@ -6223,7 +6223,30 @@ window.initTutorSidebarState = initTutorSidebarState;
 
         // 4. Cửa sổ Thêm buổi học (Add Lesson) & Preview
         function openAddLessonModal() {
-            if(!currentTutorStudent) return;
+            if (!currentTutorStudent) {
+                var diaryFilter = document.getElementById('diaryStudentFilter');
+                var students = (typeof getTutorStudentsResolved === 'function') 
+                    ? getTutorStudentsResolved() 
+                    : ((tutorDataGlobal && tutorDataGlobal.students) ? tutorDataGlobal.students : []);
+                if (diaryFilter && diaryFilter.value && students.length > 0) {
+                    var found = students.find(function(s) { return s.name.trim() === diaryFilter.value.trim(); });
+                    if (found) currentTutorStudent = found;
+                }
+                if (!currentTutorStudent && students.length > 0) {
+                    currentTutorStudent = students[0];
+                }
+            }
+
+            if (!currentTutorStudent) {
+                showToast("Vui lòng thêm học sinh trước khi tạo buổi học!", "warning");
+                if (typeof openAddStudentModal === 'function') openAddStudentModal();
+                return;
+            }
+
+            var stBadge = document.getElementById('addLessonStudentBadge');
+            if (stBadge) {
+                stBadge.innerText = "(Học sinh: " + currentTutorStudent.name + ")";
+            }
             
             var today = new Date();
             var dd = String(today.getDate()).padStart(2, '0');
@@ -7170,11 +7193,13 @@ window.initTutorSidebarState = initTutorSidebarState;
                     totalHtml += "</div>";
                 }
                 
+                container.innerHTML = totalHtml;
             } else {
                 container.innerHTML = '<div class="empty-state">' +
                     '<div class="empty-state-icon"><i class="fa-solid fa-book-open"></i></div>' +
                     '<div class="empty-state-title">Chưa có nhật ký buổi học</div>' +
                     '<div class="empty-state-desc">Nhật ký sẽ xuất hiện sau khi bạn ghi nhận buổi dạy đầu tiên cho học sinh này.</div>' +
+                    '<button type="button" class="empty-state-btn" onclick="openAddLessonModal()"><i class="fa-solid fa-calendar-plus"></i> Thêm buổi học đầu tiên</button>' +
                     '</div>';
             }
         }
