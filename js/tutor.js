@@ -2341,6 +2341,127 @@ function initVietnameseDatePicker(textInputId, pickerInputId, onChangeCallback) 
 }
 window.initVietnameseDatePicker = initVietnameseDatePicker;
 
+function getActiveThemeInvoiceColors() {
+    var docEl = document.documentElement;
+    var s = window.getComputedStyle(docEl);
+    var primary = (s.getPropertyValue('--color-primary') || '').trim();
+    if (!primary) primary = '#8E4DFF';
+    
+    var rgbStr = (s.getPropertyValue('--color-primary-rgb') || '').trim();
+    var r = 142, g = 77, b = 255;
+    if (rgbStr && rgbStr.indexOf(',') !== -1) {
+        var parts = rgbStr.split(',').map(function(p) { return parseInt(p.trim(), 10); });
+        if (parts.length >= 3 && !isNaN(parts[0])) {
+            r = parts[0]; g = parts[1]; b = parts[2];
+        }
+    } else if (primary.startsWith('#') && primary.length === 7) {
+        r = parseInt(primary.slice(1, 3), 16) || 142;
+        g = parseInt(primary.slice(3, 5), 16) || 77;
+        b = parseInt(primary.slice(5, 7), 16) || 255;
+    }
+
+    var softBg = 'rgba(' + r + ', ' + g + ', ' + b + ', 0.10)';
+    var softBorder = 'rgba(' + r + ', ' + g + ', ' + b + ', 0.30)';
+
+    return {
+        primary: primary,
+        rgb: r + ', ' + g + ', ' + b,
+        softBg: softBg,
+        softBorder: softBorder
+    };
+}
+window.getActiveThemeInvoiceColors = getActiveThemeInvoiceColors;
+
+function getDefaultInvoiceSections(st, isMonthly, unitFeeStr) {
+    var subject = (st && st.subject) ? st.subject.toLowerCase() : "";
+    var isMath = subject.includes("toán") || subject.includes("toan") || subject.includes("math") || !subject;
+    
+    var feedbackHtml = '';
+    var roadmapHtml = '';
+    
+    if (isMath) {
+        feedbackHtml = 
+            '<div style="margin-bottom: 3px;"><b>Tổng quan:</b></div>' +
+            '<div>+ Chưa chủ động trong quá trình học, thường xuyên thiếu BTVN, trong giờ học hay sao nhãng, nói chuyện riêng, không ôn bài về nhà.</div>' +
+            '<div>+ Trình bày bài chưa chỉn chu, làm ẩu.</div>' +
+            '<div style="margin-top: 6px; margin-bottom: 3px;"><b>Đại số:</b></div>' +
+            '<div>+ Tư duy số học tốt, nắm được cách giải hệ phương trình, bài toán liên quan.</div>' +
+            '<div>+ Thường xuyên sai các lỗi nhỏ vặt trong tính toán.</div>' +
+            '<div style="margin-top: 6px; margin-bottom: 3px;"><b>Hình học:</b></div>' +
+            '<div>+ Giải được các bài toán lượng giác cơ bản</div>' +
+            '<div>+ Cần ôn tập lại các kiến thức liên quan đến tam giác đồng dạng, song song, các đường đặc biệt trong tam giác.</div>';
+            
+        roadmapHtml = 
+            '<div><b>Đại số:</b> Hoàn thành chuyên đề hệ phương trình và bất phương trình</div>' +
+            '<div><b>Hình học:</b> Hoàn thành chuyên đề hệ thức lượng, mở đầu về đường tròn</div>';
+    } else {
+        feedbackHtml = 
+            '<div style="margin-bottom: 3px;"><b>Tổng quan:</b></div>' +
+            '<div>+ Có tinh thần học tập tích cực, tiếp thu bài nhanh và chú ý nghe giảng.</div>' +
+            '<div>+ Hoàn thành đầy đủ bài tập và chủ động hỏi bài khi gặp dạng khó.</div>' +
+            '<div style="margin-top: 6px; margin-bottom: 3px;"><b>Kiến thức & Kỹ năng:</b></div>' +
+            '<div>+ Nắm chắc các nội dung kiến thức trọng tâm đã học trong kỳ vừa qua.</div>' +
+            '<div>+ Kỹ năng làm bài ngày càng tiến bộ và chuẩn xác.</div>';
+            
+        roadmapHtml = 
+            '<div><b>Chuyên đề tới:</b> Tiếp tục củng cố kiến thức trọng tâm và mở rộng các dạng bài nâng cao.</div>' +
+            '<div><b>Mục tiêu:</b> Tối ưu tốc độ làm bài và đạt kết quả xuất sắc trong các bài kiểm tra.</div>';
+    }
+
+    var scheduleHtml = '';
+    var sSched = null;
+    if (typeof lastLoadedTutorSchedule !== 'undefined' && Array.isArray(lastLoadedTutorSchedule)) {
+        sSched = lastLoadedTutorSchedule.find(function(s) { 
+            return s && s.studentName && s.studentName.trim() === (st ? st.name.trim() : ""); 
+        });
+    }
+    var dayLabels = [
+        { k: 'mon', label: 'Chiều thứ 2' },
+        { k: 'tue', label: 'Chiều thứ 3' },
+        { k: 'wed', label: 'Chiều thứ 4' },
+        { k: 'thu', label: 'Chiều thứ 5' },
+        { k: 'fri', label: 'Chiều thứ 6' },
+        { k: 'sat', label: 'Chiều thứ 7' },
+        { k: 'sun', label: 'Chiều chủ nhật' }
+    ];
+    var schedLines = [];
+    if (sSched) {
+        dayLabels.forEach(function(d) {
+            if (sSched[d.k] && String(sSched[d.k]).trim() !== "") {
+                schedLines.push('<div><b>' + d.label + ':</b> ' + String(sSched[d.k]).trim() + '</div>');
+            }
+        });
+    }
+    if (schedLines.length > 0) {
+        scheduleHtml = schedLines.join('');
+    } else {
+        scheduleHtml = '<div><b>Chiều thứ 4:</b> 16h - 18h</div><div><b>Chiều thứ 7:</b> 13h - 15h</div><div><b>Chiều chủ nhật:</b> 13h - 15h</div>';
+    }
+
+    var tuitionExtraHtml = 
+        '<div><b>Học phí cơ bản:</b> ' + unitFeeStr + (isMonthly ? '/tháng' : '/buổi') + '</div>' +
+        '<div><b>Học phí bổ trợ tối:</b> 30k/buổi</div>';
+
+    var footerNote = 'Phụ huynh vui lòng kiểm tra thông tin học phí và lịch học. Cháu cảm ơn ạ.';
+
+    return {
+        feedbackHtml: feedbackHtml,
+        roadmapHtml: roadmapHtml,
+        scheduleHtml: scheduleHtml,
+        tuitionExtraHtml: tuitionExtraHtml,
+        footerNote: footerNote
+    };
+}
+window.getDefaultInvoiceSections = getDefaultInvoiceSections;
+
+function onTuitionCustomFieldInput(field, val) {
+    if (!window.tuitionInvoiceModalState) window.tuitionInvoiceModalState = {};
+    window.tuitionInvoiceModalState[field] = val;
+    window.tuitionInvoiceHasUnsavedChanges = true;
+    autoSaveTuitionDraft();
+}
+window.onTuitionCustomFieldInput = onTuitionCustomFieldInput;
+
 window.tuitionInvoiceModalState = {
     studentName: "",
     displayMonth: "",
@@ -2354,7 +2475,10 @@ window.tuitionInvoiceModalState = {
         dates: true,
         discount: false,
         surcharge: false,
-        qr: true
+        qr: true,
+        feedback: true,
+        roadmap: true,
+        schedule: true
     },
     discountAmount: 0,
     surchargeAmount: 0,
@@ -2362,6 +2486,11 @@ window.tuitionInvoiceModalState = {
     endDate: "",
     customTitle: "",
     isCustomTitle: false,
+    feedbackText: "",
+    roadmapText: "",
+    scheduleText: "",
+    tuitionExtraText: "",
+    footerNoteText: "",
     restoredFromDraft: false,
     isDraftSaved: false
 };
@@ -2399,6 +2528,11 @@ function autoSaveTuitionDraft() {
             endDate: state.endDate,
             customTitle: state.customTitle || "",
             isCustomTitle: !!state.isCustomTitle,
+            feedbackText: state.feedbackText || "",
+            roadmapText: state.roadmapText || "",
+            scheduleText: state.scheduleText || "",
+            tuitionExtraText: state.tuitionExtraText || "",
+            footerNoteText: state.footerNoteText || "",
             savedAt: new Date().toISOString()
         };
         localStorage.setItem(key, JSON.stringify(draftData));
@@ -2442,6 +2576,11 @@ function saveTuitionDraftModal() {
                 endDate: state.endDate,
                 customTitle: state.customTitle || "",
                 isCustomTitle: !!state.isCustomTitle,
+                feedbackText: state.feedbackText || "",
+                roadmapText: state.roadmapText || "",
+                scheduleText: state.scheduleText || "",
+                tuitionExtraText: state.tuitionExtraText || "",
+                footerNoteText: state.footerNoteText || "",
                 savedAt: new Date().toISOString()
             };
             localStorage.setItem(draftKey, JSON.stringify(draftData));
@@ -2497,6 +2636,11 @@ window.onTuitionPeriodTitleChange = onTuitionPeriodTitleChange;
 function buildTuitionModalForm(st, studentLogs) {
     var formCol = document.getElementById('tuitionInvoiceFormCol');
     if (!formCol) return;
+    if (st) window.currentTuitionInvoiceStudent = st;
+    if (studentLogs) window.currentTuitionInvoiceLogs = studentLogs;
+    st = st || window.currentTuitionInvoiceStudent;
+    studentLogs = studentLogs || window.currentTuitionInvoiceLogs || [];
+    if (!st) return;
 
     var state = window.tuitionInvoiceModalState || {};
     var toggles = state.toggles || {};
@@ -2645,6 +2789,45 @@ function buildTuitionModalForm(st, studentLogs) {
     html += '  </label>';
     html += '</div>';
 
+    var curTmpl = state.template || window.currentTuitionTemplate || 1;
+    if (curTmpl === 2) {
+        // Card 10: Nhận xét học tập
+        html += '<div class="tuition-toggle-card">';
+        html += '  <div>';
+        html += '    <div class="tuition-toggle-label">Nhận xét học tập</div>';
+        html += '    <div class="tuition-toggle-val">' + (toggles.feedback !== false ? 'Hiển thị' : 'Đã ẩn') + '</div>';
+        html += '  </div>';
+        html += '  <label class="tuition-switch">';
+        html += '    <input type="checkbox" id="toggleFeedback" data-key="feedback"' + (toggles.feedback !== false ? ' checked' : '') + ' onchange="onTuitionToggleChange(\'toggleFeedback\', \'feedback\')">';
+        html += '    <span class="tuition-slider"></span>';
+        html += '  </label>';
+        html += '</div>';
+
+        // Card 11: Lộ trình sắp tới
+        html += '<div class="tuition-toggle-card">';
+        html += '  <div>';
+        html += '    <div class="tuition-toggle-label">Lộ trình sắp tới</div>';
+        html += '    <div class="tuition-toggle-val">' + (toggles.roadmap !== false ? 'Hiển thị' : 'Đã ẩn') + '</div>';
+        html += '  </div>';
+        html += '  <label class="tuition-switch">';
+        html += '    <input type="checkbox" id="toggleRoadmap" data-key="roadmap"' + (toggles.roadmap !== false ? ' checked' : '') + ' onchange="onTuitionToggleChange(\'toggleRoadmap\', \'roadmap\')">';
+        html += '    <span class="tuition-slider"></span>';
+        html += '  </label>';
+        html += '</div>';
+
+        // Card 12: Khung lịch học
+        html += '<div class="tuition-toggle-card" style="grid-column: 1 / -1;">';
+        html += '  <div>';
+        html += '    <div class="tuition-toggle-label">Khung lịch học & Học phí chi tiết</div>';
+        html += '    <div class="tuition-toggle-val">' + (toggles.schedule !== false ? 'Hiển thị' : 'Đã ẩn') + '</div>';
+        html += '  </div>';
+        html += '  <label class="tuition-switch">';
+        html += '    <input type="checkbox" id="toggleSchedule" data-key="schedule"' + (toggles.schedule !== false ? ' checked' : '') + ' onchange="onTuitionToggleChange(\'toggleSchedule\', \'schedule\')">';
+        html += '    <span class="tuition-slider"></span>';
+        html += '  </label>';
+        html += '</div>';
+    }
+
     html += '</div>'; // End .tuition-toggle-grid
 
     // Input for discount
@@ -2785,6 +2968,7 @@ function renderTuitionLivePreview() {
     var toggles = state.toggles || {};
     var discount = toggles.discount ? (state.discountAmount || 0) : 0;
     var surcharge = toggles.surcharge ? (state.surchargeAmount || 0) : 0;
+    var themeColors = getActiveThemeInvoiceColors();
 
     var students = (typeof getTutorStudentsResolved === 'function') 
         ? getTutorStudentsResolved() 
@@ -2948,7 +3132,7 @@ function renderTuitionLivePreview() {
                 attendedLogs.push(l);
                 var dObj = parseInputDate(lDateText);
                 var chipLabel = dObj ? (String(dObj.getDate()).padStart(2, '0') + '/' + String(dObj.getMonth() + 1).padStart(2, '0')) : lDateText;
-                dateChipsHtml += '<span style="background: #F3E8FF; color: #6D28D9; border: 1px solid #DDD6FE; font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 6px;">' + chipLabel + '</span>';
+                dateChipsHtml += '<span style="background: ' + themeColors.softBg + '; color: ' + themeColors.primary + '; border: 1px solid ' + themeColors.softBorder + '; font-size: 10.5px; font-weight: 700; padding: 2.5px 6px; border-radius: 6px; text-align: center; min-width: 42px; display: inline-block;">' + chipLabel + '</span>';
             }
         });
     }
@@ -2966,78 +3150,100 @@ function renderTuitionLivePreview() {
     }
 
     if (tmpl === 2) {
-        // ==================== MẪU 2: GIAO DIỆN 2 CỘT & NHẬN XÉT (THEME TÍM MẪU 1) ====================
-        html += '<div id="tuitionInvoiceCard" class="tuition-receipt-card">';
+        var defaultSections = getDefaultInvoiceSections(st, isMonthly, unitFeeStr);
+
+        var feedbackContent = (state.feedbackText !== undefined && state.feedbackText !== "") 
+            ? state.feedbackText 
+            : defaultSections.feedbackHtml;
+            
+        var roadmapContent = (state.roadmapText !== undefined && state.roadmapText !== "") 
+            ? state.roadmapText 
+            : defaultSections.roadmapHtml;
+            
+        var scheduleContent = (state.scheduleText !== undefined && state.scheduleText !== "") 
+            ? state.scheduleText 
+            : defaultSections.scheduleHtml;
+            
+        var tuitionExtraContent = (state.tuitionExtraText !== undefined && state.tuitionExtraText !== "") 
+            ? state.tuitionExtraText 
+            : defaultSections.tuitionExtraHtml;
+            
+        var footerNoteContent = (state.footerNoteText !== undefined && state.footerNoteText !== "") 
+            ? state.footerNoteText 
+            : defaultSections.footerNote;
+
+        // ==================== MẪU 2: PHIẾU HỌC PHÍ THEO MẪU BÁO CÁO TOÀN DIỆN (THEME HỆ THỐNG) ====================
+        html += '<div id="tuitionInvoiceCard" class="tuition-receipt-card template-2-card" style="border: 1.5px solid ' + themeColors.primary + '; border-radius: 24px; padding: 24px 22px; background: #FFFFFF; box-shadow: 0 12px 36px rgba(0,0,0,0.06); font-family: \'Plus Jakarta Sans\', -apple-system, BlinkMacSystemFont, sans-serif; color: #1E293B; box-sizing: border-box;">';
         
         // 1. Top row: GV và SĐT
-        html += '<div style="display: flex; justify-content: space-between; align-items: center; font-size: 12px; font-weight: 700; color: #1E293B; margin-bottom: 12px; padding-bottom: 6px; border-bottom: 1px dashed #E2E8F0;">';
-        html += '<span><i class="fa-solid fa-chalkboard-user" style="color: #7C3AED; margin-right: 4px;"></i> GV. ' + tutorName + '</span>';
-        html += '<span><i class="fa-solid fa-phone" style="color: #7C3AED; margin-right: 4px;"></i> SĐT: ' + tutorPhone + '</span>';
+        html += '<div style="display: flex; justify-content: space-between; align-items: center; font-size: 13px; font-weight: 600; color: #334155; margin-bottom: 12px;">';
+        html += '<span>GV. ' + tutorName + '</span>';
+        html += '<span>SĐT. ' + tutorPhone + '</span>';
         html += '</div>';
 
         // 2. Centered Title
-        html += '<div style="text-align: center; margin-bottom: 14px;">';
-        html += '<h2 style="font-size: 20px; font-weight: 900; color: #6D28D9; margin: 0; text-transform: uppercase; letter-spacing: 0.5px;">' + periodTitle + '</h2>';
+        html += '<div style="text-align: center; margin-bottom: 16px;">';
+        html += '<h2 style="font-size: 22px; font-weight: 900; color: ' + themeColors.primary + '; margin: 0; text-transform: uppercase; letter-spacing: 0.5px;">' + periodTitle + '</h2>';
         html += '</div>';
 
-        // 3. 2-Column Section
-        html += '<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">';
+        // 3. 2-Column Section (THÔNG TIN HỌC SINH & TỔNG HỌC PHÍ / QR)
+        html += '<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;">';
 
         // Left Box: THÔNG TIN HỌC SINH
-        html += '<div style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 16px; padding: 12px 14px; display: flex; flex-direction: column; gap: 7px;">';
-        html += '<div style="font-size: 10.5px; font-weight: 800; color: #64748B; text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 2px;"><i class="fa-solid fa-user-graduate" style="color: #7C3AED; margin-right: 4px;"></i> THÔNG TIN HỌC SINH</div>';
+        html += '<div style="background: #FFFFFF; border: 1.5px solid ' + themeColors.softBorder + '; border-radius: 16px; padding: 12px 14px; display: flex; flex-direction: column; justify-content: space-between;">';
+        html += '<div style="font-size: 11.5px; font-weight: 800; color: ' + themeColors.primary + '; text-transform: uppercase; letter-spacing: 0.5px; padding-bottom: 6px; border-bottom: 1.5px solid ' + themeColors.softBorder + '; margin-bottom: 4px;">THÔNG TIN HỌC SINH</div>';
 
         if (toggles.student !== false) {
-            html += '<div style="display: flex; justify-content: space-between; font-size: 12px;">';
+            html += '<div style="display: flex; justify-content: space-between; align-items: center; font-size: 11.5px; padding: 4.5px 0; border-bottom: 1px dotted #CBD5E1;">';
             html += '<span style="color: #64748B;">Họ và tên:</span>';
             html += '<b style="color: #0F172A;">' + st.name + '</b>';
             html += '</div>';
         }
         if (toggles.class !== false) {
-            html += '<div style="display: flex; justify-content: space-between; font-size: 12px;">';
+            html += '<div style="display: flex; justify-content: space-between; align-items: center; font-size: 11.5px; padding: 4.5px 0; border-bottom: 1px dotted #CBD5E1;">';
             html += '<span style="color: #64748B;">Lớp:</span>';
             html += '<b style="color: #0F172A;">' + classSubjectStr + '</b>';
             html += '</div>';
         }
         if (toggles.fee !== false) {
-            html += '<div style="display: flex; justify-content: space-between; font-size: 12px;">';
+            html += '<div style="display: flex; justify-content: space-between; align-items: center; font-size: 11.5px; padding: 4.5px 0; border-bottom: 1px dotted #CBD5E1;">';
             html += '<span style="color: #64748B;">Học phí:</span>';
-            html += '<b style="color: #0F172A;">' + unitFeeStr + '</b>';
+            html += '<b style="color: #0F172A;">' + unitFeeStr + (isMonthly ? '/tháng' : '/buổi') + '</b>';
             html += '</div>';
         }
         if (toggles.sessions !== false) {
-            html += '<div style="display: flex; justify-content: space-between; font-size: 12px;">';
+            html += '<div style="display: flex; justify-content: space-between; align-items: center; font-size: 11.5px; padding: 4.5px 0; border-bottom: 1px dotted #CBD5E1;">';
             html += '<span style="color: #64748B;">Buổi học:</span>';
-            html += '<b style="color: #0F172A;">' + invBillableCount + '</b>';
+            html += '<b style="color: #0F172A;">' + invBillableCount + ' buổi</b>';
             html += '</div>';
         }
         if (toggles.hours !== false) {
-            html += '<div style="display: flex; justify-content: space-between; font-size: 12px;">';
+            html += '<div style="display: flex; justify-content: space-between; align-items: center; font-size: 11.5px; padding: 4.5px 0; border-bottom: 1px dotted #CBD5E1;">';
             html += '<span style="color: #64748B;">Giờ học:</span>';
             html += '<b style="color: #0F172A;">' + totalHours + ' giờ</b>';
             html += '</div>';
         }
         if (toggles.discount && discount > 0) {
-            html += '<div style="display: flex; justify-content: space-between; font-size: 12px; color: #EA580C;">';
+            html += '<div style="display: flex; justify-content: space-between; align-items: center; font-size: 11.5px; padding: 4.5px 0; border-bottom: 1px dotted #CBD5E1; color: #EA580C;">';
             html += '<span>Giảm trừ:</span>';
             html += '<b>-' + Number(discount).toLocaleString('vi-VN') + ' đ</b>';
             html += '</div>';
         }
         if (toggles.surcharge && surcharge > 0) {
-            html += '<div style="display: flex; justify-content: space-between; font-size: 12px; color: #16A34A;">';
+            html += '<div style="display: flex; justify-content: space-between; align-items: center; font-size: 11.5px; padding: 4.5px 0; border-bottom: 1px dotted #CBD5E1; color: #16A34A;">';
             html += '<span>Phụ thu:</span>';
             html += '<b>+' + Number(surcharge).toLocaleString('vi-VN') + ' đ</b>';
             html += '</div>';
         }
         if (toggles.dates !== false) {
-            html += '<div style="margin-top: 4px;">';
+            html += '<div style="padding-top: 5px;">';
             html += '<div style="font-size: 11px; color: #64748B; margin-bottom: 5px; font-weight: 600;">Ngày học:</div>';
             if (dateChipsHtml) {
                 html += '<div style="display: flex; flex-wrap: wrap; gap: 4px;">';
                 html += dateChipsHtml;
                 html += '</div>';
             } else {
-                html += '<div style="font-size: 11.5px; color: #94A3B8; font-style: italic;">Chưa có buổi học nào</div>';
+                html += '<div style="font-size: 11px; color: #94A3B8; font-style: italic;">Chưa có buổi học nào</div>';
             }
             html += '</div>';
         }
@@ -3045,35 +3251,64 @@ function renderTuitionLivePreview() {
         html += '</div>'; // End Left Box
 
         // Right Box: TỔNG HỌC PHÍ & QR
-        html += '<div style="background: #FAF5FF; border: 1px solid #EDE9FE; border-radius: 16px; padding: 12px 14px; display: flex; flex-direction: column; align-items: center; justify-content: space-between;">';
-        html += '<div style="width: 100%; text-align: left;">';
-        html += '<div style="font-size: 10.5px; font-weight: 800; color: #4C1D95; text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 2px;"><i class="fa-solid fa-coins" style="color: #7C3AED; margin-right: 4px;"></i> TỔNG HỌC PHÍ</div>';
-        html += '<div style="font-size: 22px; font-weight: 900; color: #6D28D9; margin-top: 2px; letter-spacing: -0.5px;">' + grandTotalStr + '</div>';
+        html += '<div style="background: #FFFFFF; border: 1.5px solid ' + themeColors.softBorder + '; border-radius: 16px; padding: 12px 14px; display: flex; flex-direction: column; align-items: center; justify-content: space-between; text-align: center;">';
+        html += '<div style="width: 100%; text-align: center;">';
+        html += '<div style="font-size: 11px; font-weight: 800; color: ' + themeColors.primary + '; text-transform: uppercase; letter-spacing: 0.5px;">TỔNG HỌC PHÍ</div>';
+        html += '<div style="font-size: 23px; font-weight: 900; color: ' + themeColors.primary + '; letter-spacing: -0.5px; margin: 2px 0 6px 0;">' + grandTotalStr + '</div>';
         html += '</div>';
 
         if (toggles.qr !== false) {
-            html += '<div style="margin: 6px 0; text-align: center;">';
-            html += '<img src="' + qrImgSrc + '" style="width: 125px; height: 125px; object-fit: contain; border-radius: 10px; border: 1px solid #DDD6FE; background: #FFF; padding: 4px; box-sizing: border-box;" alt="VietQR" crossorigin="anonymous">';
+            html += '<div style="margin: 4px 0; text-align: center;">';
+            html += '<img src="' + qrImgSrc + '" style="width: 130px; height: 130px; object-fit: contain; border-radius: 10px; border: 1px solid #E2E8F0; background: #FFF; padding: 4px; box-sizing: border-box;" alt="VietQR" crossorigin="anonymous">';
             html += '</div>';
         }
 
-        html += '<div style="font-size: 11px; color: #475569; text-align: left; width: 100%; line-height: 1.55;">';
-        html += '<div><span style="color: #64748B;">Ngân hàng:</span> <b style="color: #0F172A;">' + bankName + '</b></div>';
-        html += '<div><span style="color: #64748B;">Số TK:</span> <b style="color: #6D28D9; font-weight: 800;">' + bankAcc + '</b></div>';
+        html += '<div style="font-size: 11px; color: #475569; text-align: center; width: 100%; line-height: 1.55;">';
+        html += '<div><span style="color: #64748B;">Ngân hàng:</span> <b style="color: #0F172A;">' + (bankName || "Techcombank") + '</b></div>';
+        html += '<div><span style="color: #64748B;">Số TK:</span> <b style="color: ' + themeColors.primary + '; font-weight: 800;">' + bankAcc + '</b></div>';
         html += '<div><span style="color: #64748B;">Chủ TK:</span> <b style="color: #0F172A;">' + tutorName.toUpperCase() + '</b></div>';
         html += '</div>';
 
         html += '</div>'; // End Right Box
         html += '</div>'; // End 2-Column Section
 
-        // 4. Bottom Box: Lời nhắn gửi phụ huynh (Ảnh 2)
-        html += '<div class="msg-box">';
-        html += '<div>';
-        html += '<div class="msg-header"><i class="fa-regular fa-comment-dots"></i> Lời nhắn gửi phụ huynh</div>';
-        html += '<div class="msg-text" id="invTextarea" contenteditable="true">' + msgContent + '</div>';
-        html += '</div>';
-        html += '<div class="msg-footer">Đồng hành cùng sự tiến bộ của học sinh!</div>';
-        html += '</div>';
+        // 4. Section: NHẬN XÉT HỌC TẬP
+        if (toggles.feedback !== false) {
+            html += '<div style="margin-top: 14px;">';
+            html += '<div style="font-size: 12.5px; font-weight: 800; color: ' + themeColors.primary + '; text-transform: uppercase; letter-spacing: 0.5px; padding-bottom: 5px; border-bottom: 1.5px solid ' + themeColors.softBorder + '; margin-bottom: 8px;">NHẬN XÉT HỌC TẬP</div>';
+            html += '<div id="invFeedbackText" contenteditable="true" style="font-size: 11.5px; color: #1E293B; line-height: 1.6; outline: none; padding: 2px 0;" oninput="onTuitionCustomFieldInput(\'feedbackText\', this.innerHTML)">' + feedbackContent + '</div>';
+            html += '</div>';
+        }
+
+        // 5. Section: LỘ TRÌNH SẮP TỚI
+        if (toggles.roadmap !== false) {
+            html += '<div style="margin-top: 14px;">';
+            html += '<div style="font-size: 12.5px; font-weight: 800; color: ' + themeColors.primary + '; text-transform: uppercase; letter-spacing: 0.5px; padding-bottom: 5px; border-bottom: 1.5px solid ' + themeColors.softBorder + '; margin-bottom: 8px;">LỘ TRÌNH SẮP TỚI</div>';
+            html += '<div id="invRoadmapText" contenteditable="true" style="font-size: 11.5px; color: #1E293B; line-height: 1.6; outline: none; padding: 2px 0;" oninput="onTuitionCustomFieldInput(\'roadmapText\', this.innerHTML)">' + roadmapContent + '</div>';
+            html += '</div>';
+        }
+
+        // 6. Section: 2 Cột LỊCH HỌC & HỌC PHÍ
+        if (toggles.schedule !== false) {
+            html += '<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 14px;">';
+            
+            // Cột LỊCH HỌC
+            html += '<div>';
+            html += '<div style="font-size: 12px; font-weight: 800; color: ' + themeColors.primary + '; text-transform: uppercase; letter-spacing: 0.5px; padding-bottom: 4px; border-bottom: 1.5px solid ' + themeColors.softBorder + '; margin-bottom: 6px;">LỊCH HỌC</div>';
+            html += '<div id="invScheduleText" contenteditable="true" style="font-size: 11.5px; color: #1E293B; line-height: 1.6; outline: none; padding: 2px 0;" oninput="onTuitionCustomFieldInput(\'scheduleText\', this.innerHTML)">' + scheduleContent + '</div>';
+            html += '</div>';
+
+            // Cột HỌC PHÍ
+            html += '<div>';
+            html += '<div style="font-size: 12px; font-weight: 800; color: ' + themeColors.primary + '; text-transform: uppercase; letter-spacing: 0.5px; padding-bottom: 4px; border-bottom: 1.5px solid ' + themeColors.softBorder + '; margin-bottom: 6px;">HỌC PHÍ</div>';
+            html += '<div id="invTuitionExtraText" contenteditable="true" style="font-size: 11.5px; color: #1E293B; line-height: 1.6; outline: none; padding: 2px 0;" oninput="onTuitionCustomFieldInput(\'tuitionExtraText\', this.innerHTML)">' + tuitionExtraContent + '</div>';
+            html += '</div>';
+
+            html += '</div>';
+        }
+
+        // 7. Footer Banner Lời dặn dò
+        html += '<div id="invFooterNoteText" contenteditable="true" style="background: ' + themeColors.softBg + '; color: ' + themeColors.primary + '; border: 1px solid ' + themeColors.softBorder + '; border-radius: 20px; padding: 9px 16px; text-align: center; font-size: 11.5px; font-weight: 600; outline: none; margin-top: 16px; line-height: 1.5;" oninput="onTuitionCustomFieldInput(\'footerNoteText\', this.innerText)">' + footerNoteContent + '</div>';
 
         html += '</div>'; // End Mẫu 2 #tuitionInvoiceCard
     } else {
@@ -3236,6 +3471,9 @@ function switchTuitionTemplate(tmpl, isInitial) {
     if (previewTitleEl) {
         previewTitleEl.textContent = "Phiếu hiển thị trực tiếp • Mẫu " + tmpl;
     }
+    if (window.currentTuitionInvoiceStudent && typeof buildTuitionModalForm === 'function') {
+        buildTuitionModalForm(window.currentTuitionInvoiceStudent, window.currentTuitionInvoiceLogs);
+    }
     renderTuitionLivePreview();
     autoSaveTuitionDraft();
 }
@@ -3385,7 +3623,10 @@ function openStudentInvoiceModal(studentName) {
                 dates: true,
                 discount: false,
                 surcharge: false,
-                qr: true
+                qr: true,
+                feedback: true,
+                roadmap: true,
+                schedule: true
             },
             discountAmount: draftObj.discountAmount || 0,
             surchargeAmount: draftObj.surchargeAmount || 0,
@@ -3393,6 +3634,11 @@ function openStudentInvoiceModal(studentName) {
             endDate: eDateVal,
             customTitle: draftObj.customTitle || generateTuitionPeriodTitle(sDateVal, eDateVal, restoredTmpl),
             isCustomTitle: !!draftObj.isCustomTitle,
+            feedbackText: draftObj.feedbackText || "",
+            roadmapText: draftObj.roadmapText || "",
+            scheduleText: draftObj.scheduleText || "",
+            tuitionExtraText: draftObj.tuitionExtraText || "",
+            footerNoteText: draftObj.footerNoteText || "",
             restoredFromDraft: true,
             isDraftSaved: true
         };
@@ -3409,7 +3655,10 @@ function openStudentInvoiceModal(studentName) {
                 dates: true,
                 discount: false,
                 surcharge: false,
-                qr: true
+                qr: true,
+                feedback: true,
+                roadmap: true,
+                schedule: true
             },
             discountAmount: 0,
             surchargeAmount: 0,
@@ -3417,6 +3666,11 @@ function openStudentInvoiceModal(studentName) {
             endDate: defaultEndStr,
             customTitle: defaultTitle,
             isCustomTitle: false,
+            feedbackText: "",
+            roadmapText: "",
+            scheduleText: "",
+            tuitionExtraText: "",
+            footerNoteText: "",
             restoredFromDraft: false,
             isDraftSaved: false
         };

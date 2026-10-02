@@ -2486,10 +2486,10 @@
             color: #64748B;
         }
         .btn-template-pill.active {
-            background: #7C3AED !important;
+            background: var(--color-primary, #7C3AED) !important;
             color: #FFFFFF !important;
-            border-color: #7C3AED !important;
-            box-shadow: 0 2px 8px rgba(124, 58, 237, 0.25);
+            border-color: var(--color-primary, #7C3AED) !important;
+            box-shadow: 0 2px 8px rgba(var(--color-primary-rgb, 124, 58, 237), 0.25);
         }
         /* Tuition Receipt Preview Card */
         .tuition-receipt-card {
@@ -2513,6 +2513,16 @@
             top: 0; left: 0; right: 0;
             height: 6px;
             background: linear-gradient(90deg, #8E4DFF 0%, #3B82F6 50%, #10B981 100%);
+        }
+        .tuition-receipt-card.template-2-card {
+            border: 1.5px solid var(--color-primary, #8E4DFF) !important;
+            border-radius: 24px !important;
+            padding: 22px 20px !important;
+            box-shadow: 0 12px 36px rgba(0, 0, 0, 0.06) !important;
+            background: #FFFFFF !important;
+        }
+        .tuition-receipt-card.template-2-card::before {
+            display: none !important;
         }
 
         /* 2-column Toggle Card Grid */
