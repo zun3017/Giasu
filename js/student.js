@@ -872,11 +872,6 @@ function updateStudentMonthlyStats(monthKey) {
     if (typeof renderProgressComparison === 'function') {
         renderProgressComparison(lichSu);
     }
-
-    // 7. Huy hiệu & Thành tích nổi bật
-    if (typeof renderAchievementBadges === 'function') {
-        renderAchievementBadges(lichSu);
-    }
 }
 
 // ===== TASK 15.3: 2 BIỂU ĐỒ TRÒN DONUT (BTVN & CHUYÊN CẦN TÍNH THEO THÁNG) =====
@@ -1526,98 +1521,4 @@ function renderProgressComparison(logs) {
     }).join('');
 }
 window.renderProgressComparison = renderProgressComparison;
-
-function renderAchievementBadges(logs) {
-    var wrapper = document.getElementById('achievementBadges');
-    var grid = document.getElementById('badgesGrid');
-    if (!wrapper || !grid) return;
-
-    var allLogs = (logs && Array.isArray(logs)) ? logs : [];
-    if (allLogs.length === 0) {
-        wrapper.style.display = 'none';
-        return;
-    }
-
-    var badges = [];
-    var totalLogs = allLogs.length;
-
-    // Đếm có mặt
-    var presentCount = allLogs.filter(function(l) { return !isAbsentSession(l); }).length;
-    var presentPct = Math.round((presentCount / totalLogs) * 100);
-
-    // Tính điểm trung bình
-    var allScores = [];
-    allLogs.forEach(function(l) {
-        var dg = parseFloat(l.diemDauGio);
-        var dk = parseFloat(l.diemDinhKi);
-        if (!isNaN(dg) && dg >= 0 && dg <= 10) allScores.push(dg);
-        if (!isNaN(dk) && dk >= 0 && dk <= 10) allScores.push(dk);
-    });
-    var avgScore = allScores.length ? (allScores.reduce(function(a,b){return a+b;},0) / allScores.length) : 0;
-
-    // 1. Chuyên cần 100%
-    if (totalLogs >= 3 && presentCount === totalLogs) {
-        badges.push({ icon: '🏆', text: 'Chuyên cần 100%', cls: 'badge-gold' });
-    } else if (totalLogs >= 3 && presentPct >= 90) {
-        badges.push({ icon: '✅', text: 'Chuyên cần xuất sắc', cls: 'badge-green' });
-    }
-
-    // 2. Học lực xuất sắc / giỏi
-    if (allScores.length >= 3 && avgScore >= 8.8) {
-        badges.push({ icon: '⭐', text: 'Học lực Xuất sắc (' + avgScore.toFixed(1) + 'đ)', cls: 'badge-gold' });
-    } else if (allScores.length >= 3 && avgScore >= 7.5) {
-        badges.push({ icon: '📚', text: 'Học lực Giỏi (' + avgScore.toFixed(1) + 'đ)', cls: 'badge-blue' });
-    } else if (allScores.length >= 3 && avgScore >= 6.5) {
-        badges.push({ icon: '👍', text: 'Học lực Khá (' + avgScore.toFixed(1) + 'đ)', cls: 'badge-purple' });
-    }
-
-    // 3. Chuỗi chuyên cần liên tiếp
-    var curStreak = 0, maxStreak = 0;
-    allLogs.forEach(function(l) {
-        if (!isAbsentSession(l)) {
-            curStreak++;
-            if (curStreak > maxStreak) maxStreak = curStreak;
-        } else {
-            curStreak = 0;
-        }
-    });
-    if (maxStreak >= 10) {
-        badges.push({ icon: '🔥', text: 'Chuỗi ' + maxStreak + ' buổi liên tiếp', cls: 'badge-red' });
-    } else if (maxStreak >= 5) {
-        badges.push({ icon: '🔥', text: 'Chuỗi ' + maxStreak + ' buổi liên tiếp', cls: 'badge-purple' });
-    }
-
-    // 4. Đánh giá BTVN
-    var hwTotal = 0, hwDone = 0;
-    allLogs.forEach(function(l) {
-        var raw = normalizeStr(l.btvn || l.btvnStatus || "");
-        if (raw && raw !== '-' && raw !== 'khong co') {
-            hwTotal++;
-            if (raw.includes('hoan') || raw.includes('tot') || raw === 'co' || raw.includes('day du') || raw.includes('xuat') || raw === 'dat') {
-                hwDone++;
-            }
-        }
-    });
-    if (hwTotal >= 3 && hwDone === hwTotal) {
-        badges.push({ icon: '📝', text: '100% Hoàn thành BTVN', cls: 'badge-blue' });
-    }
-
-    // 5. Huy hiệu gia nhập
-    if (totalLogs >= 1) {
-        badges.push({ icon: '🎓', text: 'Đã hoàn thành ' + totalLogs + ' buổi học', cls: 'badge-green' });
-    }
-
-    if (badges.length === 0) {
-        wrapper.style.display = 'none';
-        return;
-    }
-
-    wrapper.style.display = 'block';
-    grid.innerHTML = badges.map(function(b) {
-        return '<div class="badge-item ' + b.cls + '">' +
-            '<span>' + b.icon + '</span> ' + b.text +
-            '</div>';
-    }).join('');
-}
-window.renderAchievementBadges = renderAchievementBadges;
 
