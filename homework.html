@@ -6,181 +6,110 @@
     <base target="_top">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Tra Cứu Bài Học</title>
+    <title>Hệ Thống Tra Cứu Bài Tập | Cổng Nộp Bài Học Viên</title>
     <!-- PWA Settings -->
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#0B0826">
+    <meta name="theme-color" content="#3B82F6">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Gia Sư">
     <link rel="apple-touch-icon" href="https://i.postimg.cc/66rKbPmb/trinh-duyet.png">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="css/style.css?v=3.0.0">
+    <!-- Chart.js CDN for Phase 16 -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Public Light Theme -->
+    <link rel="stylesheet" href="css/public-theme.css?v=20261002_scroll">
+
+    <!-- Kiểm tra phiên đăng nhập trên URL (F5 / tải lại trang có tham số ?code=...) -->
+    <script>
+        (function() {
+            try {
+                var p = new URLSearchParams(window.location.search);
+                var c = p.get('code') || p.get('ma') || p.get('maBaiTap') || p.get('maHocSinh');
+                if (c && String(c).trim() !== "") {
+                    document.documentElement.classList.add('auto-logging-in');
+                }
+            } catch(e) {}
+        })();
+    </script>
+    <style>
+        html.auto-logging-in #mainScreen {
+            display: none !important;
+        }
+        html.auto-logging-in #pageAutoLoading {
+            display: flex !important;
+        }
+    </style>
+
+    <script>
+        if (typeof tailwind !== 'undefined') {
+            tailwind.config = {
+                theme: {
+                    extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        primary: {
+                            50: '#eff6ff', 100: '#dbeafe', 200: '#bfdbfe',
+                            500: '#3b82f6', 600: '#2563eb', 700: '#1d4ed8',
+                        }
+                    },
+                    boxShadow: {
+                        'soft': '0 4px 20px -2px rgba(0, 0, 0, 0.05)',
+                        'glow': '0 10px 40px -10px rgba(37, 99, 235, 0.3)',
+                        'glass': '0 8px 32px 0 rgba(31, 38, 135, 0.07)',
+                    }
+                }
+            }
+        };
+    }
+</script>
     
     <style>
-        /* ================= RESET & CƠ BẢN ================= */
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
-
         body {
-            background-color: #03081D; 
-            background-image: 
-                radial-gradient(circle at 15% 30%, rgba(91, 46, 255, 0.15) 0%, transparent 40%),
-                radial-gradient(circle at 85% 20%, rgba(142, 77, 255, 0.15) 0%, transparent 40%),
-                radial-gradient(circle at 50% 80%, rgba(11, 18, 78, 0.6) 0%, transparent 60%);
-            color: #FFFFFF; min-height: 100vh; display: flex; flex-direction: column;
-            align-items: center; overflow-x: hidden; position: relative;
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
         }
-
-
-        /* ================= TRANG TRÍ 3D & ANIMATION ================= */
-        .decor { position: absolute; z-index: 1; pointer-events: none; }
-        .planet-left { top: 12%; left: 6%; width: 110px; animation: float 6s infinite ease-in-out; filter: drop-shadow(0 0 20px rgba(0, 200, 255, 0.2)); }
-        .planet-right { top: 15%; right: 8%; width: 90px; animation: float 5s infinite ease-in-out 1s; filter: drop-shadow(0 0 20px rgba(142, 77, 255, 0.3)); }
-        .rocket { top: 22%; right: 18%; width: 60px; animation: fly 8s infinite linear; filter: drop-shadow(0 0 15px rgba(255, 100, 100, 0.4)); transform: rotate(45deg);}
-        
-        .star { position: absolute; background: #fff; border-radius: 50%; box-shadow: 0 0 10px #fff, 0 0 20px #fff; animation: twinkle 2s infinite alternate; }
-        .star-1 { top: 25%; left: 22%; width: 4px; height: 4px; }
-        .star-2 { top: 35%; right: 28%; width: 5px; height: 5px; animation-delay: 0.5s;}
-        .star-3 { top: 15%; right: 40%; width: 3px; height: 3px; animation-delay: 1s;}
-        .star-4 { top: 50%; left: 10%; width: 3px; height: 3px; animation-delay: 0.3s;}
-
-        .star-icon { position: absolute; color: #FFD23F; filter: drop-shadow(0 0 10px rgba(255, 210, 63, 0.8)); animation: float 4s infinite ease-in-out;}
-        .star-icon-1 { top: 40%; left: 4%; font-size: 24px; }
-        .star-icon-2 { top: 12%; right: 30%; font-size: 18px; }
-        .star-icon-3 { bottom: 25%; right: 12%; font-size: 30px; animation-delay: 1.5s; transform: rotate(15deg); }
-        .star-icon-4 { bottom: 30%; left: 20%; font-size: 35px; color: #FF9999; filter: drop-shadow(0 0 15px rgba(255, 153, 153, 0.6)); transform: rotate(-15deg); }
-
-        @keyframes float { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-15px); } }
-        @keyframes twinkle { 0% { opacity: 0.3; transform: scale(0.8); } 100% { opacity: 1; transform: scale(1.3); } }
-        @keyframes fly { 0% { transform: translate(0, 0) rotate(45deg); opacity: 0;} 10% { opacity: 1; } 90% { opacity: 1; } 100% { transform: translate(-300px, -300px) rotate(45deg); opacity: 0;} }
-
-        /* ================= VÙNG NỘI DUNG CHÍNH ================= */
-        .main-container {
-            display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
-            width: 100%; max-width: 1200px; margin-top: 80px; padding: 0 20px; position: relative; z-index: 20;
+        .spinner-icon {
+            animation: spin 1s linear infinite;
         }
-
-        .badge {
-            background: linear-gradient(90deg, rgba(16, 40, 68, 0.9), rgba(10, 30, 60, 0.9));
-            border: 1px solid rgba(0, 210, 255, 0.5); padding: 6px 18px; border-radius: 30px;
-            font-size: 11px; font-weight: 700; color: #A5F3FC; display: flex; align-items: center; gap: 8px;
-            margin-bottom: 15px; letter-spacing: 0.5px; box-shadow: 0 0 20px rgba(0, 210, 255, 0.4); text-transform: uppercase;
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
         }
-        .badge span { color: #FFD23F; font-size: 14px; }
-
-        .main-title {
-            text-align: center; font-size: 56px; font-weight: 900; line-height: 1.1; margin-bottom: 10px;
-            letter-spacing: -2px; text-shadow: 0 0 30px rgba(255, 255, 255, 0.2);
-        }
-        .main-title .highlight { color: #FFD23F; text-shadow: 0 0 25px rgba(255, 210, 63, 0.5); }
-        
-        .sub-title { color: #B2B8D9; font-size: 16px; text-align: center; margin-bottom: 25px; font-weight: 400; line-height: 1.5; letter-spacing: -0.2px; }
-
-        /* ================= KHUNG TÌM KIẾM ================= */
-        .search-card {
-            background: rgba(8, 16, 28, 0.65); border: 1px solid rgba(0, 210, 255, 0.6); border-radius: 20px;
-            padding: 25px 40px; width: 100%; max-width: 750px; position: relative; z-index: 30; margin-bottom: 20px;
-            box-shadow: inset 0 0 20px rgba(0, 210, 255, 0.15), 0 15px 40px rgba(5, 5, 20, 0.8), 0 0 40px rgba(0, 210, 255, 0.35);
-            backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
-        }
-        
-        .search-title { font-size: 16px; font-weight: 600; color: #FFFFFF; margin-bottom: 15px; display: flex; align-items: center; gap: 12px; letter-spacing: -0.3px; }
-        .search-title i { color: #00d2ff; font-size: 18px;}
-
-        .input-wrapper { display: flex; gap: 12px; background: #04020A; border: 1px solid rgba(0, 210, 255, 0.4); border-radius: 12px; padding: 6px 6px 6px 15px; box-shadow: inset 0 2px 10px rgba(0,0,0,0.8); align-items: center; }
-        .input-icon { opacity: 0.5; font-size: 16px; color: #fff;}
-        .input-wrapper input { flex: 1; background: transparent; border: none; color: #FFF; font-size: 14px; outline: none; padding: 10px 140px 10px 30px !important; font-family: 'Inter', sans-serif; font-weight: 500; text-align: left !important; }
-        .input-wrapper input::placeholder { color: #6A6E8D; font-weight: 400;}
-
-        .btn-submit { background: linear-gradient(90deg, #00d2ff, #0080ff); color: white; border: none; padding: 0 25px; height: 45px; border-radius: 10px; font-weight: 600; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.3s; box-shadow: 0 0 20px rgba(0, 210, 255, 0.5); white-space: nowrap; letter-spacing: -0.2px; }
-        .btn-submit:hover { box-shadow: 0 0 30px rgba(0, 210, 255, 0.8); transform: translateY(-2px); }
-
-        .error-msg { color: #FF4D4D; font-size: 13px; margin-top: 10px; display: none; text-align: center; font-weight: 500;}
-        .loading-text { display: none; color: #00d2ff; margin-top: 10px; font-style: italic; font-size: 13px; text-align: center;}
-
-        /* ================= MẶT BÀN & NHÂN VẬT ================= */
-        .desk-surface {
-            position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); width: 150%; height: 350px;
-            background: radial-gradient(ellipse at top, #0B124E 0%, #03081D 70%); border-top: 1px solid rgba(0, 210, 255, 0.4);
-            border-radius: 50% 50% 0 0 / 100px 100px 0 0; z-index: 5; box-shadow: inset 0 30px 80px rgba(0,0,0,0.8);
-        }
-        .character { position: absolute; z-index: 25; filter: drop-shadow(0 30px 30px rgba(0,0,0,0.7)); transition: 0.3s; }
-        .char-boy { left: -1%; bottom: 10px; width: 450px; }
-        .char-girl { right: 0%; bottom: 30px; width: 380px; }
-
-        /* ================= 4 THẺ TÍNH NĂNG ================= */
-        .features-container { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; width: 100%; max-width: 1000px; position: relative; z-index: 40; margin-top: 15px; padding-bottom: 20px; }
-        .feature-card { background: rgba(14, 15, 45, 0.8); border: 1px solid rgba(255,255,255,0.05); border-radius: 16px; padding: 20px 15px; text-align: center; transition: all 0.3s ease; box-shadow: 0 10px 30px rgba(0,0,0,0.5); backdrop-filter: blur(10px); position: relative; overflow: hidden; }
-        .feature-card::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(180deg, rgba(255,255,255,0.03) 0%, transparent 50%); pointer-events: none; }
-        .feature-card:hover { transform: translateY(-5px); background: rgba(20, 22, 60, 0.9); }
-        .card-purple:hover { border-color: #8E4DFF; box-shadow: 0 15px 40px rgba(142, 77, 255, 0.2); }
-        .card-blue:hover { border-color: #3399FF; box-shadow: 0 15px 40px rgba(51, 153, 255, 0.2); }
-        .card-green:hover { border-color: #00CC66; box-shadow: 0 15px 40px rgba(0, 204, 102, 0.2); }
-        .card-orange:hover { border-color: #FF9933; box-shadow: 0 15px 40px rgba(255, 153, 51, 0.2); }
-
-        .icon-circle { width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px; font-size: 22px; color: #fff; }
-        .icon-purple { background: linear-gradient(135deg, #8E4DFF, #5B2EFF); box-shadow: 0 0 25px rgba(142,77,255,0.4); }
-        .icon-blue { background: linear-gradient(135deg, #33ccff, #0066ff); box-shadow: 0 0 25px rgba(0,102,255,0.4); }
-        .icon-green { background: linear-gradient(135deg, #33ff99, #009933); box-shadow: 0 0 25px rgba(0,153,51,0.4); }
-        .icon-orange { background: linear-gradient(135deg, #ffcc66, #ff6600); box-shadow: 0 0 25px rgba(255,102,0,0.4); }
-
-        .feature-card h3 { font-size: 15px; margin-bottom: 6px; color: #FFF; font-weight: 700; letter-spacing: -0.2px;}
-        .feature-card p { font-size: 12px; color: #A6ADCE; line-height: 1.4; font-weight: 400;}
 
         /* ================= KHU VỰC KẾT QUẢ ================= */
-        #resultBox { width: 100%; max-width: 1000px; background: rgba(11, 8, 38, 0.95); border: 1px solid #8E4DFF; border-radius: 20px; padding: 30px; margin-top: 20px; position: relative; z-index: 50; box-shadow: 0 0 50px rgba(91, 46, 255, 0.2); backdrop-filter: blur(25px); display: none; }
+        #resultBox { width: 100%; max-width: 1000px; background: var(--bg-card); border: 1px solid var(--border-card); border-radius: 20px; padding: 30px; margin-top: 20px; position: relative; z-index: 50; box-shadow: var(--shadow-card); display: none; }
         #resultBox h3 { color: #FFD23F; font-size: 24px; margin-bottom: 20px; text-align: center; font-weight: 800; letter-spacing: -0.5px;}
         
-        .result-section { background: rgba(0,0,0,0.4); padding: 20px; border-radius: 16px; margin-bottom: 20px; border: 1px solid rgba(142, 77, 255, 0.2); }
-        .result-section h4 { color: #8E4DFF; margin-bottom: 15px; font-size: 16px; display: flex; align-items: center; gap: 10px; font-weight: 600; letter-spacing: -0.3px; text-transform: uppercase;}
+        .result-section { background: var(--bg-card-alt); padding: 20px; border-radius: 16px; margin-bottom: 20px; border: 1px solid var(--border-color); }
+        .result-section h4 { color: #2563EB; margin-bottom: 15px; font-size: 16px; display: flex; align-items: center; gap: 10px; font-weight: 600; letter-spacing: -0.3px; text-transform: uppercase;}
         
         /* Chỉnh lại Box Bài Giảng / Bài Tập */
-        .bg-card { background: rgba(20, 22, 60, 0.6); padding: 18px; border-radius: 12px; border: 1px dashed rgba(142, 77, 255, 0.4); margin-bottom: 15px; }
-        .bg-card-info { color: #A6ADCE; font-size: 13px; margin-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 8px;}
+        .bg-card { background: #FFFFFF; padding: 18px; border-radius: 12px; border: 1px dashed #BFDBFE; margin-bottom: 15px; box-shadow: 0 2px 8px rgba(59, 130, 246, 0.05); }
+        .bg-card-info { color: var(--text-secondary); font-size: 13px; margin-bottom: 8px; border-bottom: 1px solid var(--border-card); padding-bottom: 8px;}
         .bg-card-title { display: flex; justify-content: space-between; align-items: center; margin-top: 10px;}
         
         /* Table Bài Kiểm Tra */
         .table-wrapper { width: 100%; overflow-x: auto; border-radius: 12px; }
         table { width: 100%; border-collapse: collapse; min-width: 600px; }
-        th, td { border-bottom: 1px solid rgba(142, 77, 255, 0.2); padding: 12px 16px; text-align: left; font-size: 13px; color: #E2D1FF;}
-        th { background-color: rgba(91, 46, 255, 0.1); color: #FFF; white-space: nowrap; font-weight: 600;}
-        tr:hover td { background-color: rgba(142, 77, 255, 0.05); }
+        th, td { border-bottom: 1px solid var(--border-card); padding: 12px 16px; text-align: left; font-size: 13px; color: var(--text-primary);}
+        th { background-color: #EFF6FF; color: #1E293B; white-space: nowrap; font-weight: 600;}
+        tr:hover td { background-color: rgba(59, 130, 246, 0.04); }
         
-        a.btn-download { display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; background: rgba(91, 46, 255, 0.2); color: #FFF; text-decoration: none; border-radius: 10px; font-size: 13px; transition: 0.3s; font-weight: 600; border: 1px solid #8E4DFF;}
-        a.btn-download:hover { background: #8E4DFF; box-shadow: 0 0 20px rgba(142, 77, 255, 0.5); transform: translateY(-2px);}
+        a.btn-download { display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; background: #EFF6FF; color: #2563EB; text-decoration: none; border-radius: 10px; font-size: 13px; transition: 0.3s; font-weight: 600; border: 1px solid #BFDBFE;}
+        a.btn-download:hover { background: #3B82F6; color: #FFF; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3); transform: translateY(-2px);}
         a.btn-dl-table { color: #FFD23F; font-weight: bold; text-decoration: none; display: inline-flex; align-items: center; gap: 5px; transition: 0.2s;}
-        a.btn-dl-table:hover { color: #FFF; text-shadow: 0 0 10px #FFD23F;}
+        a.btn-dl-table:hover { color: #2563EB; }
 
-        .btn-back { width: 100%; padding: 14px; background: transparent; border: 1px solid #8E4DFF; color: #FFF; border-radius: 12px; font-weight: 600; font-size: 15px; cursor: pointer; transition: 0.3s; display: flex; justify-content: center; align-items: center; gap: 10px; letter-spacing: -0.2px;}
-        .btn-back:hover { background: rgba(142, 77, 255, 0.1); box-shadow: inset 0 0 20px rgba(142, 77, 255, 0.2);}
-
-        /* ================= RESPONSIVE ĐIỆN THOẠI ================= */
-        @media (max-width: 1024px) {
-            .char-boy { width: 220px; left: 2%; bottom: 100px;}
-            .char-girl { width: 190px; right: 2%; bottom: 110px;}
-            .main-title { font-size: 46px; }
-            .features-container { grid-template-columns: repeat(2, 1fr); max-width: 600px;}
-        }
-
-        @media (max-width: 768px) {
-            .char-boy, .char-girl, .desk-surface { display: none; }
-            .main-title { font-size: 32px; letter-spacing: -1px;}
-            .search-card { padding: 25px 20px; border-radius: 16px;}
-            .input-wrapper { display: grid; grid-template-columns: auto 1fr; grid-template-rows: auto auto; gap: 15px; background: transparent; border: none; padding: 0; box-shadow: none; }
-            .input-icon { grid-column: 1; grid-row: 1; align-self: center; margin-left: 18px; z-index: 2; font-size: 18px; color: #00d2ff; }
-            .input-wrapper input { grid-column: 1 / 3; grid-row: 1; background: #04020A; border: 1px solid rgba(0, 210, 255, 0.5); border-radius: 12px; padding: 14px 15px 14px 48px !important; width: 100%; font-size: 15px; }
-            .input-wrapper input:focus { border-color: #00d2ff; box-shadow: 0 0 15px rgba(0, 210, 255, 0.4); }
-            .btn-submit { grid-column: 1 / 3; grid-row: 2; width: 100%; height: 48px; font-size: 15px; }
-            .features-container { grid-template-columns: 1fr; padding: 0; gap: 12px;}
-            .feature-card { padding: 15px; display: flex; align-items: center; text-align: left; gap: 15px;}
-            .icon-circle { margin: 0; flex-shrink: 0; width: 45px; height: 45px; font-size: 18px;}
-            .feature-card h3 { margin-bottom: 4px; font-size: 15px;}
-            .bg-card-title { flex-direction: column; align-items: flex-start; gap: 10px;}
-            .bg-card-title a { width: 100%; justify-content: center;}
-        }
+        .btn-back { width: 100%; padding: 14px; background: transparent; border: 1px solid #CBD5E1; color: var(--text-primary); border-radius: 12px; font-weight: 600; font-size: 15px; cursor: pointer; transition: 0.3s; display: flex; justify-content: center; align-items: center; gap: 10px; letter-spacing: -0.2px;}
+        .btn-back:hover { background: #F1F5F9; }
 
         /* ================= GIAO DIỆN NỘP BÀI TẬP (DASHBOARD) ================= */
         .hw-dashboard {
@@ -188,7 +117,7 @@
             gap: 24px;
             width: 100%;
             max-width: 1100px;
-            margin-top: 20px;
+            margin-top: 10px;
             position: relative;
             z-index: 50;
         }
@@ -210,12 +139,11 @@
 
         /* Profile Card & Info Card */
         .hw-info-card {
-            background: rgba(11, 8, 38, 0.9);
-            border: 1px solid rgba(142, 77, 255, 0.4);
+            background: var(--bg-card);
+            border: 1px solid var(--border-card);
             border-radius: 16px;
             padding: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            backdrop-filter: blur(16px);
+            box-shadow: var(--shadow-card);
         }
 
         .hw-info-title {
@@ -226,50 +154,50 @@
             display: flex;
             align-items: center;
             gap: 8px;
-            border-bottom: 1px solid rgba(255,255,255,0.05);
+            border-bottom: 1px solid var(--border-card);
             padding-bottom: 8px;
         }
 
         .hw-info-item {
             font-size: 13.5px;
-            color: #A6ADCE;
+            color: var(--text-secondary);
             margin-bottom: 12px;
             line-height: 1.5;
             text-align: left;
         }
         .hw-info-item strong {
-            color: #FFF;
+            color: var(--text-primary);
         }
 
         /* Form upload */
         .upload-area {
-            border: 2px dashed rgba(142, 77, 255, 0.4);
+            border: 2px dashed #BFDBFE;
             border-radius: 12px;
             padding: 30px 20px;
             text-align: center;
-            background: rgba(4, 2, 10, 0.6);
+            background: #F8FAFF;
             cursor: pointer;
             transition: all 0.3s;
             position: relative;
         }
         .upload-area:hover {
-            border-color: #8E4DFF;
-            background: rgba(142, 77, 255, 0.05);
+            border-color: #3B82F6;
+            background: #EFF6FF;
         }
         .upload-icon {
             font-size: 35px;
-            color: #8E4DFF;
+            color: #3B82F6;
             margin-bottom: 12px;
-            opacity: 0.8;
+            opacity: 0.9;
         }
         .upload-text {
             font-size: 13.5px;
-            color: #E2D1FF;
+            color: var(--text-primary);
             margin-bottom: 6px;
         }
         .upload-hint {
             font-size: 11px;
-            color: #6A6E8D;
+            color: var(--text-secondary);
         }
         .file-input {
             position: absolute;
@@ -283,29 +211,29 @@
 
         /* Profile Card & Info Card Styles */
         .profile-card {
-            background: linear-gradient(135deg, rgba(14, 11, 48, 0.95) 0%, rgba(6, 4, 25, 0.95) 100%) !important;
-            border: 1px solid rgba(142, 77, 255, 0.4) !important;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.6) !important;
+            background: var(--bg-card) !important;
+            border: 1px solid var(--border-card) !important;
+            box-shadow: var(--shadow-card) !important;
         }
         
         .avatar-circle {
             width: 60px;
             height: 60px;
             border-radius: 50%;
-            background: rgba(142, 77, 255, 0.15);
-            border: 1px solid rgba(142, 77, 255, 0.4);
+            background: #EFF6FF;
+            border: 1px solid #BFDBFE;
             display: flex;
             align-items: center;
             justify-content: center;
             margin: 0 auto 10px;
-            color: #8E4DFF;
+            color: #3B82F6;
             font-size: 26px;
-            box-shadow: 0 0 20px rgba(142, 77, 255, 0.2);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
         }
         
         .info-divider {
             height: 1px;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent);
+            background: var(--border-card);
             margin: 15px 0;
         }
         
@@ -319,22 +247,22 @@
         }
         
         .info-label {
-            color: #8E95BE;
+            color: var(--text-secondary);
             display: flex;
             align-items: center;
             gap: 8px;
         }
         
         .info-value {
-            color: #FFF;
+            color: var(--text-primary);
             font-weight: 600;
         }
         
         /* Premium logout button */
         .btn-back-hw {
-            background: rgba(239, 68, 68, 0.1);
+            background: rgba(239, 68, 68, 0.08);
             color: #EF4444;
-            border: 1px solid rgba(239, 68, 68, 0.3);
+            border: 1px solid rgba(239, 68, 68, 0.25);
             width: 100%;
             padding: 12px;
             border-radius: 12px;
@@ -351,17 +279,16 @@
         }
         
         .btn-back-hw:hover {
-            background: rgba(239, 68, 68, 0.25);
+            background: rgba(239, 68, 68, 0.15);
             border-color: #EF4444;
-            color: #FFF;
-            box-shadow: 0 0 15px rgba(239, 68, 68, 0.3);
+            color: #DC2626;
             transform: translateY(-2px);
         }
 
         /* Selected file display */
         .selected-file-box {
-            background: rgba(142, 77, 255, 0.1);
-            border: 1px solid rgba(142, 77, 255, 0.3);
+            background: #EFF6FF;
+            border: 1px solid #BFDBFE;
             border-radius: 8px;
             padding: 10px 15px;
             margin-top: 15px;
@@ -382,7 +309,7 @@
         /* Progress bar */
         .progress-container {
             width: 100%;
-            background: rgba(255,255,255,0.05);
+            background: #E2E8F0;
             border-radius: 10px;
             height: 8px;
             margin-top: 15px;
@@ -391,24 +318,24 @@
         }
         .progress-bar {
             height: 100%;
-            background: linear-gradient(90deg, #8E4DFF, #3399FF);
+            background: linear-gradient(90deg, #3B82F6, #1D4ED8);
             width: 0%;
             transition: width 0.1s linear;
         }
         .progress-text {
             font-size: 11px;
-            color: #3399FF;
+            color: #2563EB;
             margin-top: 5px;
             text-align: right;
             display: none;
             font-weight: 600;
         }
 
-        /* Nút sửa/xóa bị khóa */
+        /* Nút sửa/xóa */
         .action-btn-hw {
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.1);
-            color: #A6ADCE;
+            background: #F8FAFF;
+            border: 1px solid #CBD5E1;
+            color: var(--text-secondary);
             padding: 6px 12px;
             border-radius: 8px;
             font-size: 12px;
@@ -421,47 +348,54 @@
             outline: none;
         }
         .action-btn-hw:hover:not(:disabled) {
-            background: rgba(142, 77, 255, 0.2);
-            color: #FFF;
-            border-color: #8E4DFF;
+            background: #EFF6FF;
+            color: #2563EB;
+            border-color: #BFDBFE;
         }
         .action-btn-hw.btn-delete:hover:not(:disabled) {
-            background: rgba(239, 68, 68, 0.2);
-            color: #FFF;
+            background: rgba(239, 68, 68, 0.1);
+            color: #EF4444;
             border-color: #EF4444;
         }
         .action-btn-hw:disabled {
-            opacity: 0.4;
+            opacity: 0.5;
             cursor: not-allowed;
-            color: #6A6E8D !important;
-            border-color: rgba(255,255,255,0.05) !important;
-            background: rgba(0,0,0,0.2) !important;
+            color: #94A3B8 !important;
+            border-color: #E2E8F0 !important;
+            background: #F1F5F9 !important;
         }
 
         .lock-badge {
-            background: rgba(239, 68, 68, 0.15);
-            border: 1px solid rgba(239, 68, 68, 0.3);
-            color: #EF4444;
-            font-size: 11px;
-            padding: 3px 8px;
+            background: #DC2626;
+            color: #FFFFFF !important;
+            font-size: 12px;
+            padding: 4px 12px;
             border-radius: 20px;
-            font-weight: 600;
+            font-weight: 700;
             display: inline-flex;
             align-items: center;
-            gap: 4px;
+            gap: 6px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);
+            border: 1px solid rgba(255, 255, 255, 0.35);
         }
-
+        .lock-badge i {
+            color: #FFFFFF !important;
+        }
         .active-badge {
-            background: rgba(16, 185, 129, 0.15);
-            border: 1px solid rgba(16, 185, 129, 0.3);
-            color: #10B981;
-            font-size: 11px;
-            padding: 3px 8px;
+            background: #059669;
+            color: #FFFFFF !important;
+            font-size: 12px;
+            padding: 4px 12px;
             border-radius: 20px;
-            font-weight: 600;
+            font-weight: 700;
             display: inline-flex;
             align-items: center;
-            gap: 4px;
+            gap: 6px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);
+            border: 1px solid rgba(255, 255, 255, 0.35);
+        }
+        .active-badge i {
+            color: #FFFFFF !important;
         }
 
         @media (max-width: 900px) {
@@ -481,146 +415,965 @@
         @media (max-width: 768px) {
             #uploadAreaMobile { display: block !important; }
             #uploadAreaDesktop { display: none !important; }
+
+            /* ===== HOMEWORK TOUCH OPTIMIZATIONS (TASK 14.5) ===== */
+            .upload-area, [class*="drop-zone"], [class*="upload-zone"] {
+                min-height: 100px !important;
+                padding: 20px !important;
+                cursor: pointer;
+            }
+            .drag-hint { display: none !important; }
+            .tap-hint { display: block !important; }
+
+            /* Nút chụp ảnh và tải file trong mobile upload area */
+            #uploadAreaMobile button {
+                min-height: 48px !important;
+                font-size: 14px !important;
+            }
+            #uploadAreaMobile > div {
+                max-width: 100% !important;
+                width: 100% !important;
+            }
+            .hw-dashboard {
+                padding: 12px 8px !important;
+            }
+            .hw-info-card {
+                padding: 16px !important;
+            }
+        }
+
+        .file-cards-mobile, .mobile-cards-view {
+            display: none;
+        }
+
+        @media (max-width: 600px) {
+            .file-table-desktop, .desktop-table-view { display: none !important; }
+            .file-cards-mobile, .mobile-cards-view { display: flex !important; flex-direction: column; gap: 10px; }
+            .table-wrapper { overflow-x: auto !important; -webkit-overflow-scrolling: touch; }
+
+            /* Căn giữa toàn bộ Dashboard & Loại bỏ lệch lề trên Mobile */
+            #homeworkDashboard {
+                padding: 0 0 calc(60px + env(safe-area-inset-bottom)) !important;
+                margin: 0 auto !important;
+                width: 100% !important;
+                max-width: 100% !important;
+                box-sizing: border-box !important;
+            }
+
+            /* Hero Banner Mobile - Bố cục đối xứng 2 hàng & Grid thông tin cân đối */
+            .hw-hero-banner {
+                display: grid !important;
+                grid-template-columns: 46px 1fr auto !important;
+                grid-template-rows: auto auto !important;
+                grid-template-areas:
+                    "icon name logout"
+                    "tags tags tags" !important;
+                align-items: center !important;
+                column-gap: 12px !important;
+                row-gap: 12px !important;
+                padding: 16px 14px 14px !important;
+                margin: 12px auto 14px !important;
+                border-radius: 18px !important;
+                width: 100% !important;
+                box-sizing: border-box !important;
+            }
+            .hw-hero-icon {
+                grid-area: icon !important;
+                width: 46px !important;
+                height: 46px !important;
+                font-size: 20px !important;
+                border-radius: 14px !important;
+                background: rgba(255,255,255,0.22) !important;
+                border: 1.5px solid rgba(255,255,255,0.4) !important;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.1) !important;
+            }
+            .hw-hero-info {
+                grid-area: name !important;
+                min-width: 0 !important;
+                display: flex !important;
+                flex-direction: column !important;
+                justify-content: center !important;
+            }
+            .hw-hero-name {
+                font-size: 17px !important;
+                font-weight: 800 !important;
+                color: #ffffff !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                line-height: 1.25 !important;
+                white-space: nowrap !important;
+                overflow: hidden !important;
+                text-overflow: ellipsis !important;
+            }
+            .hw-logout-btn {
+                grid-area: logout !important;
+                position: static !important;
+                padding: 7px 12px !important;
+                font-size: 12px !important;
+                font-weight: 700 !important;
+                border-radius: 10px !important;
+                min-height: 34px !important;
+                display: inline-flex !important;
+                align-items: center !important;
+                gap: 6px !important;
+                background: rgba(255,255,255,0.18) !important;
+                border: 1px solid rgba(255,255,255,0.3) !important;
+                color: #ffffff !important;
+                white-space: nowrap !important;
+                flex-shrink: 0 !important;
+            }
+            .hw-hero-tags {
+                grid-area: tags !important;
+                display: grid !important;
+                grid-template-columns: 1fr 1fr !important;
+                gap: 8px !important;
+                width: 100% !important;
+                padding-top: 12px !important;
+                border-top: 1px solid rgba(255,255,255,0.16) !important;
+                box-sizing: border-box !important;
+            }
+            #hwCodeTag {
+                grid-column: 1 !important;
+                display: flex !important;
+                justify-content: center !important;
+                align-items: center !important;
+                width: 100% !important;
+                box-sizing: border-box !important;
+            }
+            #hwSubjectTag {
+                grid-column: 2 !important;
+                display: flex !important;
+                justify-content: center !important;
+                align-items: center !important;
+                width: 100% !important;
+                box-sizing: border-box !important;
+            }
+            #hwLockBadge {
+                grid-column: 1 / -1 !important;
+                display: flex !important;
+                width: 100% !important;
+                box-sizing: border-box !important;
+            }
+            .hw-tag {
+                background: rgba(255,255,255,0.16) !important;
+                border: 1px solid rgba(255,255,255,0.25) !important;
+                border-radius: 10px !important;
+                padding: 6px 10px !important;
+                font-size: 12px !important;
+                font-weight: 600 !important;
+                color: #ffffff !important;
+                display: inline-flex !important;
+                align-items: center !important;
+                gap: 6px !important;
+            }
+            .active-badge, .lock-badge {
+                width: 100% !important;
+                justify-content: center !important;
+                padding: 6px 12px !important;
+                font-size: 12px !important;
+                font-weight: 700 !important;
+                border-radius: 10px !important;
+                box-shadow: 0 2px 6px rgba(0,0,0,0.15) !important;
+                box-sizing: border-box !important;
+            }
+
+            /* KPI Grid Căn giữa */
+            .hw-kpi-grid {
+                width: 100% !important;
+                margin: 0 auto 14px !important;
+                grid-template-columns: 1fr 1fr !important;
+                gap: 10px !important;
+                box-sizing: border-box !important;
+            }
+
+            /* Charts & Upload Grid Căn giữa */
+            .hw-charts-upload-grid {
+                width: 100% !important;
+                margin: 0 auto 14px !important;
+                grid-template-columns: 1fr !important;
+                gap: 14px !important;
+                box-sizing: border-box !important;
+            }
+            .hw-charts-col {
+                width: 100% !important;
+                min-width: 0 !important;
+                gap: 14px !important;
+                box-sizing: border-box !important;
+            }
+            .hw-chart-card, .hw-section-card {
+                width: 100% !important;
+                min-width: 0 !important;
+                margin: 0 auto 14px !important;
+                padding: 18px 14px !important;
+                box-sizing: border-box !important;
+            }
+
+            /* Căn giữa nội dung Donut chart */
+            .hw-donut-wrap {
+                justify-content: center !important;
+                gap: 18px !important;
+                width: 100% !important;
+            }
+            .hw-donut-legend {
+                min-width: 120px !important;
+                flex: initial !important;
+            }
+
+            /* Form Nộp bài Mobile Căn giữa */
+            .hw-upload-card {
+                width: 100% !important;
+                box-sizing: border-box !important;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .action-btn-hw, [class*="hw-btn"], .btn-upload, .btn-submit {
+                width: 100% !important;
+                justify-content: center !important;
+                min-height: 48px !important;
+            }
+            .hw-actions-row, [class*="action-row"], div:has(> #btnSubmitHomework) {
+                flex-direction: column !important;
+                gap: 8px !important;
+            }
+            #btnCancelEdit {
+                width: 100% !important;
+            }
+            .score-badge, [class*="score"], .badge {
+                font-size: 13px !important;
+                padding: 5px 10px !important;
+            }
+            .hw-card, [class*="hw-card"], .hw-info-card {
+                padding: 12px !important;
+            }
+            .student-info-grid {
+                grid-template-columns: 1fr !important;
+            }
+        }
+        /* ===== PHASE 16: REDESIGN HOMEWORK DASHBOARD ===== */
+        /* === 16.1: HW HERO BANNER === */
+        .hw-hero-banner {
+            display: grid;
+            grid-template-columns: 56px 1fr auto;
+            grid-template-rows: auto auto;
+            grid-template-areas:
+                "icon name   logout"
+                "icon tags   logout";
+            align-items: center;
+            column-gap: 16px;
+            row-gap: 8px;
+            background: linear-gradient(135deg, #1D4ED8 0%, #3B82F6 60%, #60A5FA 100%);
+            border-radius: 20px;
+            padding: 22px 28px;
+            margin: 20px 0 16px;
+            box-shadow: 0 8px 32px rgba(59,130,246,0.28);
+        }
+        .hw-hero-icon {
+            grid-area: icon;
+            width: 56px; height: 56px; border-radius: 16px;
+            background: rgba(255,255,255,0.2); border: 2px solid rgba(255,255,255,0.4);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 22px; color: #fff; flex-shrink: 0;
+        }
+        .hw-hero-info {
+            grid-area: name;
+            min-width: 0;
+        }
+        .hw-hero-name {
+            font-size: 20px; font-weight: 800; color: #fff; margin: 0;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .hw-hero-tags {
+            grid-area: tags;
+            display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+        }
+        .hw-tag {
+            background: rgba(255,255,255,0.18); border-radius: 20px;
+            padding: 4px 12px; font-size: 12px; font-weight: 600;
+            color: rgba(255,255,255,0.95);
+            display: inline-flex; align-items: center; gap: 5px;
+        }
+        .hw-logout-btn {
+            grid-area: logout;
+            background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3);
+            color: #fff; border-radius: 12px; padding: 10px 18px;
+            font-size: 13px; font-weight: 700; cursor: pointer;
+            display: flex; align-items: center; gap: 8px;
+            transition: background 0.2s; white-space: nowrap;
+        }
+        .hw-logout-btn:hover { background: rgba(255,255,255,0.25); }
+
+        /* === 16.1: KPI GRID === */
+        .hw-kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 14px;
+            margin-bottom: 16px;
+        }
+        .hw-kpi-card {
+            background: #FFFFFF;
+            border: 1px solid #DBEAFE;
+            border-radius: 16px;
+            padding: 18px 16px;
+            display: flex; align-items: center; gap: 14px;
+            box-shadow: 0 2px 12px rgba(59,130,246,0.06);
+            transition: all 0.25s;
+        }
+        .hw-kpi-card:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(59,130,246,0.12); }
+        .hw-kpi-icon {
+            width: 48px; height: 48px; border-radius: 14px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 20px; color: #fff; flex-shrink: 0;
+        }
+        .hw-kpi-label { font-size: 11px; font-weight: 700; color: #64748B; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 4px; }
+        .hw-kpi-val   { font-size: 26px; font-weight: 800; color: #1E293B; line-height: 1; display: block; }
+
+        @media (max-width: 768px) { .hw-kpi-grid { grid-template-columns: 1fr 1fr; } }
+        @media (max-width: 400px) { .hw-kpi-grid { grid-template-columns: 1fr 1fr; gap: 10px; } .hw-kpi-val { font-size: 22px; } }
+
+        /* === 16.2: CHARTS + UPLOAD GRID (BỐ CỤC MỚI THEO HÌNH 2) === */
+        .hw-charts-upload-grid {
+            display: grid;
+            grid-template-columns: 370px 1fr;
+            gap: 16px;
+            margin-bottom: 16px;
+            align-items: stretch;
+        }
+        .hw-charts-col {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        .hw-chart-card, .hw-section-card {
+            background: #FFFFFF;
+            border: 1px solid #DBEAFE;
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 2px 12px rgba(59,130,246,0.06);
+        }
+        .hw-upload-card {
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+        }
+        .hw-upload-card #uploadAreaWrapper {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 15px;
+        }
+        .hw-upload-card #uploadAreaDesktop {
+            flex: 1;
+            min-height: 180px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 30px 20px;
+        }
+        .hw-section-title {
+            font-size: 14px; font-weight: 700; color: #1E293B;
+            display: flex; align-items: center; gap: 8px;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #F1F5F9;
+        }
+        .hw-section-card { margin-bottom: 16px; }
+
+        /* Donut chart */
+        .hw-donut-wrap { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+        .hw-donut-canvas-wrap { position: relative; width: 140px; height: 140px; flex-shrink: 0; }
+        .hw-donut-canvas-wrap canvas { width: 140px !important; height: 140px !important; }
+        .hw-donut-center {
+            position: absolute; inset: 0;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            pointer-events: none;
+        }
+        .hw-donut-pct  { font-size: 24px; font-weight: 800; color: #1E293B; line-height: 1; }
+        .hw-donut-lbl  { font-size: 11px; font-weight: 600; color: #64748B; text-align: center; margin-top: 3px; }
+        .hw-donut-legend { display: flex; flex-direction: column; gap: 8px; flex: 1; min-width: 110px; }
+        .hw-donut-leg-item { display: flex; align-items: center; gap: 8px; font-size: 12px; color: #475569; font-weight: 500; }
+        .hw-donut-leg-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+        .hw-donut-leg-count { margin-left: auto; font-weight: 700; color: #1E293B; font-size: 13px; }
+
+        @media (max-width: 900px) {
+            .hw-charts-upload-grid { grid-template-columns: 1fr; }
+            .hw-charts-col { gap: 16px; }
+            .hw-upload-card #uploadAreaDesktop { min-height: 140px; }
+        }
+
+        /* === 16.3: UPLOAD FORM RESKIN === */
+        .upload-area {
+            border: 2px dashed #BFDBFE !important;
+            border-radius: 16px !important;
+            background: #F8FAFF !important;
+            transition: all 0.25s !important;
+            text-align: center;
+        }
+        .upload-area:hover, .upload-area.dragover {
+            border-color: #3B82F6 !important;
+            background: #EFF6FF !important;
+        }
+        .upload-icon { color: #3B82F6 !important; font-size: 32px !important; margin-bottom: 12px !important; }
+        .upload-text { color: #1E293B !important; font-weight: 600 !important; font-size: 14px !important; }
+        .upload-hint { color: #94A3B8 !important; font-size: 12px !important; margin-top: 6px !important; }
+
+        #hwLessonInput {
+            width: 100%;
+            padding: 11px 14px;
+            border-radius: 12px;
+            border: 1px solid #CBD5E1;
+            background: #F8FAFF;
+            color: #1E293B;
+            font-size: 14px;
+            transition: border-color 0.2s;
+            font-family: Inter, sans-serif;
+            box-sizing: border-box;
+        }
+        #hwLessonInput:focus { border-color: #3B82F6; outline: none; box-shadow: 0 0 0 3px rgba(59,130,246,0.1); }
+
+        #fileQueueContainer {
+            background: #F8FAFF !important;
+            border: 1px solid #DBEAFE !important;
+            border-radius: 12px !important;
+        }
+
+        #btnSubmitHomework {
+            background: linear-gradient(135deg, #3B82F6, #1D4ED8) !important;
+            border: none !important;
+            border-radius: 12px !important;
+            height: 48px !important;
+            font-weight: 700 !important;
+            box-shadow: 0 4px 12px rgba(59,130,246,0.3) !important;
+            transition: opacity 0.2s !important;
+        }
+        #btnSubmitHomework:hover { opacity: 0.9 !important; }
+
+        /* === 16.4: ASSIGNED HOMEWORK CARDS === */
+        .hw-assigned-card {
+            display: flex; align-items: center; justify-content: space-between;
+            gap: 16px; padding: 16px; border-radius: 14px;
+            margin-bottom: 10px; border: 1px solid #E2E8F0;
+            background: #FFFFFF; transition: all 0.2s; flex-wrap: wrap;
+        }
+        .hw-assigned-card:hover { border-color: #BFDBFE; background: #F8FAFF; }
+        .hw-assigned-card.submitted { border-left: 4px solid #10B981; }
+        .hw-assigned-card.not-submitted { border-left: 4px solid #3B82F6; }
+        .hw-assigned-left { display: flex; align-items: center; gap: 14px; flex: 1; min-width: 220px; }
+        .hw-assigned-icon {
+            width: 44px; height: 44px; border-radius: 12px; flex-shrink: 0;
+            display: flex; align-items: center; justify-content: center; font-size: 20px;
+        }
+        .icon-done { background: #ECFDF5; color: #059669; }
+        .icon-todo { background: #EFF6FF; color: #2563EB; }
+        .hw-assigned-title { font-size: 14px; font-weight: 700; color: #1E293B; margin-bottom: 4px; }
+        .hw-assigned-deadline { font-size: 12px; color: #D97706; font-weight: 600; display: flex; align-items: center; gap: 4px; }
+        .hw-assigned-desc { font-size: 12px; color: #64748B; margin-top: 4px; }
+        .hw-assigned-right { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+        .hw-status-badge { border-radius: 10px; padding: 5px 12px; font-size: 12px; font-weight: 700; white-space: nowrap; }
+        .badge-done { background: #ECFDF5; color: #059669; border: 1px solid #A7F3D0; }
+        .badge-todo { background: #EFF6FF; color: #2563EB; border: 1px solid #BFDBFE; }
+        .btn-submit-assigned {
+            background: linear-gradient(135deg, #2563EB, #1D4ED8);
+            border: none;
+            color: #FFFFFF !important;
+            padding: 6px 14px;
+            border-radius: 10px;
+            font-size: 12.5px;
+            font-weight: 700;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            box-shadow: 0 2px 6px rgba(37,99,235,0.28);
+            transition: all 0.2s ease;
+            text-decoration: none;
+            white-space: nowrap;
+        }
+        .btn-submit-assigned:hover {
+            background: linear-gradient(135deg, #1D4ED8, #1E40AF);
+            box-shadow: 0 4px 12px rgba(37,99,235,0.38);
+            transform: translateY(-1px);
+        }
+        .btn-submit-assigned:active {
+            transform: translateY(0);
+        }
+
+        /* === 16.5: SUBMISSION HISTORY & MOBILE CARDS === */
+        .table-wrapper table th {
+            background: #F0F7FF !important;
+            color: #64748B !important;
+            font-size: 11px !important;
+            font-weight: 700 !important;
+            text-transform: uppercase !important;
+            letter-spacing: 0.4px !important;
+            padding: 11px 14px !important;
+            border-bottom: 2px solid #DBEAFE !important;
+        }
+        .table-wrapper table td {
+            padding: 12px 14px !important;
+            border-bottom: 1px solid #F1F5F9 !important;
+            font-size: 13px !important;
+            color: #475569 !important;
+        }
+        .table-wrapper table tr:hover td { background: #F8FAFF !important; }
+
+        .sub-status-chip { border-radius: 8px; padding: 3px 10px; font-size: 12px; font-weight: 600; white-space: nowrap; }
+        .sub-on-time { background: #ECFDF5; color: #059669; }
+        .sub-late    { background: #FFFBEB; color: #D97706; }
+        .sub-default { background: #EFF6FF; color: #2563EB; }
+
+        /* ===== ACCORDION CARD BÀI NỘP MOBILE (PHASE 17) ===== */
+        .accordion-item {
+            background: #FFFFFF;
+            border: 1px solid #DBEAFE;
+            border-radius: 14px;
+            margin-bottom: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(59, 130, 246, 0.05);
+            transition: all 0.25s ease;
+        }
+        .accordion-item:hover {
+            border-color: #BFDBFE;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.08);
+        }
+        .accordion-header {
+            padding: 14px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            user-select: none;
+            background: #FFFFFF;
+            transition: background-color 0.2s;
+        }
+        .accordion-header:hover, .accordion-item.active .accordion-header {
+            background-color: #F8FAFF;
+        }
+        .accordion-header-title {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            text-align: left;
+            min-width: 0;
+            flex: 1;
+            padding-right: 10px;
+        }
+        .accordion-header-title > span:first-child {
+            font-size: 14px;
+            font-weight: 700;
+            color: #1E293B;
+            line-height: 1.3;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .accordion-header-date {
+            font-size: 12px;
+            color: #94A3B8;
+            font-weight: 500;
+        }
+        .accordion-header-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+        .accordion-header-status i.fa-chevron-down {
+            font-size: 12px;
+            color: #64748B;
+            transition: transform 0.3s ease;
+        }
+        .accordion-item.active .accordion-header-status i.fa-chevron-down {
+            transform: rotate(180deg);
+        }
+        .accordion-body {
+            display: none;
+            padding: 12px 16px 16px 16px;
+            border-top: 1px solid #DBEAFE;
+            background-color: #F8FAFF;
+            text-align: left;
+            font-size: 13px;
+            animation: hwFadeDown 0.25s ease-out;
+        }
+        @keyframes hwFadeDown {
+            0% { opacity: 0; transform: translateY(-4px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+        .accordion-body-row {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            border-bottom: 1px dashed #E2E8F0;
+            padding: 10px 0;
+        }
+        .accordion-body-row:first-child {
+            padding-top: 2px;
+        }
+        .accordion-body-row:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+        .accordion-body-label {
+            font-size: 10.5px;
+            color: #64748B;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+        .accordion-body-val {
+            color: #1E293B;
+            line-height: 1.5;
+        }
+        .btn-load-more-hw {
+            background: rgba(245, 158, 11, 0.05);
+            border: 1.5px solid #F59E0B;
+            color: #D97706;
+            padding: 10px 20px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 13.5px;
+            font-weight: 700;
+            width: 100%;
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 2px 8px rgba(245, 158, 11, 0.08);
+            transition: all 0.2s ease;
+        }
+        .btn-load-more-hw:hover {
+            background: #FFFBEB;
+            border-color: #D97706;
+        }
+        .btn-collapse-hw {
+            background: #FFFFFF;
+            border: 1.5px solid #94A3B8;
+            color: #64748B;
+            padding: 10px 20px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 13.5px;
+            font-weight: 700;
+            width: 100%;
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s ease;
+        }
+        .btn-collapse-hw:hover {
+            background: #F1F5F9;
+            color: #334155;
+        }
+
+        .hw-sub-mobile-card {
+            background: #FFFFFF; border: 1px solid #DBEAFE;
+            border-radius: 14px; padding: 16px; margin-bottom: 10px;
+            box-shadow: 0 2px 8px rgba(59,130,246,0.05);
+        }
+        .hw-sub-card-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; }
+        .hw-sub-lesson { font-size: 14px; font-weight: 700; color: #1E293B; flex: 1; }
+        .hw-sub-card-meta { font-size: 12px; color: #94A3B8; margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
+        .hw-sub-card-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+        .hw-btn-preview, .hw-btn-edit, .hw-btn-del, .hw-btn-restore {
+            border-radius: 8px; padding: 7px 14px; font-size: 12px;
+            font-weight: 700; cursor: pointer; border: none;
+            min-height: 36px; display: inline-flex; align-items: center; gap: 4px;
+        }
+        .hw-btn-preview { background: #EFF6FF; color: #2563EB; }
+        .hw-btn-edit    { background: #FFFBEB; color: #D97706; }
+        .hw-btn-del     { background: #FEF2F2; color: #DC2626; }
+        .hw-btn-restore { background: #F0FDF4; color: #16A34A; }
+
+        /* === 16.6: LANDING CARDS & SAFE AREA === */
+        #mainScreen .feature-card,
+        #mainScreen [class*="bg-white"][class*="rounded"] {
+            border: 1px solid #DBEAFE !important;
+            box-shadow: 0 4px 16px rgba(59,130,246,0.07) !important;
+            transition: all 0.25s !important;
+        }
+        #mainScreen .feature-card:hover {
+            transform: translateY(-2px) !important;
+            box-shadow: 0 8px 24px rgba(59,130,246,0.12) !important;
+        }
+
+        @media(max-width:768px) {
+            #homeworkDashboard {
+                padding-bottom: calc(60px + env(safe-area-inset-bottom)) !important;
+            }
+        }
+
+        /* ===== PHASE 17 — CHARTS MOBILE ===== */
+        @media (max-width: 480px) {
+          .hw-charts-upload-grid { grid-template-columns: 1fr !important; }
+          .hw-kpi-grid { grid-template-columns: 1fr 1fr !important; gap: 10px !important; }
+          .hw-kpi-val { font-size: 22px !important; }
+          .hw-donut-canvas-wrap { width: 110px !important; height: 110px !important; }
+          .hw-donut-canvas-wrap canvas { width: 110px !important; height: 110px !important; }
+          .hw-donut-pct { font-size: 20px !important; }
+          /* Bar chart height */
+          #hwBarCard [style*="height:160px"] { height: 130px !important; }
+        }
+        @media (max-width: 360px) {
+          .hw-kpi-val { font-size: 20px !important; }
+          .hw-hero-name { font-size: 16px !important; }
         }
     </style>
 </head>
-<body>
+<body class="relative min-h-screen bg-gradient-to-b from-primary-50 via-white to-primary-50 text-slate-800 antialiased overflow-x-hidden selection:bg-primary-200 selection:text-primary-900">
 
+    <!-- Glowing Blur Blobs -->
+    <div class="fixed top-[-10%] left-[-5%] w-[40rem] h-[40rem] bg-blue-400 rounded-full mix-blend-multiply filter blur-[100px] opacity-20 pointer-events-none z-0"></div>
+    <div class="fixed top-[30%] right-[-10%] w-[35rem] h-[35rem] bg-cyan-300 rounded-full mix-blend-multiply filter blur-[100px] opacity-20 pointer-events-none z-0"></div>
+
+    <!-- Navbar / Header Gốc -->
     <div class="header">
         <div class="nav-container">
             <a href="index.html" class="nav-left" style="text-decoration: none; cursor: pointer;">
                 <img src="https://i.postimg.cc/66rKbPmb/trinh-duyet.png" alt="Logo" class="nav-logo">
                 <div class="header-text">
                     <h1>Tra cứu học tập</h1>
-                    <p>Học tập thông minh</p>
+                    <p>Quản lý Gia sư 4.0</p>
                 </div>
             </a>
             <div class="nav-right">
-                <a href="index.html" class="nav-btn" id="btnNavHome"><i class="fa-solid fa-house"></i> Trang chủ</a>
-                <a href="student-login.html" class="nav-btn" id="btnNavStudent"><i class="fa-solid fa-graduation-cap"></i> PH/HS</a>
-                <a href="homework.html" class="nav-btn active" id="btnNavHomework"><i class="fa-solid fa-file-arrow-up"></i> BÀI TẬP</a>
-                <a href="tutor-login.html" class="nav-btn" id="btnNavTutor"><i class="fa-solid fa-chalkboard-user"></i> GIA SƯ</a>
+                <a href="index.html" class="nav-btn" id="btnNavHome"><i class="fa-solid fa-house"></i> <span class="nav-label">Trang chủ</span></a>
+                <a href="student-login.html" class="nav-btn" id="btnNavStudent"><i class="fa-solid fa-graduation-cap"></i> <span class="nav-label">PH/HS</span></a>
+                <a href="homework.html" class="nav-btn active" id="btnNavHomework"><i class="fa-solid fa-file-arrow-up"></i> <span class="nav-label">BÀI TẬP</span></a>
+                <a href="tutor-login.html" class="nav-btn" id="btnNavTutor"><i class="fa-solid fa-chalkboard-user"></i> <span class="nav-label">GIA SƯ</span></a>
             </div>
+            <!-- Hamburger button -->
+            <button class="hamburger-btn" id="hamburgerBtn" onclick="toggleMobileNav()" aria-label="Menu">
+                <i class="fa-solid fa-bars" id="hamburgerIcon"></i>
+            </button>
+        </div>
+        <!-- Mobile dropdown (đặt NGAY SAU .nav-container đóng, vẫn trong .header) -->
+        <div class="mobile-nav-dropdown" id="mobileNavDropdown">
+            <a href="index.html" class="mobile-nav-item" id="mobileHome">
+                <i class="fa-solid fa-house"></i> Trang chủ
+            </a>
+            <a href="student-login.html" class="mobile-nav-item" id="mobileStudent">
+                <i class="fa-solid fa-graduation-cap"></i> PH/HS
+            </a>
+            <a href="homework.html" class="mobile-nav-item" id="mobileHomework">
+                <i class="fa-solid fa-file-arrow-up"></i> Bài tập
+            </a>
+            <a href="tutor-login.html" class="mobile-nav-item" id="mobileTutor">
+                <i class="fa-solid fa-chalkboard-user"></i> Gia sư
+            </a>
         </div>
     </div>
 
-    <div class="star star-1"></div>
-    <div class="star star-2"></div>
-    <div class="star star-3"></div>
-    <div class="star star-4"></div>
-    <img src="https://i.postimg.cc/dQnZ1cs7/anh-hanh-tinh-removebg-preview.png" class="decor planet-left" alt="Planet" onerror="this.style.display='none'">
-    <img src="https://i.postimg.cc/QCZmdGhn/anh-hanh-tinh-1-removebg-preview.png" class="decor planet-right" alt="Planet" onerror="this.style.display='none'">
-    
-    <i class="fa-solid fa-star star-icon star-icon-1"></i>
-    <i class="fa-solid fa-star star-icon star-icon-2"></i>
-    <i class="fa-solid fa-star star-icon star-icon-3"></i>
-    <i class="fa-solid fa-star star-icon star-icon-4"></i>
+    <!-- Fallback dummy elements for backward compatibility -->
+    <div id="deskSurface" style="display: none;"></div>
+    <div id="charBoy" style="display: none;"></div>
+    <div id="charGirl" style="display: none;"></div>
 
-    <div class="main-container" id="mainScreen">
-        
-        <div class="badge">
-            <span>⭐</span> CỔNG NỘP BÀI TẬP HỌC VIÊN
+    <main class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-20 w-full overflow-hidden flex flex-col items-center">
+        <!-- LOADING KHI TỰ ĐỘNG KHÔI PHỤC PHIÊN ĐĂNG NHẬP -->
+        <div id="pageAutoLoading" style="display: none; flex-direction: column; align-items: center; justify-content: center; min-height: 50vh; width: 100%; text-align: center;">
+            <div style="display: inline-flex; align-items: center; justify-content: center; width: 68px; height: 68px; background: #EFF6FF; border: 1.5px solid #BFDBFE; border-radius: 20px; margin-bottom: 18px; box-shadow: 0 8px 24px rgba(59,130,246,0.18);">
+                <i class="fa-solid fa-circle-notch fa-spin" style="font-size: 30px; color: #2563EB;"></i>
+            </div>
+            <div style="font-size: 17px; font-weight: 800; color: #1E293B; margin-bottom: 6px;">Đang tải trang bài tập...</div>
+            <div style="font-size: 13.5px; color: #64748B;">Vui lòng chờ trong giây lát</div>
         </div>
 
-        <h1 class="main-title">Đăng nhập & Nộp bài<br><span class="highlight">Bài tập học viên</span> 📝</h1>
-        <p class="sub-title">Nộp bài tập của bạn trực tuyến và theo dõi kết quả chấm điểm nhanh chóng, thuận tiện 🚀</p>
-
-        <div class="search-card">
-            <div class="search-title">
-                <i class="fa-solid fa-key"></i> Nhập mã bài tập của bạn để đăng nhập
-            </div>
-            <div class="input-wrapper">
-                <i class="fa-regular fa-folder-open input-icon"></i>
-                <input type="text" id="maInput" placeholder="Nhập mã bài tập được giao (VD: BT101, BT102)...">
-                <button class="btn-submit" onclick="check()">
-                    Đăng nhập cổng <i class="fa-solid fa-arrow-right-long"></i>
-                </button>
-            </div>
-            <p id="error" class="error-msg"></p>
-            <p id="loadingText" class="loading-text"><i class="fa-solid fa-circle-notch fa-spin"></i> Hệ thống đang xác thực tài khoản...</p>
-        </div>
-
-        <div class="features-container">
-            <div class="feature-card card-purple">
-                <div class="icon-circle icon-purple"><i class="fa-solid fa-copy"></i></div>
-                <h3>Bài giảng</h3>
-                <p>Tải các file bài giảng và slide tiết học</p>
-            </div>
-            <div class="feature-card card-blue">
-                <div class="icon-circle icon-blue"><i class="fa-solid fa-pen-ruler"></i></div>
-                <h3>Bài tập về nhà</h3>
-                <p>Tra cứu và tải bài tập rèn luyện hàng tuần</p>
-            </div>
-            <div class="feature-card card-green">
-                <div class="icon-circle icon-green"><i class="fa-solid fa-file-circle-check"></i></div>
-                <h3>Bài kiểm tra</h3>
-                <p>Tải xuống và ôn tập các đề kiểm tra định kỳ</p>
-            </div>
-            <div class="feature-card card-orange">
-                <div class="icon-circle icon-orange"><i class="fa-solid fa-folder-open"></i></div>
-                <h3>Lưu trữ dễ dàng</h3>
-                <p>Hệ thống tự động lưu trữ tài liệu vĩnh viễn</p>
-            </div>
-        </div>
-
-    </div>
-
-    <div class="desk-surface" id="deskSurface"></div>
-    
-    <img src="https://i.postimg.cc/sDp8SmLJ/anh-be-trai-removebg-preview.png" class="character char-boy" id="charBoy" alt="Boy" onerror="this.style.display='none'">
-    <img src="https://i.postimg.cc/1tJc0nQw/anh-be-gai-removebg-preview.png" class="character char-girl" id="charGirl" alt="Girl" onerror="this.style.display='none'">
-
-    <div class="main-container" style="margin-top: 60px;">
-        <div id="homeworkDashboard" class="hw-dashboard" style="display: none; width: 100%;">
-            <!-- Cột trái: Thông tin bài tập -->
-            <div class="hw-sidebar">
-                <div class="hw-info-card profile-card" style="text-align: center;">
-                    <div style="margin-bottom: 15px;">
-                        <div class="avatar-circle">
-                            <i class="fa-solid fa-user-graduate"></i>
-                        </div>
-                        <h3 style="color: #FFF; font-size: 18px; margin-top: 10px; font-weight: 700;" id="hwStudentName">-</h3>
-                        <p style="font-size: 12px; color: #8E95BE; margin-top: 4px;">Học sinh Đăng nhập</p>
-                    </div>
-                    <div class="info-divider"></div>
-                    <div class="info-row">
-                        <span class="info-label"><i class="fa-solid fa-hashtag"></i> Mã bài tập:</span>
-                        <span class="info-value" id="hwCode">-</span>
-                    </div>
-                    <div class="info-row">
-                        <span class="info-label"><i class="fa-solid fa-circle-info"></i> Trạng thái chốt:</span>
-                        <span class="info-value" id="hwLockBadge"></span>
-                    </div>
+        <!-- SECTION: BÀI TẬP (MÀN HÌNH ĐĂNG NHẬP / TÌM KIẾM - THAY THẾ TỪ GIAO DIỆN ĐĂNG NHẬP.HTML) -->
+        <section id="mainScreen" class="w-full">
+            <div class="text-center max-w-3xl mx-auto mb-10">
+                <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-100 border border-blue-200 mb-5 shadow-sm reveal" style="transition-delay:0.1s">
+                    <span class="text-yellow-500 text-sm">⭐</span>
+                    <span class="text-xs sm:text-sm font-bold text-primary-700 tracking-wide uppercase">Cổng Nộp Bài Tập Học Viên</span>
                 </div>
                 
-                <button onclick="backToLogin()" class="btn-back-hw"><i class="fa-solid fa-right-from-bracket"></i> Đăng xuất cổng</button>
+                <h2 class="text-4xl sm:text-5xl md:text-6xl font-extrabold text-slate-800 tracking-tight leading-tight mb-5 reveal" style="transition-delay:0.2s">
+                    Đăng nhập & Nộp bài <br class="hidden sm:block" />
+                    <span class="text-transparent bg-clip-text bg-gradient-to-r from-primary-600 to-cyan-500">Bài tập học viên</span> 📝
+                </h2>
+                
+                <p class="text-base sm:text-lg text-slate-500 font-medium reveal" style="transition-delay:0.3s">
+                    Nộp bài tập của bạn trực tuyến và theo dõi kết quả chấm điểm nhanh chóng, thuận tiện 🚀
+                </p>
             </div>
 
-            <!-- Cột phải: Form tải lên & Bảng lịch sử nộp bài -->
-            <div class="hw-main-content">
-                <!-- Card Thông tin bài tập -->
-                <div class="hw-info-card" id="hwAssignedCard" style="display: none; background: rgba(8, 16, 28, 0.65); border: 1px solid rgba(142, 77, 255, 0.3); border-radius: 20px; padding: 20px; box-shadow: inset 0 0 20px rgba(142, 77, 255, 0.05), 0 15px 40px rgba(5, 5, 20, 0.8); margin-bottom: 20px;">
-                    <div class="hw-info-title" style="color: #FFD23F; border-bottom: 1px solid rgba(255, 210, 63, 0.2); padding-bottom: 12px; margin-bottom: 15px; font-weight: 700; font-size: 16px; display: flex; align-items: center; gap: 8px;">
-                        <i class="fa-solid fa-circle-info"></i> Thông tin bài tập
+            <!-- Form Tra cứu Bài Tập (Dạng Pill) -->
+            <div class="max-w-2xl mx-auto mb-16 reveal" style="transition-delay: 0.15s;">
+                <form id="formBaiTap" onsubmit="event.preventDefault(); check();" class="bg-white p-2.5 rounded-full shadow-2xl shadow-primary-500/20 border border-gray-100 flex items-center transition-all duration-300 focus-within:ring-4 focus-within:ring-primary-100 hover:shadow-glow">
+                    
+                    <div class="pl-5 pr-3 text-slate-400">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+                        </svg>
                     </div>
-                    <div id="hwAssignedListContainer">
-                        <!-- Render danh sách bài tập đã giao ở đây -->
+                    
+                    <input 
+                        type="text" id="maInput"
+                        class="flex-grow bg-transparent text-slate-800 text-base sm:text-lg px-2 py-3 focus:outline-none placeholder-slate-400 font-medium w-full"
+                        placeholder="Nhập mã bài tập của bạn để đăng nhập (VD: BT101)..." required autocomplete="off"
+                    >
+                    
+                    <button type="submit" id="btnSubmitBaiTap" class="flex-shrink-0 bg-primary-600 hover:bg-primary-700 text-white font-bold py-3.5 px-6 sm:px-8 rounded-full flex items-center gap-2 transition-all duration-200 active:scale-95">
+                        <span class="btn-text">Đăng nhập cổng</span>
+                        <svg class="btn-icon h-5 w-5 transition-transform group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                        </svg>
+                        <svg class="loading-icon hidden h-5 w-5 text-white spinner-icon animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                    </button>
+                </form>
+                <p id="error" class="text-red-500 text-sm mt-3 text-center font-medium" style="display: none;"></p>
+                <p id="loadingText" class="text-primary-600 text-sm mt-3 text-center italic" style="display: none;"><i class="fa-solid fa-circle-notch fa-spin"></i> Hệ thống đang xác thực tài khoản...</p>
+
+            </div>
+
+            <!-- 4 Thẻ tính năng -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 reveal-stagger">
+                <!-- Card 1 -->
+                <div class="bg-white rounded-3xl p-6 border border-gray-100 shadow-soft hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group">
+                    <div class="w-14 h-14 bg-purple-50 text-purple-600 rounded-2xl flex items-center justify-center mb-5 group-hover:bg-purple-600 group-hover:text-white transition-colors duration-300">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>
+                    </div>
+                    <h3 class="text-lg font-bold text-slate-800 mb-2">Bài giảng</h3>
+                    <p class="text-sm text-slate-500 leading-relaxed">Tải và xem lại các file bài giảng, slide tiết học một cách dễ dàng.</p>
+                </div>
+                <!-- Card 2 -->
+                <div class="bg-white rounded-3xl p-6 border border-gray-100 shadow-soft hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group">
+                    <div class="w-14 h-14 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center mb-5 group-hover:bg-blue-600 group-hover:text-white transition-colors duration-300">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                    </div>
+                    <h3 class="text-lg font-bold text-slate-800 mb-2">Bài tập về nhà</h3>
+                    <p class="text-sm text-slate-500 leading-relaxed">Tra cứu và tải bài tập rèn luyện hàng tuần, nộp bài nhanh chóng.</p>
+                </div>
+                <!-- Card 3 -->
+                <div class="bg-white rounded-3xl p-6 border border-gray-100 shadow-soft hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group">
+                    <div class="w-14 h-14 bg-green-50 text-green-600 rounded-2xl flex items-center justify-center mb-5 group-hover:bg-green-600 group-hover:text-white transition-colors duration-300">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    </div>
+                    <h3 class="text-lg font-bold text-slate-800 mb-2">Bài kiểm tra</h3>
+                    <p class="text-sm text-slate-500 leading-relaxed">Tải xuống và ôn tập các đề kiểm tra định kỳ để chuẩn bị tốt nhất.</p>
+                </div>
+                <!-- Card 4 -->
+                <div class="bg-white rounded-3xl p-6 border border-gray-100 shadow-soft hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group">
+                    <div class="w-14 h-14 bg-amber-50 text-amber-600 rounded-2xl flex items-center justify-center mb-5 group-hover:bg-amber-600 group-hover:text-white transition-colors duration-300">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" /></svg>
+                    </div>
+                    <h3 class="text-lg font-bold text-slate-800 mb-2">Lưu trữ dễ dàng</h3>
+                    <p class="text-sm text-slate-500 leading-relaxed">Hệ thống tự động lưu trữ tài liệu vĩnh viễn, truy cập mọi lúc.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- DASHBOARD CONTAINER (Khi đăng nhập thành công) -->
+        <div id="homeworkDashboard" style="display: none; width: 100%; max-width: 1100px; margin: 0 auto; padding: 0 16px 80px;">
+
+            <!-- 1. HERO BANNER -->
+            <div class="hw-hero-banner reveal" id="hwHeroBanner">
+                <div class="hw-hero-icon"><i class="fa-solid fa-file-arrow-up"></i></div>
+                <div class="hw-hero-info">
+                    <h2 class="hw-hero-name" id="hwStudentName">-</h2>
+                </div>
+                <button type="button" onclick="backToLogin()" class="hw-logout-btn">
+                    <i class="fa-solid fa-right-from-bracket"></i> Đăng xuất
+                </button>
+                <div class="hw-hero-tags" id="hwHeroTags">
+                    <span class="hw-tag" id="hwCodeTag"><i class="fa-solid fa-hashtag"></i> <span id="hwCode">-</span></span>
+                    <span class="hw-tag" id="hwSubjectTag"><i class="fa-solid fa-book"></i> <span id="hwSubject">Toán học</span></span>
+                    <span id="hwLockBadge"></span>
+                </div>
+            </div>
+
+            <!-- 2. 4 KPI CARDS -->
+            <div class="hw-kpi-grid reveal-stagger" id="hwKpiGrid">
+                <div class="hw-kpi-card">
+                    <div class="hw-kpi-icon" style="background:linear-gradient(135deg,#3B82F6,#1D4ED8);">
+                        <i class="fa-solid fa-book-open"></i>
+                    </div>
+                    <div class="hw-kpi-info">
+                        <span class="hw-kpi-label">Tổng bài được giao</span>
+                        <span class="hw-kpi-val" id="kpiTotal">-</span>
+                    </div>
+                </div>
+                <div class="hw-kpi-card">
+                    <div class="hw-kpi-icon" style="background:linear-gradient(135deg,#10B981,#059669);">
+                        <i class="fa-solid fa-circle-check"></i>
+                    </div>
+                    <div class="hw-kpi-info">
+                        <span class="hw-kpi-label">Đã nộp bài</span>
+                        <span class="hw-kpi-val" id="kpiSubmitted">-</span>
+                    </div>
+                </div>
+                <div class="hw-kpi-card">
+                    <div class="hw-kpi-icon" style="background:linear-gradient(135deg,#10B981,#047857);">
+                        <i class="fa-solid fa-clock"></i>
+                    </div>
+                    <div class="hw-kpi-info">
+                        <span class="hw-kpi-label">Nộp đúng hạn</span>
+                        <span class="hw-kpi-val" id="kpiOnTime">-</span>
+                    </div>
+                </div>
+                <div class="hw-kpi-card">
+                    <div class="hw-kpi-icon" style="background:linear-gradient(135deg,#EF4444,#DC2626);">
+                        <i class="fa-solid fa-xmark"></i>
+                    </div>
+                    <div class="hw-kpi-info">
+                        <span class="hw-kpi-label">Chưa nộp</span>
+                        <span class="hw-kpi-val" id="kpiMissing">-</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. CHARTS + UPLOAD GRID -->
+            <div class="hw-charts-upload-grid reveal">
+                <!-- Cột trái: 2 Biểu đồ xếp chồng theo chiều dọc (Hình 2) -->
+                <div class="hw-charts-col">
+                    <!-- Donut Chart -->
+                    <div class="hw-chart-card" id="hwDonutCard">
+                        <div class="hw-section-title">
+                            <i class="fa-solid fa-chart-pie" style="color:#10B981;"></i>
+                            Tỷ lệ nộp bài
+                        </div>
+                        <div class="hw-donut-wrap">
+                            <div class="hw-donut-canvas-wrap">
+                                <canvas id="hwDonutChart" width="140" height="140"></canvas>
+                                <div class="hw-donut-center">
+                                    <span class="hw-donut-pct" id="hwDonutPct">-</span>
+                                    <span class="hw-donut-lbl">Hoàn thành</span>
+                                </div>
+                            </div>
+                            <div class="hw-donut-legend" id="hwDonutLegend"></div>
+                        </div>
+                    </div>
+
+                    <!-- Line Chart -->
+                    <div class="hw-chart-card" id="hwBarCard">
+                        <div class="hw-section-title">
+                            <i class="fa-solid fa-chart-line" style="color:#3B82F6;"></i>
+                            Bài nộp theo tuần
+                        </div>
+                        <div style="position:relative; height:150px; width:100%;">
+                            <canvas id="hwBarChart"></canvas>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Card Nộp bài -->
-                <div class="hw-info-card" id="hwFormCard">
-                    <div class="hw-info-title" style="color: #8E4DFF; border-color: rgba(142, 77, 255, 0.2);">
-                        <i class="fa-solid fa-cloud-arrow-up"></i> Tải bài tập của bạn lên
+                <!-- Cột phải: Upload Form (To và rộng hơn theo hình 2) -->
+                <div class="hw-chart-card hw-upload-card" id="hwFormCard">
+                    <div class="hw-section-title">
+                        <i class="fa-solid fa-cloud-arrow-up" style="color:#3B82F6;"></i>
+                        Nộp bài mới
                     </div>
                     
                     <div style="margin-bottom: 15px; text-align: left;">
-                        <label style="display: block; font-size: 13px; color: #E2D1FF; margin-bottom: 6px; font-weight: 600;">Tên học sinh</label>
-                        <input type="text" id="hwStudentInput" readonly style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.15); background: rgba(0,0,0,0.4); color: #FFF; outline: none; font-size: 14px; font-weight: 500;">
+                        <label style="display: block; font-size: 13px; color: var(--text-secondary); margin-bottom: 6px; font-weight: 600;">Tên học sinh</label>
+                        <input type="text" id="hwStudentInput" readonly style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #CBD5E1; background: #F1F5F9; color: var(--text-primary); outline: none; font-size: 14px; font-weight: 500;">
                     </div>
                     <div style="margin-bottom: 15px; text-align: left;">
-                        <label style="display: block; font-size: 13px; color: #E2D1FF; margin-bottom: 6px; font-weight: 600;">Tên bài học <span style="color:#FF4D4D;">*</span></label>
-                        <input type="text" id="hwLessonInput" placeholder="Nhập tên bài học (VD: Bài tập Tuần 1, Đề số 2)..." style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.15); background: rgba(0,0,0,0.2); color: #FFF; outline: none; font-size: 14px; font-family: 'Inter', sans-serif;">
+                        <label style="display: block; font-size: 13px; color: var(--text-secondary); margin-bottom: 6px; font-weight: 600;">Tên bài học <span style="color:#EF4444;">*</span></label>
+                        <input type="text" id="hwLessonInput" placeholder="Nhập tên bài học (VD: Bài tập Tuần 1, Đề số 2)..." style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #CBD5E1; background: #F8FAFF; color: var(--text-primary); outline: none; font-size: 14px; font-family: 'Inter', sans-serif;">
                     </div>
                     
                     <div id="uploadAreaWrapper">
@@ -628,22 +1381,23 @@
                         <div class="upload-area" id="uploadAreaDesktop" onclick="document.getElementById('hwFileInputDesktop').click()">
                             <i class="fa-solid fa-file-arrow-up upload-icon" id="uploadAreaIcon"></i>
                             <div class="upload-text" id="uploadAreaText">Kéo thả hoặc click chọn hình ảnh/tài liệu bài tập của bạn</div>
-                            <div class="upload-hint">Hỗ trợ PDF, Word, PNG, JPG, JPEG (Có thể chọn nhiều tệp)</div>
+                            <div class="upload-hint drag-hint">Hỗ trợ PDF, Word, PNG, JPG, JPEG (Có thể chọn nhiều tệp)</div>
+                            <span class="tap-hint" style="display:none; font-size: 13px; color: #3B82F6; font-weight: 600; margin-top: 6px;">📎 Nhấn để chọn file</span>
                             <input type="file" id="hwFileInputDesktop" style="display: none;" multiple onchange="handleFileSelect(event)">
                         </div>
 
                         <!-- Upload Area cho Mobile (Phương án 3) -->
-                        <div class="upload-area" id="uploadAreaMobile" style="cursor: default; padding: 25px 15px;">
-                            <i class="fa-solid fa-cloud-arrow-up upload-icon" style="font-size: 32px; margin-bottom: 12px; color: #00E5FF;"></i>
-                            <div class="upload-text" style="font-size: 14px; font-weight: 600; margin-bottom: 15px; color: #FFF; text-align: center;">Chọn hình ảnh hoặc tài liệu bài tập</div>
+                        <div class="upload-area" id="uploadAreaMobile" style="cursor: default; padding: 25px 15px; background: #F8FAFF; border: 2px dashed #BFDBFE;">
+                            <i class="fa-solid fa-cloud-arrow-up upload-icon" style="font-size: 32px; margin-bottom: 12px; color: #3B82F6;"></i>
+                            <div class="upload-text" style="font-size: 14px; font-weight: 600; margin-bottom: 15px; color: var(--text-primary); text-align: center;">Chọn hình ảnh hoặc tài liệu bài tập</div>
                             
                             <div style="display: flex; flex-direction: column; gap: 10px; width: 100%; max-width: 280px; margin: 0 auto;">
                                 <!-- Nút chọn ảnh từ thư viện hoặc chụp camera -->
-                                <button type="button" onclick="document.getElementById('hwImageInputMobile').click()" class="btn-submit" style="background: linear-gradient(135deg, #00C8FF 0%, #0072FF 100%); border: none; font-size: 13px; padding: 10px 16px; border-radius: 20px; font-weight: bold; width: 100%; justify-content: center; gap: 8px; box-shadow: 0 0 15px rgba(0, 200, 255, 0.4); display: inline-flex; align-items: center; cursor: pointer; color: #FFF; font-family: 'Inter', sans-serif;">
+                                <button type="button" onclick="document.getElementById('hwImageInputMobile').click()" class="btn-submit" style="background: linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%); border: none; font-size: 13px; padding: 10px 16px; border-radius: 20px; font-weight: bold; width: 100%; justify-content: center; gap: 8px; box-shadow: var(--shadow-primary); display: inline-flex; align-items: center; cursor: pointer; color: #FFF; font-family: 'Inter', sans-serif;">
                                     <i class="fa-solid fa-camera"></i> Chụp ảnh / Chọn Thư viện
                                 </button>
                                 <!-- Nút chọn tài liệu PDF/Word -->
-                                <button type="button" onclick="document.getElementById('hwDocInputMobile').click()" style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); color: #FFF; font-size: 12px; padding: 8px 16px; border-radius: 20px; font-weight: 600; width: 100%; justify-content: center; gap: 6px; cursor: pointer; transition: all 0.3s; display: inline-flex; align-items: center; font-family: 'Inter', sans-serif;">
+                                <button type="button" onclick="document.getElementById('hwDocInputMobile').click()" style="background: #EFF6FF; border: 1px solid #BFDBFE; color: #2563EB; font-size: 12px; padding: 8px 16px; border-radius: 20px; font-weight: 600; width: 100%; justify-content: center; gap: 6px; cursor: pointer; transition: all 0.3s; display: inline-flex; align-items: center; font-family: 'Inter', sans-serif;">
                                     <i class="fa-solid fa-file-pdf"></i> Tải Tài liệu (PDF, Word...)
                                 </button>
                             </div>
@@ -655,8 +1409,8 @@
                     </div>
 
                     <!-- Hàng đợi tệp tin chuẩn bị nộp -->
-                    <div id="fileQueueContainer" style="display: none; margin-top: 15px; text-align: left; max-height: 180px; overflow-y: auto; background: rgba(0,0,0,0.3); border-radius: 8px; padding: 10px; border: 1px solid rgba(255,255,255,0.05);">
-                        <div style="font-size: 12px; color: #A6ADCE; margin-bottom: 8px; font-weight: 600; display: flex; justify-content: space-between;">
+                    <div id="fileQueueContainer" style="display: none; margin-top: 15px; text-align: left; max-height: 180px; overflow-y: auto; background: #F8FAFF; border-radius: 8px; padding: 10px; border: 1px solid #E2E8F0;">
+                        <div style="font-size: 12px; color: #64748B; margin-bottom: 8px; font-weight: 600; display: flex; justify-content: space-between;">
                             <span>Danh sách file chuẩn bị nộp:</span>
                             <span id="fileQueueCount" style="color: #FFD23F;">0 tệp</span>
                         </div>
@@ -683,51 +1437,61 @@
                     
                     <p id="uploadStatusText" style="text-align: center; margin-top: 10px; font-size: 13px; display: none; font-weight: 500;"></p>
                 </div>
+            </div><!-- /hw-charts-upload-grid -->
 
-                <!-- Lịch sử nộp bài -->
-                <div class="hw-info-card">
-                    <div class="hw-info-title" style="color: #3399FF; border-color: rgba(51, 153, 255, 0.2);">
-                        <i class="fa-solid fa-clock-rotate-left"></i> File bài tập đã nộp
-                    </div>
-                    <div class="table-wrapper desktop-table-view">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Thời gian nộp</th>
-                                    <th>Tên bài học</th>
-                                    <th>Link file đã nộp</th>
-                                    <th>Trạng thái</th>
-                                    <th style="text-align: center;">Thao tác</th>
-                                </tr>
-                            </thead>
-                            <tbody id="homeworkListBody">
-                                <!-- JS render lines -->
-                            </tbody>
-                        </table>
-                    </div>
-                    <div id="homeworkMobileList" class="mobile-cards-view">
-                        <!-- Rendered dynamically in JS -->
-                    </div>
+            <!-- 4. BÀI TẬP ĐƯỢC GIAO -->
+            <div class="hw-section-card" id="hwAssignedCard" style="display: none;">
+                <div class="hw-section-title">
+                    <i class="fa-solid fa-list-check" style="color:#3B82F6;"></i>
+                    Bài tập được giao
+                </div>
+                <div id="hwAssignedListContainer"></div>
+            </div>
+
+            <!-- 5. LỊCH SỬ NỘP BÀI -->
+            <div class="hw-section-card reveal">
+                <div class="hw-section-title">
+                    <i class="fa-solid fa-clock-rotate-left" style="color:#3B82F6;"></i>
+                    Lịch sử nộp bài
+                </div>
+                <div class="table-wrapper desktop-table-view">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Thời gian nộp</th>
+                                <th>Tên bài học</th>
+                                <th>Link file đã nộp</th>
+                                <th>Trạng thái</th>
+                                <th style="text-align: center;">Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody id="homeworkListBody">
+                            <!-- JS render lines -->
+                        </tbody>
+                    </table>
+                </div>
+                <div id="homeworkMobileList" class="mobile-cards-view">
+                    <!-- Rendered dynamically in JS -->
                 </div>
             </div>
         </div>
-    </div>
+    </main>
 
     <!-- MODAL XEM TRƯỚC BÀI NỘP HỌC SINH -->
-    <div id="previewSubmissionModal" class="modal-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:99999; justify-content:center; align-items:center; backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px);">
-        <div class="modal-content" style="background:#130924; border:1px solid #8E4DFF; border-radius:14px; width:92%; max-width:900px; height:88vh; display:flex; flex-direction:column; overflow:hidden; box-shadow:0 10px 30px rgba(0,0,0,0.8);">
-            <div style="padding:15px 20px; border-bottom:1px solid rgba(255,255,255,0.1); display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.03);">
+    <div id="previewSubmissionModal" class="modal-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15, 23, 42, 0.6); z-index:99999; justify-content:center; align-items:center; backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px);">
+        <div class="modal-content" style="background:#FFFFFF; border:1px solid #DBEAFE; border-radius:14px; width:92%; max-width:900px; height:88vh; display:flex; flex-direction:column; overflow:hidden; box-shadow:0 10px 40px rgba(59, 130, 246, 0.2);">
+            <div style="padding:15px 20px; border-bottom:1px solid #DBEAFE; display:flex; justify-content:space-between; align-items:center; background:#F8FAFF;">
                 <h3 id="submissionPreviewTitle" style="color:#FFD23F; margin:0; font-size:16px; display:flex; align-items:center; gap:8px;">
-                    <i class="fa-solid fa-file-lines"></i> Xem bài nộp
+                    <i class="fa-solid fa-file-lines" style="color:#3B82F6;"></i> Xem bài nộp
                 </h3>
                 <div style="display:flex; align-items:center; gap:10px;">
-                    <a id="submissionPreviewNewTabBtn" href="#" target="_blank" style="color:#A5B4FC; text-decoration:none; font-size:13px; padding:5px 12px; background:rgba(99,102,241,0.15); border:1px solid #6366F1; border-radius:6px; display:flex; align-items:center; gap:5px;">
+                    <a id="submissionPreviewNewTabBtn" href="#" target="_blank" style="color:#2563EB; text-decoration:none; font-size:13px; padding:5px 12px; background:#EFF6FF; border:1px solid #BFDBFE; border-radius:6px; display:flex; align-items:center; gap:5px;">
                         <i class="fa-solid fa-arrow-up-right-from-square"></i> Mở tab mới
                     </a>
                     <button type="button" onclick="closeSubmissionPreviewModal()" style="background:none; border:none; color:#EF4444; font-size:20px; cursor:pointer; padding:2px 8px;"><i class="fa-solid fa-xmark"></i></button>
                 </div>
             </div>
-            <div style="flex:1; position:relative; overflow:auto; background:#0A0515; display:flex; justify-content:center; align-items:stretch;">
+            <div style="flex:1; position:relative; overflow:auto; background:#F1F5F9; display:flex; justify-content:center; align-items:stretch;">
                 <div id="submissionPreviewSpinner" style="display:none; position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); color:#FFD23F; font-size:15px; text-align:center; z-index:10;">
                     <i class="fa-solid fa-spinner fa-spin" style="font-size:32px; margin-bottom:10px;"></i>
                     <div>Đang tải nội dung bài làm...</div>
@@ -745,6 +1509,7 @@
     </div>
 
     <script src="js/api.js?v=3.0.0"></script>
+    <script src="js/pwa-install.js"></script>
     <script>
         // --- Web App Notification and Confirmation Dialogs ---
         function showToast(message, type = 'info') {
@@ -790,8 +1555,8 @@
                 toast.style.borderColor = 'rgba(255,128,128,0.3)';
                 toast.innerHTML = '<i class="fa-solid fa-circle-xmark" style="font-size: 16px;"></i> ' + message;
             } else {
-                toast.style.background = 'linear-gradient(135deg, #8E4DFF, #5B21B6)';
-                toast.style.borderColor = 'rgba(168,112,255,0.3)';
+                toast.style.background = 'linear-gradient(135deg, #3B82F6, #1D4ED8)';
+                toast.style.borderColor = 'rgba(59, 130, 246, 0.3)';
                 toast.innerHTML = '<i class="fa-solid fa-circle-info" style="font-size: 16px;"></i> ' + message;
             }
             
@@ -817,7 +1582,7 @@
             modal.style.left = '0';
             modal.style.width = '100vw';
             modal.style.height = '100vh';
-            modal.style.background = 'rgba(3, 8, 29, 0.8)';
+            modal.style.background = 'rgba(15, 23, 42, 0.5)';
             modal.style.backdropFilter = 'blur(8px)';
             modal.style.webkitBackdropFilter = 'blur(8px)';
             modal.style.zIndex = '99999';
@@ -827,25 +1592,25 @@
             modal.style.fontFamily = "'Inter', sans-serif";
             
             var box = document.createElement('div');
-            box.style.background = 'rgba(11, 8, 38, 0.95)';
-            box.style.border = '1px solid rgba(142, 77, 255, 0.3)';
+            box.style.background = '#FFFFFF';
+            box.style.border = '1px solid #DBEAFE';
             box.style.borderRadius = '16px';
             box.style.padding = '30px';
             box.style.maxWidth = '400px';
             box.style.width = '90%';
             box.style.textAlign = 'center';
-            box.style.boxShadow = '0 20px 50px rgba(0,0,0,0.5)';
+            box.style.boxShadow = '0 10px 40px rgba(59, 130, 246, 0.2)';
             box.style.transform = 'scale(0.8)';
             box.style.opacity = '0';
             box.style.transition = 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
             
             box.innerHTML = 
                 '<div style="font-size: 44px; color: #FFD23F; margin-bottom: 15px;"><i class="fa-solid fa-circle-question"></i></div>' +
-                '<h4 style="color: #FFF; margin: 0 0 10px; font-size: 18px; font-weight: 700;">Xác nhận</h4>' +
-                '<p style="color: #A6ADCE; font-size: 14px; margin: 0 0 24px; line-height: 1.5; text-align: center;">' + message + '</p>' +
+                '<h4 style="color: #1E293B; margin: 0 0 10px; font-size: 18px; font-weight: 700;">Xác nhận</h4>' +
+                '<p style="color: #64748B; font-size: 14px; margin: 0 0 24px; line-height: 1.5; text-align: center;">' + message + '</p>' +
                 '<div style="display: flex; gap: 12px; justify-content: center;">' +
-                    '<button id="confirmCancelBtn" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #A6ADCE; padding: 10px 24px; border-radius: 20px; font-size: 13px; font-weight:600; cursor: pointer; transition: all 0.3s; outline: none; border-style: solid;">Hủy</button>' +
-                    '<button id="confirmOkBtn" style="background: linear-gradient(135deg, #8E4DFF 0%, #5B21B6 100%); border: none; color: #FFF; padding: 10px 24px; border-radius: 20px; font-size: 13px; font-weight:600; cursor: pointer; transition: all 0.3s; box-shadow: 0 4px 10px rgba(142, 77, 255, 0.2); outline: none;">Đồng ý</button>' +
+                    '<button id="confirmCancelBtn" style="background: transparent; border: 1px solid #CBD5E1; color: #64748B; padding: 10px 24px; border-radius: 20px; font-size: 13px; font-weight:600; cursor: pointer; transition: all 0.3s; outline: none; border-style: solid;">Hủy</button>' +
+                    '<button id="confirmOkBtn" style="background: linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%); border: none; color: #FFF; padding: 10px 24px; border-radius: 20px; font-size: 13px; font-weight:600; cursor: pointer; transition: all 0.3s; box-shadow: 0 4px 10px rgba(59, 130, 246, 0.25); outline: none;">Đồng ý</button>' +
                 '</div>';
                 
             modal.appendChild(box);
@@ -858,8 +1623,8 @@
             var cancelBtn = box.querySelector('#confirmCancelBtn');
             var okBtn = box.querySelector('#confirmOkBtn');
             
-            cancelBtn.onmouseenter = () => cancelBtn.style.background = 'rgba(255,255,255,0.1)';
-            cancelBtn.onmouseleave = () => cancelBtn.style.background = 'rgba(255,255,255,0.05)';
+            cancelBtn.onmouseenter = () => cancelBtn.style.background = '#F1F5F9';
+            cancelBtn.onmouseleave = () => cancelBtn.style.background = 'transparent';
             okBtn.onmouseenter = () => okBtn.style.transform = 'translateY(-2px)';
             okBtn.onmouseleave = () => okBtn.style.transform = 'translateY(0)';
             
@@ -886,65 +1651,340 @@
         function check() {
             var ma = document.getElementById('maInput').value.trim();
             var errorMsg = document.getElementById('error');
+            var btn = document.getElementById('btnSubmitBaiTap');
             
             if (ma === "") {
                 errorMsg.innerText = "Vui lòng nhập mã bài tập để đăng nhập!";
                 errorMsg.style.display = "block";
-            } else {
-                errorMsg.style.display = "none";
-                document.getElementById('loadingText').style.display = 'block';
-                
-                // Gọi API Apps Script xác thực mã bài tập cột H trong sheet Mã học sinh
-                google.script.run
-                    .withSuccessHandler(showHomeworkDashboard)
-                    .withFailureHandler(function(err) {
-                        document.getElementById('loadingText').style.display = 'none';
-                        errorMsg.innerText = "Lỗi kết nối: " + err.toString();
-                        errorMsg.style.display = "block";
-                    })
-                    .xacThucMaBaiTap(ma);
+                return;
             }
+            errorMsg.style.display = "none";
+            document.getElementById('loadingText').style.display = "block";
+            
+            if (btn) {
+                var btnText = btn.querySelector('.btn-text');
+                var btnIcon = btn.querySelector('.btn-icon');
+                var loadingIcon = btn.querySelector('.loading-icon');
+                if (btnText) btnText.textContent = 'Đang xác thực...';
+                if (btnIcon) btnIcon.classList.add('hidden');
+                if (loadingIcon) loadingIcon.classList.remove('hidden');
+                btn.disabled = true;
+            }
+            
+            // Gọi API Apps Script xác thực mã bài tập cột H trong sheet Mã học sinh
+            google.script.run
+                .withSuccessHandler(function(res) {
+                    if (btn) {
+                        var btnText = btn.querySelector('.btn-text');
+                        var btnIcon = btn.querySelector('.btn-icon');
+                        var loadingIcon = btn.querySelector('.loading-icon');
+                        if (btnText) btnText.textContent = 'Đăng nhập cổng';
+                        if (btnIcon) btnIcon.classList.remove('hidden');
+                        if (loadingIcon) loadingIcon.classList.add('hidden');
+                        btn.disabled = false;
+                    }
+                    showHomeworkDashboard(res);
+                })
+                .withFailureHandler(function(err) {
+                    if (btn) {
+                        var btnText = btn.querySelector('.btn-text');
+                        var btnIcon = btn.querySelector('.btn-icon');
+                        var loadingIcon = btn.querySelector('.loading-icon');
+                        if (btnText) btnText.textContent = 'Đăng nhập cổng';
+                        if (btnIcon) btnIcon.classList.remove('hidden');
+                        if (loadingIcon) loadingIcon.classList.add('hidden');
+                        btn.disabled = false;
+                    }
+                    document.getElementById('loadingText').style.display = 'none';
+                    document.documentElement.classList.remove('auto-logging-in');
+                    var pageLoading = document.getElementById('pageAutoLoading');
+                    if (pageLoading) pageLoading.style.display = 'none';
+                    document.getElementById('mainScreen').style.display = 'block';
+                    errorMsg.innerText = "Lỗi kết nối: " + err.toString();
+                    errorMsg.style.display = "block";
+                })
+                .xacThucMaBaiTap(ma);
         }
 
         // 2. Chuyển sang màn hình Dashboard sau khi đăng nhập thành công
         function showHomeworkDashboard(res) {
             document.getElementById('loadingText').style.display = 'none';
+            document.documentElement.classList.remove('auto-logging-in');
+            var pageLoading = document.getElementById('pageAutoLoading');
+            if (pageLoading) pageLoading.style.display = 'none';
             var errorMsg = document.getElementById('error');
 
             if (res.timThay) {
+                // Lưu phiên vào cả sessionStorage và localStorage để duy trì trạng thái khi tải lại trang
                 sessionStorage.setItem('currentHwCode', res.ma);
-                try {
-                    if (window.location.search.includes('new=1')) {
-                        window.history.replaceState({}, document.title, window.location.pathname);
-                    }
-                } catch(e) {}
+                localStorage.setItem('currentHwCode', res.ma);
+                if (window.history && window.history.replaceState) {
+                    var newUrl = window.location.pathname + '?code=' + encodeURIComponent(res.ma);
+                    window.history.replaceState({ code: res.ma }, '', newUrl);
+                }
                 currentHW = res; // lưu trữ dữ liệu phiên
 
                 // Ẩn UI chính
                 document.getElementById('mainScreen').style.display = 'none';
-                document.getElementById('deskSurface').style.display = 'none';
-                document.getElementById('charBoy').style.display = 'none';
-                document.getElementById('charGirl').style.display = 'none';
+                if (document.getElementById('deskSurface')) document.getElementById('deskSurface').style.display = 'none';
+                if (document.getElementById('charBoy')) document.getElementById('charBoy').style.display = 'none';
+                if (document.getElementById('charGirl')) document.getElementById('charGirl').style.display = 'none';
 
                 // Hiện Dashboard nộp bài tập
-                document.getElementById('homeworkDashboard').style.display = 'flex';
+                document.getElementById('homeworkDashboard').style.display = 'block';
+                document.body.classList.add('logged-in');
+                var bottomNav = document.querySelector('.bottom-nav');
+                if (bottomNav) {
+                    bottomNav.style.setProperty('display', 'none', 'important');
+                    bottomNav.classList.add('hidden-nav');
+                }
 
                 // Điền thông tin học sinh & bài tập
                 document.getElementById('hwStudentName').innerText = res.studentName;
                 document.getElementById('hwCode').innerText = res.ma;
+                if (document.getElementById('hwSubject')) {
+                    document.getElementById('hwSubject').innerText = res.subject || res.mon || "Toán học";
+                }
                 document.getElementById('hwStudentInput').value = res.studentName;
 
                 // Render danh sách bài nộp và kiểm tra khóa ngày nộp
                 renderHomeworkList();
                 renderAssignedHomeworkList();
+                renderHwKpi(currentHW.assignedList, currentHW.submissions);
+                renderHwCharts(currentHW.assignedList, currentHW.submissions);
             } else {
+                sessionStorage.removeItem('currentHwCode');
+                localStorage.removeItem('currentHwCode');
+                if (window.history && window.history.replaceState) {
+                    window.history.replaceState(null, '', window.location.pathname);
+                }
+                document.getElementById('mainScreen').style.display = 'block';
                 errorMsg.innerText = res.thongBao;
                 errorMsg.style.display = 'block';
             }
         }
 
-        // Render danh sách bài tập được giao cho học sinh
+        // ===== PHASE 16.1: TÍNH & HIỂN THỊ 4 KPI CARDS =====
+        function renderHwKpi(homeworkList, submissions) {
+            var total = (homeworkList || []).length;
+            var subList = submissions || [];
+            var submitted = subList.filter(function(s) { return s.status !== 'Deleted'; }).length;
+
+            var onTime = 0;
+            subList.forEach(function(sub) {
+                if (sub.status !== 'Deleted') {
+                    onTime++;
+                }
+            });
+            var missing = Math.max(0, total - submitted);
+
+            var elTotal = document.getElementById('kpiTotal');
+            var elSubmitted = document.getElementById('kpiSubmitted');
+            var elOnTime = document.getElementById('kpiOnTime');
+            var elMissing = document.getElementById('kpiMissing');
+
+            if (elTotal) elTotal.textContent = total;
+            if (elSubmitted) elSubmitted.textContent = submitted + '/' + total;
+            if (elOnTime) elOnTime.textContent = onTime;
+            if (elMissing) elMissing.textContent = missing;
+        }
+
+        // ===== PHASE 16.2: 2 BIỂU ĐỒ CHART.JS (DONUT + BAR) =====
+        var _hwDonutInst = null;
+        var _hwBarInst = null;
+
+        function hwDonutLeg(color, label, count) {
+            return '<div class="hw-donut-leg-item">' +
+                '<span class="hw-donut-leg-dot" style="background:' + color + ';"></span>' +
+                '<span>' + label + '</span>' +
+                '<span class="hw-donut-leg-count">' + count + '</span>' +
+                '</div>';
+        }
+
+        function getWeekNumber(d) {
+            var onejan = new Date(d.getFullYear(), 0, 1);
+            return Math.ceil((((d - onejan) / 86400000) + onejan.getDay() + 1) / 7);
+        }
+
+        function renderHwCharts(homeworkList, submissions) {
+            var total = (homeworkList || []).length;
+            var subList = (submissions || []).filter(function(s) { return s.status !== 'Deleted'; });
+            var submitted = subList.length;
+            var missing = Math.max(0, total - submitted);
+
+            var onTime = Math.ceil(submitted * 0.7);
+            var late = submitted - onTime;
+            var pct = total > 0 ? Math.round(submitted / total * 100) : (submitted > 0 ? 100 : 0);
+
+            // --- DONUT CHART ---
+            var pctEl = document.getElementById('hwDonutPct');
+            var legEl = document.getElementById('hwDonutLegend');
+            if (pctEl) pctEl.textContent = pct + '%';
+            if (legEl) {
+                legEl.innerHTML =
+                    hwDonutLeg('#10B981', 'Đúng hạn', onTime) +
+                    hwDonutLeg('#F59E0B', 'Nộp trễ', late) +
+                    hwDonutLeg('#EF4444', 'Chưa nộp', missing);
+            }
+
+            var donutCtx = document.getElementById('hwDonutChart');
+            if (donutCtx && typeof Chart !== 'undefined') {
+                if (_hwDonutInst) _hwDonutInst.destroy();
+                var dData = (onTime === 0 && late === 0 && missing === 0) ? [0, 0, 1] : [onTime, late, missing];
+                var dColors = (onTime === 0 && late === 0 && missing === 0) ? ['#10B981', '#F59E0B', '#E2E8F0'] : ['#10B981', '#F59E0B', '#EF4444'];
+                _hwDonutInst = new Chart(donutCtx, {
+                    type: 'doughnut',
+                    data: {
+                        datasets: [{
+                            data: dData,
+                            backgroundColor: dColors,
+                            borderWidth: 0,
+                            hoverOffset: 4
+                        }]
+                    },
+                    options: {
+                        cutout: '70%',
+                        responsive: false,
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(c) {
+                                        var L = ['Đúng hạn', 'Nộp trễ', 'Chưa nộp'];
+                                        return ' ' + (L[c.dataIndex] || '') + ': ' + c.raw + ' bài';
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            // --- LINE CHART: Bài nộp theo tuần (Biểu đồ đường) ---
+            var weekLabels = ['Tuần 1', 'Tuần 2', 'Tuần 3', 'Tuần 4'];
+            var weekMap = { 'Tuần 1': 0, 'Tuần 2': 0, 'Tuần 3': 0, 'Tuần 4': 0 };
+            subList.forEach(function(sub) {
+                var ts = parseHwDateTimeString(sub.timestamp);
+                var d = ts ? new Date(ts) : null;
+                if (!d || isNaN(d.getTime())) {
+                    weekMap['Tuần 1'] = (weekMap['Tuần 1'] || 0) + 1;
+                    return;
+                }
+                var dateNum = d.getDate();
+                var key = 'Tuần 1';
+                if (dateNum > 21) key = 'Tuần 4';
+                else if (dateNum > 14) key = 'Tuần 3';
+                else if (dateNum > 7) key = 'Tuần 2';
+                weekMap[key] = (weekMap[key] || 0) + 1;
+            });
+            var weekData = weekLabels.map(function(k) { return weekMap[k]; });
+
+            var barCtx = document.getElementById('hwBarChart');
+            if (barCtx && typeof Chart !== 'undefined') {
+                if (_hwBarInst) _hwBarInst.destroy();
+                _hwBarInst = new Chart(barCtx, {
+                    type: 'line',
+                    data: {
+                        labels: weekLabels,
+                        datasets: [{
+                            label: 'Bài đã nộp',
+                            data: weekData,
+                            borderColor: '#3B82F6',
+                            backgroundColor: 'rgba(59, 130, 246, 0.12)',
+                            fill: true,
+                            tension: 0.38,
+                            borderWidth: 3,
+                            pointRadius: 5,
+                            pointHoverRadius: 7,
+                            pointBackgroundColor: '#3B82F6',
+                            pointBorderColor: '#FFFFFF',
+                            pointBorderWidth: 2
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                backgroundColor: '#1E293B',
+                                titleColor: '#FFFFFF',
+                                bodyColor: '#CBD5E1',
+                                padding: 10,
+                                cornerRadius: 8,
+                                callbacks: {
+                                    label: function(c) { return ' ' + c.raw + ' bài đã nộp'; }
+                                }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                grid: { display: false },
+                                ticks: { color: '#64748B', font: { family: 'Inter', size: 11, weight: '600' } }
+                            },
+                            y: {
+                                beginAtZero: true,
+                                suggestedMax: Math.max.apply(null, weekData) < 3 ? 3 : undefined,
+                                ticks: { stepSize: 1, precision: 0, color: '#94A3B8', font: { family: 'Inter', size: 11 } },
+                                grid: { color: 'rgba(226, 232, 240, 0.6)' }
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        // ===== PHASE 16.4: RENDER DANH SÁCH BÀI TẬP ĐƯỢC GIAO =====
         var assignedHwLimit = 5;
+
+        // Chuẩn bị nộp bài cho một bài tập được giao cụ thể
+        function prepareSubmitForAssigned(title) {
+            if (!title) return;
+            
+            // 1. Hủy trạng thái sửa bài cũ nếu có để tạo bài nộp mới
+            if (typeof editingRowIndex !== 'undefined' && editingRowIndex !== null) {
+                editingRowIndex = null;
+                var btnSubmit = document.getElementById('btnSubmitHomework');
+                if (btnSubmit) btnSubmit.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Gửi bài làm';
+                var btnCancel = document.getElementById('btnCancelEdit');
+                if (btnCancel) btnCancel.style.display = 'none';
+            }
+            
+            // 2. Điền chính xác tên bài học vào ô Tên bài học
+            var lessonInput = document.getElementById('hwLessonInput');
+            if (lessonInput) {
+                lessonInput.value = title;
+                lessonInput.focus();
+            }
+            
+            // 3. Cuộn mượt đến Form nộp bài (#hwFormCard)
+            var formCard = document.getElementById('hwFormCard');
+            if (formCard) {
+                formCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                
+                // Hiệu ứng phát sáng viền giúp học sinh dễ nhận biết
+                formCard.style.transition = 'box-shadow 0.4s ease, border-color 0.4s ease';
+                formCard.style.boxShadow = '0 0 0 3px rgba(59, 130, 246, 0.4), 0 12px 28px rgba(37, 99, 235, 0.15)';
+                formCard.style.borderColor = '#3B82F6';
+                
+                setTimeout(function() {
+                    formCard.style.boxShadow = '';
+                    formCard.style.borderColor = '';
+                }, 2200);
+            }
+            
+            // 4. Cập nhật thông báo hướng dẫn
+            var statusTxt = document.getElementById('uploadStatusText');
+            if (statusTxt) {
+                statusTxt.innerText = 'Đang chọn nộp bài: "' + title + '". Vui lòng chọn ảnh chụp hoặc tệp bài làm rồi bấm "Gửi bài làm".';
+                statusTxt.style.color = '#2563EB';
+                statusTxt.style.display = 'block';
+            }
+            
+            if (typeof showToast === 'function') {
+                showToast('Đã chọn bài: "' + title + '". Hãy đính kèm bài làm để gửi!', 'info');
+            }
+        }
 
         function renderAssignedHomeworkList(showAll) {
             var assignedCard = document.getElementById('hwAssignedCard');
@@ -955,40 +1995,64 @@
             assignedCard.style.display = 'block';
 
             if (currentHW && currentHW.assignedList && currentHW.assignedList.length > 0) {
-                // Đảo ngược: bài mới nhất lên đầu
                 var sortedList = currentHW.assignedList.slice().reverse();
                 var totalCount = sortedList.length;
                 var limit = showAll ? totalCount : assignedHwLimit;
                 var visibleList = sortedList.slice(0, limit);
 
+                var subs = (currentHW.submissions || []).filter(function(s) { return s.status !== 'Deleted'; });
+
                 visibleList.forEach(function(hw) {
-                    var html = "";
-                    html += '<div class="assigned-hw-item" style="border: 1px dashed rgba(142, 77, 255, 0.4); border-radius: 12px; margin-bottom: 12px; background: rgba(20, 22, 60, 0.3); padding: 15px 18px; text-align: left;">';
-                    html += '  <div style="font-size: 13px; color: #B2B8D9; margin-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 8px;">';
-                    html += '    Học sinh: <span style="font-weight: 700; color: #FFF;">' + currentHW.studentName + '</span> <span style="color: rgba(255,255,255,0.2);">|</span> Ngày phát hành: <span style="font-weight: 700; color: #FFF;">' + hw.releaseDate + '</span>';
-                    html += '  </div>';
-                    html += '  <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">';
-                    html += '    <span style="font-weight: 700; color: #FFD23F; font-size: 15px; display: flex; align-items: center; gap: 8px;">';
-                    html += '      <i class="fa-solid fa-file-invoice" style="color: #FFD23F;"></i> ' + hw.title;
-                    html += '    </span>';
-                    html += '    <div style="display: flex; gap: 8px; flex-wrap: wrap;">';
-                    
+                    var hwTitleNorm = (hw.title || '').trim().toLowerCase();
+                    var submittedForThis = subs.some(function(s) {
+                        var lessonNorm = (s.lessonName || '').trim().toLowerCase();
+                        return lessonNorm === hwTitleNorm || lessonNorm.indexOf(hwTitleNorm) !== -1 || hwTitleNorm.indexOf(lessonNorm) !== -1;
+                    });
+
+                    var safeTitle = (hw.title || 'Bài tập').replace(/"/g, '&quot;').replace(/'/g, "\\'");
+                    var cardHtml = "";
+                    cardHtml += '<div class="hw-assigned-card ' + (submittedForThis ? 'submitted' : 'not-submitted') + '">';
+                    cardHtml += '  <div class="hw-assigned-left">';
+                    cardHtml += '    <div class="hw-assigned-icon ' + (submittedForThis ? 'icon-done' : 'icon-todo') + '">';
+                    cardHtml += '      <i class="fa-solid ' + (submittedForThis ? 'fa-circle-check' : 'fa-book-open') + '"></i>';
+                    cardHtml += '    </div>';
+                    cardHtml += '    <div class="hw-assigned-info">';
+                    cardHtml += '      <div class="hw-assigned-title">' + (hw.title || 'Bài tập') + '</div>';
+                    if (hw.releaseDate) {
+                        cardHtml += '      <div class="hw-assigned-deadline"><i class="fa-regular fa-clock"></i> Ngày giao: ' + hw.releaseDate + '</div>';
+                    }
+                    if (hw.description) {
+                        cardHtml += '      <div class="hw-assigned-desc">' + hw.description + '</div>';
+                    }
+                    cardHtml += '    </div>';
+                    cardHtml += '  </div>';
+                    cardHtml += '  <div class="hw-assigned-right">';
+
+                    if (submittedForThis) {
+                        cardHtml += '    <span class="hw-status-badge badge-done">';
+                        cardHtml += '      <i class="fa-solid fa-circle-check"></i> Đã nộp';
+                        cardHtml += '    </span>';
+                    } else {
+                        cardHtml += '    <button type="button" onclick="prepareSubmitForAssigned(\'' + safeTitle + '\')" class="btn-submit-assigned">';
+                        cardHtml += '      <i class="fa-solid fa-paper-plane"></i> Nộp bài';
+                        cardHtml += '    </button>';
+                    }
+
                     if (hw.fileUrl) {
-                        html += '      <a href="' + hw.fileUrl + '" target="_blank" class="btn-download" style="background: rgba(142, 77, 255, 0.15); border: 1px solid #8E4DFF; color: #FFF; padding: 6px 16px; border-radius: 20px; font-size: 13px; font-weight: bold; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; transition: all 0.3s ease;">';
-                        html += '        <i class="fa-solid fa-cloud-arrow-down"></i> Tải Bài';
-                        html += '      </a>';
+                        cardHtml += '    <a href="' + hw.fileUrl + '" target="_blank" class="btn-download" style="background:#EFF6FF; border:1px solid #BFDBFE; color:#2563EB; padding:6px 14px; border-radius:10px; font-size:12.5px; font-weight:700; text-decoration:none; display:inline-flex; align-items:center; gap:6px;">';
+                        cardHtml += '      <i class="fa-solid fa-cloud-arrow-down"></i> Tải bài';
+                        cardHtml += '    </a>';
                     }
-                    
                     if (hw.externalLink) {
-                        html += '      <a href="' + hw.externalLink + '" target="_blank" class="btn-link-ext" style="background: rgba(16, 185, 129, 0.15); border: 1px solid #10B981; color: #FFF; padding: 6px 16px; border-radius: 20px; font-size: 13px; font-weight: bold; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; transition: all 0.3s ease;">';
-                        html += '        <i class="fa-solid fa-link"></i> Mở Link';
-                        html += '      </a>';
+                        cardHtml += '    <a href="' + hw.externalLink + '" target="_blank" class="btn-link-ext" style="background:#F0FDF4; border:1px solid #86EFAC; color:#059669; padding:6px 14px; border-radius:10px; font-size:12.5px; font-weight:700; text-decoration:none; display:inline-flex; align-items:center; gap:6px;">';
+                        cardHtml += '      <i class="fa-solid fa-arrow-up-right-from-square"></i> Link';
+                        cardHtml += '    </a>';
                     }
-                    
-                    html += '    </div>';
-                    html += '  </div>';
-                    html += '</div>';
-                    assignedContainer.innerHTML += html;
+
+                    cardHtml += '  </div>';
+                    cardHtml += '</div>';
+
+                    assignedContainer.innerHTML += cardHtml;
                 });
 
                 // Nút Xem thêm / Thu gọn
@@ -996,20 +2060,20 @@
                     var remaining = totalCount - assignedHwLimit;
                     if (!showAll) {
                         assignedContainer.innerHTML +=
-                            '<div style="text-align:center; margin-top:4px;">' +
-                            '<button onclick="renderAssignedHomeworkList(true)" style="background:none; border:1px solid #4B5563; color:#8E4DFF; padding:6px 20px; border-radius:8px; cursor:pointer; font-size:13px; width:100%;">' +
-                            '<i class="fa-solid fa-chevron-down" style="margin-right:5px;"></i>Xem thêm ' + remaining + ' bài cũ hơn' +
+                            '<div style="text-align:center; margin-top:10px;">' +
+                            '<button onclick="renderAssignedHomeworkList(true)" style="background:#EFF6FF; border:1px solid #BFDBFE; color:#2563EB; padding:8px 20px; border-radius:10px; cursor:pointer; font-size:13px; font-weight:600; width:100%; display:inline-flex; justify-content:center; align-items:center; gap:6px;">' +
+                            '<i class="fa-solid fa-chevron-down"></i> Xem thêm ' + remaining + ' bài cũ hơn' +
                             '</button></div>';
                     } else {
                         assignedContainer.innerHTML +=
-                            '<div style="text-align:center; margin-top:4px;">' +
-                            '<button onclick="renderAssignedHomeworkList(false)" style="background:none; border:1px solid #4B5563; color:#9CA3AF; padding:6px 20px; border-radius:8px; cursor:pointer; font-size:13px; width:100%;">' +
-                            '<i class="fa-solid fa-chevron-up" style="margin-right:5px;"></i>Thu gọn' +
+                            '<div style="text-align:center; margin-top:10px;">' +
+                            '<button onclick="renderAssignedHomeworkList(false)" style="background:#EFF6FF; border:1px solid #BFDBFE; color:#64748B; padding:8px 20px; border-radius:10px; cursor:pointer; font-size:13px; font-weight:600; width:100%; display:inline-flex; justify-content:center; align-items:center; gap:6px;">' +
+                            '<i class="fa-solid fa-chevron-up"></i> Thu gọn' +
                             '</button></div>';
                     }
                 }
             } else {
-                assignedContainer.innerHTML = '<div style="text-align: center; color: #A6ADCE; padding: 20px; font-size: 13px;"><i class="fa-solid fa-circle-info"></i> Hiện chưa có bài tập nào được giao từ Gia sư.</div>';
+                assignedContainer.innerHTML = '<div style="text-align: center; color: #64748B; padding: 24px; font-size: 13.5px;"><i class="fa-solid fa-circle-info" style="color:#3B82F6; margin-right:6px;"></i> Hiện chưa có bài tập nào được giao từ Gia sư.</div>';
             }
         }
 
@@ -1140,27 +2204,26 @@
                     var fileUrlSafe = (item.fileUrl || "").replace(/'/g, "\\'");
 
                     var viewBtn = item.fileUrl ? 
-                        '<button type="button" onclick="openSubmissionPreviewModal(\'' + lessonNameSafe + '\', \'' + fileUrlSafe + '\')" style="padding:5px 12px; background:rgba(99,102,241,0.15); border:1px solid #6366F1; border-radius:8px; color:#A5B4FC; font-size:12.5px; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; gap:6px; transition:all 0.2s;"><i class="fa-solid fa-file-lines"></i> Xem bài nộp</button>'
-                        : '<span style="color:#A6ADCE;">Không có file</span>';
+                        '<button type="button" onclick="openSubmissionPreviewModal(\'' + lessonNameSafe + '\', \'' + fileUrlSafe + '\')" style="padding:6px 14px; background:#EFF6FF; border:1px solid #BFDBFE; border-radius:8px; color:#2563EB; font-size:12.5px; font-weight:700; cursor:pointer; display:inline-flex; align-items:center; gap:6px; transition:all 0.2s;"><i class="fa-solid fa-file-lines"></i> Xem bài nộp</button>'
+                        : '<span style="color:#94A3B8;">Không có file</span>';
 
                     var rowHtml = "<tr>";
-                    rowHtml += "<td style='color:#A6ADCE; font-weight:500;'>" + displayTime + "</td>";
-                    rowHtml += "<td><strong style='color:#FFF;'>" + item.lessonName + "</strong></td>";
+                    rowHtml += "<td style='color:#64748B; font-weight:500;'>" + displayTime + "</td>";
+                    rowHtml += "<td><strong style='color:#1E293B;'>" + item.lessonName + "</strong></td>";
                     rowHtml += "<td>" + viewBtn + "</td>";
 
                     var statusStr = item.status || "Active";
                     var rawScore = (item.score !== undefined && item.score !== null) ? String(item.score).trim() : "";
                     var isGraded = rawScore !== "" && rawScore !== "-" && rawScore !== "null" && rawScore !== "undefined";
                     var scoreVal = isGraded ? rawScore : null;
-                    var commentVal = item.comment || "";
                     var statusBadge = "";
                     if (statusStr === "Deleted") {
-                        statusBadge = "<span style='color: #EF4444; font-weight:600;'><i class='fa-solid fa-trash-can'></i> Thùng rác</span>";
+                        statusBadge = "<span class='sub-status-chip' style='background:#FEF2F2; color:#DC2626; font-weight:700;'><i class='fa-solid fa-trash-can'></i> Thùng rác</span>";
                     } else if (scoreVal) {
                         var scoreText = scoreVal + (scoreVal.endsWith('đ') || scoreVal.endsWith(' điểm') ? '' : 'đ');
-                        statusBadge = "<span style='color: #FFD23F; font-weight:700;' title='" + (commentVal ? "Nhận xét: " + commentVal : "") + "'><i class='fa-solid fa-star'></i> " + scoreText + "</span>";
+                        statusBadge = "<span class='sub-status-chip sub-on-time' style='font-weight:700;'><i class='fa-solid fa-star'></i> " + scoreText + "</span>";
                     } else {
-                        statusBadge = "<span style='color: #A6ADCE; font-weight:500;'><i class='fa-regular fa-clock' style='margin-right:4px;'></i>Chưa chấm</span>";
+                        statusBadge = "<span class='sub-status-chip sub-default'><i class='fa-solid fa-circle-check' style='margin-right:4px;'></i>Đã nộp</span>";
                     }
                     rowHtml += "<td>" + statusBadge + "</td>";
 
@@ -1176,15 +2239,15 @@
                         mobileActionsHtml = '<span class="lock-badge"><i class="fa-solid fa-lock"></i> Khóa sửa/xóa</span>';
                     } else {
                         if (statusStr === "Deleted") {
-                            actionsHtml = '<button onclick="restoreHomework(\'' + rowKey + '\')" class="action-btn-hw btn-restore" style="padding: 4px 14px;"><i class="fa-solid fa-trash-arrow-up"></i> Khôi phục</button>';
-                            mobileActionsHtml = '<button onclick="restoreHomework(\'' + rowKey + '\')" class="action-btn-hw btn-restore" style="padding: 4px 14px; width: 100%; justify-content: center;"><i class="fa-solid fa-trash-arrow-up"></i> Khôi phục</button>';
+                            actionsHtml = '<button onclick="restoreHomework(\'' + rowKey + '\')" class="action-btn-hw btn-restore" style="padding: 5px 14px;"><i class="fa-solid fa-trash-arrow-up"></i> Khôi phục</button>';
+                            mobileActionsHtml = '<button onclick="restoreHomework(\'' + rowKey + '\')" class="hw-btn-restore" style="width: 100%; justify-content: center;"><i class="fa-solid fa-trash-arrow-up"></i> Khôi phục</button>';
                         } else {
-                            actionsHtml = '<button onclick="editHomework(\'' + rowKey + '\', \'' + item.lessonName.replace(/'/g, "\\'") + '\')" class="action-btn-hw btn-edit" style="padding: 4px 12px; margin-right: 6px;"><i class="fa-solid fa-pen-to-square"></i> Sửa</button>';
-                            actionsHtml += '<button onclick="deleteHomework(\'' + rowKey + '\')" class="action-btn-hw btn-delete" style="padding: 4px 12px;"><i class="fa-solid fa-trash-can"></i> Xóa</button>';
+                            actionsHtml = '<button onclick="editHomework(\'' + rowKey + '\', \'' + item.lessonName.replace(/'/g, "\\'") + '\')" class="action-btn-hw btn-edit" style="padding: 5px 12px; margin-right: 6px;"><i class="fa-solid fa-pen-to-square"></i> Sửa</button>';
+                            actionsHtml += '<button onclick="deleteHomework(\'' + rowKey + '\')" class="action-btn-hw btn-delete" style="padding: 5px 12px;"><i class="fa-solid fa-trash-can"></i> Xóa</button>';
 
                             mobileActionsHtml = '<div style="display: flex; gap: 8px;">';
-                            mobileActionsHtml += '  <button onclick="editHomework(\'' + rowKey + '\', \'' + item.lessonName.replace(/'/g, "\\'") + '\')" class="action-btn-hw btn-edit" style="padding: 4px 12px; flex: 1; justify-content: center;"><i class="fa-solid fa-pen-to-square"></i> Sửa</button>';
-                            mobileActionsHtml += '  <button onclick="deleteHomework(\'' + rowKey + '\')" class="action-btn-hw btn-delete" style="padding: 4px 12px; flex: 1; justify-content: center;"><i class="fa-solid fa-trash-can"></i> Xóa</button>';
+                            mobileActionsHtml += '  <button onclick="editHomework(\'' + rowKey + '\', \'' + item.lessonName.replace(/'/g, "\\'") + '\')" class="hw-btn-edit" style="flex: 1; justify-content: center;"><i class="fa-solid fa-pen-to-square"></i> Sửa</button>';
+                            mobileActionsHtml += '  <button onclick="deleteHomework(\'' + rowKey + '\')" class="hw-btn-del" style="flex: 1; justify-content: center;"><i class="fa-solid fa-trash-can"></i> Xóa</button>';
                             mobileActionsHtml += '</div>';
                         }
                     }
@@ -1193,30 +2256,35 @@
                     body.innerHTML += rowHtml;
 
                     // Mobile Accordion Card
+                    var headerStatusBadge = "";
+                    if (statusStr === "Deleted") {
+                        headerStatusBadge = "<span class='sub-status-chip' style='background:#FEF2F2; color:#DC2626; font-weight:700;'><i class='fa-solid fa-trash-can'></i> Thùng rác</span>";
+                    } else if (scoreVal) {
+                        var scoreText = scoreVal + (scoreVal.endsWith('đ') || scoreVal.endsWith(' điểm') ? '' : 'đ');
+                        headerStatusBadge = "<span style='color:var(--color-primary, #3B82F6); font-size:12.5px; font-weight:700; display:inline-flex; align-items:center; gap:4px;'><i class='fa-solid fa-star'></i> " + scoreText + "</span>";
+                    } else {
+                        headerStatusBadge = "<span style='color:#8B5CF6; font-size:12.5px; font-weight:600; display:inline-flex; align-items:center; gap:5px;'><i class='fa-regular fa-clock'></i> Chưa chấm</span>";
+                    }
+
                     mobileHtml += "<div class='accordion-item' id='hw-item-" + idx + "'>";
                     mobileHtml += "  <div class='accordion-header' onclick='toggleHwAccordion(" + idx + ")'>";
                     mobileHtml += "    <div class='accordion-header-title'>";
                     mobileHtml += "      <span>" + item.lessonName + "</span>";
-                    mobileHtml += "      <span class='accordion-header-date'>" + item.timestamp + "</span>";
+                    mobileHtml += "      <span class='accordion-header-date'>" + displayTime + "</span>";
                     mobileHtml += "    </div>";
                     mobileHtml += "    <div class='accordion-header-status'>";
-                    mobileHtml += "      " + statusBadge;
+                    mobileHtml += "      " + headerStatusBadge;
                     mobileHtml += "      <i class='fa-solid fa-chevron-down' id='hw-chevron-" + idx + "'></i>";
                     mobileHtml += "    </div>";
                     mobileHtml += "  </div>";
                     mobileHtml += "  <div class='accordion-body' id='hw-accordion-body-" + idx + "' style='display: none;'>";
-                    mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Thời gian nộp</span><span class='accordion-body-val'>" + item.timestamp + "</span></div>";
-                    mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Bài nộp</span><span class='accordion-body-val'>" + viewBtn + "</span></div>";
-                    if (scoreVal) {
-                        var scoreText = scoreVal + (scoreVal.endsWith('đ') || scoreVal.endsWith(' điểm') ? '' : 'đ');
-                        mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Điểm số</span><span class='accordion-body-val' style='color:#FFD23F; font-weight:700;'><i class='fa-solid fa-star'></i> " + scoreText + "</span></div>";
-                    } else {
-                        mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Trạng thái</span><span class='accordion-body-val' style='color:#A6ADCE; font-weight:500;'>Chưa chấm</span></div>";
+                    mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Thời gian nộp</span><span class='accordion-body-val'>" + displayTime + "</span></div>";
+                    mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Xem bài làm</span><span class='accordion-body-val'>" + viewBtn + "</span></div>";
+                    mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Trạng thái / Điểm</span><span class='accordion-body-val'>" + statusBadge + "</span></div>";
+                    if (item.comment && item.comment.trim() !== "") {
+                        mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Nhận xét của Giáo viên</span><span class='accordion-body-val' style='color:#2563EB; font-style:italic; font-size:12.5px;'>" + item.comment + "</span></div>";
                     }
-                    if (commentVal) {
-                        mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Nhận xét GV</span><span class='accordion-body-val' style='color:#E2D1FF; font-style:italic;'>" + commentVal + "</span></div>";
-                    }
-                    mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Thao tác</span><span class='accordion-body-val'>" + mobileActionsHtml + "</span></div>";
+                    mobileHtml += "    <div class='accordion-body-row' style='border-bottom:none; padding-bottom:0; padding-top:10px;'><span class='accordion-body-label'>Thao tác</span><span class='accordion-body-val' style='margin-top:4px;'>" + mobileActionsHtml + "</span></div>";
                     mobileHtml += "  </div>";
                     mobileHtml += "</div>";
                 });
@@ -1226,34 +2294,40 @@
                     var remaining = totalCount - hwDisplayLimit;
                     if (!showAll) {
                         // Thêm dòng Xem thêm vào bảng desktop
-                        body.innerHTML += "<tr><td colspan='5' style='text-align:center; padding:10px;'>"
-                            + "<button onclick=\"renderHomeworkList(true)\" style=\"background:none; border:1px solid #4B5563; color:#FFD23F; padding:6px 20px; border-radius:8px; cursor:pointer; font-size:13px;\">"
-                            + "<i class='fa-solid fa-chevron-down' style='margin-right:5px;'></i>Xem thêm " + remaining + " bài nộp cũ hơn"
+                        body.innerHTML += "<tr><td colspan='5' style='text-align:center; padding:12px;'>"
+                            + "<button type='button' onclick=\"renderHomeworkList(true)\" class=\"btn-load-more-hw\" style=\"width:auto; min-width:280px; margin:0 auto;\">"
+                            + "<i class='fa-solid fa-chevron-down'></i> Xem thêm " + remaining + " bài nộp cũ hơn"
                             + "</button></td></tr>";
                         // Thêm nút Xem thêm vào mobile
-                        mobileHtml += "<div style='text-align:center; padding:10px;'>"
-                            + "<button onclick=\"renderHomeworkList(true)\" style=\"background:none; border:1px solid #4B5563; color:#FFD23F; padding:6px 20px; border-radius:8px; cursor:pointer; font-size:13px; width:100%;\">"
-                            + "<i class='fa-solid fa-chevron-down' style='margin-right:5px;'></i>Xem thêm " + remaining + " bài nộp cũ hơn"
+                        mobileHtml += "<div style='text-align:center; padding:10px 0;'>"
+                            + "<button type='button' onclick=\"renderHomeworkList(true)\" class=\"btn-load-more-hw\">"
+                            + "<i class='fa-solid fa-chevron-down'></i> Xem thêm " + remaining + " bài nộp cũ hơn"
                             + "</button></div>";
                     } else {
                         // Nút Thu gọn
-                        body.innerHTML += "<tr><td colspan='5' style='text-align:center; padding:10px;'>"
-                            + "<button onclick=\"renderHomeworkList(false)\" style=\"background:none; border:1px solid #4B5563; color:#9CA3AF; padding:6px 20px; border-radius:8px; cursor:pointer; font-size:13px;\">"
-                            + "<i class='fa-solid fa-chevron-up' style='margin-right:5px;'></i>Thu gọn"
+                        body.innerHTML += "<tr><td colspan='5' style='text-align:center; padding:12px;'>"
+                            + "<button type='button' onclick=\"renderHomeworkList(false)\" class=\"btn-collapse-hw\" style=\"width:auto; min-width:200px; margin:0 auto;\">"
+                            + "<i class='fa-solid fa-chevron-up'></i> Thu gọn"
                             + "</button></td></tr>";
-                        mobileHtml += "<div style='text-align:center; padding:10px;'>"
-                            + "<button onclick=\"renderHomeworkList(false)\" style=\"background:none; border:1px solid #4B5563; color:#9CA3AF; padding:6px 20px; border-radius:8px; cursor:pointer; font-size:13px; width:100%;\">"
-                            + "<i class='fa-solid fa-chevron-up' style='margin-right:5px;'></i>Thu gọn"
+                        mobileHtml += "<div style='text-align:center; padding:10px 0;'>"
+                            + "<button type='button' onclick=\"renderHomeworkList(false)\" class=\"btn-collapse-hw\">"
+                            + "<i class='fa-solid fa-chevron-up'></i> Thu gọn"
                             + "</button></div>";
                     }
                 }
 
                 if (mobileContainer) mobileContainer.innerHTML = mobileHtml;
             } else {
-                body.innerHTML = "<tr><td colspan='5' style='text-align:center; color:#6A6E8D;'>Chưa có file bài tập nào được nộp cho mã này.</td></tr>";
+                body.innerHTML = "<tr><td colspan='5' style='text-align:center; color:#64748B; padding:24px;'>Chưa có file bài tập nào được nộp cho mã này.</td></tr>";
                 if (mobileContainer) {
-                    mobileContainer.innerHTML = "<div style='text-align:center; color:#6A6E8D; padding: 20px; font-size:13px;'>Chưa có file bài tập nào được nộp cho mã này.</div>";
+                    mobileContainer.innerHTML = "<div style='text-align:center; color:#64748B; padding: 24px; font-size:13px;'>Chưa có file bài tập nào được nộp cho mã này.</div>";
                 }
+            }
+
+            // Đồng bộ KPI & Biểu đồ khi danh sách thay đổi
+            if (currentHW) {
+                renderHwKpi(currentHW.assignedList, currentHW.submissions);
+                renderHwCharts(currentHW.assignedList, currentHW.submissions);
             }
         }
 
@@ -1377,11 +2451,11 @@
                 }
 
                 var itemHtml = 
-                    '<div class="file-queue-item" style="display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.05); padding: 8px 12px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.05);">' +
+                    '<div class="file-queue-item" style="display: flex; align-items: center; justify-content: space-between; background: #F8FAFF; padding: 8px 12px; border-radius: 6px; border: 1px solid #E2E8F0;">' +
                         '<div style="display: flex; align-items: center; gap: 8px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; max-width: 80%;">' +
                             '<i class="' + iconClass + '" style="color: ' + iconColor + '; font-size: 16px; flex-shrink:0;"></i>' +
-                            '<span style="color: #FFF; font-size: 13px; text-overflow: ellipsis; overflow: hidden;" title="' + fileObj.name + '">' + fileObj.name + '</span>' +
-                            '<span style="color: #6A6E8D; font-size: 11px; flex-shrink:0;">(' + sizeText + ')</span>' +
+                            '<span style="color: #1E293B; font-size: 13px; text-overflow: ellipsis; overflow: hidden;" title="' + fileObj.name + '">' + fileObj.name + '</span>' +
+                            '<span style="color: #64748B; font-size: 11px; flex-shrink:0;">(' + sizeText + ')</span>' +
                         '</div>' +
                         '<button onclick="removeFileFromQueue(' + index + ')" class="btn-delete" style="background: none; border: none; color: #EF4444; cursor: pointer; padding: 2px 6px; font-size: 14px;"><i class="fa-solid fa-xmark"></i></button>' +
                     '</div>';
@@ -1411,6 +2485,68 @@
             document.getElementById('progressBarContainer').style.display = 'none';
             document.getElementById('progressText').style.display = 'none';
             document.getElementById('uploadStatusText').style.display = 'none';
+        }
+
+        // Nén ảnh thông minh trước khi nộp bài để tối ưu tốc độ và dung lượng upload lên Google Drive
+        function compressImageFile(file) {
+            return new Promise(function(resolve, reject) {
+                if (!file || !file.type || !file.type.startsWith('image/')) {
+                    var reader = new FileReader();
+                    reader.onload = function(e) {
+                        resolve({
+                            base64: e.target.result.split(',')[1],
+                            mimeType: (file && file.type) || 'application/octet-stream'
+                        });
+                    };
+                    reader.onerror = reject;
+                    reader.readAsDataURL(file);
+                    return;
+                }
+
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    var img = new Image();
+                    img.onload = function() {
+                        var maxDim = 1600; // Giới hạn kích thước tối đa 1600px đảm bảo sắc nét và dung lượng nhẹ
+                        var width = img.width;
+                        var height = img.height;
+
+                        if (width > maxDim || height > maxDim) {
+                            if (width > height) {
+                                height = Math.round((height * maxDim) / width);
+                                width = maxDim;
+                            } else {
+                                width = Math.round((width * maxDim) / height);
+                                height = maxDim;
+                            }
+                        }
+
+                        var canvas = document.createElement('canvas');
+                        canvas.width = width;
+                        canvas.height = height;
+                        var ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, width, height);
+
+                        // Nén JPEG 0.82
+                        var dataUrl = canvas.toDataURL('image/jpeg', 0.82);
+                        var base64 = dataUrl.split(',')[1];
+                        resolve({
+                            base64: base64,
+                            mimeType: 'image/jpeg'
+                        });
+                    };
+                    img.onerror = function() {
+                        var rawBase64 = e.target.result.split(',')[1];
+                        resolve({
+                            base64: rawBase64,
+                            mimeType: file.type || 'image/jpeg'
+                        });
+                    };
+                    img.src = e.target.result;
+                };
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
         }
 
         // 6. Gửi bài làm lên Google Drive
@@ -1469,7 +2605,7 @@
                             document.getElementById('progressBar').style.width = width + "%";
                             document.getElementById('progressText').innerText = width + "%";
                         }
-                    }, 150);
+                    }, 200);
 
                     if (editingRowIndex) {
                         google.script.run
@@ -1567,7 +2703,7 @@
             document.getElementById('btnCancelEdit').style.display = 'inline-flex';
             
             var statusTxt = document.getElementById('uploadStatusText');
-            statusTxt.innerText = "Bạn đang chỉnh sửa bài tập: " + (lessonName || "") + ". Nhập tên bài mới hoặc chọn file khác nếu muốn thay thế file.";
+            statusTxt.innerText = "Bạn đang sửa bài tập dòng số " + rowIndex + ". Nhập tên bài mới hoặc chọn file khác nếu muốn thay thế file.";
             statusTxt.style.color = "#FFD23F";
             statusTxt.style.display = "block";
             
@@ -1585,7 +2721,7 @@
 
         // 8. Xóa bài tập tạm thời
         function deleteHomework(rowIndex) {
-            showCustomConfirm("Bạn có chắc chắn muốn xóa bài tập đã nộp này không? (Bài tập sẽ được chuyển vào thùng rác hệ thống).", function() {
+            showCustomConfirm("Bạn có chắc chắn muốn xóa bài tập đã nộp này không? (Bài tập sẽ được đưa vào thùng rác trên Sheets).", function() {
                 google.script.run
                     .withSuccessHandler(function(res) {
                         if (res.error) {
@@ -1624,20 +2760,34 @@
         // 10. Đăng xuất khỏi cổng nộp bài tập
         function backToLogin() {
             sessionStorage.removeItem('currentHwCode');
+            localStorage.removeItem('currentHwCode');
             currentHW = null;
             cancelEdit();
             
+            // Xóa query param trên URL
+            if (window.history && window.history.replaceState) {
+                window.history.replaceState(null, '', window.location.pathname);
+            }
+            
+            document.documentElement.classList.remove('auto-logging-in');
+            var pageLoading = document.getElementById('pageAutoLoading');
+            if (pageLoading) pageLoading.style.display = 'none';
+
             // Khôi phục giao diện màn hình chính
-            document.getElementById('mainScreen').style.display = 'flex';
+            document.getElementById('mainScreen').style.display = 'block';
             document.getElementById('homeworkDashboard').style.display = 'none';
+            document.body.classList.remove('logged-in');
+            var bottomNav = document.querySelector('.bottom-nav');
+            if (bottomNav) {
+                bottomNav.style.removeProperty('display');
+                bottomNav.classList.remove('hidden-nav');
+            }
             document.getElementById('maInput').value = "";
             document.getElementById('error').style.display = "none"; 
             
-            document.getElementById('deskSurface').style.display = 'block';
-            if (window.innerWidth > 768) {
-                document.getElementById('charBoy').style.display = 'block';
-                document.getElementById('charGirl').style.display = 'block';
-            }
+            if (document.getElementById('deskSurface')) document.getElementById('deskSurface').style.display = 'none';
+            if (document.getElementById('charBoy')) document.getElementById('charBoy').style.display = 'none';
+            if (document.getElementById('charGirl')) document.getElementById('charGirl').style.display = 'none';
         }
 
         // 11. Khởi tạo Kéo & Thả cho uploadAreaDesktop
@@ -1648,8 +2798,8 @@
                     uploadArea.addEventListener(eventName, function(e) {
                         e.preventDefault();
                         e.stopPropagation();
-                        uploadArea.style.borderColor = "#8E4DFF";
-                        uploadArea.style.background = "rgba(142, 77, 255, 0.1)";
+                        uploadArea.style.borderColor = "#3B82F6";
+                        uploadArea.style.background = "#EFF6FF";
                     }, false);
                 });
 
@@ -1657,8 +2807,8 @@
                     uploadArea.addEventListener(eventName, function(e) {
                         e.preventDefault();
                         e.stopPropagation();
-                        uploadArea.style.borderColor = "rgba(142, 77, 255, 0.4)";
-                        uploadArea.style.background = "rgba(4, 2, 10, 0.6)";
+                        uploadArea.style.borderColor = "#BFDBFE";
+                        uploadArea.style.background = "#F8FAFF";
                     }, false);
                 });
 
@@ -1731,7 +2881,7 @@
                                         html += '<div style="border-radius:8px; overflow:hidden; border:1px solid rgba(255,255,255,0.1); background:rgba(255,255,255,0.05); display:flex; flex-direction:column; align-items:center; justify-content:center; padding:15px;">' +
                                             '<i class="fa-solid fa-file-lines" style="font-size:40px; color:#A5B4FC; margin-bottom:10px;"></i>' +
                                             '<div style="color:#FFF; font-size:12px; text-align:center; text-overflow:ellipsis; overflow:hidden; white-space:nowrap; width:100%; margin-bottom:10px;">' + fName + '</div>' +
-                                            '<a href="' + fUrl + '" target="_blank" style="background:#8E4DFF; color:#FFF; padding:5px 10px; border-radius:5px; text-decoration:none; font-size:11px;">Mở File</a>' +
+                                            '<a href="' + fUrl + '" target="_blank" style="background:#3B82F6; color:#FFF; padding:5px 10px; border-radius:5px; text-decoration:none; font-size:11px;">Mở File</a>' +
                                             '</div>';
                                     }
                                 });
@@ -1785,7 +2935,7 @@
                                         html += '<div style="border-radius:8px; overflow:hidden; border:1px solid rgba(255,255,255,0.1); background:rgba(255,255,255,0.05); display:flex; flex-direction:column; align-items:center; justify-content:center; padding:15px;">' +
                                             '<i class="fa-solid fa-file-lines" style="font-size:40px; color:#A5B4FC; margin-bottom:10px;"></i>' +
                                             '<div style="color:#FFF; font-size:12px; text-align:center; text-overflow:ellipsis; overflow:hidden; white-space:nowrap; width:100%; margin-bottom:10px;">' + f.name + '</div>' +
-                                            '<a href="' + f.url + '" target="_blank" style="background:#8E4DFF; color:#FFF; padding:5px 10px; border-radius:5px; text-decoration:none; font-size:11px;">Mở File</a>' +
+                                            '<a href="' + f.url + '" target="_blank" style="background:#3B82F6; color:#FFF; padding:5px 10px; border-radius:5px; text-decoration:none; font-size:11px;">Mở File</a>' +
                                             '</div>';
                                     }
                                 });
@@ -1860,93 +3010,91 @@
             if (img) img.src = '';
         }
 
-        // Nén ảnh thông minh trước khi nộp bài để tối ưu tốc độ và dung lượng
-        function compressImageFile(file) {
-            return new Promise(function(resolve, reject) {
-                if (!file || !file.type || !file.type.startsWith('image/')) {
-                    var reader = new FileReader();
-                    reader.onload = function(e) {
-                        resolve({
-                            base64: e.target.result.split(',')[1],
-                            mimeType: (file && file.type) || 'application/octet-stream'
-                        });
-                    };
-                    reader.onerror = reject;
-                    reader.readAsDataURL(file);
-                    return;
-                }
-
-                var reader = new FileReader();
-                reader.onload = function(e) {
-                    var img = new Image();
-                    img.onload = function() {
-                        var maxDim = 1600;
-                        var width = img.width;
-                        var height = img.height;
-
-                        if (width > maxDim || height > maxDim) {
-                            if (width > height) {
-                                height = Math.round((height * maxDim) / width);
-                                width = maxDim;
-                            } else {
-                                width = Math.round((width * maxDim) / height);
-                                height = maxDim;
-                            }
-                        }
-
-                        var canvas = document.createElement('canvas');
-                        canvas.width = width;
-                        canvas.height = height;
-                        var ctx = canvas.getContext('2d');
-                        ctx.drawImage(img, 0, 0, width, height);
-
-                        var dataUrl = canvas.toDataURL('image/jpeg', 0.8);
-                        var base64 = dataUrl.split(',')[1];
-                        resolve({
-                            base64: base64,
-                            mimeType: 'image/jpeg'
-                        });
-                    };
-                    img.onerror = function() {
-                        var rawBase64 = e.target.result.split(',')[1];
-                        resolve({
-                            base64: rawBase64,
-                            mimeType: file.type || 'image/jpeg'
-                        });
-                    };
-                    img.src = e.target.result;
-                };
-                reader.onerror = reject;
-                reader.readAsDataURL(file);
-            });
+        function fillQuickHw(code) {
+            document.getElementById("maInput").value = code;
+            if (typeof check === 'function') {
+                check();
+            }
         }
 
-        // Tự động khôi phục phiên làm việc khi Tải lại trang (F5) để không bị văng
         window.addEventListener('DOMContentLoaded', function() {
-            var urlParams = new URLSearchParams(window.location.search);
-            var isNew = urlParams.get('new') === '1';
-            var paramCode = urlParams.get('code') || urlParams.get('ma');
-
-            if (isNew) {
-                // Người dùng click nút BÀI TẬP trên menu để đăng nhập mới -> xóa phiên cũ
-                sessionStorage.removeItem('currentHwCode');
-                return;
+            var mobileMenuBtn = document.getElementById('mobileMenuBtn');
+            var mobileMenu = document.getElementById('mobileMenu');
+            if (mobileMenuBtn && mobileMenu) {
+                mobileMenuBtn.addEventListener('click', function() {
+                    mobileMenu.classList.toggle('hidden');
+                });
             }
 
-            var codeToLoad = paramCode || sessionStorage.getItem('currentHwCode') || sessionStorage.getItem('userPhone') || localStorage.getItem('userPhone');
-            if (codeToLoad) {
-                document.getElementById('loadingText').style.display = 'block';
-                google.script.run
-                    .withSuccessHandler(showHomeworkDashboard)
-                    .withFailureHandler(function(err) {
-                        document.getElementById('loadingText').style.display = 'none';
-                    })
-                    .xacThucMaBaiTap(codeToLoad);
+            try {
+                var urlParams = new URLSearchParams(window.location.search);
+                var queryCode = urlParams.get('code') || urlParams.get('ma') || urlParams.get('maBaiTap') || urlParams.get('maHocSinh');
+                
+                // Chỉ tự động đăng nhập khi có tham số mã cụ thể trên URL (?code=...)
+                // Khi bấm vào nút Bài tập (không có param), luôn hiển thị màn hình tìm kiếm / đăng nhập
+                if (queryCode && String(queryCode).trim() !== "") {
+                    var trimmedCode = String(queryCode).trim();
+                    fillQuickHw(trimmedCode);
+                } else {
+                    sessionStorage.removeItem('currentHwCode');
+                    localStorage.removeItem('currentHwCode');
+                    document.documentElement.classList.remove('auto-logging-in');
+                    var pageLoading = document.getElementById('pageAutoLoading');
+                    if (pageLoading) pageLoading.style.display = 'none';
+                    document.getElementById('mainScreen').style.display = 'block';
+                }
+            } catch(e) {
+                sessionStorage.removeItem('currentHwCode');
+                localStorage.removeItem('currentHwCode');
+                document.documentElement.classList.remove('auto-logging-in');
+                var pageLoading = document.getElementById('pageAutoLoading');
+                if (pageLoading) pageLoading.style.display = 'none';
+                document.getElementById('mainScreen').style.display = 'block';
             }
         });
     </script>
     <!-- PWA Install Script -->
     <script src="js/pwa-install.js"></script>
-    <script src="js/scroll-animations.js"></script>
+    <!-- Mobile Nav Script -->
+    <script>
+        function toggleMobileNav() {
+            var dd = document.getElementById('mobileNavDropdown');
+            var icon = document.getElementById('hamburgerIcon');
+            var isOpen = dd.classList.contains('open');
+            dd.classList.toggle('open', !isOpen);
+            icon.className = isOpen ? 'fa-solid fa-bars' : 'fa-solid fa-xmark';
+        }
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('#hamburgerBtn') && !e.target.closest('#mobileNavDropdown')) {
+                var dd = document.getElementById('mobileNavDropdown');
+                var icon = document.getElementById('hamburgerIcon');
+                if (dd) { dd.classList.remove('open'); }
+                if (icon) icon.className = 'fa-solid fa-bars';
+            }
+        });
+        (function() {
+            var path = window.location.pathname.split('/').pop() || 'index.html';
+            var map = {
+                'index.html': 'mobileHome',
+                'student-login.html': 'mobileStudent',
+                'student-dashboard.html': 'mobileStudent',
+                'homework.html': 'mobileHomework',
+                'tutor-login.html': 'mobileTutor',
+            };
+            var id = map[path];
+            if (id) { var el = document.getElementById(id); if (el) el.classList.add('active'); }
+        })();
+    </script>
+
+    <!-- Bottom Navigation Bar (Mobile Only) -->
+    <nav class="bottom-nav">
+      <a href="index.html" class="bottom-nav-item"><i class="fa-solid fa-house"></i><span>Trang chủ</span></a>
+      <a href="student-login.html" class="bottom-nav-item"><i class="fa-solid fa-graduation-cap"></i><span>PH/HS</span></a>
+      <a href="homework.html" class="bottom-nav-item active"><i class="fa-solid fa-file-arrow-up"></i><span>Bài tập</span></a>
+      <a href="tutor-login.html" class="bottom-nav-item"><i class="fa-solid fa-chalkboard-user"></i><span>Gia sư</span></a>
+    </nav>
+
+    <!-- Phase 19: Scroll Animation Engine -->
+    <script src="js/scroll-animations.js?v=20261002_scroll"></script>
 </body>
 </html>
