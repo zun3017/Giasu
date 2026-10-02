@@ -227,16 +227,6 @@ function renderStudentView(ketQua) {
         monthSelectEl.innerHTML = optsHtml;
     }
 
-    var totalPresentAllTime = 0;
-    var totalAbsentAllTime = 0;
-    lichSu.forEach(function(item) {
-        if (isAbsentSession(item)) {
-            totalAbsentAllTime++;
-        } else {
-            totalPresentAllTime++;
-        }
-    });
-
     // Cập nhật số liệu KPI và 2 biểu đồ Donut theo tháng mục tiêu
     updateStudentMonthlyStats(defaultMonthKey);
 
@@ -416,11 +406,11 @@ function renderStudentView(ketQua) {
     var htmlMobile = "";
     var totalBuoi = lichSu.length;
     if (totalBuoi > 0) {
-        // Cập nhật tiêu đề Lịch sử có kèm tổng số buổi rõ ràng
+        // Cập nhật tiêu đề Lịch sử học tập & Nhận xét chi tiết (gọn gàng, không kèm số buổi tổng dồn)
         var historyTitleEl = document.getElementById('studentHistoryTitle');
         if (!historyTitleEl) historyTitleEl = document.querySelector('#resultBox .schedule-section h3 span') || document.querySelector('#resultBox .result-section h4');
         if (historyTitleEl) {
-            historyTitleEl.innerHTML = '<i class="fa-solid fa-clock-rotate-left"></i> Lịch sử học tập & Nhận xét chi tiết <span style="font-size: 12px; color: var(--text-secondary); font-weight: normal; margin-left: 8px;">(Đã học: <b style="color:#10B981;">' + totalPresentAllTime + '</b> • Nghỉ: <b style="color:#EF4444;">' + totalAbsentAllTime + '</b>)</span>';
+            historyTitleEl.innerHTML = '<i class="fa-solid fa-clock-rotate-left"></i> Lịch sử học tập & Nhận xét chi tiết';
         }
 
         // Helper màu sắc điểm số
