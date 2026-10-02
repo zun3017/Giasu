@@ -12,7 +12,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Public Light Theme -->
-    <link rel="stylesheet" href="css/public-theme.css?v=20261002_scroll">
+    <link rel="stylesheet" href="css/public-theme.css?v=3.0.2">
 
     <script>
         tailwind.config = {
@@ -180,7 +180,7 @@
                     <input 
                         type="text" id="maHocSinh"
                         class="flex-grow bg-transparent text-slate-800 text-base sm:text-lg px-2 py-3 focus:outline-none placeholder-slate-400 font-medium w-full"
-                        placeholder="Nhập mã học sinh hoặc SĐT phụ huynh..." required autocomplete="off"
+                        placeholder="Nhập mã HS hoặc SĐT phụ huynh..." required autocomplete="off"
                     >
                     
                     <button type="submit" id="btnSubmitPhHs" class="flex-shrink-0 bg-teal-500 hover:bg-teal-600 text-white font-bold py-3.5 px-6 sm:px-8 rounded-full flex items-center gap-2 transition-all duration-200 active:scale-95">
@@ -270,11 +270,11 @@
                     <input 
                         type="text" id="maBaiTap"
                         class="flex-grow bg-transparent text-slate-800 text-base sm:text-lg px-2 py-3 focus:outline-none placeholder-slate-400 font-medium w-full"
-                        placeholder="Nhập mã bài tập của bạn để đăng nhập (VD: BT101)..." required autocomplete="off"
+                        placeholder="Nhập mã bài tập (VD: BT101)..." required autocomplete="off"
                     >
                     
                     <button type="submit" id="btnSubmitBaiTap" class="flex-shrink-0 bg-primary-600 hover:bg-primary-700 text-white font-bold py-3.5 px-6 sm:px-8 rounded-full flex items-center gap-2 transition-all duration-200 active:scale-95">
-                        <span class="btn-text">Đăng nhập cổng</span>
+                        <span class="btn-text">Đăng nhập<span class="btn-text-portal"> cổng</span></span>
                         <svg class="btn-icon h-5 w-5 transition-transform group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
                         </svg>
@@ -507,7 +507,7 @@
                     google.script.run
                         .withSuccessHandler(function(res) {
                             btn.disabled = false;
-                            btn.querySelector('.btn-text').textContent = 'Đang nhập cổng';
+                            btn.querySelector('.btn-text').innerHTML = 'Đăng nhập<span class="btn-text-portal"> cổng</span>';
                             btn.querySelector('.btn-icon').classList.remove('hidden');
                             btn.querySelector('.loading-icon').classList.add('hidden');
 
@@ -523,7 +523,7 @@
                         })
                         .withFailureHandler(function(err) {
                             btn.disabled = false;
-                            btn.querySelector('.btn-text').textContent = 'Đang nhập cổng';
+                            btn.querySelector('.btn-text').innerHTML = 'Đăng nhập<span class="btn-text-portal"> cổng</span>';
                             btn.querySelector('.btn-icon').classList.remove('hidden');
                             btn.querySelector('.loading-icon').classList.add('hidden');
                             showToast('error', 'Lỗi hệ thống', 'Có lỗi kết nối: ' + err.toString());
