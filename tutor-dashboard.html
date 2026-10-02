@@ -1703,9 +1703,14 @@
                 <h4 class="settings-section-title">
                     <i class="fa-solid fa-circle-question"></i> Hướng dẫn & Trợ giúp
                 </h4>
-                <button type="button" class="settings-action-btn" onclick="restartOnboarding()" style="background: var(--bg-card-alt); color: var(--text-primary); border: 1px solid var(--border-color);">
-                    <i class="fa-solid fa-rotate-right"></i> Xem lại hướng dẫn sử dụng Dashboard
-                </button>
+                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                    <button type="button" class="settings-action-btn" onclick="restartOnboarding(false)" style="flex: 1; min-width: 170px; background: var(--nav-active-bg); color: var(--color-primary); border: 1px solid var(--border-color); font-weight: 600; justify-content: center;">
+                        <i class="fa-solid fa-play"></i> Hướng dẫn mục hiện tại
+                    </button>
+                    <button type="button" class="settings-action-btn" onclick="restartOnboarding(true)" style="flex: 1; min-width: 170px; background: var(--bg-card-alt); color: var(--text-primary); border: 1px solid var(--border-color); justify-content: center;">
+                        <i class="fa-solid fa-rotate-right"></i> Xem lại tất cả các mục
+                    </button>
+                </div>
             </div>
 
             <div class="modal-footer" style="margin-top: 16px;">
