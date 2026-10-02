@@ -162,6 +162,33 @@
             align-items: start;
         }
         .chart-donuts-col { display: flex; flex-direction: column; gap: 16px; }
+        .donut-month-filter-wrap {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--bg-card, #FFFFFF);
+            padding: 8px 14px;
+            border-radius: 12px;
+            border: 1px solid var(--border-card, #E2E8F0);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .donut-month-select {
+            padding: 5px 12px;
+            border-radius: 8px;
+            border: 1px solid var(--border-card, #CBD5E1);
+            background: var(--bg-input, #F8FAFC);
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--color-primary, #2563EB);
+            cursor: pointer;
+            outline: none;
+            transition: all 0.2s;
+        }
+        .donut-month-select:focus {
+            border-color: var(--color-primary, #3B82F6);
+        }
         .chart-donut-box { flex: 1; }
         .donut-wrapper { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
         .donut-canvas-wrap {
@@ -720,7 +747,12 @@
           /* Donut col: ngang */
           .chart-donuts-col {
             flex-direction: row !important;
+            flex-wrap: wrap !important;
             gap: 12px !important;
+          }
+          .donut-month-filter-wrap {
+            width: 100% !important;
+            flex-basis: 100% !important;
           }
           .chart-donut-box { flex: 1 !important; }
           .donut-canvas-wrap { width: 90px !important; height: 90px !important; }
@@ -885,11 +917,20 @@
 
             <!-- Cột phải: 2 Donut charts (BTVN + Chuyên cần) -->
             <div class="chart-donuts-col">
+                <div class="donut-month-filter-wrap">
+                    <div style="display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 700; color: var(--text-primary, #1E293B);">
+                        <i class="fa-solid fa-calendar-days" style="color: var(--color-primary, #3B82F6);"></i>
+                        <span>Kỳ đánh giá:</span>
+                    </div>
+                    <select id="studentStatsMonthFilter" class="donut-month-select" onchange="onStudentMonthFilterChange(this.value)">
+                    </select>
+                </div>
+
                 <div class="chart-box chart-donut-box">
                     <div class="chart-header" style="margin-bottom: 14px;">
                         <div style="display: flex; align-items: center; gap: 8px;">
                             <i class="fa-solid fa-circle-check" style="color: #10B981; font-size: 16px;"></i>
-                            <h4 style="margin: 0; font-size: 14px; font-weight: 700; color: var(--text-primary, #1E293B);">Hoàn thành BTVN</h4>
+                            <h4 style="margin: 0; font-size: 14px; font-weight: 700; color: var(--text-primary, #1E293B);">Hoàn thành BTVN <span id="btvnMonthBadge" style="font-size: 11.5px; font-weight: 600; color: #10B981; margin-left: 4px;"></span></h4>
                         </div>
                     </div>
                     <div class="donut-wrapper">
@@ -911,7 +952,7 @@
                     <div class="chart-header" style="margin-bottom: 14px;">
                         <div style="display: flex; align-items: center; gap: 8px;">
                             <i class="fa-solid fa-user-check" style="color: #3B82F6; font-size: 16px;"></i>
-                            <h4 style="margin: 0; font-size: 14px; font-weight: 700; color: var(--text-primary, #1E293B);">Chuyên cần</h4>
+                            <h4 style="margin: 0; font-size: 14px; font-weight: 700; color: var(--text-primary, #1E293B);">Chuyên cần <span id="chuyenCanMonthBadge" style="font-size: 11.5px; font-weight: 600; color: #3B82F6; margin-left: 4px;"></span></h4>
                         </div>
                     </div>
                     <div class="donut-wrapper">
