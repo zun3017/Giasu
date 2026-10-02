@@ -70,8 +70,8 @@
       })();
     </script>
     <!-- Global CSS -->
-    <link rel="stylesheet" href="css/style.css?v=20261002_scroll">
-    <link rel="stylesheet" href="css/public-theme.css?v=20261002_scroll">
+    <link rel="stylesheet" href="css/style.css?v=20261002_v4">
+    <link rel="stylesheet" href="css/public-theme.css?v=20261002_v4">
     <style>
         /* Đảm bảo nút thu gọn Sidebar luôn hiển thị tròn nguyên vẹn, không bao giờ bị cắt cụt */
         .tutor-sidebar {
@@ -673,11 +673,6 @@
 
         <!-- Main Content Area -->
         <main class="tutor-main-content" id="tutorMainContent">
-    <!-- Marquee Announcement from Admin -->
-    <div id="tutorMarqueeContainer" style="display: none; background: rgba(239, 68, 68, 0.15); border-bottom: 1px solid rgba(239, 68, 68, 0.3); padding: 8px 15px;">
-        <div id="tutorMarqueeWrapper"></div>
-    </div>
-
             <!-- Mobile Sticky Top Header (Only on <= 768px) -->
             <header class="tutor-mobile-header" id="tutorMobileHeader">
                 <div class="mobile-header-left">
@@ -1039,139 +1034,7 @@
                         0 buổi học
                     </div>
                 </div>
-            
-            <!-- LEGACY PRODUCTION COMPATIBILITY WRAPPER (Preserving 33 Production IDs) -->
-            <div id="tutorStudentDetail" style="display: none;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                    <h3 style="color: var(--text-primary); margin: 0; display: flex; align-items: center; gap: 10px; font-size: 15px;">
-                        <span>Hồ sơ chi tiết:</span> <span id="selectedStudentNameHeader" style="color: var(--color-primary); font-weight: bold;">Chưa chọn</span>
-                    </h3>
-                    <button type="button" id="btnToggleInvoice" onclick="toggleInvoiceCollapse()" class="btn-refresh-history" style="background: var(--nav-active-bg); border: 1px solid var(--border-color); color: var(--color-primary); cursor: pointer; padding: 6px 14px; border-radius: 8px; font-size: 12.5px; display: inline-flex; align-items: center; gap: 6px;">
-                        <i class="fa-solid fa-file-invoice-dollar"></i> <span>Hóa đơn học phí</span>
-                    </button>
-                </div>
-                <div id="tutorLegacyStatsWrapper" style="display: none;">
-                    <span id="tutorExpRev">0</span>
-                    <span id="tutorPaidRev">0</span>
-                    <span id="tutorAttendance">0</span>
-                    <canvas id="tutorDiemChart" width="400" height="200"></canvas>
-                </div>
-                <div id="invoiceCollapseContainer" style="display: none; margin-top: 20px;">
-
-                <div id="invoiceElement" class="invoice-container">
-                    <!-- 1. Header -->
-                    <div class="inv-head">
-                        <div class="inv-head-left">
-                            <div class="inv-avatar">
-                                <i class="fa-solid fa-graduation-cap"></i>
-                            </div>
-                            <div class="inv-user-meta">
-                                <span class="inv-tag-mini">HỌC SINH</span>
-                                <h2 id="invStudentName">Gia Thái</h2>
-                            </div>
-                        </div>
-                        <div class="inv-head-right">
-                            <span class="inv-pill-status" id="invMonthDisplay"><i class="fa-solid fa-calendar-days"></i> KỲ HỌC THÁNG 8</span>
-                        </div>
-                    </div>
-
-                    <!-- 2. Section 1: Study Metrics -->
-                    <div class="inv-section-title">
-                        <i class="fa-solid fa-chart-pie"></i> TỔNG KẾT KẾT QUẢ KỲ NÀY
-                    </div>
-                    <div class="metrics-grid">
-                        <!-- Box Chuyên cần -->
-                        <div class="metric-card">
-                            <div class="metric-card-header">
-                                <span><i class="fa-solid fa-calendar-check text-green"></i> Chuyên cần</span>
-                                <span class="text-green font-bold" id="invAttTotalBadge">10 Buổi</span>
-                            </div>
-                            <div class="metric-badges">
-                                <div class="m-badge">
-                                    <div class="m-num text-green" id="invAttP">9</div>
-                                    <div class="m-lbl">Buổi học</div>
-                                </div>
-                                <div class="m-badge">
-                                    <div class="m-num text-amber" id="invAttA">3</div>
-                                    <div class="m-lbl">Nghỉ phép</div>
-                                </div>
-                                <div class="m-badge">
-                                    <div class="m-num text-purple" id="invAttB">1</div>
-                                    <div class="m-lbl">Đã bù</div>
-                                </div>
-                            </div>
-                            <div class="metric-notes" id="invAbsentDates">
-                                <div><span>Nghỉ phép:</span> 12/08, 24/08, 26/08</div>
-                            </div>
-                        </div>
-
-                        <!-- Box Bài tập về nhà -->
-                        <div class="metric-card">
-                            <div class="metric-card-header">
-                                <span><i class="fa-solid fa-book-open text-purple"></i> Bài tập về nhà</span>
-                                <span class="text-purple font-bold" id="invHwTotalBadge">10 Buổi</span>
-                            </div>
-                            <div class="metric-badges">
-                                <div class="m-badge">
-                                    <div class="m-num text-green" id="invHwDone">7</div>
-                                    <div class="m-lbl">Đủ bài</div>
-                                </div>
-                                <div class="m-badge">
-                                    <div class="m-num text-red" id="invHwMiss">3</div>
-                                    <div class="m-lbl">Thiếu bài</div>
-                                </div>
-                                <div class="m-badge">
-                                    <div class="m-num" id="invHwLate">0</div>
-                                    <div class="m-lbl">Nộp trễ</div>
-                                </div>
-                            </div>
-                            <div class="metric-notes" id="invHwMissDates">
-                                <div><span>Thiếu bài:</span> 05/08 (Thiếu 1 bài), 19/08 (Thiếu 1 bài), 23/08 (Thiếu)</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- 3. Section 2: Tuition Breakdown -->
-                    <div class="fee-card">
-                        <div class="fee-row">
-                            <span id="invFeeUnitLabel">Đơn giá mỗi buổi học:</span>
-                            <b id="invFeeUnitValue">225.000 VNĐ</b>
-                        </div>
-                        <div class="fee-row">
-                            <span id="invFeeCalcText">Thời lượng học kỳ này:</span>
-                            <b id="invFeeCalcTotal">10 buổi</b>
-                        </div>
-                        <div class="fee-row grand-total">
-                            <span class="total-label">Tổng học phí kỳ này</span>
-                            <span class="total-val" id="invGrandTotal">2.250.000 đ</span>
-                        </div>
-                    </div>
-
-                    <!-- 4. Section 3: Note & Extra Large QR Code Side-by-Side -->
-                    <div class="bottom-action-container">
-                        <div class="msg-box">
-                            <div>
-                                <div class="msg-header"><i class="fa-regular fa-comment-dots"></i> Lời nhắn gửi phụ huynh</div>
-                                <div class="msg-text" id="invTextarea" contenteditable="true">
-                                    Dạ em chào anh/chị, em gửi anh/chị phiếu học tập tổng kết của bé <b>Gia Thái</b> ạ. Học phí kỳ này là <b>2.250.000 VNĐ</b> (10 buổi). Anh/chị xem qua và quét mã QR chuyển khoản giúp em nhé ạ. Em cảm ơn anh/chị nhiều ạ!
-                                </div>
-                            </div>
-                            <div class="msg-footer">Đồng hành cùng sự tiến bộ của học sinh!</div>
-                        </div>
-
-                        <div class="qr-card">
-                            <img src="" id="invQrImg" class="qr-img" alt="QR Code" crossorigin="anonymous">
-                            <div class="qr-label" id="invQrText"><i class="fa-solid fa-qrcode"></i> Quét VietQR</div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="export-btn-container" style="margin-top: 20px; text-align: center; margin-bottom: 20px;">
-                    <button class="btn-export" onclick="exportInvoice()"><i class="fa-solid fa-camera"></i> Lưu Ảnh Hóa Đơn</button>
-                </div>
             </div>
-            </div>
-</div>
 
             <!-- Widget thông báo nhanh cho Phụ huynh / Học sinh -->
             <div id="tutorQuickAnnouncementWidget" class="reveal" style="background: var(--nav-active-bg); border: 1px dashed var(--border-color); border-radius: 12px; padding: 15px; margin-top: 20px; margin-bottom: 20px; display: flex; flex-direction: column; gap: 10px;">
@@ -1181,7 +1044,7 @@
                 </div>
                 <div style="display: flex; gap: 10px; flex-wrap: wrap; width: 100%;">
                     <input type="text" id="quickAnnouncementInput" placeholder="Ví dụ: Hôm nay nghỉ học nhé phụ huynh ơi..." style="flex: 1; min-width: 250px; padding: 10px 15px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-input); color: var(--text-primary); font-size: 13.5px; outline: none; transition: border 0.3s;" onfocus="this.style.borderColor='var(--color-primary)'" onblur="this.style.borderColor='var(--border-color)'">
-                    <button onclick="saveQuickAnnouncement()" id="btnSaveQuickAnnouncement" class="modal-btn modal-btn-primary" style="width: auto; padding: 10px 20px; margin: 0; background: var(--btn-bg); color: var(--btn-text); display: inline-flex; align-items: center; gap: 8px; justify-content: center; font-size: 13.5px; font-weight: bold; border-radius: 8px; box-shadow: var(--shadow-primary);"><i class="fa-solid fa-paper-plane"></i> Gửi thông báo</button> <button onclick="clearQuickAnnouncement()" id="btnClearQuickAnnouncement" style="padding: 10px 16px; font-size: 13px; font-weight: bold; border-radius: 8px; cursor: pointer; white-space: nowrap; background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.4); color: #EF4444;"><i class="fa-solid fa-eraser"></i> Xóa</button>
+                    <button onclick="saveQuickAnnouncement()" id="btnSaveQuickAnnouncement" class="modal-btn modal-btn-primary" style="width: auto; padding: 10px 20px; margin: 0; background: var(--btn-bg); color: var(--btn-text); display: inline-flex; align-items: center; gap: 8px; justify-content: center; font-size: 13.5px; font-weight: bold; border-radius: 8px; box-shadow: var(--shadow-primary);"><i class="fa-solid fa-paper-plane"></i> Gửi thông báo</button> <button type="button" onclick="clearQuickAnnouncement()" id="btnClearQuickAnnouncement" style="padding: 10px 16px; font-size: 13px; font-weight: bold; border-radius: 8px; cursor: pointer; white-space: nowrap; background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.4); color: #EF4444;"><i class="fa-solid fa-eraser"></i> Xóa</button>
                 </div>
             </div>
 
@@ -2697,7 +2560,42 @@
     <div class="star twinkle-2" style="top: 85%; left: 30%; width: 2px; height: 2px;"></div>
 
     <!-- Hidden legacy items for full backward compatibility of dashboard codes -->
-    <div style="display: none;">
+    
+    <!-- Hidden legacy items for full backward compatibility of production dashboard codes (33 IDs) -->
+    <div style="display: none;" id="tutorLegacyCompatibilityContainer" aria-hidden="true">
+        <div id="tutorMarqueeContainer"><div id="tutorMarqueeWrapper"></div></div>
+        <div id="tutorStudentDetail">
+            <span id="selectedStudentNameHeader"></span>
+            <span id="tutorExpRev">0</span>
+            <span id="tutorPaidRev">0</span>
+            <span id="tutorAttendance">0</span>
+            <canvas id="tutorDiemChart" width="400" height="200"></canvas>
+            <button id="btnToggleInvoice" onclick="toggleInvoiceCollapse()"></button>
+            <div id="invoiceCollapseContainer">
+                <div id="invoiceElement" class="invoice-container">
+                    <span id="invStudentName"></span>
+                    <span id="invMonthDisplay"></span>
+                    <span id="invAttP"></span>
+                    <span id="invAttA"></span>
+                    <span id="invAttB"></span>
+                    <span id="invAbsentDates"></span>
+                    <span id="invHwDone"></span>
+                    <span id="invHwMiss"></span>
+                    <span id="invHwLate"></span>
+                    <span id="invHwMissDates"></span>
+                    <span id="invFeeUnitLabel"></span>
+                    <span id="invFeeUnitValue"></span>
+                    <span id="invFeeCalcText"></span>
+                    <span id="invFeeCalcTotal"></span>
+                    <span id="invGrandTotal"></span>
+                    <textarea id="invTextarea"></textarea>
+                    <img id="invQrImg" src="" alt="QR">
+                    <span id="invQrText"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+<div style="display: none;">
         <input type="text" id="maHocSinh">
         <input type="password" id="maPin" placeholder="Hidden PIN field">
         <div id="pinContainer"></div>
