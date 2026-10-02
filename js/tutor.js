@@ -8170,7 +8170,7 @@ function parseDateTimeString(str) {
     return isNaN(parsed.getTime()) ? 0 : parsed.getTime();
 }
 
-// Hàm chuẩn hóa hiển thị ngày giờ chuẩn Việt Nam (HH:mm:ss DD/MM/YYYY)
+// Hàm chuẩn hóa hiển thị ngày giờ chuẩn Việt Nam (DD/MM/YYYY HH:mm:ss)
 function formatVNDateTime(str) {
     if (!str) return "-";
     let ts = parseDateTimeString(str);
@@ -8184,7 +8184,7 @@ function formatVNDateTime(str) {
     let minutes = String(d.getMinutes()).padStart(2, '0');
     let seconds = String(d.getSeconds()).padStart(2, '0');
     
-    return hours + ":" + minutes + ":" + seconds + " " + day + "/" + month + "/" + year;
+    return day + "/" + month + "/" + year + " " + hours + ":" + minutes + ":" + seconds;
 }
 
 var activeGradingSubId = "";
@@ -8515,11 +8515,12 @@ function renderStudentSubmissionsList() {
     if (!tableBody) return;
     
     if (studentSubmissionsGlobal.length === 0) {
-        tableBody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:#A6ADCE; padding: 20px;"><i class="fa-solid fa-circle-info"></i> Học sinh này chưa nộp bài tập nào!</td></tr>';
+        tableBody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:var(--text-secondary, #64748B); padding: 20px;"><i class="fa-solid fa-circle-info"></i> Học sinh này chưa nộp bài tập nào!</td></tr>';
         if (mobileContainer) {
-            mobileContainer.innerHTML = '<div style="text-align:center; color:#A6ADCE; padding: 20px; font-size: 13px;"><i class="fa-solid fa-circle-info"></i> Học sinh này chưa nộp bài tập nào!</div>';
+            mobileContainer.innerHTML = '<div style="text-align:center; color:var(--text-secondary, #64748B); padding: 20px; font-size: 13px;"><i class="fa-solid fa-circle-info"></i> Học sinh này chưa nộp bài tập nào!</div>';
         }
-        document.getElementById('submissionViewMoreBtnContainer').style.display = 'none';
+        var vmContainer = document.getElementById('submissionViewMoreBtnContainer');
+        if (vmContainer) vmContainer.style.display = 'none';
         return;
     }
 
@@ -8539,14 +8540,14 @@ function renderStudentSubmissionsList() {
         var subId = item.subId || item.rowIndex || idx;
         var isFolder = item.fileUrl && (item.fileUrl.indexOf("/folders/") !== -1 || item.fileUrl.indexOf("/drive/folders/") !== -1);
         var isZip = item.fileUrl && item.fileUrl.toLowerCase().indexOf(".zip") !== -1;
-        var isDataUrl = item.fileUrl && item.fileUrl.startsWith("data:");
+        var lessonName = item.lessonName || item.title || item.baiHoc || item.tenBaiHoc || item.homeworkTitle || "Bài tập";
         
         var viewBtn = item.fileUrl ? 
-            '<button onclick="openSubmissionPreviewModal(\'' + subId + '\',\'' + (studentName || item.studentName || '').replace(/'/g, "\\'") + '\',\'' + item.fileUrl.replace(/'/g, "\\'") + '\')" style="padding:6px 14px; background:rgba(99,102,241,0.15); border:1px solid #6366F1; border-radius:8px; color:#A5B4FC; font-size:13px; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; gap:6px;"><i class="fa-solid fa-file-lines"></i> Xem bài</button>' 
-            : '<span style="color:#A6ADCE;">Không có file</span>';
+            '<button onclick="openSubmissionPreviewModal(\'' + subId + '\',\'' + (studentName || item.studentName || '').replace(/'/g, "\\'") + '\',\'' + item.fileUrl.replace(/'/g, "\\'") + '\')" style="padding:6px 14px; background:rgba(99,102,241,0.1); border:1.5px solid rgba(99,102,241,0.4); border-radius:8px; color:#6366F1; font-size:13px; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; gap:6px; transition:all 0.2s;"><i class="fa-solid fa-file-lines"></i> Xem bài</button>' 
+            : '<span style="color:var(--text-secondary, #64748B);">Không có file</span>';
         
         var dlText = isFolder ? '<i class="fa-solid fa-folder-arrow-down"></i> Tải thư mục' : (isZip ? '<i class="fa-solid fa-file-zipper"></i> Tải ZIP' : '<i class="fa-solid fa-download"></i> Tải');
-        var downloadBtn = item.fileUrl ? '<button onclick="downloadSubmissionFileByIndex(' + idx + ')" class="action-btn-hw" style="color:#10B981; border-color:rgba(16,185,129,0.3); background:rgba(16,185,129,0.1); padding: 5px 14px; cursor: pointer; border-radius: 8px; display: inline-flex; align-items: center; gap: 6px; font-weight:600;"><i class="fa-solid fa-download"></i> Tải</button>' : '<span style="color:#A6ADCE;">N/A</span>';
+        var downloadBtn = item.fileUrl ? '<button onclick="downloadSubmissionFileByIndex(' + idx + ')" class="action-btn-hw" style="color:#10B981; border:1.5px solid rgba(16,185,129,0.35); background:rgba(16,185,129,0.08); padding: 5px 14px; cursor: pointer; border-radius: 8px; display: inline-flex; align-items: center; gap: 6px; font-weight:600; font-size:13px; transition:all 0.2s;"><i class="fa-solid fa-download"></i> Tải</button>' : '<span style="color:var(--text-secondary, #64748B);">N/A</span>';
         
         var displayTime = formatVNDateTime(item.timestamp);
         
@@ -8558,28 +8559,28 @@ function renderStudentSubmissionsList() {
         
         var gradeHtml = '<div id="grade-wrapper-' + subId + '" style="display:inline-flex; align-items:center; justify-content:center;">';
         if (scoreVal) {
-            gradeHtml += '<span style="padding:4px 10px; background:rgba(255,210,63,0.15); border:1px solid #FFD23F; border-radius:8px; color:#FFD23F; font-size:12px; font-weight:700; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-star"></i> Điểm: ' + scoreVal + '</span>'
-                + ' <button onclick="openGradeModal(\'' + subId + '\',\'' + (studentName || item.studentName || '').replace(/'/g, "\\'") + '\',\'' + scoreVal + '\',\'' + commentVal.replace(/'/g, "\\'") + '\')" style="background:none; border:none; color:#A6ADCE; cursor:pointer; font-size:11px; margin-left:4px;" title="Sửa điểm"><i class="fa-solid fa-pen"></i></button>';
+            gradeHtml += '<span style="padding:5px 12px; background:rgba(37,99,235,0.1); border:1px solid rgba(37,99,235,0.3); border-radius:8px; color:#2563EB; font-size:12.5px; font-weight:700; display:inline-flex; align-items:center; gap:5px;"><i class="fa-solid fa-star" style="color:#3B82F6;"></i> Điểm: ' + scoreVal + '</span>'
+                + ' <button onclick="openGradeModal(\'' + subId + '\',\'' + (studentName || item.studentName || '').replace(/'/g, "\\'") + '\',\'' + scoreVal + '\',\'' + commentVal.replace(/'/g, "\\'") + '\')" style="background:none; border:none; color:var(--text-secondary, #64748B); cursor:pointer; font-size:12px; margin-left:6px; padding:2px 4px;" title="Sửa điểm"><i class="fa-solid fa-pen"></i></button>';
         } else {
-            gradeHtml += '<button onclick="openGradeModal(\'' + subId + '\',\'' + (studentName || item.studentName || '').replace(/'/g, "\\'") + '\')" style="padding:6px 14px; background:rgba(249,115,22,0.15); border:1px solid #F97316; border-radius:8px; color:#FED7AA; font-size:13px; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; gap:6px;"><i class="fa-solid fa-pen"></i> Chấm điểm</button>';
+            gradeHtml += '<button onclick="openGradeModal(\'' + subId + '\',\'' + (studentName || item.studentName || '').replace(/'/g, "\\'") + '\')" style="padding:6px 14px; background:var(--bg-card, #FFFFFF); border:1px solid var(--border-card, #CBD5E1); border-radius:8px; color:var(--text-primary, #1E293B); font-size:13px; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; gap:6px; box-shadow:0 1px 2px rgba(0,0,0,0.05); transition:all 0.2s;"><i class="fa-solid fa-pen"></i> Chấm điểm</button>';
         }
         gradeHtml += '</div>';
 
         // Mobile Grade HTML
         var mobileGradeHtml = '<div id="mobile-grade-wrapper-' + subId + '" style="display:inline-flex; align-items:center;">';
         if (scoreVal) {
-            mobileGradeHtml += '<span style="padding:3px 8px; background:rgba(255,210,63,0.15); border:1px solid #FFD23F; border-radius:6px; color:#FFD23F; font-size:11.5px; font-weight:700;"><i class="fa-solid fa-star"></i> Điểm: ' + scoreVal + '</span>'
-                + ' <button onclick="openGradeModal(\'' + subId + '\',\'' + (studentName || item.studentName || '').replace(/'/g, "\\'") + '\',\'' + scoreVal + '\',\'' + commentVal.replace(/'/g, "\\'") + '\')" style="background:none; border:none; color:#A6ADCE; cursor:pointer; font-size:11px; margin-left:4px;" title="Sửa điểm"><i class="fa-solid fa-pen"></i></button>';
+            mobileGradeHtml += '<span style="padding:3px 9px; background:rgba(37,99,235,0.1); border:1px solid rgba(37,99,235,0.3); border-radius:6px; color:#2563EB; font-size:12px; font-weight:700;"><i class="fa-solid fa-star" style="color:#3B82F6;"></i> Điểm: ' + scoreVal + '</span>'
+                + ' <button onclick="openGradeModal(\'' + subId + '\',\'' + (studentName || item.studentName || '').replace(/'/g, "\\'") + '\',\'' + scoreVal + '\',\'' + commentVal.replace(/'/g, "\\'") + '\')" style="background:none; border:none; color:var(--text-secondary, #64748B); cursor:pointer; font-size:11px; margin-left:4px;" title="Sửa điểm"><i class="fa-solid fa-pen"></i></button>';
         } else {
-            mobileGradeHtml += '<button onclick="openGradeModal(\'' + subId + '\',\'' + (studentName || item.studentName || '').replace(/'/g, "\\'") + '\')" style="padding:4px 10px; background:rgba(249,115,22,0.15); border:1px solid #F97316; border-radius:6px; color:#FED7AA; font-size:12px; font-weight:600; cursor:pointer;"><i class="fa-solid fa-pen"></i> Chấm điểm</button>';
+            mobileGradeHtml += '<button onclick="openGradeModal(\'' + subId + '\',\'' + (studentName || item.studentName || '').replace(/'/g, "\\'") + '\')" style="padding:4px 10px; background:var(--bg-card, #FFFFFF); border:1px solid var(--border-card, #CBD5E1); border-radius:6px; color:var(--text-primary, #1E293B); font-size:12px; font-weight:600; cursor:pointer;"><i class="fa-solid fa-pen"></i> Chấm điểm</button>';
         }
         mobileGradeHtml += '</div>';
         
         // Desktop Row
         tableBody.innerHTML += 
             '<tr>' +
-                '<td style="color:#A6ADCE; font-weight:500;">' + displayTime + '</td>' +
-                '<td style="color:#FFF; font-weight:600;">' + item.lessonName + '</td>' +
+                '<td style="color:var(--text-secondary, #64748B); font-weight:500;">' + displayTime + '</td>' +
+                '<td style="color:var(--text-primary, #1E293B); font-weight:600;">' + lessonName + '</td>' +
                 '<td>' + viewBtn + '</td>' +
                 '<td style="text-align: center;">' + gradeHtml + '</td>' +
                 '<td style="text-align: center;">' + downloadBtn + '</td>' +
@@ -8589,22 +8590,22 @@ function renderStudentSubmissionsList() {
         mobileHtml += "<div class='accordion-item' id='submit-hw-item-" + idx + "'>";
         mobileHtml += "  <div class='accordion-header' onclick='toggleTutorSubmittedHwAccordion(" + idx + ")'>";
         mobileHtml += "    <div class='accordion-header-title'>";
-        mobileHtml += "      <span>" + item.lessonName + "</span>";
-        mobileHtml += "      <span class='accordion-header-date'>" + displayTime + "</span>";
+        mobileHtml += "      <span style='color:var(--text-primary, #1E293B); font-weight:600;'>" + lessonName + "</span>";
+        mobileHtml += "      <span class='accordion-header-date' style='color:var(--text-secondary, #64748B);'>" + displayTime + "</span>";
         mobileHtml += "    </div>";
         mobileHtml += "    <div class='accordion-header-status' style='display:flex; align-items:center; gap:8px;'>";
         if (scoreVal) {
-            mobileHtml += "      <span style='color:#FFD23F; font-size:12px; font-weight:700;'><i class='fa-solid fa-star'></i> " + scoreVal + "đ</span>";
+            mobileHtml += "      <span style='color:#2563EB; font-size:12px; font-weight:700;'><i class='fa-solid fa-star' style='color:#3B82F6;'></i> " + scoreVal + "đ</span>";
         }
         mobileHtml += "      <i class='fa-solid fa-chevron-down' id='submit-hw-chevron-" + idx + "'></i>";
         mobileHtml += "    </div>";
         mobileHtml += "  </div>";
         mobileHtml += "  <div class='accordion-body' id='submit-hw-body-" + idx + "' style='display: none;'>";
-        mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Thời gian nộp</span><span class='accordion-body-val' style='color:#FFD23F; font-weight:600;'>" + displayTime + "</span></div>";
+        mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Thời gian nộp</span><span class='accordion-body-val' style='color:var(--text-primary, #1E293B); font-weight:600;'>" + displayTime + "</span></div>";
         mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Xem bài làm</span><span class='accordion-body-val'>" + viewBtn + "</span></div>";
         mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Chấm điểm</span><span class='accordion-body-val'>" + mobileGradeHtml + "</span></div>";
         if (commentVal) {
-            mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Nhận xét</span><span class='accordion-body-val' style='color:#E2D1FF; font-style:italic; font-size:12.5px;'>" + commentVal + "</span></div>";
+            mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Nhận xét</span><span class='accordion-body-val' style='color:var(--text-secondary, #64748B); font-style:italic; font-size:12.5px;'>" + commentVal + "</span></div>";
         }
         mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Tải về</span><span class='accordion-body-val'>" + downloadBtn + "</span></div>";
         mobileHtml += "  </div>";
@@ -8614,23 +8615,23 @@ function renderStudentSubmissionsList() {
     // Nút Xem thêm / Thu gọn cho cả desktop lẫn mobile
     if (totalCount > submissionsLimit) {
         var remaining = totalCount - submissionsLimit;
-        tableBody.innerHTML += '<tr><td colspan="5" style="text-align:center; padding:10px;">'
-            + '<button onclick="loadMoreStudentSubmissions()" style="background:none; border:1px solid #4B5563; color:#FFD23F; padding:6px 20px; border-radius:8px; cursor:pointer; font-size:13px;">'
-            + '<i class="fa-solid fa-chevron-down" style="margin-right:5px;"></i>Xem thêm ' + remaining + ' bài nộp cũ hơn'
+        tableBody.innerHTML += '<tr><td colspan="5" style="text-align:center; padding:12px;">'
+            + '<button onclick="loadMoreStudentSubmissions()" style="background:var(--bg-card, #FFFFFF); border:1px solid rgba(59,130,246,0.3); color:#2563EB; padding:7px 24px; border-radius:8px; cursor:pointer; font-size:13px; font-weight:600; display:inline-flex; align-items:center; gap:6px; transition:all 0.2s; box-shadow:0 1px 3px rgba(0,0,0,0.04);">'
+            + '<i class="fa-solid fa-chevron-down"></i> Xem thêm ' + remaining + ' bài nộp cũ hơn'
             + '</button></td></tr>';
-        mobileHtml += '<div style="text-align:center; padding:10px;">'
-            + '<button onclick="loadMoreStudentSubmissions()" style="background:none; border:1px solid #4B5563; color:#FFD23F; padding:6px 20px; border-radius:8px; cursor:pointer; font-size:13px; width:100%;">'
-            + '<i class="fa-solid fa-chevron-down" style="margin-right:5px;"></i>Xem thêm ' + remaining + ' bài nộp cũ hơn'
+        mobileHtml += '<div style="text-align:center; padding:12px;">'
+            + '<button onclick="loadMoreStudentSubmissions()" style="background:var(--bg-card, #FFFFFF); border:1px solid rgba(59,130,246,0.3); color:#2563EB; padding:7px 20px; border-radius:8px; cursor:pointer; font-size:13px; font-weight:600; width:100%; display:inline-flex; align-items:center; justify-content:center; gap:6px;">'
+            + '<i class="fa-solid fa-chevron-down"></i> Xem thêm ' + remaining + ' bài nộp cũ hơn'
             + '</button></div>';
     } else if (submissionsLimit > 5 && totalCount <= submissionsLimit) {
         // Nút Thu gọn khi đang xem tất cả
-        tableBody.innerHTML += '<tr><td colspan="5" style="text-align:center; padding:10px;">'
-            + '<button onclick="collapseStudentSubmissions()" style="background:none; border:1px solid #4B5563; color:#9CA3AF; padding:6px 20px; border-radius:8px; cursor:pointer; font-size:13px;">'
-            + '<i class="fa-solid fa-chevron-up" style="margin-right:5px;"></i>Thu gọn'
+        tableBody.innerHTML += '<tr><td colspan="5" style="text-align:center; padding:12px;">'
+            + '<button onclick="collapseStudentSubmissions()" style="background:var(--bg-card, #FFFFFF); border:1px solid var(--border-card, #E2E8F0); color:var(--text-secondary, #64748B); padding:7px 24px; border-radius:8px; cursor:pointer; font-size:13px; font-weight:600; display:inline-flex; align-items:center; gap:6px;">'
+            + '<i class="fa-solid fa-chevron-up"></i> Thu gọn'
             + '</button></td></tr>';
-        mobileHtml += '<div style="text-align:center; padding:10px;">'
-            + '<button onclick="collapseStudentSubmissions()" style="background:none; border:1px solid #4B5563; color:#9CA3AF; padding:6px 20px; border-radius:8px; cursor:pointer; font-size:13px; width:100%;">'
-            + '<i class="fa-solid fa-chevron-up" style="margin-right:5px;"></i>Thu gọn'
+        mobileHtml += '<div style="text-align:center; padding:12px;">'
+            + '<button onclick="collapseStudentSubmissions()" style="background:var(--bg-card, #FFFFFF); border:1px solid var(--border-card, #E2E8F0); color:var(--text-secondary, #64748B); padding:7px 20px; border-radius:8px; cursor:pointer; font-size:13px; font-weight:600; width:100%; display:inline-flex; align-items:center; justify-content:center; gap:6px;">'
+            + '<i class="fa-solid fa-chevron-up"></i> Thu gọn'
             + '</button></div>';
     }
 
@@ -8639,7 +8640,8 @@ function renderStudentSubmissionsList() {
     }
     
     // Ẩn nút Xem thêm cũ (đã tích hợp inline)
-    document.getElementById('submissionViewMoreBtnContainer').style.display = 'none';
+    var vmBtnOld = document.getElementById('submissionViewMoreBtnContainer');
+    if (vmBtnOld) vmBtnOld.style.display = 'none';
 }
 
 function toggleTutorSubmittedHwAccordion(idx) {

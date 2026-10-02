@@ -450,7 +450,10 @@
             display: none;
             justify-content: center;
             align-items: center;
-            padding: 15px;
+            padding: 12px;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            box-sizing: border-box;
         }
 
         .calendar-modal {
@@ -460,10 +463,17 @@
             border-radius: 20px;
             width: 100%;
             max-width: 440px;
-            padding: 24px;
+            max-height: calc(100vh - 24px);
+            max-height: calc(100dvh - 24px);
+            display: flex;
+            flex-direction: column;
+            padding: 20px 22px 14px 22px;
             position: relative;
             transform: scale(0.9);
-            transition: all 0.3s;
+            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s;
+            box-sizing: border-box;
+            margin: auto;
+            overflow: hidden;
         }
 
         .modal-overlay.active {
@@ -472,6 +482,31 @@
 
         .modal-overlay.active .calendar-modal {
             transform: scale(1);
+        }
+
+        #eventForm {
+            display: flex;
+            flex-direction: column;
+            flex: 1 1 auto;
+            min-height: 0;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding-right: 4px;
+            margin-right: -4px;
+        }
+
+        #eventForm::-webkit-scrollbar {
+            width: 5px;
+        }
+        #eventForm::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        #eventForm::-webkit-scrollbar-thumb {
+            background: rgba(142, 77, 255, 0.3);
+            border-radius: 4px;
+        }
+        #eventForm::-webkit-scrollbar-thumb:hover {
+            background: rgba(142, 77, 255, 0.5);
         }
 
         /* === HỘP THOẠI CHỈNH SỬA SỰ KIỆN LẶP LẠI (GOOGLE CALENDAR STYLE) === */
@@ -704,11 +739,12 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
+            margin-bottom: 12px;
+            flex-shrink: 0;
         }
 
         .modal-header h3 {
-            font-size: 16px;
+            font-size: 15.5px;
             font-weight: 800;
             color: #FFD23F;
             display: flex;
@@ -723,21 +759,23 @@
             font-size: 18px;
             cursor: pointer;
             transition: 0.3s;
+            padding: 4px;
+            line-height: 1;
         }
 
         .btn-close:hover { color: #FFF; }
 
         .form-group {
-            margin-bottom: 16px;
+            margin-bottom: 12px;
         }
 
         .form-group label {
             display: block;
-            font-size: 11px;
+            font-size: 10.5px;
             font-weight: 700;
             color: #A6ADCE;
             text-transform: uppercase;
-            margin-bottom: 6px;
+            margin-bottom: 5px;
             letter-spacing: 0.5px;
         }
 
@@ -746,11 +784,12 @@
             background: rgba(4, 2, 10, 0.6);
             border: 1px solid rgba(142, 77, 255, 0.3);
             border-radius: 10px;
-            padding: 10px 14px;
+            padding: 8px 12px;
             color: #FFF;
-            font-size: 13.5px;
+            font-size: 13px;
             outline: none;
             transition: all 0.3s;
+            box-sizing: border-box;
         }
 
         .form-control:focus {
@@ -761,15 +800,15 @@
         .row-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 15px;
+            gap: 12px;
         }
 
         /* Checkbox grid for Custom Recurrence */
         .day-checkbox-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
-            gap: 8px;
-            margin-top: 6px;
+            gap: 6px;
+            margin-top: 5px;
         }
 
         .day-checkbox-item {
@@ -785,7 +824,7 @@
         .day-checkbox-label {
             display: block;
             text-align: center;
-            padding: 8px 4px;
+            padding: 7px 3px;
             background: rgba(255, 255, 255, 0.02);
             border: 1px solid rgba(255, 255, 255, 0.06);
             border-radius: 8px;
@@ -807,10 +846,17 @@
         .modal-footer {
             display: flex;
             justify-content: flex-end;
+            align-items: center;
             gap: 10px;
-            margin-top: 25px;
-            border-top: 1px solid rgba(255, 255, 255, 0.05);
-            padding-top: 15px;
+            margin-top: 12px;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            padding-top: 12px;
+            padding-bottom: 2px;
+            flex-shrink: 0;
+            position: sticky;
+            bottom: -1px;
+            background: rgba(15, 11, 46, 0.98);
+            z-index: 10;
         }
 
         .btn {
