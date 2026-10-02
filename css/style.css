@@ -6234,6 +6234,140 @@ body {
     box-shadow: 0 2px 8px rgba(0,0,0,0.15);
 }
 
+/* ============================================================
+ * TASK 6 — Settings Modal & Dark Mode
+ * ============================================================ */
+
+.settings-section {
+    padding: 16px 0;
+    border-bottom: 1px solid var(--border-color, #e2e8f0);
+}
+.settings-section:last-of-type { border-bottom: none; }
+
+.settings-section-title {
+    font-size: 14.5px;
+    font-weight: 700;
+    color: var(--text-primary, #1e293b);
+    margin: 0 0 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.settings-section-title i {
+    color: var(--color-primary, #3B82F6);
+}
+
+.settings-toggle-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 0;
+    gap: 16px;
+}
+.settings-toggle-label {
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--text-primary, #1e293b);
+    display: block;
+}
+.settings-toggle-desc {
+    font-size: 12px;
+    color: var(--text-secondary, #64748b);
+    display: block;
+    margin-top: 2px;
+}
+
+/* Toggle Switch */
+.toggle-switch {
+    position: relative;
+    width: 46px;
+    height: 25px;
+    flex-shrink: 0;
+    display: inline-block;
+}
+.toggle-switch input { opacity: 0; width: 0; height: 0; }
+.toggle-slider {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: #CBD5E1;
+    border-radius: 25px;
+    cursor: pointer;
+    transition: 0.3s ease;
+}
+.toggle-slider:before {
+    content: '';
+    position: absolute;
+    height: 19px; width: 19px;
+    left: 3px; bottom: 3px;
+    background: #fff;
+    border-radius: 50%;
+    transition: 0.3s ease;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+.toggle-switch input:checked + .toggle-slider {
+    background: var(--color-primary, #3B82F6);
+}
+.toggle-switch input:checked + .toggle-slider:before {
+    transform: translateX(21px);
+}
+
+/* Settings action button */
+.settings-action-btn {
+    padding: 8px 18px;
+    border-radius: 9px;
+    background: var(--btn-bg, #3B82F6);
+    color: var(--btn-text, #fff);
+    border: none;
+    font-weight: 700;
+    font-size: 13px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: 0.25s;
+    margin-top: 6px;
+}
+.settings-action-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+/* Theme grid in settings */
+.settings-theme-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+.settings-theme-dot {
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    border: 2px solid transparent;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    position: relative;
+}
+.settings-theme-dot:hover {
+    transform: scale(1.2);
+}
+.settings-theme-dot.active {
+    border-color: var(--text-primary, #1e293b);
+    box-shadow: 0 0 0 2px var(--bg-card, #fff), 0 0 0 4px var(--color-primary, #3B82F6);
+}
+
+/* Dark mode explicit overrides */
+[data-dark-mode="true"] {
+    --bg-page: #0B0F19 !important;
+    --bg-card: #151D2F !important;
+    --bg-card-alt: #1E293B !important;
+    --bg-input: #1E293B !important;
+    --text-primary: #F8FAFC !important;
+    --text-secondary: #94A3B8 !important;
+    --border-color: #334155 !important;
+    --border-card: #334155 !important;
+    --shadow-card: 0 4px 16px rgba(0,0,0,0.4) !important;
+}
+
+
 
 
 

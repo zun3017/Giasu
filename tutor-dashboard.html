@@ -693,6 +693,10 @@
                     <i class="fa-solid fa-user-gear"></i>
                     <span>Tài khoản</span>
                 </button>
+                <button type="button" class="sidebar-footer-btn" data-title="Cài đặt" onclick="openSettingsModal()" title="Cài đặt hệ thống">
+                    <i class="fa-solid fa-gear"></i>
+                    <span>Cài đặt</span>
+                </button>
                 <button type="button" class="sidebar-footer-btn logout" data-title="Đăng xuất" onclick="quayLai()" title="Đăng xuất">
                     <i class="fa-solid fa-arrow-right-from-bracket"></i>
                     <span>Đăng xuất</span>
@@ -716,6 +720,9 @@
                 <div class="mobile-header-actions">
                     <button type="button" class="mobile-action-btn theme-btn" onclick="openThemeSwitcher()" title="Đổi giao diện" aria-label="Đổi giao diện">
                         <i class="fa-solid fa-palette"></i>
+                    </button>
+                    <button type="button" class="mobile-action-btn settings-btn" onclick="openSettingsModal()" title="Cài đặt" aria-label="Cài đặt">
+                        <i class="fa-solid fa-gear"></i>
                     </button>
                     <button type="button" class="mobile-action-btn account-btn" onclick="openTutorAccountModal()" title="Cài đặt tài khoản" aria-label="Tài khoản">
                         <i class="fa-solid fa-user-gear"></i>
@@ -1548,6 +1555,96 @@
                         <i class="fa-solid fa-check"></i> Lưu ảnh
                     </button>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL CÀI ĐẶT (SETTINGS) -->
+    <div id="settingsModal" class="modal-overlay" style="z-index: 1150; display: none;" onclick="if(event.target===this) closeSettingsModal()">
+        <div class="modal-content" style="max-width: 520px; max-height: 90vh; overflow-y: auto;">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-gear" style="color: var(--color-primary);"></i> Cài đặt hệ thống</h3>
+                <button type="button" onclick="closeSettingsModal()" class="modal-close">&times;</button>
+            </div>
+
+            <!-- 1. ĐỔI MÃ PIN -->
+            <div class="settings-section">
+                <h4 class="settings-section-title">
+                    <i class="fa-solid fa-lock"></i> Đổi mã PIN bảo mật
+                </h4>
+                <div class="modal-form-group">
+                    <label>Mã PIN hiện tại</label>
+                    <input type="password" id="settingsCurrentPin" placeholder="Nhập mã PIN hiện tại" maxlength="6">
+                </div>
+                <div class="modal-form-group">
+                    <label>Mã PIN mới (tối thiểu 4 số)</label>
+                    <input type="password" id="settingsNewPin" placeholder="Nhập mã PIN mới" maxlength="6">
+                </div>
+                <div class="modal-form-group">
+                    <label>Xác nhận mã PIN mới</label>
+                    <input type="password" id="settingsConfirmPin" placeholder="Nhập lại mã PIN mới" maxlength="6">
+                </div>
+                <button type="button" class="settings-action-btn" onclick="changePin()">
+                    <i class="fa-solid fa-key"></i> Đổi mã PIN
+                </button>
+            </div>
+
+            <!-- 2. GIAO DIỆN & DARK MODE -->
+            <div class="settings-section">
+                <h4 class="settings-section-title">
+                    <i class="fa-solid fa-palette"></i> Giao diện hiển thị
+                </h4>
+
+                <!-- Dark Mode Toggle -->
+                <div class="settings-toggle-row">
+                    <div>
+                        <span class="settings-toggle-label">Chế độ tối (Dark Mode)</span>
+                        <span class="settings-toggle-desc">Tối ưu màu nền dịu mắt khi làm việc buổi tối</span>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="darkModeToggle" onchange="toggleDarkMode(this.checked)">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+
+                <!-- Theme Palette Dots -->
+                <div style="margin-top: 14px;">
+                    <span style="font-size: 13px; color: var(--text-secondary); font-weight: 600; display: block; margin-bottom: 8px;">Màu chủ đạo nhanh</span>
+                    <div id="settingsThemeGrid" class="settings-theme-grid">
+                        <!-- JS render theme dots -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. THÔNG BÁO -->
+            <div class="settings-section">
+                <h4 class="settings-section-title">
+                    <i class="fa-solid fa-bell"></i> Thông báo & Âm thanh
+                </h4>
+                <div class="settings-toggle-row">
+                    <div>
+                        <span class="settings-toggle-label">Thông báo trình duyệt</span>
+                        <span class="settings-toggle-desc">Nhận thông báo khi học sinh nộp bài hoặc có lịch mới</span>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="notifBrowserToggle" onchange="toggleBrowserNotif(this.checked)">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+                <div class="settings-toggle-row">
+                    <div>
+                        <span class="settings-toggle-label">Âm thanh thông báo</span>
+                        <span class="settings-toggle-desc">Phát chuông ngắn khi có tác vụ hoàn tất</span>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="notifSoundToggle" onchange="toggleNotifSound(this.checked)">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="modal-footer" style="margin-top: 16px;">
+                <button type="button" onclick="closeSettingsModal()" class="modal-btn modal-btn-secondary">Đóng</button>
             </div>
         </div>
     </div>

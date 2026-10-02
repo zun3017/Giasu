@@ -9803,3 +9803,175 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 });
+
+/* ============================================================
+ * TASK 6 — Settings Modal Controllers
+ * ============================================================ */
+
+function openSettingsModal() {
+    var modal = document.getElementById('settingsModal');
+    if (!modal) return;
+    modal.style.display = 'flex';
+
+    var dm = localStorage.getItem('tutorDarkMode') === 'true';
+    var dmToggle = document.getElementById('darkModeToggle');
+    if (dmToggle) dmToggle.checked = dm;
+
+    var nb = localStorage.getItem('tutorNotifBrowser') !== 'false';
+    var nbToggle = document.getElementById('notifBrowserToggle');
+    if (nbToggle) nbToggle.checked = nb;
+
+    var ns = localStorage.getItem('tutorNotifSound') !== 'false';
+    var nsToggle = document.getElementById('notifSoundToggle');
+    if (nsToggle) nsToggle.checked = ns;
+
+    renderSettingsThemes();
+
+    var cur = document.getElementById('settingsCurrentPin');
+    var np = document.getElementById('settingsNewPin');
+    var cp = document.getElementById('settingsConfirmPin');
+    if (cur) cur.value = '';
+    if (np) np.value = '';
+    if (cp) cp.value = '';
+}
+window.openSettingsModal = openSettingsModal;
+
+function closeSettingsModal() {
+    var modal = document.getElementById('settingsModal');
+    if (modal) modal.style.display = 'none';
+}
+window.closeSettingsModal = closeSettingsModal;
+
+function changePin() {
+    var cur = document.getElementById('settingsCurrentPin').value.trim();
+    var nPin = document.getElementById('settingsNewPin').value.trim();
+    var cPin = document.getElementById('settingsConfirmPin').value.trim();
+
+    if (!cur) { showToast('Vui lòng nhập mã PIN hiện tại!', 'warning'); return; }
+    if (!nPin) { showToast('Vui lòng nhập mã PIN mới!', 'warning'); return; }
+    if (nPin.length < 4) { showToast('Mã PIN phải có ít nhất 4 ký tự!', 'warning'); return; }
+    if (nPin !== cPin) { showToast('Mã PIN xác nhận không khớp!', 'error'); return; }
+
+    var truePin = (tutorDataGlobal && tutorDataGlobal.tutorPin ? tutorDataGlobal.tutorPin : "").trim();
+    if (cur !== truePin) {
+        showToast('Mã PIN hiện tại không chính xác!', 'error');
+        return;
+    }
+
+    var btn = document.querySelector('.settings-action-btn');
+    if (btn) btn.disabled = true;
+
+    google.script.run
+        .withSuccessHandler(function(res) {
+            if (btn) btn.disabled = false;
+            if (res && res.error) {
+                showToast('Lỗi: ' + res.error, 'error');
+            } else {
+                if (tutorDataGlobal) tutorDataGlobal.tutorPin = nPin;
+                var pinInput = document.getElementById('maPin');
+                if (pinInput) pinInput.value = nPin;
+                var accPinInput = document.getElementById('accTutorPin');
+                if (accPinInput) accPinInput.value = nPin;
+
+                document.getElementById('settingsCurrentPin').value = '';
+                document.getElementById('settingsNewPin').value = '';
+                document.getElementById('settingsConfirmPin').value = '';
+                showToast('Đổi mã PIN bảo mật thành công!', 'success');
+            }
+        })
+        .withFailureHandler(function(err) {
+            if (btn) btn.disabled = false;
+            showToast('Lỗi kết nối: ' + err.toString(), 'error');
+        })
+        .capNhatThongTinGiaSu(
+            tutorDataGlobal ? tutorDataGlobal.tutorPhone : '',
+            tutorDataGlobal ? tutorDataGlobal.tutorName : '',
+            tutorDataGlobal ? tutorDataGlobal.tutorPhone : '',
+            nPin,
+            tutorDataGlobal ? (tutorDataGlobal.qrCode || "") : ""
+        );
+}
+window.changePin = changePin;
+
+function toggleDarkMode(enabled) {
+    document.documentElement.setAttribute('data-dark-mode', enabled ? 'true' : 'false');
+    localStorage.setItem('tutorDarkMode', enabled ? 'true' : 'false');
+    if (typeof rerenderChartsForTheme === 'function') {
+        rerenderChartsForTheme();
+    }
+}
+window.toggleDarkMode = toggleDarkMode;
+
+// Auto apply dark mode on boot
+(function() {
+    try {
+        var dm = localStorage.getItem('tutorDarkMode') === 'true';
+        if (dm) {
+            document.documentElement.setAttribute('data-dark-mode', 'true');
+        }
+    } catch(e) {}
+})();
+
+function renderSettingsThemes() {
+    var grid = document.getElementById('settingsThemeGrid');
+    if (!grid) return;
+
+    var quickThemes = [
+        { id: 'theme-dark-purple', color: '#8E4DFF', name: 'Tím đậm' },
+        { id: 'theme-ocean-blue', color: '#2563EB', name: 'Xanh dương' },
+        { id: 'theme-emerald', color: '#059669', name: 'Xanh lục' },
+        { id: 'theme-sunset-orange', color: '#EA580C', name: 'Cam hoàng hôn' },
+        { id: 'theme-crimson', color: '#DC2626', name: 'Đỏ thẫm' },
+        { id: 'theme-midnight', color: '#334155', name: 'Xám đêm' },
+        { id: 'theme-cyberpunk', color: '#EC4899', name: 'Hồng neon' },
+        { id: 'theme-gold', color: '#D97706', name: 'Vàng kim' }
+    ];
+
+    var currentTheme = localStorage.getItem('tutorTheme') || 'theme-dark-purple';
+
+    grid.innerHTML = quickThemes.map(function(t) {
+        var isActive = (t.id === currentTheme || (currentTheme.startsWith('custom:') && t.color === currentTheme.split(':')[1])) ? ' active' : '';
+        return '<div class="settings-theme-dot' + isActive + '" ' +
+            'style="background: ' + t.color + ';" ' +
+            'title="' + t.name + '" ' +
+            'onclick="applySettingsTheme(\'' + t.id + '\', this)">' +
+            '</div>';
+    }).join('');
+}
+window.renderSettingsThemes = renderSettingsThemes;
+
+function applySettingsTheme(themeId, dotEl) {
+    if (typeof applyTheme === 'function') {
+        applyTheme(themeId);
+    }
+    document.querySelectorAll('.settings-theme-dot').forEach(function(d) {
+        d.classList.remove('active');
+    });
+    if (dotEl) dotEl.classList.add('active');
+    showToast('Đã đổi màu chủ đạo giao diện!', 'success');
+}
+window.applySettingsTheme = applySettingsTheme;
+
+function toggleBrowserNotif(enabled) {
+    localStorage.setItem('tutorNotifBrowser', enabled ? 'true' : 'false');
+    if (enabled && 'Notification' in window && Notification.permission !== 'granted') {
+        Notification.requestPermission().then(function(perm) {
+            if (perm !== 'granted') {
+                showToast('Trình duyệt đã từ chối quyền thông báo.', 'warning');
+                var el = document.getElementById('notifBrowserToggle');
+                if (el) el.checked = false;
+                localStorage.setItem('tutorNotifBrowser', 'false');
+            } else {
+                showToast('Đã cấp quyền nhận thông báo!', 'success');
+            }
+        });
+    }
+}
+window.toggleBrowserNotif = toggleBrowserNotif;
+
+function toggleNotifSound(enabled) {
+    localStorage.setItem('tutorNotifSound', enabled ? 'true' : 'false');
+    showToast(enabled ? 'Đã bật âm thanh thông báo' : 'Đã tắt âm thanh thông báo', 'info');
+}
+window.toggleNotifSound = toggleNotifSound;
+
