@@ -2614,7 +2614,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="js/api.js?v=2.0.9"></script>
-    <script src="js/tutor.js?v=20261002_v10"></script>
+    <script src="js/tutor.js?v=20261002_v11"></script>
     <script>
         function toggleTutorMobileSidebar(force) {
             var sidebar = document.getElementById('tutorSidebar');
@@ -2691,10 +2691,7 @@
                 if (tBtn) switchTutorNavTab(tBtn, 'tuition');
             }
 
-            // Tự động đồng bộ dữ liệu mới nhất từ máy chủ trong nền
-            if (typeof refreshTutorDashboard === 'function') {
-                refreshTutorDashboard();
-            }
+            // Dữ liệu đã được nạp từ sessionStorage và nhật ký học sinh được đồng bộ tự động qua loadAllTutorStudentsLogs
         });
     </script>
     <!-- PWA Install Script -->

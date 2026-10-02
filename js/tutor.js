@@ -1602,16 +1602,46 @@ function renderTutorTuitionSection() {
 window.renderTutorTuitionSection = renderTutorTuitionSection;
 
 function loadAllTutorStudentsLogs(data) {
-    var students = (data && data.students) ? data.students : (tutorDataGlobal && tutorDataGlobal.students ? tutorDataGlobal.students : []);
+    var students = (tutorDataGlobal && tutorDataGlobal.students && tutorDataGlobal.students.length > 0)
+        ? tutorDataGlobal.students
+        : ((data && data.students) ? data.students : []);
     if (!students || students.length === 0) return;
 
     var pending = students.length;
-    var anyFetched = false;
+    var completed = false;
+
+    function onAllLogsLoaded() {
+        if (completed) return;
+        completed = true;
+        if (typeof sessionStorage !== 'undefined' && tutorDataGlobal) {
+            try {
+                sessionStorage.setItem('dashboardData', JSON.stringify(tutorDataGlobal));
+            } catch (e) {
+                console.warn("sessionStorage save error:", e);
+            }
+        }
+        if (typeof initTuitionMonthFilter === 'function') initTuitionMonthFilter();
+        if (typeof renderTutorTuitionSection === 'function') renderTutorTuitionSection();
+        renderTutorKpiCards(tutorDataGlobal, tutorOverviewMonth, tutorOverviewYear);
+        if (typeof renderOverviewCharts === 'function') {
+            renderOverviewCharts(tutorOverviewMonth, tutorOverviewYear);
+        }
+        if (typeof renderTutorStudentsGrid === 'function') {
+            renderTutorStudentsGrid();
+        }
+    }
+
+    // Timeout dự phòng 4 giây để đảm bảo giao diện luôn được render dữ liệu đã tải
+    setTimeout(function() {
+        if (!completed) {
+            onAllLogsLoaded();
+        }
+    }, 4000);
 
     students.forEach(function(st) {
         if (st.logs && Array.isArray(st.logs) && st.logs.length > 0) {
             pending--;
-            if (pending === 0 && anyFetched) {
+            if (pending === 0) {
                 onAllLogsLoaded();
             }
             return;
@@ -1626,15 +1656,24 @@ function loadAllTutorStudentsLogs(data) {
                         } else if (!st.logs) {
                             st.logs = [];
                         }
-                        if (res && res.student && res.student.tuition) {
+                        if (res && res.tuition) {
+                            st.tuition = res.tuition;
+                        } else if (res && res.student && res.student.tuition) {
                             st.tuition = res.student.tuition;
                         }
-                        if (res && res.student && res.student.billing_type) {
-                            st.billing_type = res.student.billing_type;
-                        } else if (res && res.billing_type) {
+                        if (res && res.billing_type) {
                             st.billing_type = res.billing_type;
+                        } else if (res && res.student && res.student.billing_type) {
+                            st.billing_type = res.student.billing_type;
                         }
-                        anyFetched = true;
+                        if (currentTutorStudent && (currentTutorStudent.phone === st.phone || currentTutorStudent.name === st.name)) {
+                            currentTutorStudent.logs = st.logs;
+                            if (st.tuition) currentTutorStudent.tuition = st.tuition;
+                            if (st.billing_type) currentTutorStudent.billing_type = st.billing_type;
+                            if (typeof renderInvoice === 'function') renderInvoice();
+                            if (typeof renderTutorChart === 'function') renderTutorChart(currentTutorStudent.logs);
+                            if (typeof renderTutorStudentHistory === 'function') renderTutorStudentHistory(currentTutorStudent.logs);
+                        }
                     } catch (e) {
                         console.error("Error setting student logs:", e);
                     }
@@ -1654,23 +1693,11 @@ function loadAllTutorStudentsLogs(data) {
                 .getStudentDetailsForTutor(st.phone, st.name);
         } else {
             pending--;
-            if (pending === 0 && anyFetched) {
+            if (pending === 0) {
                 onAllLogsLoaded();
             }
         }
     });
-
-    function onAllLogsLoaded() {
-        initTuitionMonthFilter();
-        renderTutorTuitionSection();
-        renderTutorKpiCards(tutorDataGlobal, tutorOverviewMonth, tutorOverviewYear);
-        if (typeof renderOverviewCharts === 'function') {
-            renderOverviewCharts(tutorOverviewMonth, tutorOverviewYear);
-        }
-        if (typeof renderTutorStudentsGrid === 'function') {
-            renderTutorStudentsGrid();
-        }
-    }
 }
 window.loadAllTutorStudentsLogs = loadAllTutorStudentsLogs;
 
@@ -4253,22 +4280,46 @@ window.initTutorSidebarState = initTutorSidebarState;
                                 return;
                             }
                             currentTutorStudent.logs = (res && res.logs) ? res.logs : (currentTutorStudent.logs || []);
-                            if (res && res.student && res.student.tuition) {
+                            if (res && res.tuition) {
+                                currentTutorStudent.tuition = res.tuition;
+                            } else if (res && res.student && res.student.tuition) {
                                 currentTutorStudent.tuition = res.student.tuition;
                             }
-                            if (res && res.student && res.student.billing_type) {
-                                currentTutorStudent.billing_type = res.student.billing_type;
-                            } else if (res && res.billing_type) {
+                            if (res && res.billing_type) {
                                 currentTutorStudent.billing_type = res.billing_type;
+                            } else if (res && res.student && res.student.billing_type) {
+                                currentTutorStudent.billing_type = res.student.billing_type;
+                            }
+                            // Đồng bộ ngược lại vào danh sách tutorDataGlobal.students
+                            if (tutorDataGlobal && tutorDataGlobal.students) {
+                                var foundSt = tutorDataGlobal.students.find(function(s) {
+                                    return s.phone === currentTutorStudent.phone || s.name === currentTutorStudent.name;
+                                });
+                                if (foundSt) {
+                                    foundSt.logs = currentTutorStudent.logs;
+                                    if (currentTutorStudent.tuition) foundSt.tuition = currentTutorStudent.tuition;
+                                    if (currentTutorStudent.billing_type) foundSt.billing_type = currentTutorStudent.billing_type;
+                                }
                             }
                             renderInvoice();
                             renderTutorChart(currentTutorStudent.logs);
                             renderTutorStudentHistory(currentTutorStudent.logs);
                             initTuitionMonthFilter();
                             renderTutorTuitionSection();
-                            renderTutorKpiCards(tutorDataGlobal, tutorOverviewMonth, tutorOverviewYear);
-                            if (typeof renderOverviewCharts === 'function') {
-                                renderOverviewCharts(tutorOverviewMonth, tutorOverviewYear);
+                            // Chỉ cập nhật biểu đồ tổng quan khi toàn bộ học sinh đã nạp xong nhật ký để tránh chớp số liệu thiếu
+                            var allLogsReady = tutorDataGlobal && tutorDataGlobal.students && tutorDataGlobal.students.length > 0 && tutorDataGlobal.students.every(function(s) {
+                                return s.logs && Array.isArray(s.logs);
+                            });
+                            if (allLogsReady) {
+                                renderTutorKpiCards(tutorDataGlobal, tutorOverviewMonth, tutorOverviewYear);
+                                if (typeof renderOverviewCharts === 'function') {
+                                    renderOverviewCharts(tutorOverviewMonth, tutorOverviewYear);
+                                }
+                            }
+                            if (typeof sessionStorage !== 'undefined' && tutorDataGlobal) {
+                                try {
+                                    sessionStorage.setItem('dashboardData', JSON.stringify(tutorDataGlobal));
+                                } catch (e) {}
                             }
                         } catch (err) {
                             showToast("Lỗi hiển thị biểu đồ/lịch sử: " + err.message, "error");
@@ -7018,14 +7069,43 @@ window.initTutorSidebarState = initTutorSidebarState;
 
         function refreshTutorDashboard() {
             // Đăng nhập lại bằng số điện thoại và PIN cũ để cập nhật toàn bộ trạng thái Dashboard mới
+            if (!tutorDataGlobal || !tutorDataGlobal.tutorPhone) return;
             google.script.run
                 .withSuccessHandler(function(loginRes) {
-                    if(loginRes.role === 'tutor') {
+                    if(loginRes && loginRes.role === 'tutor' && loginRes.data) {
+                        // Giữ lại nhật ký (logs) và học phí đã nạp từ trước để không bị reset về 0
+                        if (tutorDataGlobal && tutorDataGlobal.students && loginRes.data.students) {
+                            var oldMap = {};
+                            tutorDataGlobal.students.forEach(function(s) {
+                                if (s.phone) oldMap[s.phone] = s;
+                                if (s.name) oldMap[s.name] = s;
+                            });
+                            loginRes.data.students.forEach(function(ns) {
+                                var os = oldMap[ns.phone] || oldMap[ns.name];
+                                if (os) {
+                                    if (os.logs && Array.isArray(os.logs) && os.logs.length > 0) {
+                                        ns.logs = os.logs;
+                                    }
+                                    if (os.tuition && !ns.tuition) ns.tuition = os.tuition;
+                                    if (os.billing_type && !ns.billing_type) ns.billing_type = os.billing_type;
+                                }
+                            });
+                        }
                         tutorDataGlobal = loginRes.data;
+                        if (typeof sessionStorage !== 'undefined') {
+                            try {
+                                sessionStorage.setItem('dashboardData', JSON.stringify(tutorDataGlobal));
+                            } catch (e) {}
+                        }
                         renderTutorView(loginRes.data);
+                    } else if (loginRes && loginRes.error) {
+                        console.warn("Background refresh warning: " + loginRes.error);
                     } else {
                         location.reload();
                     }
+                })
+                .withFailureHandler(function(err) {
+                    console.warn("Background refresh failed:", err);
                 })
                 .loginSystem(tutorDataGlobal.tutorPhone, tutorDataGlobal.tutorPin);
         }
