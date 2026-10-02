@@ -6267,16 +6267,17 @@ window.initTutorSidebarState = initTutorSidebarState;
 
 
         // --- Custom in-app notification and confirmation dialogs ---
-        function showToast(message, type = 'info') {
+        function showToast(message, type, actionBtn) {
+            type = type || 'info';
             var container = document.getElementById('toastContainer');
             if (!container) return;
             
             var toast = document.createElement('div');
-            toast.style.padding = '15px 25px';
+            toast.style.padding = '14px 20px';
             toast.style.borderRadius = '12px';
             toast.style.color = '#FFF';
             toast.style.fontSize = '14px';
-            toast.style.fontWeight = 'bold';
+            toast.style.fontWeight = '600';
             toast.style.boxShadow = '0 10px 25px rgba(0,0,0,0.3)';
             toast.style.pointerEvents = 'auto';
             toast.style.animation = 'slideIn 0.3s ease forwards';
@@ -6286,20 +6287,61 @@ window.initTutorSidebarState = initTutorSidebarState;
             toast.style.gap = '10px';
             toast.style.borderWidth = '1px';
             toast.style.borderStyle = 'solid';
+            toast.style.position = 'relative';
+            toast.style.overflow = 'hidden';
             
+            var iconHtml = '<i class="fa-solid fa-circle-info"></i>';
             if (type === 'success') {
-                toast.style.background = '#00CC66';
-                toast.style.borderColor = '#00FF88';
-                toast.innerHTML = '<i class="fa-solid fa-circle-check"></i> ' + message;
+                toast.style.background = '#059669';
+                toast.style.borderColor = '#10B981';
+                iconHtml = '<i class="fa-solid fa-circle-check"></i>';
             } else if (type === 'error') {
-                toast.style.background = '#FF4D4D';
-                toast.style.borderColor = '#FF8080';
-                toast.innerHTML = '<i class="fa-solid fa-circle-xmark"></i> ' + message;
+                toast.style.background = '#DC2626';
+                toast.style.borderColor = '#EF4444';
+                iconHtml = '<i class="fa-solid fa-circle-xmark"></i>';
+            } else if (type === 'warning') {
+                toast.style.background = '#D97706';
+                toast.style.borderColor = '#F59E0B';
+                iconHtml = '<i class="fa-solid fa-triangle-exclamation"></i>';
             } else {
-                toast.style.background = '#8E4DFF';
-                toast.style.borderColor = '#A870FF';
-                toast.innerHTML = '<i class="fa-solid fa-circle-info"></i> ' + message;
+                toast.style.background = '#2563EB';
+                toast.style.borderColor = '#3B82F6';
             }
+
+            var textSpan = document.createElement('span');
+            textSpan.innerHTML = iconHtml + ' ' + message;
+            textSpan.style.display = 'inline-flex';
+            textSpan.style.alignItems = 'center';
+            textSpan.style.gap = '8px';
+            toast.appendChild(textSpan);
+
+            // Nút hành động (Hoàn tác, v.v.)
+            if (actionBtn && actionBtn.text && actionBtn.onClick) {
+                var btnEl = document.createElement('button');
+                btnEl.type = 'button';
+                btnEl.textContent = actionBtn.text;
+                btnEl.style.cssText = 'margin-left: 12px; padding: 4px 12px; border-radius: 6px; ' +
+                    'border: 1px solid rgba(255,255,255,0.7); background: rgba(255,255,255,0.2); ' +
+                    'color: #FFF; font-weight: 700; font-size: 13px; cursor: pointer; ' +
+                    'transition: background 0.2s; white-space: nowrap;';
+                btnEl.onmouseenter = function() { btnEl.style.background = 'rgba(255,255,255,0.35)'; };
+                btnEl.onmouseleave = function() { btnEl.style.background = 'rgba(255,255,255,0.2)'; };
+                btnEl.onclick = function(e) {
+                    e.stopPropagation();
+                    actionBtn.onClick();
+                    toast.remove();
+                };
+                toast.appendChild(btnEl);
+            }
+
+            // Thanh đếm ngược progress bar
+            var timeoutMs = (actionBtn && actionBtn.timeout) ? actionBtn.timeout : 3000;
+            var progressBar = document.createElement('div');
+            progressBar.style.cssText = 'position: absolute; bottom: 0; left: 0; height: 3px; ' +
+                'background: rgba(255,255,255,0.7); border-radius: 0 0 12px 12px; width: 100%; ' +
+                'transition: width ' + (timeoutMs / 1000) + 's linear;';
+            toast.appendChild(progressBar);
+            setTimeout(function() { progressBar.style.width = '0%'; }, 20);
             
             container.appendChild(toast);
             
@@ -6308,7 +6350,7 @@ window.initTutorSidebarState = initTutorSidebarState;
                 setTimeout(function() {
                     toast.remove();
                 }, 300);
-            }, 3000);
+            }, timeoutMs);
         }
 
         function showCustomConfirm(message, onConfirm) {
@@ -7389,21 +7431,29 @@ window.initTutorSidebarState = initTutorSidebarState;
 
         function deleteStudentBackend() {
             if (!currentTutorStudent) return;
-            showCustomConfirm("Xác nhận đưa học sinh " + currentTutorStudent.name + " vào thùng rác? Học sinh sẽ ẩn khỏi danh sách và tự động dọn dẹp sau 10 ngày.", function() {
+            var stPhone = currentTutorStudent.phone;
+            var stName = currentTutorStudent.name;
+
+            showCustomConfirm("Xác nhận đưa học sinh " + stName + " vào thùng rác? Học sinh sẽ ẩn khỏi danh sách và tự động dọn dẹp sau 10 ngày.", function() {
                 google.script.run
                     .withSuccessHandler(function(res) {
                         if (res.error) {
                             showToast("Lỗi: " + res.error, "error");
                         } else {
-                            showToast("Đã đưa học sinh vào thùng rác!", "success");
-                            // Tải lại bảng điều khiển gia sư để cập nhật danh sách học sinh mới
                             refreshTutorDashboard();
+                            showToast("Đã đưa học sinh " + stName + " vào thùng rác!", "warning", {
+                                text: "↩ Hoàn tác",
+                                timeout: 6000,
+                                onClick: function() {
+                                    restoreStudent(stPhone);
+                                }
+                            });
                         }
                     })
                     .withFailureHandler(function(err) {
                         showToast("Lỗi kết nối hoặc hệ thống: " + err.toString(), "error");
                     })
-                    .xoaHocSinhTamThoi(tutorDataGlobal.tutorPhone, currentTutorStudent.phone);
+                    .xoaHocSinhTamThoi(tutorDataGlobal.tutorPhone, stPhone);
             });
         }
 
@@ -7472,14 +7522,20 @@ window.initTutorSidebarState = initTutorSidebarState;
             var rowIndex = document.getElementById('editLesRowIndex').value;
             if (!rowIndex) return;
 
-            showCustomConfirm("Bạn có chắc chắn muốn xóa hoàn toàn buổi học này?", function() {
-                // 1. Cập nhật cục bộ: lọc bỏ dòng bị xóa
+            showCustomConfirm("Bạn có chắc chắn muốn xóa buổi học này?", function() {
+                var deletedLog = null;
+                // 1. Cập nhật cục bộ: lưu log tạm thời và lọc bỏ dòng bị xóa
                 if (currentTutorStudent && currentTutorStudent.logs) {
-                    currentTutorStudent.logs = currentTutorStudent.logs.filter(l => 
-                        l.rowIndex !== rowIndex && 
-                        !(typeof l.rowIndex === 'number' && String(l.rowIndex) === String(rowIndex)) && 
-                        l.tempId !== rowIndex
-                    );
+                    deletedLog = currentTutorStudent.logs.find(function(l) {
+                        return l.rowIndex === rowIndex || 
+                            (typeof l.rowIndex === 'number' && String(l.rowIndex) === String(rowIndex)) || 
+                            l.tempId === rowIndex;
+                    });
+                    currentTutorStudent.logs = currentTutorStudent.logs.filter(function(l) {
+                        return l.rowIndex !== rowIndex && 
+                            !(typeof l.rowIndex === 'number' && String(l.rowIndex) === String(rowIndex)) && 
+                            l.tempId !== rowIndex;
+                    });
                 }
                 
                 // 2. Render lại UI ngay lập tức
@@ -7491,12 +7547,32 @@ window.initTutorSidebarState = initTutorSidebarState;
                 
                 // 3. Đóng modal
                 closeEditLessonModal();
-                showToast("Đã xóa buổi học!", "success");
-                
-                // 4. Đẩy vào hàng đợi sync ngầm
-                queueLessonOperation({
-                    type: 'delete',
-                    rowIndex: rowIndex
+
+                var hasUndone = false;
+                var deleteTimer = setTimeout(function() {
+                    if (!hasUndone) {
+                        // 4. Đẩy vào hàng đợi sync ngầm sau khi hết thời gian hoàn tác
+                        queueLessonOperation({
+                            type: 'delete',
+                            rowIndex: rowIndex
+                        });
+                    }
+                }, 5000);
+
+                showToast("Đã xóa buổi học!", "warning", {
+                    text: "↩ Hoàn tác",
+                    timeout: 5000,
+                    onClick: function() {
+                        hasUndone = true;
+                        clearTimeout(deleteTimer);
+                        if (deletedLog && currentTutorStudent && currentTutorStudent.logs) {
+                            currentTutorStudent.logs.push(deletedLog);
+                            renderInvoice();
+                            renderTutorChart(currentTutorStudent.logs);
+                            renderTutorStudentHistory(currentTutorStudent.logs);
+                        }
+                        showToast("Đã khôi phục buổi học!", "success");
+                    }
                 });
             });
         }
