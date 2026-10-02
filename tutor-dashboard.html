@@ -2341,7 +2341,10 @@
                     <input type="text" id="schSun" placeholder="Ví dụ: 19:00 - 21:00">
                 </div>
             </div>
-            <div class="modal-footer">
+            <div class="modal-footer" style="display: flex; justify-content: flex-end; align-items: center; gap: 8px;">
+                <button type="button" id="btnDeleteSchedule" onclick="deleteScheduleEntry()" class="modal-btn" style="background: #FEE2E2; color: #DC2626; border: 1px solid #FCA5A5; margin-right: auto; display: none;">
+                    <i class="fa-solid fa-trash-can"></i> Xóa khỏi thời khóa biểu
+                </button>
                 <button onclick="closeEditScheduleModal()" class="modal-btn modal-btn-secondary">Đóng</button>
                 <button onclick="saveSchedule()" class="modal-btn modal-btn-primary" id="btnSaveSchedule">Cập nhật</button>
             </div>

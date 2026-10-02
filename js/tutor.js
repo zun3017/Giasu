@@ -2908,22 +2908,10 @@ function buildTuitionModalForm(st, studentLogs) {
         html += '  </label>';
         html += '</div>';
 
-        // Card 11: Lộ trình sắp tới
+        // Card 11: Khung lịch học
         html += '<div class="tuition-toggle-card">';
         html += '  <div>';
-        html += '    <div class="tuition-toggle-label">Lộ trình sắp tới</div>';
-        html += '    <div class="tuition-toggle-val">' + (toggles.roadmap !== false ? 'Hiển thị' : 'Đã ẩn') + '</div>';
-        html += '  </div>';
-        html += '  <label class="tuition-switch">';
-        html += '    <input type="checkbox" id="toggleRoadmap" data-key="roadmap"' + (toggles.roadmap !== false ? ' checked' : '') + ' onchange="onTuitionToggleChange(\'toggleRoadmap\', \'roadmap\')">';
-        html += '    <span class="tuition-slider"></span>';
-        html += '  </label>';
-        html += '</div>';
-
-        // Card 12: Khung lịch học
-        html += '<div class="tuition-toggle-card" style="grid-column: 1 / -1;">';
-        html += '  <div>';
-        html += '    <div class="tuition-toggle-label">Khung lịch học & Học phí chi tiết</div>';
+        html += '    <div class="tuition-toggle-label">Khung lịch học</div>';
         html += '    <div class="tuition-toggle-val">' + (toggles.schedule !== false ? 'Hiển thị' : 'Đã ẩn') + '</div>';
         html += '  </div>';
         html += '  <label class="tuition-switch">';
@@ -3279,19 +3267,13 @@ function renderTuitionLivePreview() {
 
         // ==================== MẪU 2: PHIẾU HỌC PHÍ THEO MẪU BÁO CÁO TOÀN DIỆN (THEME HỆ THỐNG) ====================
         html += '<div id="tuitionInvoiceCard" class="tuition-receipt-card template-2-card" style="border: 1.5px solid ' + themeColors.primary + '; border-radius: 24px; padding: 24px 22px; background: #FFFFFF; box-shadow: 0 12px 36px rgba(0,0,0,0.06); font-family: \'Plus Jakarta Sans\', -apple-system, BlinkMacSystemFont, sans-serif; color: #1E293B; box-sizing: border-box;">';
-        
-        // 1. Top row: GV và SĐT
-        html += '<div style="display: flex; justify-content: space-between; align-items: center; font-size: 13px; font-weight: 600; color: #334155; margin-bottom: 12px;">';
-        html += '<span>GV. ' + tutorName + '</span>';
-        html += '<span>SĐT. ' + tutorPhone + '</span>';
-        html += '</div>';
 
-        // 2. Centered Title
+        // 1. Centered Title
         html += '<div style="text-align: center; margin-bottom: 16px;">';
         html += '<h2 style="font-size: 22px; font-weight: 900; color: ' + themeColors.primary + '; margin: 0; text-transform: uppercase; letter-spacing: 0.5px;">' + periodTitle + '</h2>';
         html += '</div>';
 
-        // 3. 2-Column Section (THÔNG TIN HỌC SINH & TỔNG HỌC PHÍ / QR)
+        // 2. 2-Column Section (THÔNG TIN HỌC SINH & TỔNG HỌC PHÍ / QR)
         html += '<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;">';
 
         // Left Box: THÔNG TIN HỌC SINH
@@ -3355,8 +3337,8 @@ function renderTuitionLivePreview() {
 
         html += '</div>'; // End Left Box
 
-        // Right Box: TỔNG HỌC PHÍ & QR
-        html += '<div style="background: #FFFFFF; border: 1.5px solid ' + themeColors.softBorder + '; border-radius: 16px; padding: 12px 14px; display: flex; flex-direction: column; align-items: center; justify-content: space-between; text-align: center;">';
+        // Right Box: TỔNG HỌC PHÍ & QR (Không hiển thị dòng ngân hàng, số TK, chủ TK)
+        html += '<div style="background: #FFFFFF; border: 1.5px solid ' + themeColors.softBorder + '; border-radius: 16px; padding: 12px 14px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;">';
         html += '<div style="width: 100%; text-align: center;">';
         html += '<div style="font-size: 11px; font-weight: 800; color: ' + themeColors.primary + '; text-transform: uppercase; letter-spacing: 0.5px;">TỔNG HỌC PHÍ</div>';
         html += '<div style="font-size: 23px; font-weight: 900; color: ' + themeColors.primary + '; letter-spacing: -0.5px; margin: 2px 0 6px 0;">' + grandTotalStr + '</div>';
@@ -3368,16 +3350,10 @@ function renderTuitionLivePreview() {
             html += '</div>';
         }
 
-        html += '<div style="font-size: 11px; color: #475569; text-align: center; width: 100%; line-height: 1.55;">';
-        html += '<div><span style="color: #64748B;">Ngân hàng:</span> <b style="color: #0F172A;">' + (bankName || "Techcombank") + '</b></div>';
-        html += '<div><span style="color: #64748B;">Số TK:</span> <b style="color: ' + themeColors.primary + '; font-weight: 800;">' + bankAcc + '</b></div>';
-        html += '<div><span style="color: #64748B;">Chủ TK:</span> <b style="color: #0F172A;">' + tutorName.toUpperCase() + '</b></div>';
-        html += '</div>';
-
         html += '</div>'; // End Right Box
         html += '</div>'; // End 2-Column Section
 
-        // 4. Section: NHẬN XÉT HỌC TẬP
+        // 3. Section: NHẬN XÉT HỌC TẬP
         if (toggles.feedback !== false) {
             html += '<div style="margin-top: 14px;">';
             html += '<div style="font-size: 12.5px; font-weight: 800; color: ' + themeColors.primary + '; text-transform: uppercase; letter-spacing: 0.5px; padding-bottom: 5px; border-bottom: 1.5px solid ' + themeColors.softBorder + '; margin-bottom: 8px;">NHẬN XÉT HỌC TẬP</div>';
@@ -3385,34 +3361,15 @@ function renderTuitionLivePreview() {
             html += '</div>';
         }
 
-        // 5. Section: LỘ TRÌNH SẮP TỚI
-        if (toggles.roadmap !== false) {
-            html += '<div style="margin-top: 14px;">';
-            html += '<div style="font-size: 12.5px; font-weight: 800; color: ' + themeColors.primary + '; text-transform: uppercase; letter-spacing: 0.5px; padding-bottom: 5px; border-bottom: 1.5px solid ' + themeColors.softBorder + '; margin-bottom: 8px;">LỘ TRÌNH SẮP TỚI</div>';
-            html += '<div id="invRoadmapText" contenteditable="true" style="font-size: 11.5px; color: #1E293B; line-height: 1.6; outline: none; padding: 2px 0;" oninput="onTuitionCustomFieldInput(\'roadmapText\', this.innerHTML)">' + roadmapContent + '</div>';
-            html += '</div>';
-        }
-
-        // 6. Section: 2 Cột LỊCH HỌC & HỌC PHÍ
+        // 4. Section: LỊCH HỌC (Full width, không có cột học phí ở góc)
         if (toggles.schedule !== false) {
-            html += '<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 14px;">';
-            
-            // Cột LỊCH HỌC
-            html += '<div>';
+            html += '<div style="margin-top: 14px;">';
             html += '<div style="font-size: 12px; font-weight: 800; color: ' + themeColors.primary + '; text-transform: uppercase; letter-spacing: 0.5px; padding-bottom: 4px; border-bottom: 1.5px solid ' + themeColors.softBorder + '; margin-bottom: 6px;">LỊCH HỌC</div>';
             html += '<div id="invScheduleText" contenteditable="true" style="font-size: 11.5px; color: #1E293B; line-height: 1.6; outline: none; padding: 2px 0;" oninput="onTuitionCustomFieldInput(\'scheduleText\', this.innerHTML)">' + scheduleContent + '</div>';
             html += '</div>';
-
-            // Cột HỌC PHÍ
-            html += '<div>';
-            html += '<div style="font-size: 12px; font-weight: 800; color: ' + themeColors.primary + '; text-transform: uppercase; letter-spacing: 0.5px; padding-bottom: 4px; border-bottom: 1.5px solid ' + themeColors.softBorder + '; margin-bottom: 6px;">HỌC PHÍ</div>';
-            html += '<div id="invTuitionExtraText" contenteditable="true" style="font-size: 11.5px; color: #1E293B; line-height: 1.6; outline: none; padding: 2px 0;" oninput="onTuitionCustomFieldInput(\'tuitionExtraText\', this.innerHTML)">' + tuitionExtraContent + '</div>';
-            html += '</div>';
-
-            html += '</div>';
         }
 
-        // 7. Footer Banner Lời dặn dò
+        // 5. Footer Banner Lời dặn dò
         html += '<div id="invFooterNoteText" contenteditable="true" style="background: ' + themeColors.softBg + '; color: ' + themeColors.primary + '; border: 1px solid ' + themeColors.softBorder + '; border-radius: 20px; padding: 9px 16px; text-align: center; font-size: 11.5px; font-weight: 600; outline: none; margin-top: 16px; line-height: 1.5;" oninput="onTuitionCustomFieldInput(\'footerNoteText\', this.innerText)">' + footerNoteContent + '</div>';
 
         html += '</div>'; // End Mẫu 2 #tuitionInvoiceCard
@@ -6701,11 +6658,18 @@ window.initTutorSidebarState = initTutorSidebarState;
             var stNames = new Set(students.map(function(st){ return (st.name || '').trim().toLowerCase(); }));
             list.forEach(function(s) {
                 if (s && s.studentName && !stNames.has(s.studentName.trim().toLowerCase())) {
-                    stNames.add(s.studentName.trim().toLowerCase());
-                    students.push({
-                        name: s.studentName.trim(),
-                        subject: s.subject || "Gia sư 1-1"
+                    // Chỉ hiển thị học sinh tự do / học thử nếu thực sự có ít nhất 1 buổi học trong tuần:
+                    var hasAnySlot = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'].some(function(k) {
+                        var val = (s[k] || '').trim();
+                        return val !== '' && val !== '-';
                     });
+                    if (hasAnySlot) {
+                        stNames.add(s.studentName.trim().toLowerCase());
+                        students.push({
+                            name: s.studentName.trim(),
+                            subject: s.subject || "Gia sư 1-1"
+                        });
+                    }
                 }
             });
                 
@@ -8409,6 +8373,20 @@ window.initTutorSidebarState = initTutorSidebarState;
             document.getElementById('schFri').value = fri === "undefined" ? "" : fri;
             document.getElementById('schSat').value = sat === "undefined" ? "" : sat;
             document.getElementById('schSun').value = sun === "undefined" ? "" : sun;
+
+            // Kiểm tra xem có phải học sinh chính thức không
+            var isOfficial = false;
+            if (tutorDataGlobal && Array.isArray(tutorDataGlobal.students)) {
+                isOfficial = tutorDataGlobal.students.some(function(st) {
+                    return (st.name || '').trim().toLowerCase() === studentName.trim().toLowerCase();
+                });
+            }
+            var delBtn = document.getElementById('btnDeleteSchedule');
+            if (delBtn) {
+                // Hiển thị nút xóa nếu là học sinh tự do / học thử
+                delBtn.style.display = isOfficial ? "none" : "inline-flex";
+                delBtn.setAttribute('data-student', studentName);
+            }
             
             document.getElementById('editScheduleModal').style.display = "flex";
         }
@@ -8416,6 +8394,51 @@ window.initTutorSidebarState = initTutorSidebarState;
         function closeEditScheduleModal() {
             document.getElementById('editScheduleModal').style.display = "none";
         }
+
+        function deleteScheduleEntry() {
+            var delBtn = document.getElementById('btnDeleteSchedule');
+            var sName = delBtn ? delBtn.getAttribute('data-student') : document.getElementById('schStudentName').value;
+            if (!sName) return;
+
+            showCustomConfirm("Bạn có chắc chắn muốn xóa học sinh học thử/tự do <b>" + sName + "</b> khỏi thời khóa biểu không?", function() {
+                var tPhone = (tutorDataGlobal && tutorDataGlobal.tutorPhone) ? tutorDataGlobal.tutorPhone : (sessionStorage.getItem('userPhone') || "");
+                if (typeof google !== 'undefined' && google.script && google.script.run && tPhone) {
+                    google.script.run
+                        .withSuccessHandler(function() {})
+                        .capNhatThoiKhoaBieu(tPhone, sName, '', '', '', '', '', '', '');
+                }
+
+                if (lastLoadedTutorSchedule && Array.isArray(lastLoadedTutorSchedule)) {
+                    lastLoadedTutorSchedule = lastLoadedTutorSchedule.filter(function(s) {
+                        return (s.studentName || '').trim().toLowerCase() !== sName.trim().toLowerCase();
+                    });
+                }
+
+                try {
+                    var calFrame = document.getElementById('tutorCalendarIframe');
+                    if (calFrame && calFrame.contentWindow && Array.isArray(calFrame.contentWindow.tutorScheduleSheetData)) {
+                        var cData = calFrame.contentWindow.tutorScheduleSheetData;
+                        var idx = cData.findIndex(function(r) {
+                            return (r.studentName || '').trim().toLowerCase() === sName.trim().toLowerCase();
+                        });
+                        if (idx !== -1) {
+                            cData.splice(idx, 1);
+                            if (typeof calFrame.contentWindow.loadStudentOptions === 'function') {
+                                calFrame.contentWindow.loadStudentOptions();
+                            }
+                            if (calFrame.contentWindow.calendar && typeof calFrame.contentWindow.calendar.refetchEvents === 'function') {
+                                calFrame.contentWindow.calendar.refetchEvents();
+                            }
+                        }
+                    }
+                } catch(e) {}
+
+                closeEditScheduleModal();
+                refreshTutorScheduleDisplay(lastLoadedTutorSchedule);
+                showToast("Đã xóa học sinh " + sName + " khỏi thời khóa biểu!", "success");
+            });
+        }
+        window.deleteScheduleEntry = deleteScheduleEntry;
 
         function saveSchedule() {
             var studentName = document.getElementById('schStudentName').value;
@@ -8430,45 +8453,47 @@ window.initTutorSidebarState = initTutorSidebarState;
             var btn = document.getElementById('btnSaveSchedule');
             btn.disabled = true;
             btn.innerText = "Đang lưu...";
-            
+
+            var tPhone = (tutorDataGlobal && tutorDataGlobal.tutorPhone) ? tutorDataGlobal.tutorPhone : (sessionStorage.getItem('userPhone') || "");
+
             google.script.run
                 .withSuccessHandler(function(res) {
                     btn.disabled = false;
                     btn.innerText = "Cập nhật";
-                    if(res.error) {
+                    if(res && res.error) {
                         showToast("Lỗi: " + res.error, "error");
                     } else {
                         showToast("Cập nhật thời khóa biểu thành công!", "success");
                         closeEditScheduleModal();
-                        if (typeof refreshTutorScheduleDisplay === 'function') refreshTutorScheduleDisplay(schedule);
-                        
-                        // Reload schedule table
-                        google.script.run.withSuccessHandler(function(schedule) {
-                            var table = document.getElementById('tutorScheduleTable');
-                            table.innerHTML = "<tr><th>Học sinh</th><th>Thứ 2</th><th>Thứ 3</th><th>Thứ 4</th><th>Thứ 5</th><th>Thứ 6</th><th>Thứ 7</th><th>CN</th><th style='width: 50px;'>Sửa</th></tr>";
-                            var schedMap = {};
-                            if(schedule && schedule.length > 0) {
-                                schedule.forEach(function(s) {
-                                    schedMap[s.studentName.trim()] = s;
+
+                        // Cập nhật lastLoadedTutorSchedule
+                        var allEmpty = (!mon && !tue && !wed && !thu && !fri && !sat && !sun);
+                        var isOfficial = tutorDataGlobal && Array.isArray(tutorDataGlobal.students) && tutorDataGlobal.students.some(function(st) {
+                            return (st.name || '').trim().toLowerCase() === studentName.trim().toLowerCase();
+                        });
+
+                        if (lastLoadedTutorSchedule && Array.isArray(lastLoadedTutorSchedule)) {
+                            if (allEmpty && !isOfficial) {
+                                lastLoadedTutorSchedule = lastLoadedTutorSchedule.filter(function(s) {
+                                    return (s.studentName || '').trim().toLowerCase() !== studentName.trim().toLowerCase();
                                 });
-                            }
-                            if(tutorDataGlobal && tutorDataGlobal.students) {
-                                tutorDataGlobal.students.forEach(function(st) {
-                                    var s = schedMap[st.name.trim()] || { mon: "", tue: "", wed: "", thu: "", fri: "", sat: "", sun: "" };
-                                    table.innerHTML += "<tr>" +
-                                        "<td style='font-weight:700; color:#FFD23F; text-align: left; padding: 12px 14px; white-space: nowrap;'>" + st.name + "</td>" +
-                                        "<td style='text-align: center; padding: 12px 10px;'>" + formatScheduleCell(s.mon) + "</td>" +
-                                        "<td style='text-align: center; padding: 12px 10px;'>" + formatScheduleCell(s.tue) + "</td>" +
-                                        "<td style='text-align: center; padding: 12px 10px;'>" + formatScheduleCell(s.wed) + "</td>" +
-                                        "<td style='text-align: center; padding: 12px 10px;'>" + formatScheduleCell(s.thu) + "</td>" +
-                                        "<td style='text-align: center; padding: 12px 10px;'>" + formatScheduleCell(s.fri) + "</td>" +
-                                        "<td style='text-align: center; padding: 12px 10px;'>" + formatScheduleCell(s.sat) + "</td>" +
-                                        "<td style='text-align: center; padding: 12px 10px;'>" + formatScheduleCell(s.sun) + "</td>" +
-                                        "<td style='text-align: center; padding: 12px 10px;'><button onclick='openEditScheduleModal(\"" + st.name.replace(/'/g, "\\'").replace(/"/g, '&quot;') + "\", \"" + (s.mon||"") + "\", \"" + (s.tue||"") + "\", \"" + (s.wed||"") + "\", \"" + (s.thu||"") + "\", \"" + (s.fri||"") + "\", \"" + (s.sat||"") + "\", \"" + (s.sun||"") + "\")' class='btn-icon-edit' style='margin: 0 auto; padding: 6px 10px; display: inline-flex; align-items: center; justify-content: center;' title='Sửa thời khóa biểu'><i class='fa-solid fa-pen-to-square'></i></button></td>" +
-                                        "</tr>";
+                            } else {
+                                var found = lastLoadedTutorSchedule.find(function(s) {
+                                    return (s.studentName || '').trim().toLowerCase() === studentName.trim().toLowerCase();
                                 });
+                                if (found) {
+                                    found.mon = mon; found.tue = tue; found.wed = wed;
+                                    found.thu = thu; found.fri = fri; found.sat = sat; found.sun = sun;
+                                } else {
+                                    lastLoadedTutorSchedule.push({
+                                        studentName: studentName,
+                                        mon: mon, tue: tue, wed: wed, thu: thu, fri: fri, sat: sat, sun: sun
+                                    });
+                                }
                             }
-                        }).getTutorSchedule(tutorDataGlobal.tutorPhone);
+                        }
+
+                        refreshTutorScheduleDisplay(lastLoadedTutorSchedule);
                     }
                 })
                 .withFailureHandler(function(err) {
@@ -8476,7 +8501,7 @@ window.initTutorSidebarState = initTutorSidebarState;
                     btn.innerText = "Cập nhật";
                     showToast("Lỗi kết nối hoặc hệ thống: " + err.toString(), "error");
                 })
-                .capNhatThoiKhoaBieu(tutorDataGlobal.tutorPhone, studentName, mon, tue, wed, thu, fri, sat, sun);
+                .capNhatThoiKhoaBieu(tPhone, studentName, mon, tue, wed, thu, fri, sat, sun);
         }
 
         // --- Invoice collapsible handlers ---

@@ -3075,6 +3075,26 @@
             } catch(e) {}
         }
 
+        // Kiểm tra xem tên học sinh có thuộc danh sách chính thức không
+        function isOfficialStudent(studentName) {
+            if (!studentName) return false;
+            var sLower = studentName.trim().toLowerCase();
+            var pStudents = null;
+            try {
+                if (typeof tutorDataGlobal !== 'undefined' && Array.isArray(tutorDataGlobal.students)) {
+                    pStudents = tutorDataGlobal.students;
+                } else if (window.parent && window.parent.tutorDataGlobal && Array.isArray(window.parent.tutorDataGlobal.students)) {
+                    pStudents = window.parent.tutorDataGlobal.students;
+                }
+            } catch(e) {}
+            if (pStudents && Array.isArray(pStudents)) {
+                return pStudents.some(function(st) {
+                    return (st.name || '').trim().toLowerCase() === sLower;
+                });
+            }
+            return false;
+        }
+
         // Hàm nạp thời khóa biểu từ Store demo hoặc Backend Sheets
         function loadTutorScheduleFromBackend(onSuccess) {
             var store = (false) ? null : null;
@@ -3147,30 +3167,36 @@
                         });
                     });
 
-                    // Bổ sung các học sinh có trong sched nhưng chưa có trong stList
+                    // Bổ sung các học sinh có trong sched nhưng chưa có trong stList (chỉ khi có lịch)
                     if (sched && sched.length > 0) {
                         sched.forEach(function(s) {
                             if (s && s.studentName) {
                                 var sName = s.studentName.trim();
                                 var sKey = sName.toLowerCase();
                                 if (!processedDemoNames.has(sKey)) {
-                                    processedDemoNames.add(sKey);
-                                    let defaultCol = s.color || STUDENT_DEFAULT_COLORS[sName] || PRESET_COLORS[tutorScheduleSheetData.length % PRESET_COLORS.length];
-                                    let savedColor = localStorage.getItem('student_color_' + sName) || defaultCol;
-                                    let tuitionVal = s.fee ? parseInt(String(s.fee).replace(/\D/g, '')) : 200000;
-                                    tutorScheduleSheetData.push({
-                                        studentName: sName,
-                                        subject: s.subject || "Gia sư 1-1",
-                                        color: savedColor,
-                                        fee: tuitionVal,
-                                        mon: s.mon || '',
-                                        tue: s.tue || '',
-                                        wed: s.wed || '',
-                                        thu: s.thu || '',
-                                        fri: s.fri || '',
-                                        sat: s.sat || '',
-                                        sun: s.sun || ''
+                                    let hasActiveSlot = allDayKeys.some(function(dk) {
+                                        let val = (s[dk] || '').trim();
+                                        return val !== '' && val !== '-';
                                     });
+                                    if (hasActiveSlot) {
+                                        processedDemoNames.add(sKey);
+                                        let defaultCol = s.color || STUDENT_DEFAULT_COLORS[sName] || PRESET_COLORS[tutorScheduleSheetData.length % PRESET_COLORS.length];
+                                        let savedColor = localStorage.getItem('student_color_' + sName) || defaultCol;
+                                        let tuitionVal = s.fee ? parseInt(String(s.fee).replace(/\D/g, '')) : 200000;
+                                        tutorScheduleSheetData.push({
+                                            studentName: sName,
+                                            subject: s.subject || "Gia sư 1-1",
+                                            color: savedColor,
+                                            fee: tuitionVal,
+                                            mon: s.mon || '',
+                                            tue: s.tue || '',
+                                            wed: s.wed || '',
+                                            thu: s.thu || '',
+                                            fri: s.fri || '',
+                                            sat: s.sat || '',
+                                            sun: s.sun || ''
+                                        });
+                                    }
                                 }
                             }
                         });
@@ -3241,31 +3267,37 @@
                         });
                     }
 
-                    // Bổ sung các học sinh có lịch từ backend nhưng chưa có trong tutorDataGlobal.students (ví dụ: 'nam')
+                    // Bổ sung các học sinh có lịch từ backend nhưng chưa có trong tutorDataGlobal.students (chỉ khi có lịch)
                     if (schedule && schedule.length > 0) {
                         schedule.forEach(function(s) {
                             if (s && s.studentName) {
                                 var sName = s.studentName.trim();
                                 var sKey = sName.toLowerCase();
                                 if (!processedNames.has(sKey)) {
-                                    processedNames.add(sKey);
-                                    let fullRow = schedMap[sKey] || s;
-                                    let defaultCol = fullRow.color || STUDENT_DEFAULT_COLORS[sName] || PRESET_COLORS[tutorScheduleSheetData.length % PRESET_COLORS.length];
-                                    let savedColor = localStorage.getItem('student_color_' + sName) || defaultCol;
-                                    let tuitionVal = fullRow.fee ? parseInt(String(fullRow.fee).replace(/\D/g, '')) : 200000;
-                                    tutorScheduleSheetData.push({
-                                        studentName: sName,
-                                        subject: fullRow.subject || "Gia sư 1-1",
-                                        color: savedColor,
-                                        fee: tuitionVal,
-                                        mon: fullRow.mon || '',
-                                        tue: fullRow.tue || '',
-                                        wed: fullRow.wed || '',
-                                        thu: fullRow.thu || '',
-                                        fri: fullRow.fri || '',
-                                        sat: fullRow.sat || '',
-                                        sun: fullRow.sun || ''
+                                    let hasActiveSlot = allDayKeys.some(function(dk) {
+                                        let val = (s[dk] || '').trim();
+                                        return val !== '' && val !== '-';
                                     });
+                                    if (hasActiveSlot) {
+                                        processedNames.add(sKey);
+                                        let fullRow = schedMap[sKey] || s;
+                                        let defaultCol = fullRow.color || STUDENT_DEFAULT_COLORS[sName] || PRESET_COLORS[tutorScheduleSheetData.length % PRESET_COLORS.length];
+                                        let savedColor = localStorage.getItem('student_color_' + sName) || defaultCol;
+                                        let tuitionVal = fullRow.fee ? parseInt(String(fullRow.fee).replace(/\D/g, '')) : 200000;
+                                        tutorScheduleSheetData.push({
+                                            studentName: sName,
+                                            subject: fullRow.subject || "Gia sư 1-1",
+                                            color: savedColor,
+                                            fee: tuitionVal,
+                                            mon: fullRow.mon || '',
+                                            tue: fullRow.tue || '',
+                                            wed: fullRow.wed || '',
+                                            thu: fullRow.thu || '',
+                                            fri: fullRow.fri || '',
+                                            sat: fullRow.sat || '',
+                                            sun: fullRow.sun || ''
+                                        });
+                                    }
                                 }
                             }
                         });
@@ -5335,10 +5367,20 @@
                                 slots.splice(idx, 1);
                                 row[oldDayKey] = slots.filter(s => s !== "").join(" | ");
                             }
-                        } else {
-                            row[oldDayKey] = "";
-                        }
                     }
+                    
+                    // Nếu là học sinh học thử/tự do và sau khi xóa ca này thì không còn ca học nào trên bất kỳ ngày nào:
+                    let hasAnySlot = allDayKeys.some(function(dk) {
+                        let val = (row[dk] || '').trim();
+                        return val !== '' && val !== '-';
+                    });
+                    let isOfficial = isOfficialStudent(sName);
+                    if (!hasAnySlot && !isOfficial) {
+                        tutorScheduleSheetData.splice(studentIdx, 1);
+                        loadStudentOptions();
+                        if (typeof renderSheetTable === 'function') renderSheetTable();
+                    }
+
                     closeModalForce();
                     saveAndRefetch(sName, null, 'full');
                 });
