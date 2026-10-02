@@ -635,9 +635,10 @@
 
             <!-- Brand / Tutor Profile Header -->
             <div class="tutor-sidebar-brand">
-                <div style="display: flex; align-items: center; gap: 12px; min-width: 0;">
-                    <div class="sidebar-avatar">
-                        <i class="fa-solid fa-chalkboard-user"></i>
+                <div style="display: flex; align-items: center; gap: 12px; min-width: 0; cursor: pointer;" onclick="openTutorAccountModal()" title="Cài đặt tài khoản của tôi">
+                    <div class="sidebar-avatar" id="sidebarAvatarContainer" style="overflow: hidden; padding: 0; display: flex; align-items: center; justify-content: center; position: relative;">
+                        <img id="sidebarAvatarImg" src="" alt="Avatar" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%; display: none;">
+                        <i class="fa-solid fa-chalkboard-user" id="sidebarAvatarIcon"></i>
                     </div>
                     <div class="sidebar-user-info">
                         <div class="sidebar-user-title">Gia Sư 4.0</div>

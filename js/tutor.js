@@ -5500,6 +5500,7 @@ window.initTutorSidebarState = initTutorSidebarState;
             var phone = (tutorDataGlobal && tutorDataGlobal.tutorPhone) ? tutorDataGlobal.tutorPhone : (currentTutorPhone || 'default');
             try {
                 localStorage.setItem('tutorAvatar_' + phone, dataUrl);
+                localStorage.setItem('tutorAvatar_default', dataUrl);
             } catch(e) {
                 console.warn('LocalStorage quota error', e);
             }
@@ -5510,23 +5511,43 @@ window.initTutorSidebarState = initTutorSidebarState;
         window.saveAvatarCrop = saveAvatarCrop;
 
         function updateSidebarAvatar(url) {
-            if (!url) return;
-            var sidebarHeader = document.querySelector('.tutor-sidebar .sidebar-brand, .tutor-sidebar .brand-header, #tutorSidebarHeader');
-            if (sidebarHeader) {
-                var existingImg = sidebarHeader.querySelector('.sidebar-avatar');
-                if (!existingImg) {
-                    existingImg = document.createElement('img');
-                    existingImg.className = 'sidebar-avatar';
-                    existingImg.alt = 'Avatar';
-                    sidebarHeader.insertBefore(existingImg, sidebarHeader.firstChild);
+            var avatarImg = document.getElementById('sidebarAvatarImg');
+            var avatarIcon = document.getElementById('sidebarAvatarIcon');
+            var avatarContainer = document.getElementById('sidebarAvatarContainer') || document.querySelector('.tutor-sidebar .sidebar-avatar');
+
+            if (url) {
+                if (avatarImg) {
+                    avatarImg.src = url;
+                    avatarImg.style.display = 'block';
                 }
-                existingImg.src = url;
-                existingImg.style.display = 'inline-block';
+                if (avatarIcon) {
+                    avatarIcon.style.display = 'none';
+                }
+                if (avatarContainer) {
+                    avatarContainer.style.background = 'transparent';
+                    avatarContainer.style.boxShadow = '0 0 0 2px var(--color-primary, #8E4DFF), 0 4px 12px rgba(0,0,0,0.2)';
+                }
+            } else {
+                if (avatarImg) {
+                    avatarImg.src = '';
+                    avatarImg.style.display = 'none';
+                }
+                if (avatarIcon) {
+                    avatarIcon.style.display = 'inline-block';
+                }
+                if (avatarContainer) {
+                    avatarContainer.style.background = 'var(--btn-bg)';
+                    avatarContainer.style.boxShadow = 'var(--shadow-primary)';
+                }
             }
             
             var mobBtn = document.querySelector('.mobile-action-btn.account-btn');
             if (mobBtn) {
-                mobBtn.innerHTML = '<img src="' + url + '" style="width: 28px; height: 28px; border-radius: 50%; object-fit: cover; border: 1.5px solid #FFF;">';
+                if (url) {
+                    mobBtn.innerHTML = '<img src="' + url + '" style="width: 28px; height: 28px; border-radius: 50%; object-fit: cover; border: 1.5px solid #FFF;">';
+                } else {
+                    mobBtn.innerHTML = '<i class="fa-solid fa-user-gear"></i>';
+                }
             }
         }
         window.updateSidebarAvatar = updateSidebarAvatar;
@@ -5534,6 +5555,9 @@ window.initTutorSidebarState = initTutorSidebarState;
         function loadTutorAvatar() {
             var phone = (tutorDataGlobal && tutorDataGlobal.tutorPhone) ? tutorDataGlobal.tutorPhone : (currentTutorPhone || 'default');
             var saved = localStorage.getItem('tutorAvatar_' + phone);
+            if (!saved && phone !== 'default') {
+                saved = localStorage.getItem('tutorAvatar_default');
+            }
             if (saved) {
                 var avatarImg = document.getElementById('profileAvatarImg');
                 var placeholder = document.getElementById('profileAvatarPlaceholder');
@@ -5543,9 +5567,12 @@ window.initTutorSidebarState = initTutorSidebarState;
                 }
                 if (placeholder) placeholder.style.display = 'none';
                 updateSidebarAvatar(saved);
+            } else {
+                updateSidebarAvatar(null);
             }
         }
         window.loadTutorAvatar = loadTutorAvatar;
+        setTimeout(loadTutorAvatar, 50);
 
         // 1. Cửa sổ Tài khoản (Account)
         function openTutorAccountModal() {
