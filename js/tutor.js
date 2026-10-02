@@ -4109,6 +4109,299 @@ function copyTuitionModalImage() {
 }
 window.copyTuitionModalImage = copyTuitionModalImage;
 
+/**
+ * Sao chép Prompt AI nhận xét học tập 30 ngày cho học sinh
+ * Tổng hợp dữ liệu thực tế: Chuyên cần, BTVN, Điểm số, Nhận xét từng buổi của gia sư
+ * Yêu cầu AI viết đoạn nhận xét hoàn chỉnh (100 - 180 từ)
+ */
+function copyTuitionAIPrompt() {
+    var modal = document.getElementById('tutorTuitionInvoiceModal');
+    var state = window.tuitionInvoiceModalState || {};
+    var sName = state.studentName || (modal ? modal.getAttribute('data-student') : "") || "";
+    
+    var students = (typeof getTutorStudentsResolved === 'function') 
+        ? getTutorStudentsResolved() 
+        : ((tutorDataGlobal && tutorDataGlobal.students) ? tutorDataGlobal.students : []);
+    
+    var st = window.currentTuitionInvoiceStudent || students.find(function(s) { 
+        return s && s.name && sName && s.name.trim().toLowerCase() === sName.trim().toLowerCase(); 
+    });
+    
+    if (!st && students.length > 0) {
+        st = students[0];
+    }
+    
+    if (!st) {
+        if (typeof showToast === 'function') showToast("Không tìm thấy thông tin học sinh để tạo Prompt!", "error");
+        return;
+    }
+
+    // 1. Xác định kỳ học / khoảng thời gian đánh giá (~30 ngày)
+    var sDate = parseInputDate(state.startDate);
+    var eDate = parseInputDate(state.endDate);
+    
+    if (!eDate || isNaN(eDate.getTime())) {
+        eDate = new Date();
+    }
+    if (!sDate || isNaN(sDate.getTime())) {
+        sDate = new Date(eDate);
+        sDate.setDate(sDate.getDate() - 30);
+    }
+    
+    var sDateStr = formatToDmy(sDate);
+    var eDateStr = formatToDmy(eDate);
+    
+    var sTime = new Date(sDate); sTime.setHours(0, 0, 0, 0);
+    var eTime = new Date(eDate); eTime.setHours(23, 59, 59, 999);
+
+    // 2. Lọc danh sách nhật ký học tập trong kỳ 30 ngày
+    var allLogs = (st.logs && Array.isArray(st.logs)) ? st.logs : [];
+    var periodLogs = [];
+    
+    allLogs.forEach(function(l) {
+        if (!l) return;
+        var lDate = parseLogDate(l.studyDate || l.ngay);
+        if (lDate && !isNaN(lDate.getTime())) {
+            if (lDate >= sTime && lDate <= eTime) {
+                periodLogs.push({ log: l, date: lDate });
+            }
+        }
+    });
+
+    // Nếu khoảng ngày không có logs nào (ví dụ gia sư chọn khoảng ngày chưa có log), fallback lấy các buổi gần nhất
+    if (periodLogs.length === 0 && allLogs.length > 0) {
+        allLogs.slice(-12).forEach(function(l) {
+            if (!l) return;
+            var lDate = parseLogDate(l.studyDate || l.ngay) || new Date();
+            periodLogs.push({ log: l, date: lDate });
+        });
+    }
+
+    // Sắp xếp nhật ký theo thứ tự thời gian tăng dần
+    periodLogs.sort(function(a, b) {
+        return a.date.getTime() - b.date.getTime();
+    });
+
+    // 3. Phân tích chi tiết: Chuyên cần, BTVN, Điểm số, Lời nhận xét
+    var totalSessions = periodLogs.length;
+    var presentCount = 0;
+    var makeupCount = 0;
+    var absentCount = 0;
+    var absentDates = [];
+    
+    var hwTotal = 0;
+    var hwDone = 0;
+    var hwLate = 0;
+    var hwMissing = 0;
+    
+    var scoreRecords = [];
+    var sessionNotes = [];
+
+    periodLogs.forEach(function(item, idx) {
+        var l = item.log;
+        var dateText = formatToDmy(item.date) || l.studyDate || l.ngay || ("Buổi " + (idx + 1));
+        var lesson = (l.noiDung || l.baiHoc || "").trim();
+        var comment = (l.nhanXet || "").trim();
+        
+        // Trạng thái chuyên cần
+        var rawStatus = l.trangThai || l.chuyenCan || l.attendance_status || l.attendance || l.status || "Đã học";
+        var normTt = String(rawStatus).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').trim();
+        var isDaBu = (normTt.includes("da bu") || normTt.includes("hoc bu"));
+        var isAbsent = !isDaBu && (
+            normTt.includes("nghi") || 
+            normTt.includes("huy") || 
+            normTt.includes("vang") || 
+            normTt.includes("off") || 
+            normTt.includes("khong hoc") ||
+            normTt.includes("chua hoc") ||
+            normTt.includes("tam hoan") ||
+            normTt === "v" || normTt === "n" || normTt === "x"
+        );
+        var isPresent = !isAbsent && !isDaBu;
+
+        if (isDaBu) {
+            makeupCount++;
+        } else if (isAbsent) {
+            absentCount++;
+            absentDates.push(dateText);
+        } else {
+            presentCount++;
+        }
+
+        // BTVN (Chỉ tính cho các buổi tham gia học)
+        if (isPresent || isDaBu) {
+            var btvnRaw = (l.danhGiaBTVN || l.btvn || "").trim();
+            var btvn = btvnRaw.toLowerCase();
+            if (btvn && btvn !== "-" && btvn !== "không có" && btvn !== "chưa có") {
+                hwTotal++;
+                if (btvn.indexOf("trễ") !== -1 || btvn.indexOf("muộn") !== -1) {
+                    hwLate++;
+                }
+                var pctMatch = btvn.match(/(\d+(\.\d+)?)\s*%/);
+                if (pctMatch) {
+                    var pVal = parseFloat(pctMatch[1]);
+                    if (pVal >= 100) {
+                        hwDone++;
+                    } else {
+                        hwMissing++;
+                    }
+                } else if (btvn.indexOf("thiếu") !== -1 || btvn.indexOf("không làm") !== -1 || btvn.indexOf("chưa làm") !== -1 || btvn.indexOf("chưa nộp") !== -1 || btvn.indexOf("chưa đạt") !== -1 || btvn === "không") {
+                    hwMissing++;
+                } else {
+                    hwDone++;
+                }
+            }
+        }
+
+        // Điểm số trong buổi
+        var dDau = (l.diemDauGio !== undefined && l.diemDauGio !== null && String(l.diemDauGio).trim() !== "" && String(l.diemDauGio).trim() !== "-") ? String(l.diemDauGio).trim() : ((l.diemDau !== undefined && String(l.diemDau).trim() !== "" && String(l.diemDau).trim() !== "-") ? String(l.diemDau).trim() : "");
+        var dDinhKi = (l.diemDinhKi !== undefined && l.diemDinhKi !== null && String(l.diemDinhKi).trim() !== "" && String(l.diemDinhKi).trim() !== "-") ? String(l.diemDinhKi).trim() : ((l.diemKT !== undefined && String(l.diemKT).trim() !== "" && String(l.diemKT).trim() !== "-") ? String(l.diemKT).trim() : "");
+        var dSo = (l.diemSo !== undefined && l.diemSo !== null && String(l.diemSo).trim() !== "" && String(l.diemSo).trim() !== "-") ? String(l.diemSo).trim() : "";
+
+        var sessScores = [];
+        if (dDau && dDau.toLowerCase() !== "không có" && dDau.toLowerCase() !== "null") {
+            sessScores.push("Đầu giờ: " + dDau + "đ");
+            scoreRecords.push(dateText + " (Kiểm tra đầu giờ: " + dDau + "đ)");
+        }
+        if (dDinhKi && dDinhKi.toLowerCase() !== "không có" && dDinhKi.toLowerCase() !== "null") {
+            sessScores.push("Định kỳ: " + dDinhKi + "đ");
+            scoreRecords.push(dateText + " (Kiểm tra định kỳ: " + dDinhKi + "đ)");
+        }
+        if (dSo && dSo.toLowerCase() !== "không có" && dSo.toLowerCase() !== "null" && !dDau && !dDinhKi) {
+            sessScores.push("Điểm: " + dSo + "đ");
+            scoreRecords.push(dateText + " (Kiểm tra: " + dSo + "đ)");
+        }
+
+        // Dòng nhật ký buổi học
+        var line = "- Buổi " + (idx + 1) + " (" + dateText + ") [" + rawStatus + "]";
+        if (lesson) line += " | Bài: " + lesson;
+        if (sessScores.length > 0) line += " | Điểm: " + sessScores.join(", ");
+        var btvnInfo = (l.danhGiaBTVN || l.btvn || "").trim();
+        if (btvnInfo && btvnInfo !== "-") line += " | BTVN: " + btvnInfo;
+        if (comment) line += " | Nhận xét của gia sư: \"" + comment + "\"";
+        sessionNotes.push(line);
+    });
+
+    var hwPct = hwTotal > 0 ? Math.round((hwDone / hwTotal) * 100) : null;
+    var hwSummaryStr = hwTotal > 0 
+        ? ("Hoàn thành " + hwDone + "/" + hwTotal + " bài (" + hwPct + "%)" + (hwLate > 0 ? (", Nộp trễ " + hwLate + " lần") : "") + (hwMissing > 0 ? (", Chưa làm/thiếu " + hwMissing + " lần") : ""))
+        : "Chưa có dữ liệu bài tập riêng trong kỳ này";
+
+    var scoreSummaryStr = scoreRecords.length > 0 
+        ? scoreRecords.join("; ") 
+        : "Không có bài kiểm tra chính thức lấy điểm trong kỳ này (đánh giá qua tương tác và giải bài trực tiếp trên lớp).";
+
+    var classSubjectStr = [st.classLevel, st.subject].filter(Boolean).join(' - ') || 'Gia sư';
+    var tutorName = (tutorDataGlobal && tutorDataGlobal.tutorName) ? tutorDataGlobal.tutorName : "Gia sư";
+
+    // 4. Xây dựng nội dung Prompt AI chuyên nghiệp, sâu sát và bám sát thực tế
+    var promptLines = [];
+    promptLines.push("Bạn là một gia sư chuyên môn cao, tận tâm, trách nhiệm và thấu hiểu học sinh.");
+    promptLines.push("Dưới đây là toàn bộ dữ liệu học tập thực tế trong vòng 30 ngày qua (từ " + sDateStr + " đến " + eDateStr + ") của học sinh " + st.name + " (" + classSubjectStr + "), do gia sư " + tutorName + " trực tiếp giảng dạy:");
+    promptLines.push("");
+    promptLines.push("=== DỮ LIỆU HỌC TẬP THỰC TẾ TRONG KỲ (30 NGÀY) ===");
+    promptLines.push("1. Học sinh: " + st.name + " | Môn/Lớp: " + classSubjectStr);
+    promptLines.push("2. Giai đoạn đánh giá: Từ ngày " + sDateStr + " đến ngày " + eDateStr);
+    promptLines.push("3. Chuyên cần & Ý thức BTVN:");
+    promptLines.push("   - Tổng số buổi ghi nhận: " + totalSessions + " buổi");
+    promptLines.push("   - Số buổi có mặt học: " + (presentCount + makeupCount) + " buổi (Học đúng lịch: " + presentCount + " buổi, Học bù: " + makeupCount + " buổi)");
+    if (absentCount > 0) {
+        promptLines.push("   - Số buổi nghỉ: " + absentCount + " buổi (Ngày: " + absentDates.join(", ") + ")");
+    } else {
+        promptLines.push("   - Số buổi nghỉ: 0 buổi (Đi học đầy đủ 100%)");
+    }
+    promptLines.push("   - Tình hình làm bài tập về nhà (BTVN): " + hwSummaryStr);
+    promptLines.push("4. Kết quả điểm số & Kiểm tra:");
+    promptLines.push("   - " + scoreSummaryStr);
+    promptLines.push("5. Chi tiết nhật ký từng buổi học & ghi chú của gia sư:");
+    if (sessionNotes.length > 0) {
+        promptLines.push(sessionNotes.join("\n"));
+    } else {
+        promptLines.push("   (Chưa có nhật ký buổi học chi tiết trong khoảng thời gian này)");
+    }
+    promptLines.push("");
+    promptLines.push("=== YÊU CẦU BẮT BUỘC ĐỐI VỚI AI ===");
+    promptLines.push("Hãy dựa vào toàn bộ dữ liệu thực tế trên để viết một đoạn \"NHẬN XÉT HỌC TẬP\" định kỳ gửi cho phụ huynh và học sinh, đáp ứng đầy đủ các tiêu chí sau:");
+    promptLines.push("1. ĐỘ DÀI BẮT BUỘC: NẰM TRONG KHOẢNG 100 – 180 TỪ (tuyệt đối không viết dưới 100 từ và không vượt quá 180 từ).");
+    promptLines.push("2. CẤU TRÚC ĐOẠN NHẬN XÉT BAO GỒM:");
+    promptLines.push("   - Nhận xét về thái độ học tập, tính chuyên cần và ý thức hoàn thành bài tập về nhà.");
+    promptLines.push("   - Nhận xét về năng lực tiếp thu, điểm số và sự tiến bộ rõ rệt qua các bài học cụ thể trong tháng.");
+    promptLines.push("   - Chỉ ra điểm cần khắc phục và đưa ra lời khích lệ chân thành, phương hướng cho giai đoạn tiếp theo.");
+    promptLines.push("3. VĂN PHONG: Trang trọng, chân tình, sâu sát với các ghi chú thực tế, mang tính khích lệ và tạo sự an tâm, tin tưởng cho phụ huynh.");
+    promptLines.push("4. ĐỊNH DẠNG ĐẦU RA: CHỈ XUẤT TRỰC TIẾP ĐOẠN VĂN NHẬN XÉT HOÀN CHỈNH (không mở bài rào đón như \"Dưới đây là...\", không kèm chú thích hay tiêu đề thừa) để gia sư có thể copy và dán ngay vào phiếu học phí hoặc gửi cho phụ huynh.");
+
+    var fullPromptText = promptLines.join("\n");
+
+    // 5. Hiệu ứng nút bấm & Sao chép vào Clipboard
+    var btn = document.getElementById('btnTuitionPromptAI');
+    var origHtml = btn ? btn.innerHTML : "";
+
+    function showPromptCopySuccess() {
+        if (btn) {
+            btn.innerHTML = '<i class="fa-solid fa-check" style="color: #10B981;"></i> <span>Đã copy prompt!</span>';
+            btn.style.borderColor = '#10B981';
+            btn.style.color = '#059669';
+            btn.style.background = '#ECFDF5';
+            setTimeout(function() {
+                btn.innerHTML = origHtml;
+                btn.style.borderColor = '';
+                btn.style.color = '';
+                btn.style.background = '';
+            }, 2500);
+        }
+        if (typeof showToast === 'function') {
+            showToast("Đã copy Prompt AI (100 - 180 từ)! Dán vào ChatGPT / Gemini để lấy nhận xét.", "success");
+        }
+    }
+
+    function showPromptCopyError() {
+        if (btn) {
+            btn.innerHTML = origHtml;
+            btn.style.borderColor = '';
+            btn.style.color = '';
+            btn.style.background = '';
+        }
+        if (typeof showToast === 'function') {
+            showToast("Không thể sao chép tự động. Vui lòng thử lại!", "error");
+        }
+    }
+
+    if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(fullPromptText).then(function() {
+            showPromptCopySuccess();
+        }).catch(function(err) {
+            console.warn("navigator.clipboard failed, attempting fallback:", err);
+            fallbackCopyPrompt(fullPromptText);
+        });
+    } else {
+        fallbackCopyPrompt(fullPromptText);
+    }
+
+    function fallbackCopyPrompt(text) {
+        try {
+            var textArea = document.createElement("textarea");
+            textArea.value = text;
+            textArea.style.position = "fixed";
+            textArea.style.left = "-999999px";
+            textArea.style.top = "-999999px";
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            var success = document.execCommand('copy');
+            document.body.removeChild(textArea);
+            if (success) {
+                showPromptCopySuccess();
+            } else {
+                showPromptCopyError();
+            }
+        } catch(e) {
+            console.error("Fallback copy error:", e);
+            showPromptCopyError();
+        }
+    }
+}
+window.copyTuitionAIPrompt = copyTuitionAIPrompt;
+
 function getTuitionInvoiceFileName(studentName, startDateStr) {
     var rawName = studentName || "HocSinh";
     var cleanName = rawName.normalize("NFD")

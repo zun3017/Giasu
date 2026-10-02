@@ -2468,6 +2468,11 @@
             transform: translateY(-1px);
             background: #F1F5F9;
         }
+        #btnTuitionPromptAI:hover {
+            border-color: #DDD6FE;
+            background: #F5F3FF;
+            color: #6D28D9;
+        }
         .btn-draft-saved {
             background: #F5F3FF !important;
             border-color: #DDD6FE !important;
@@ -2859,6 +2864,9 @@
                     </button>
                     <button type="button" id="btnTuitionCopyImage" onclick="copyTuitionModalImage()" class="btn-tuition-action">
                         <i class="fa-regular fa-copy" style="color: #3B82F6;"></i> Copy ảnh
+                    </button>
+                    <button type="button" id="btnTuitionPromptAI" onclick="copyTuitionAIPrompt()" class="btn-tuition-action" title="Tạo & sao chép Prompt AI nhận xét học tập (100 - 180 từ)">
+                        <i class="fa-solid fa-wand-magic-sparkles" style="color: #8E4DFF;"></i> <span>Prompt AI</span>
                     </button>
                     <button type="button" id="btnExportTuitionInvoice" onclick="exportTuitionModalInvoice()" class="btn-tuition-action btn-tuition-primary">
                         <i class="fa-solid fa-camera"></i> Xuất phiếu (ảnh)
