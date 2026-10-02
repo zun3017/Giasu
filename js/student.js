@@ -867,6 +867,16 @@ function updateStudentMonthlyStats(monthKey) {
 
     // 5. Render 2 biểu đồ tròn donut tính toán theo danh sách buổi học tháng
     renderDonutCharts(targetLogs);
+
+    // 6. So sánh tiến bộ học tập tháng trước vs tháng này
+    if (typeof renderProgressComparison === 'function') {
+        renderProgressComparison(lichSu);
+    }
+
+    // 7. Huy hiệu & Thành tích nổi bật
+    if (typeof renderAchievementBadges === 'function') {
+        renderAchievementBadges(lichSu);
+    }
 }
 
 // ===== TASK 15.3: 2 BIỂU ĐỒ TRÒN DONUT (BTVN & CHUYÊN CẦN TÍNH THEO THÁNG) =====
@@ -1346,4 +1356,260 @@ function createScoreBadgeHtml(scoreNum) {
         return '<div class="medal-badge" style="background: rgba(255, 51, 51, 0.15); border: 1px solid #FF3333; color: #FF3333; text-shadow: 0 0 5px rgba(255, 51, 51, 0.3);"><i class="fa-solid fa-triangle-exclamation"></i> Học yếu</div>';
     }
 }
+
+/* ============================================================
+ * TASK 4 — Progress Comparison & Achievement Badges
+ * ============================================================ */
+
+function renderProgressComparison(logs) {
+    var container = document.getElementById('progressCompareGrid');
+    var wrapper = document.getElementById('progressCompare');
+    var label = document.getElementById('progressCompareLabel');
+    if (!container || !wrapper) return;
+    
+    var allLogs = (logs && Array.isArray(logs)) ? logs : [];
+    if (allLogs.length < 2) {
+        wrapper.style.display = 'none';
+        return;
+    }
+    
+    // Thu thập các tháng xuất hiện trong logs
+    var monthKeys = [];
+    allLogs.forEach(function(l) {
+        if (!l || !l.ngay) return;
+        var p = parseInputDate(l.ngay);
+        if (p) {
+            var k = p.getFullYear() + '-' + String(p.getMonth() + 1).padStart(2, '0');
+            if (!monthKeys.includes(k)) monthKeys.push(k);
+        }
+    });
+    monthKeys.sort(); // Tăng dần theo thời gian
+
+    var curMonthLogs = [];
+    var prevMonthLogs = [];
+
+    if (monthKeys.length >= 2) {
+        var prevK = monthKeys[monthKeys.length - 2];
+        var curK = monthKeys[monthKeys.length - 1];
+        
+        allLogs.forEach(function(l) {
+            if (!l || !l.ngay) return;
+            var p = parseInputDate(l.ngay);
+            if (p) {
+                var k = p.getFullYear() + '-' + String(p.getMonth() + 1).padStart(2, '0');
+                if (k === curK) curMonthLogs.push(l);
+                else if (k === prevK) prevMonthLogs.push(l);
+            }
+        });
+
+        var curMName = "Tháng " + parseInt(curK.split('-')[1]);
+        var prevMName = "Tháng " + parseInt(prevK.split('-')[1]);
+        if (label) label.textContent = "(" + prevMName + " → " + curMName + ")";
+    } else {
+        // Nếu chỉ có 1 tháng nhưng có nhiều buổi: so sánh nửa đầu tháng vs nửa sau tháng
+        var half = Math.floor(allLogs.length / 2);
+        prevMonthLogs = allLogs.slice(0, half);
+        curMonthLogs = allLogs.slice(half);
+        if (label) label.textContent = "(Đầu kỳ → Cuối kỳ)";
+    }
+
+    if (prevMonthLogs.length === 0 || curMonthLogs.length === 0) {
+        wrapper.style.display = 'none';
+        return;
+    }
+
+    wrapper.style.display = 'block';
+
+    function calcAvg(arr, field) {
+        var vals = arr.map(function(l) { return parseFloat(l[field]); }).filter(function(v) { return !isNaN(v) && v >= 0 && v <= 10; });
+        return vals.length ? (vals.reduce(function(a,b){ return a + b; }, 0) / vals.length) : null;
+    }
+
+    function calcPctPresent(arr) {
+        if (!arr.length) return 0;
+        var pres = arr.filter(function(l) { return !isAbsentSession(l); }).length;
+        return Math.round((pres / arr.length) * 100);
+    }
+
+    function calcPctHw(arr) {
+        var withHw = 0, doneHw = 0;
+        arr.forEach(function(l) {
+            var raw = normalizeStr(l.btvn || l.btvnStatus || "");
+            if (raw && raw !== '-' && raw !== 'khong co') {
+                withHw++;
+                if (raw.includes('hoan') || raw.includes('tot') || raw === 'co' || raw.includes('day du') || raw.includes('xuat') || raw === 'dat') {
+                    doneHw++;
+                } else {
+                    var mPct = raw.match(/(\d+)/);
+                    if (mPct && parseInt(mPct[1], 10) >= 80) doneHw++;
+                }
+            }
+        });
+        return withHw > 0 ? Math.round((doneHw / withHw) * 100) : 100;
+    }
+
+    var avgDGCur = calcAvg(curMonthLogs, 'diemDauGio');
+    var avgDGPrev = calcAvg(prevMonthLogs, 'diemDauGio');
+
+    var avgDKCur = calcAvg(curMonthLogs, 'diemDinhKi');
+    var avgDKPrev = calcAvg(prevMonthLogs, 'diemDinhKi');
+
+    var ccCur = calcPctPresent(curMonthLogs);
+    var ccPrev = calcPctPresent(prevMonthLogs);
+
+    var hwCur = calcPctHw(curMonthLogs);
+    var hwPrev = calcPctHw(prevMonthLogs);
+
+    var metrics = [
+        {
+            label: 'Đầu giờ',
+            hasVal: avgDGCur !== null && avgDGPrev !== null,
+            prev: avgDGPrev !== null ? avgDGPrev.toFixed(1) : '—',
+            cur: avgDGCur !== null ? avgDGCur.toFixed(1) : '—',
+            diff: (avgDGCur !== null && avgDGPrev !== null) ? (avgDGCur - avgDGPrev) : 0,
+            unit: 'đ'
+        },
+        {
+            label: 'Định kì',
+            hasVal: avgDKCur !== null && avgDKPrev !== null,
+            prev: avgDKPrev !== null ? avgDKPrev.toFixed(1) : '—',
+            cur: avgDKCur !== null ? avgDKCur.toFixed(1) : '—',
+            diff: (avgDKCur !== null && avgDKPrev !== null) ? (avgDKCur - avgDKPrev) : 0,
+            unit: 'đ'
+        },
+        {
+            label: 'Chuyên cần',
+            hasVal: true,
+            prev: ccPrev + '%',
+            cur: ccCur + '%',
+            diff: ccCur - ccPrev,
+            unit: '%'
+        },
+        {
+            label: 'BTVN',
+            hasVal: true,
+            prev: hwPrev + '%',
+            cur: hwCur + '%',
+            diff: hwCur - hwPrev,
+            unit: '%'
+        }
+    ];
+
+    container.innerHTML = metrics.map(function(m) {
+        var arrowClass = 'same';
+        var arrowIcon = '→';
+        var diffText = '=';
+        
+        if (m.diff > 0.05) {
+            arrowClass = 'up';
+            arrowIcon = '↑';
+            diffText = '+' + (typeof m.diff === 'number' && m.diff % 1 !== 0 ? m.diff.toFixed(1) : m.diff) + (m.unit === '%' ? '%' : '');
+        } else if (m.diff < -0.05) {
+            arrowClass = 'down';
+            arrowIcon = '↓';
+            diffText = (typeof m.diff === 'number' && m.diff % 1 !== 0 ? m.diff.toFixed(1) : m.diff) + (m.unit === '%' ? '%' : '');
+        }
+
+        return '<div class="progress-compare-item">' +
+            '<div class="compare-label">' + m.label + '</div>' +
+            '<div class="compare-values">' + m.prev + ' → ' + m.cur + '</div>' +
+            '<div class="compare-arrow ' + arrowClass + '">' + arrowIcon + ' ' + diffText + '</div>' +
+            '</div>';
+    }).join('');
+}
+window.renderProgressComparison = renderProgressComparison;
+
+function renderAchievementBadges(logs) {
+    var wrapper = document.getElementById('achievementBadges');
+    var grid = document.getElementById('badgesGrid');
+    if (!wrapper || !grid) return;
+
+    var allLogs = (logs && Array.isArray(logs)) ? logs : [];
+    if (allLogs.length === 0) {
+        wrapper.style.display = 'none';
+        return;
+    }
+
+    var badges = [];
+    var totalLogs = allLogs.length;
+
+    // Đếm có mặt
+    var presentCount = allLogs.filter(function(l) { return !isAbsentSession(l); }).length;
+    var presentPct = Math.round((presentCount / totalLogs) * 100);
+
+    // Tính điểm trung bình
+    var allScores = [];
+    allLogs.forEach(function(l) {
+        var dg = parseFloat(l.diemDauGio);
+        var dk = parseFloat(l.diemDinhKi);
+        if (!isNaN(dg) && dg >= 0 && dg <= 10) allScores.push(dg);
+        if (!isNaN(dk) && dk >= 0 && dk <= 10) allScores.push(dk);
+    });
+    var avgScore = allScores.length ? (allScores.reduce(function(a,b){return a+b;},0) / allScores.length) : 0;
+
+    // 1. Chuyên cần 100%
+    if (totalLogs >= 3 && presentCount === totalLogs) {
+        badges.push({ icon: '🏆', text: 'Chuyên cần 100%', cls: 'badge-gold' });
+    } else if (totalLogs >= 3 && presentPct >= 90) {
+        badges.push({ icon: '✅', text: 'Chuyên cần xuất sắc', cls: 'badge-green' });
+    }
+
+    // 2. Học lực xuất sắc / giỏi
+    if (allScores.length >= 3 && avgScore >= 8.8) {
+        badges.push({ icon: '⭐', text: 'Học lực Xuất sắc (' + avgScore.toFixed(1) + 'đ)', cls: 'badge-gold' });
+    } else if (allScores.length >= 3 && avgScore >= 7.5) {
+        badges.push({ icon: '📚', text: 'Học lực Giỏi (' + avgScore.toFixed(1) + 'đ)', cls: 'badge-blue' });
+    } else if (allScores.length >= 3 && avgScore >= 6.5) {
+        badges.push({ icon: '👍', text: 'Học lực Khá (' + avgScore.toFixed(1) + 'đ)', cls: 'badge-purple' });
+    }
+
+    // 3. Chuỗi chuyên cần liên tiếp
+    var curStreak = 0, maxStreak = 0;
+    allLogs.forEach(function(l) {
+        if (!isAbsentSession(l)) {
+            curStreak++;
+            if (curStreak > maxStreak) maxStreak = curStreak;
+        } else {
+            curStreak = 0;
+        }
+    });
+    if (maxStreak >= 10) {
+        badges.push({ icon: '🔥', text: 'Chuỗi ' + maxStreak + ' buổi liên tiếp', cls: 'badge-red' });
+    } else if (maxStreak >= 5) {
+        badges.push({ icon: '🔥', text: 'Chuỗi ' + maxStreak + ' buổi liên tiếp', cls: 'badge-purple' });
+    }
+
+    // 4. Đánh giá BTVN
+    var hwTotal = 0, hwDone = 0;
+    allLogs.forEach(function(l) {
+        var raw = normalizeStr(l.btvn || l.btvnStatus || "");
+        if (raw && raw !== '-' && raw !== 'khong co') {
+            hwTotal++;
+            if (raw.includes('hoan') || raw.includes('tot') || raw === 'co' || raw.includes('day du') || raw.includes('xuat') || raw === 'dat') {
+                hwDone++;
+            }
+        }
+    });
+    if (hwTotal >= 3 && hwDone === hwTotal) {
+        badges.push({ icon: '📝', text: '100% Hoàn thành BTVN', cls: 'badge-blue' });
+    }
+
+    // 5. Huy hiệu gia nhập
+    if (totalLogs >= 1) {
+        badges.push({ icon: '🎓', text: 'Đã hoàn thành ' + totalLogs + ' buổi học', cls: 'badge-green' });
+    }
+
+    if (badges.length === 0) {
+        wrapper.style.display = 'none';
+        return;
+    }
+
+    wrapper.style.display = 'block';
+    grid.innerHTML = badges.map(function(b) {
+        return '<div class="badge-item ' + b.cls + '">' +
+            '<span>' + b.icon + '</span> ' + b.text +
+            '</div>';
+    }).join('');
+}
+window.renderAchievementBadges = renderAchievementBadges;
 

@@ -6016,4 +6016,120 @@ body {
     box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 }
 
+/* ============================================================
+ * TASK 4 — Progress Comparison & Achievement Badges
+ * ============================================================ */
+
+.progress-compare-box {
+    background: var(--bg-card, #fff);
+    border: 1px solid var(--border-color, #e2e8f0);
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 24px;
+}
+
+.progress-compare-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+}
+@media (max-width: 768px) {
+    .progress-compare-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+.progress-compare-item {
+    text-align: center;
+    padding: 14px 10px;
+    border-radius: 12px;
+    background: var(--bg-card-alt, #f8fafc);
+    border: 1px solid var(--border-color, #e2e8f0);
+    transition: transform 0.25s ease;
+}
+.progress-compare-item:hover {
+    transform: translateY(-2px);
+}
+.progress-compare-item .compare-label {
+    font-size: 11.5px;
+    color: var(--text-secondary, #64748b);
+    margin-bottom: 6px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+.progress-compare-item .compare-values {
+    font-size: 15px;
+    font-weight: 800;
+    color: var(--text-primary, #1e293b);
+    margin-bottom: 4px;
+}
+.progress-compare-item .compare-arrow {
+    font-size: 13px;
+    font-weight: 700;
+}
+.compare-arrow.up { color: #10B981; }
+.compare-arrow.down { color: #EF4444; }
+.compare-arrow.same { color: #94A3B8; }
+
+/* Achievement Badges */
+.achievement-badges-box {
+    background: var(--bg-card, #fff);
+    border: 1px solid var(--border-color, #e2e8f0);
+    border-radius: 16px;
+    padding: 20px;
+    margin-top: 25px;
+}
+
+.badges-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.badge-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    border-radius: 25px;
+    font-size: 13px;
+    font-weight: 700;
+    border: 1px solid;
+    animation: badgePop 0.5s ease backwards;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.badge-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+@keyframes badgePop {
+    0% { transform: scale(0); opacity: 0; }
+    60% { transform: scale(1.1); }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+.badge-item:nth-child(1) { animation-delay: 0.05s; }
+.badge-item:nth-child(2) { animation-delay: 0.12s; }
+.badge-item:nth-child(3) { animation-delay: 0.19s; }
+.badge-item:nth-child(4) { animation-delay: 0.26s; }
+.badge-item:nth-child(5) { animation-delay: 0.33s; }
+
+.badge-gold { background: #FEF3C7; color: #92400E; border-color: #F59E0B; }
+.badge-green { background: #D1FAE5; color: #065F46; border-color: #10B981; }
+.badge-blue { background: #DBEAFE; color: #1E40AF; border-color: #3B82F6; }
+.badge-purple { background: #EDE9FE; color: #5B21B6; border-color: #8B5CF6; }
+.badge-red { background: #FEE2E2; color: #991B1B; border-color: #EF4444; }
+
+[data-theme="dark"] .badge-gold,
+[data-dark-mode="true"] .badge-gold { background: rgba(245, 158, 11, 0.2); color: #FCD34D; border-color: rgba(245, 158, 11, 0.5); }
+[data-theme="dark"] .badge-green,
+[data-dark-mode="true"] .badge-green { background: rgba(16, 185, 129, 0.2); color: #6EE7B7; border-color: rgba(16, 185, 129, 0.5); }
+[data-theme="dark"] .badge-blue,
+[data-dark-mode="true"] .badge-blue { background: rgba(59, 130, 246, 0.2); color: #93C5FD; border-color: rgba(59, 130, 246, 0.5); }
+[data-theme="dark"] .badge-purple,
+[data-dark-mode="true"] .badge-purple { background: rgba(139, 92, 246, 0.2); color: #C4B5FD; border-color: rgba(139, 92, 246, 0.5); }
+[data-theme="dark"] .badge-red,
+[data-dark-mode="true"] .badge-red { background: rgba(239, 68, 68, 0.2); color: #FCA5A5; border-color: rgba(239, 68, 68, 0.5); }
+
+
 
