@@ -5779,3 +5779,85 @@ body {
     height: 13px !important;
   }
 }
+
+/* ============================================================
+ * TASK 1 — Card Hover Effects & Micro-interactions
+ * ============================================================ */
+
+/* KPI Cards hover (Tutor Dashboard) */
+.tutor-kpi-card,
+.kpi-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease !important;
+}
+.tutor-kpi-card:hover,
+.kpi-card:hover {
+    transform: translateY(-4px) !important;
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.12), 0 4px 10px rgba(0, 0, 0, 0.08) !important;
+}
+.tutor-kpi-card:hover .kpi-icon-wrapper,
+.tutor-kpi-card:hover .kpi-icon,
+.kpi-card:hover .kpi-icon {
+    transform: scale(1.15);
+    transition: transform 0.3s ease;
+}
+
+/* Schedule cards hover */
+.upcoming-day-card,
+.schedule-card,
+.upcoming-schedule-item {
+    transition: transform 0.3s ease, box-shadow 0.3s ease !important;
+}
+.upcoming-day-card:hover,
+.schedule-card:hover,
+.upcoming-schedule-item:hover {
+    transform: translateY(-3px) !important;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Student & Tuition cards hover */
+.student-card,
+.student-item-btn,
+.tuition-banner-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease !important;
+}
+.student-card:hover,
+.student-item-btn:hover,
+.tuition-banner-card:hover {
+    transform: translateY(-3px) !important;
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Overview Charts & Summary Boxes */
+.overview-chart-box,
+.student-revenue-box,
+.summary-card,
+.donut-card,
+.chart-card,
+.feedback-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease !important;
+}
+.overview-chart-box:hover,
+.student-revenue-box:hover,
+.summary-card:hover,
+.donut-card:hover,
+.chart-card:hover {
+    transform: translateY(-3px) !important;
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Disable hover on touch/mobile devices */
+@media (hover: none) {
+    .tutor-kpi-card:hover,
+    .kpi-card:hover,
+    .upcoming-day-card:hover,
+    .schedule-card:hover,
+    .student-card:hover,
+    .overview-chart-box:hover,
+    .summary-card:hover,
+    .donut-card:hover,
+    .chart-card:hover {
+        transform: none !important;
+        box-shadow: inherit !important;
+    }
+}
+

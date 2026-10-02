@@ -355,6 +355,58 @@ function navigateOverviewMonth(delta) {
 }
 window.navigateOverviewMonth = navigateOverviewMonth;
 
+/**
+ * Animate số từ 0 lên giá trị đích
+ * @param {HTMLElement} el - Element cần animate
+ * @param {number} endVal - Giá trị đích
+ * @param {string} suffix - Hậu tố (vd: 'đ', 'h', '')
+ * @param {number} duration - Thời gian ms (default 1200)
+ * @param {boolean} isCurrency - Format tiền VNĐ
+ * @param {number} decimals - Số chữ số thập phân (default 0)
+ */
+function animateCountUp(el, endVal, suffix, duration, isCurrency, decimals) {
+    if (!el || isNaN(endVal)) return;
+    suffix = suffix || '';
+    duration = duration || 1200;
+    decimals = (typeof decimals === 'number') ? decimals : 0;
+    var startTime = null;
+    var startVal = 0;
+    
+    function easeOutQuart(t) {
+        return 1 - Math.pow(1 - t, 4);
+    }
+    
+    function step(timestamp) {
+        if (!startTime) startTime = timestamp;
+        var progress = Math.min((timestamp - startTime) / duration, 1);
+        var easedProgress = easeOutQuart(progress);
+        var current = startVal + (endVal - startVal) * easedProgress;
+        
+        if (isCurrency) {
+            el.textContent = Math.round(current).toLocaleString('vi-VN') + suffix;
+        } else if (decimals > 0) {
+            el.textContent = current.toFixed(decimals) + suffix;
+        } else {
+            el.textContent = Math.round(current) + suffix;
+        }
+        
+        if (progress < 1) {
+            requestAnimationFrame(step);
+        } else {
+            if (isCurrency) {
+                el.textContent = Math.round(endVal).toLocaleString('vi-VN') + suffix;
+            } else if (decimals > 0) {
+                el.textContent = endVal.toFixed(decimals) + suffix;
+            } else {
+                el.textContent = endVal + suffix;
+            }
+        }
+    }
+    
+    requestAnimationFrame(step);
+}
+window.animateCountUp = animateCountUp;
+
 function renderTutorKpiCards(data, selM, selY) {
     var studentCountEl = document.getElementById('kpiStudentCount');
     var sessionCountEl = document.getElementById('kpiSessionCount');
@@ -425,12 +477,12 @@ function renderTutorKpiCards(data, selM, selY) {
     });
 
     var totalHours = totalSessions * 1.5;
-    var hoursStr = (totalHours % 1 === 0) ? (totalHours + "h") : (totalHours.toFixed(1) + "h");
+    var hoursDecimals = (totalHours % 1 === 0) ? 0 : 1;
 
-    studentCountEl.innerText = count;
-    sessionCountEl.innerText = totalSessions;
-    totalHoursEl.innerText = hoursStr;
-    tuitionTotalEl.innerText = totalFee.toLocaleString('vi-VN') + "đ";
+    animateCountUp(studentCountEl, count, '', 1000, false, 0);
+    animateCountUp(sessionCountEl, totalSessions, '', 1000, false, 0);
+    animateCountUp(totalHoursEl, totalHours, 'h', 1200, false, hoursDecimals);
+    animateCountUp(tuitionTotalEl, totalFee, 'đ', 1400, true, 0);
 }
 window.renderTutorKpiCards = renderTutorKpiCards;
 
@@ -848,6 +900,10 @@ function renderRevenueBarChart(selM, selY) {
             datasets: datasets
         },
         options: {
+            animation: {
+                duration: 1500,
+                easing: 'easeOutQuart'
+            },
             responsive: true,
             maintainAspectRatio: false,
             plugins: {
@@ -1075,6 +1131,10 @@ function renderStudentRevenueDonut(selM, selY) {
             }]
         },
         options: {
+            animation: {
+                duration: 1500,
+                easing: 'easeOutQuart'
+            },
             responsive: true,
             maintainAspectRatio: false,
             cutout: '72%',
@@ -4619,6 +4679,10 @@ window.initTutorSidebarState = initTutorSidebarState;
                         ]
                     },
                     options: {
+                        animation: {
+                            duration: 1500,
+                            easing: 'easeOutQuart'
+                        },
                         responsive: true,
                         maintainAspectRatio: false,
                         plugins: {

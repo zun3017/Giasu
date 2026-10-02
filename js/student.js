@@ -1,6 +1,52 @@
 var currentChartInstance = null;
 var currentStudentName = "";
 
+/**
+ * Animate số từ 0 lên giá trị đích
+ */
+function animateCountUp(el, endVal, suffix, duration, isCurrency, decimals) {
+    if (!el || isNaN(endVal)) return;
+    suffix = suffix || '';
+    duration = duration || 1200;
+    decimals = (typeof decimals === 'number') ? decimals : 0;
+    var startTime = null;
+    var startVal = 0;
+    
+    function easeOutQuart(t) {
+        return 1 - Math.pow(1 - t, 4);
+    }
+    
+    function step(timestamp) {
+        if (!startTime) startTime = timestamp;
+        var progress = Math.min((timestamp - startTime) / duration, 1);
+        var easedProgress = easeOutQuart(progress);
+        var current = startVal + (endVal - startVal) * easedProgress;
+        
+        if (isCurrency) {
+            el.textContent = Math.round(current).toLocaleString('vi-VN') + suffix;
+        } else if (decimals > 0) {
+            el.textContent = current.toFixed(decimals) + suffix;
+        } else {
+            el.textContent = Math.round(current) + suffix;
+        }
+        
+        if (progress < 1) {
+            requestAnimationFrame(step);
+        } else {
+            if (isCurrency) {
+                el.textContent = Math.round(endVal).toLocaleString('vi-VN') + suffix;
+            } else if (decimals > 0) {
+                el.textContent = endVal.toFixed(decimals) + suffix;
+            } else {
+                el.textContent = endVal + suffix;
+            }
+        }
+    }
+    
+    requestAnimationFrame(step);
+}
+window.animateCountUp = animateCountUp;
+
 // Hàm chuẩn hoá chuỗi loại bỏ dấu tiếng Việt để kiểm tra chính xác
 function normalizeStr(str) {
     if (!str) return "";
@@ -409,6 +455,10 @@ function renderStudentView(ketQua) {
                 ]
             },
             options: {
+                animation: {
+                    duration: 1500,
+                    easing: 'easeOutQuart'
+                },
                 responsive: true,
                 maintainAspectRatio: false,
                 layout: {
@@ -773,7 +823,13 @@ function updateStudentMonthlyStats(monthKey) {
         valDiemDauGio = numDiemDauGio.toFixed(2);
     }
     var elDauGio = document.getElementById('valDiemDauGio');
-    if (elDauGio) elDauGio.innerText = valDiemDauGio;
+    if (elDauGio) {
+        if (numDiemDauGio !== null && !isNaN(numDiemDauGio)) {
+            animateCountUp(elDauGio, numDiemDauGio, '', 1000, false, 2);
+        } else {
+            elDauGio.innerText = valDiemDauGio;
+        }
+    }
 
     // Điểm định kì (tháng)
     var valDiemDinhKi = "Chưa có";
@@ -785,7 +841,13 @@ function updateStudentMonthlyStats(monthKey) {
         valDiemDinhKi = numDiemDinhKi.toFixed(2);
     }
     var elDinhKi = document.getElementById('valDiemDinhKi');
-    if (elDinhKi) elDinhKi.innerText = valDiemDinhKi;
+    if (elDinhKi) {
+        if (numDiemDinhKi !== null && !isNaN(numDiemDinhKi)) {
+            animateCountUp(elDinhKi, numDiemDinhKi, '', 1000, false, 2);
+        } else {
+            elDinhKi.innerText = valDiemDinhKi;
+        }
+    }
 
     // Badges đánh giá điểm số
     function scoreLevelBadge(val) {
@@ -880,6 +942,10 @@ function renderDonutCharts(targetLogs) {
                 }]
             },
             options: {
+                animation: {
+                    duration: 1500,
+                    easing: 'easeOutQuart'
+                },
                 cutout: '72%',
                 responsive: false,
                 plugins: {
@@ -949,6 +1015,10 @@ function renderDonutCharts(targetLogs) {
                 }]
             },
             options: {
+                animation: {
+                    duration: 1500,
+                    easing: 'easeOutQuart'
+                },
                 cutout: '72%',
                 responsive: false,
                 plugins: {
