@@ -2602,7 +2602,7 @@ function autoSaveTuitionDraft() {
         var key = 'tuitionDraft_' + state.studentName.trim();
         var draftData = {
             studentName: state.studentName,
-            template: state.template || 'default',
+            template: state.template || 1,
             toggles: state.toggles || {},
             discountAmount: state.discountAmount || 0,
             surchargeAmount: state.surchargeAmount || 0,
@@ -2651,7 +2651,7 @@ function saveTuitionDraftModal() {
         try {
             var draftData = {
                 studentName: state.studentName,
-                template: state.template || 'default',
+                template: state.template || 1,
                 toggles: state.toggles || {},
                 discountAmount: state.discountAmount || 0,
                 surchargeAmount: state.surchargeAmount || 0,
@@ -3151,9 +3151,17 @@ function renderTuitionLivePreview() {
 
     var state = window.tuitionInvoiceModalState || {};
     var sName = state.studentName || "";
-    var rawTmpl = state.template !== undefined ? state.template : (window.currentTuitionTemplate !== undefined ? window.currentTuitionTemplate : 'default');
-    var tmpl = (rawTmpl === 0 || rawTmpl === '0' || rawTmpl === 'default' || rawTmpl === 'classic' || !rawTmpl) ? 'default' : Number(rawTmpl);
-    if (['default', 1, 3, 6].indexOf(tmpl) === -1) tmpl = 'default';
+    var rawTmpl = state.template !== undefined ? state.template : (window.currentTuitionTemplate !== undefined ? window.currentTuitionTemplate : 1);
+    var tmpl = 1;
+    if (rawTmpl === 2 || rawTmpl === '2') {
+        tmpl = 2;
+    } else if (rawTmpl === 3 || rawTmpl === '3') {
+        tmpl = 3;
+    } else if (rawTmpl === 4 || rawTmpl === '4' || rawTmpl === 6 || rawTmpl === '6') {
+        tmpl = 4;
+    } else {
+        tmpl = 1;
+    }
     var toggles = state.toggles || {};
     var discount = (state.discountAmount !== undefined) ? state.discountAmount : (toggles.discount ? (state.discountAmount || 0) : 0);
     var surcharge = (state.surchargeAmount !== undefined) ? state.surchargeAmount : (toggles.surcharge ? (state.surchargeAmount || 0) : 0);
@@ -3344,12 +3352,12 @@ function renderTuitionLivePreview() {
         msgContent = "Dạ em chào anh/chị, em gửi anh/chị phiếu học tập tổng kết của bé <b>" + sDisplayName + "</b> ạ. Học phí kỳ này là <b>" + feeWord + "</b> (" + invBillableCount + " buổi). Anh/chị xem qua và quét mã QR chuyển khoản giúp em nhé ạ. Em cảm ơn anh/chị nhiều ạ!";
     }
 
-    // ==================== BỘ 4 MẪU PHIẾU HỌC PHÍ (MẪU ĐẶC TRƯNG + MẪU 1, 3, 6) ====================
-    if (tmpl === 1) {
+    // ==================== BỘ 4 MẪU PHIẾU HỌC PHÍ (MẪU 1, MẪU 2, MẪU 3, MẪU 4) ====================
+    if (tmpl === 2) {
         // ==========================================
-        // MẪU 1: AIOENGLISH WARM NEOBRUTALISM
+        // MẪU 2: AIOENGLISH WARM NEOBRUTALISM
         // ==========================================
-        html += '<div id="tuitionInvoiceCard" class="inv-aio-neobrutal" data-tmpl="1">';
+        html += '<div id="tuitionInvoiceCard" class="inv-aio-neobrutal" data-tmpl="2">';
 
         // Top Badge Head
         html += '<div class="aio-badge-head">';
@@ -3513,11 +3521,11 @@ function renderTuitionLivePreview() {
         }
 
         html += '</div>'; // End Mẫu 3
-    } else if (tmpl === 6) {
+    } else if (tmpl === 4) {
         // ==========================================
-        // MẪU 6: ACADEMIC DIPLOMA & CERTIFICATE
+        // MẪU 4: ACADEMIC DIPLOMA & CERTIFICATE
         // ==========================================
-        html += '<div id="tuitionInvoiceCard" class="inv-diploma" data-tmpl="6">';
+        html += '<div id="tuitionInvoiceCard" class="inv-diploma" data-tmpl="4">';
 
         html += '<div class="dip-head">';
         html += '<div class="dip-title">PHIẾU BÁO HỌC PHÍ</div>';
@@ -3560,12 +3568,12 @@ function renderTuitionLivePreview() {
         html += '<div style="color: #78716C; font-size: 11px;"><i class="fa-solid fa-qrcode"></i> Quét mã VietQR</div>';
         html += '</div></div></div>';
 
-        html += '</div>'; // End Mẫu 6
+        html += '</div>'; // End Mẫu 4
     } else {
         // ==========================================
-        // MẪU ĐẶC TRƯNG: ZUNTUTOR E-RECEIPT (MẪU GỐC)
+        // MẪU 1: ZUNTUTOR E-RECEIPT (MẪU ĐẶC TRƯNG / GỐC)
         // ==========================================
-        html += '<div id="tuitionInvoiceCard" class="invoice-container" data-tmpl="default" style="box-sizing: border-box; overflow: hidden;">';
+        html += '<div id="tuitionInvoiceCard" class="invoice-container" data-tmpl="1" style="box-sizing: border-box; overflow: hidden;">';
         
         // 1. Header
         html += '<div class="inv-head">';
@@ -3696,15 +3704,15 @@ function renderTuitionLivePreview() {
         }
         html += '</div>';
 
-        html += '</div>'; // End Mẫu Đặc Trưng
+        html += '</div>'; // End Mẫu 1
     }
 
-    if (tmpl === 'default') {
+    if (tmpl === 1) {
         html = applyInvoiceThemeToHtml(html);
         html = html.replace('id="tuitionInvoiceCard" class="invoice-container', 'id="tuitionInvoiceCard" data-inv-theme="' + getInvoiceThemeId() + '" class="invoice-container inv-themed');
     }
     modalBody.innerHTML = html;
-    if (tmpl === 'default') {
+    if (tmpl === 1) {
         var invCardEl = document.getElementById('tuitionInvoiceCard');
         if (invCardEl) invCardEl.style.cssText += ';' + invoiceThemeCssVars();
         if (typeof renderInvoiceThemeSwatches === 'function') renderInvoiceThemeSwatches();
@@ -3713,11 +3721,14 @@ function renderTuitionLivePreview() {
 window.renderTuitionLivePreview = renderTuitionLivePreview;
 
 function switchTuitionTemplate(tmpl, isInitial) {
-    if (tmpl === 0 || tmpl === '0' || tmpl === 'default' || tmpl === 'classic' || !tmpl) {
-        tmpl = 'default';
+    if (tmpl === 2 || tmpl === '2') {
+        tmpl = 2;
+    } else if (tmpl === 3 || tmpl === '3') {
+        tmpl = 3;
+    } else if (tmpl === 4 || tmpl === '4' || tmpl === 6 || tmpl === '6') {
+        tmpl = 4;
     } else {
-        tmpl = Number(tmpl);
-        if ([1, 3, 6].indexOf(tmpl) === -1) tmpl = 'default';
+        tmpl = 1;
     }
     window.currentTuitionTemplate = tmpl;
     if (window.tuitionInvoiceModalState) {
@@ -3735,29 +3746,23 @@ function switchTuitionTemplate(tmpl, isInitial) {
     if (!isInitial) {
         window.tuitionInvoiceHasUnsavedChanges = true;
     }
-    var b0 = document.getElementById('btnTemplate0');
     var b1 = document.getElementById('btnTemplate1');
+    var b2 = document.getElementById('btnTemplate2');
     var b3 = document.getElementById('btnTemplate3');
-    var b6 = document.getElementById('btnTemplate6');
-    if (b0) b0.classList.toggle('active', tmpl === 'default');
+    var b4 = document.getElementById('btnTemplate4');
     if (b1) b1.classList.toggle('active', tmpl === 1);
+    if (b2) b2.classList.toggle('active', tmpl === 2);
     if (b3) b3.classList.toggle('active', tmpl === 3);
-    if (b6) b6.classList.toggle('active', tmpl === 6);
+    if (b4) b4.classList.toggle('active', tmpl === 4);
 
     var themeBar = document.getElementById('tuitionInvoiceThemeBar');
     if (themeBar) {
-        themeBar.style.display = (tmpl === 'default') ? 'flex' : 'none';
+        themeBar.style.display = (tmpl === 1) ? 'flex' : 'none';
     }
     
     var previewTitleEl = document.getElementById('tuitionPreviewTitle');
     if (previewTitleEl) {
-        var names = {
-            'default': "Mẫu Đặc Trưng",
-            1: "Mẫu 1 · Aio Neobrutalism",
-            3: "Mẫu 3 · Aio Editorial Paper",
-            6: "Mẫu 6 · Academic Diploma"
-        };
-        previewTitleEl.textContent = "Phiếu trực tiếp (" + (names[tmpl] || "Mẫu Đặc Trưng") + ")";
+        previewTitleEl.textContent = "Phiếu trực tiếp (Mẫu " + tmpl + ")";
     }
     renderTuitionLivePreview();
     autoSaveTuitionDraft();
@@ -3846,11 +3851,11 @@ function openStudentInvoiceModal(studentName) {
     var lastD = new Date(yr, mo + 1, 0);
     var defaultStartStr = formatToDmy(firstD);
     var defaultEndStr = formatToDmy(lastD);
-    var defaultTmpl = 'default';
-    if (window.currentTuitionTemplate && ['default', 1, 3, 6].indexOf(window.currentTuitionTemplate) !== -1) {
-        defaultTmpl = window.currentTuitionTemplate;
+    var defaultTmpl = 1;
+    if (window.currentTuitionTemplate && [1, 2, 3, 4].indexOf(Number(window.currentTuitionTemplate)) !== -1) {
+        defaultTmpl = Number(window.currentTuitionTemplate);
     } else {
-        window.currentTuitionTemplate = 'default';
+        window.currentTuitionTemplate = 1;
     }
     var defaultTitle = generateTuitionPeriodTitle(defaultStartStr, defaultEndStr, defaultTmpl);
 
@@ -3895,16 +3900,21 @@ function openStudentInvoiceModal(studentName) {
             }
         }
 
-        var draftTmpl = draftObj.template;
-        if (draftTmpl === 1 || draftTmpl === '1') {
-            if (window.currentTuitionTemplate !== 1) draftTmpl = 'default';
-        } else if (['default', 3, 6].indexOf(draftTmpl) === -1) {
-            draftTmpl = 'default';
+        var rawDraftTmpl = draftObj.template;
+        var draftTmpl = 1;
+        if (rawDraftTmpl === 2 || rawDraftTmpl === '2') {
+            draftTmpl = 2;
+        } else if (rawDraftTmpl === 3 || rawDraftTmpl === '3') {
+            draftTmpl = 3;
+        } else if (rawDraftTmpl === 4 || rawDraftTmpl === '4' || rawDraftTmpl === 6 || rawDraftTmpl === '6') {
+            draftTmpl = 4;
+        } else {
+            draftTmpl = 1;
         }
 
         window.tuitionInvoiceModalState = {
             studentName: st.name,
-            template: draftTmpl || 'default',
+            template: draftTmpl,
             toggles: draftObj.toggles || {
                 student: true,
                 class: true,
