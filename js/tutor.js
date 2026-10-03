@@ -3338,158 +3338,252 @@ function renderTuitionLivePreview() {
         msgContent = "Dạ em chào anh/chị, em gửi anh/chị phiếu học tập tổng kết của bé <b>" + sDisplayName + "</b> ạ. Học phí kỳ này là <b>" + feeWord + "</b> (" + invBillableCount + " buổi). Anh/chị xem qua và quét mã QR chuyển khoản giúp em nhé ạ. Em cảm ơn anh/chị nhiều ạ!";
     }
 
-    // ==================== PHIẾU HỌC PHÍ (E-RECEIPT) ====================
-    html += '<div id="tuitionInvoiceCard" class="invoice-container">';
-    
-    // 1. Header
-    html += '<div class="inv-head">';
-    html += '<div class="inv-head-left">';
-    html += '<div class="inv-avatar"><i class="fa-solid fa-graduation-cap"></i></div>';
-    html += '<div class="inv-user-meta">';
-    html += '<span class="inv-tag-mini">HỌC SINH</span>';
-    html += '<h2 id="invStudentName">' + escapeHtml(toggles.student !== false ? st.name : 'Học sinh') + '</h2>';
-    if (toggles.class === true) {
-        html += '<div style="font-size: 11.5px; color: #64748B; font-weight: 600; margin-top: 2px;">' + escapeHtml(classSubjectStr) + '</div>';
-    }
-    html += '</div></div>';
-    html += '<div class="inv-head-right">';
-    html += '<span class="inv-pill-status" id="invMonthDisplay"><i class="fa-solid fa-calendar-days"></i> ' + escapeHtml(periodTitle) + '</span>';
-    html += '</div></div>';
+    // ==================== BỘ 3 MẪU PHIẾU HỌC PHÍ (MẪU 1, 3, 6) ====================
+    var tmpl = Number(state.template || window.currentTuitionTemplate || 1);
+    if ([1, 3, 6].indexOf(tmpl) === -1) tmpl = 1;
 
-    // 2. Section 1: Study Metrics
-    if (toggles.sessions !== false) {
-        html += '<div class="inv-section-title"><i class="fa-solid fa-chart-pie"></i> TỔNG KẾT KẾT QUẢ KỲ NÀY</div>';
-        html += '<div class="metrics-grid">';
-        
-        // Box Chuyên cần
-        html += '<div class="metric-card">';
-        html += '<div class="metric-card-header">';
-        html += '<span><i class="fa-solid fa-calendar-check text-green"></i> Chuyên cần</span>';
-        html += '<span class="text-green font-bold" id="invAttTotalBadge">' + invBillableCount + ' Buổi</span>';
-        html += '</div>';
-        html += '<div class="metric-badges">';
-        html += '<div class="m-badge"><div class="m-num text-green" id="invAttP">' + invPresent + '</div><div class="m-lbl">Buổi học</div></div>';
-        html += '<div class="m-badge"><div class="m-num text-amber" id="invAttA">' + invAbsent + '</div><div class="m-lbl">Nghỉ phép</div></div>';
-        html += '<div class="m-badge"><div class="m-num text-purple" id="invAttB">' + invMakeup + '</div><div class="m-lbl">Đã bù</div></div>';
-        html += '</div>';
-        html += '<div class="metric-notes" id="invAbsentDates">';
-        html += '<div><span>Nghỉ phép:</span> ' + escapeHtml(invAbsentDates.length > 0 ? invAbsentDates.join(", ") : "Không có") + '</div>';
-        html += '</div>';
+    if (tmpl === 1) {
+        // ==========================================
+        // MẪU 1: AIOENGLISH WARM NEOBRUTALISM
+        // ==========================================
+        html += '<div id="tuitionInvoiceCard" class="inv-aio-neobrutal" data-tmpl="1">';
+
+        // Paid watermark stamp
+        html += '<div class="paid-stamp-watermark" id="stamp-paid">ĐÃ THU<small>' + escapeHtml(formatToDmy(new Date())) + ' · ' + escapeHtml(bankName || 'MB BANK') + '</small></div>';
+
+        // Top Badge Head
+        html += '<div class="aio-badge-head">';
+        html += '<div class="sticker-title"><i class="fa-solid fa-receipt"></i> PHIẾU BÁO HỌC PHÍ</div>';
+        html += '<div class="brand-pill">ZunTutor · ' + escapeHtml(periodTitle) + '</div>';
         html += '</div>';
 
-        // Box Bài tập về nhà
-        html += '<div class="metric-card">';
-        html += '<div class="metric-card-header">';
-        html += '<span><i class="fa-solid fa-book-open text-purple"></i> Bài tập về nhà</span>';
-        html += '<span class="text-purple font-bold" id="invHwTotalBadge">' + invBillableCount + ' Buổi</span>';
+        // Student Hero Box
+        html += '<div class="student-hero">';
+        html += '<div class="sh-top">';
+        html += '<div class="sh-name">' + escapeHtml(toggles.student !== false ? st.name : 'Học sinh') + '</div>';
+        html += '<span class="chip aio">' + escapeHtml(st.classLevel || 'Lớp học') + '</span>';
         html += '</div>';
-        html += '<div class="metric-badges">';
-        html += '<div class="m-badge"><div class="m-num text-green" id="invHwDone">' + invDoneHw + '</div><div class="m-lbl">Đủ bài</div></div>';
-        html += '<div class="m-badge"><div class="m-num text-red" id="invHwMiss">' + invMissingHw + '</div><div class="m-lbl">Thiếu bài</div></div>';
-        html += '<div class="m-badge"><div class="m-num" id="invHwLate">' + invLateHw + '</div><div class="m-lbl">Nộp trễ</div></div>';
-        html += '</div>';
-        html += '<div class="metric-notes" id="invHwMissDates">';
-        html += '<div><span>Thiếu bài:</span> ' + escapeHtml(invMissingHwDates.length > 0 ? invMissingHwDates.join(", ") : "Không thiếu bài") + '</div>';
-        html += '</div>';
-        html += '</div>';
-
-        html += '</div>';
-    }
-
-    // Chi tiết ngày học (nếu toggle bật)
-    if (toggles.dates === true) {
-        html += '<div style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 12px; padding: 10px 12px; margin-top: 10px;">';
-        if (attendedLogs.length > 0) {
-            html += '<div style="font-size: 11px; font-weight: 700; color: #475569; margin-bottom: 6px;"><i class="fa-solid fa-calendar-days" style="color: #7C3AED;"></i> Chi tiết các ngày học (' + attendedLogs.length + ' buổi):</div>';
-            html += '<div style="display: flex; flex-wrap: wrap; gap: 5px;">';
-            attendedLogs.forEach(function(l) {
-                var lDateText = l.studyDate || l.ngay || "";
-                var dObj = parseInputDate(lDateText);
-                var chipLabel = dObj ? (String(dObj.getDate()).padStart(2, '0') + '/' + String(dObj.getMonth() + 1).padStart(2, '0')) : lDateText;
-                html += '<span style="background: #FFFFFF; border: 1px solid #CBD5E1; color: #334155; font-size: 11px; padding: 2px 7px; border-radius: 6px; font-weight: 600;">' + escapeHtml(chipLabel) + '</span>';
-            });
-            html += '</div>';
-        } else {
-            html += '<div style="font-size: 11.5px; color: #94A3B8; font-style: italic;"><i class="fa-solid fa-calendar-days" style="color: #94A3B8; margin-right: 4px;"></i> Chưa có buổi học nào trong kỳ</div>';
+        html += '<div class="sh-meta">';
+        html += '<span><i class="fa-solid fa-book-open"></i> Môn: ' + escapeHtml(st.subject || 'Gia sư') + '</span>';
+        if (state.startDate && state.endDate) {
+            html += '<span>•</span><span><i class="fa-regular fa-calendar"></i> ' + escapeHtml(formatToDmy(state.startDate)) + ' - ' + escapeHtml(formatToDmy(state.endDate)) + '</span>';
         }
         html += '</div>';
-    }
-
-    // Section: NHẬN XÉT HỌC TẬP & TIẾN BỘ
-    var feedbackRaw = (state.feedbackText && state.feedbackText.trim()) 
-        ? state.feedbackText.trim() 
-        : generateDefaultStudentFeedback(st, invPresent, invBillableCount, invDoneHw, invMissingHw);
-
-    html += '<div class="inv-feedback-card" style="margin-top: 12px; background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 12px; padding: 12px 14px; box-shadow: 0 2px 6px rgba(15,23,42,0.03);">';
-    html += '<div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; border-bottom: 1px solid #F1F5F9; padding-bottom: 6px;">';
-    html += '<div style="font-size: 11.5px; font-weight: 800; color: #7C3AED; text-transform: uppercase; letter-spacing: 0.5px; display: flex; align-items: center; gap: 6px;">';
-    html += '<i class="fa-solid fa-graduation-cap"></i> NHẬN XÉT HỌC TẬP & TIẾN BỘ';
-    html += '</div>';
-    html += '<span style="font-size: 10px; color: #64748B; font-weight: 600;"><i class="fa-solid fa-pen" style="font-size: 9px;"></i> Nhấp để sửa</span>';
-    html += '</div>';
-    html += '<div id="invFeedbackContent" contenteditable="true" style="font-size: 12px; line-height: 1.6; color: #1E293B; outline: none;" oninput="onTuitionInlineFeedbackInput(this.innerText)">';
-    html += formatFeedbackToHtml(feedbackRaw);
-    html += '</div>';
-    html += '</div>';
-
-    // 3. Section 2: Tuition Breakdown
-    html += '<div class="fee-card">';
-    if (toggles.fee !== false) {
-        var feeUnitLabel = isMonthly ? "Hình thức thu học phí:" : "Đơn giá mỗi buổi học:";
-        var feeUnitValue = isMonthly ? ("Trọn gói theo tháng (" + Number(unitFee).toLocaleString('vi-VN') + " VNĐ)") : (Number(unitFee).toLocaleString('vi-VN') + " VNĐ");
-        html += '<div class="fee-row"><span id="invFeeUnitLabel">' + feeUnitLabel + '</span><b id="invFeeUnitValue">' + feeUnitValue + '</b></div>';
-    }
-    if (toggles.sessions !== false) {
-        var feeCalcText = isMonthly ? "Kỳ học phí:" : "Thời lượng học kỳ này:";
-        var feeCalcTotal = isMonthly ? periodTitle : (invBillableCount + " buổi");
-        html += '<div class="fee-row"><span id="invFeeCalcText">' + feeCalcText + '</span><b id="invFeeCalcTotal">' + escapeHtml(feeCalcTotal) + '</b></div>';
-    }
-    if (discount > 0) {
-        html += '<div class="fee-row" style="color: #EA580C;"><span>Giảm trừ học phí:</span><b>-' + Number(discount).toLocaleString('vi-VN') + ' đ</b></div>';
-    }
-    if (surcharge > 0) {
-        html += '<div class="fee-row" style="color: #16A34A;"><span>Phụ thu thêm:</span><b>+' + Number(surcharge).toLocaleString('vi-VN') + ' đ</b></div>';
-    }
-    html += '<div class="fee-row grand-total">';
-    html += '<span class="total-label">TỔNG HỌC PHÍ KỲ NÀY</span>';
-    html += '<span class="total-val" id="invGrandTotal">' + grandTotalStr + '</span>';
-    html += '</div></div>';
-
-    // 4. Section 3: Bottom Action (Note & QR)
-    var bottomGridCols = (toggles.qr !== false) ? 'grid-template-columns: 1fr 190px;' : 'grid-template-columns: 1fr;';
-    html += '<div class="bottom-action-container" style="' + bottomGridCols + '">';
-    html += '<div class="msg-box">';
-    html += '<div>';
-    html += '<div class="msg-header"><i class="fa-regular fa-comment-dots"></i> Lời nhắn gửi phụ huynh</div>';
-    html += '<div class="msg-text" id="invTextarea" contenteditable="true">' + msgContent + '</div>';
-    html += '</div>';
-    html += '<div class="msg-footer">Đồng hành cùng sự tiến bộ của học sinh!</div>';
-    html += '</div>';
-
-    if (toggles.qr !== false) {
-        html += '<div class="qr-card">';
-        html += '<img src="' + safeUrlAttr(qrImgSrc) + '" id="invQrImg" class="qr-img" alt="QR Code" crossorigin="anonymous">';
-        html += '<div class="qr-label" id="invQrText"><i class="fa-solid fa-qrcode"></i> Quét VietQR</div>';
         html += '</div>';
+
+        // Session Mini Grid
+        if (toggles.sessions !== false) {
+            html += '<div class="session-grid">';
+            html += '<div class="grid-title">';
+            html += '<span>Nhật ký ' + studentLogs.length + ' buổi học</span>';
+            html += '<span style="color: #15803D;">Có mặt: ' + invPresent + (invMakeup > 0 ? (' · Bù: ' + invMakeup) : '') + (invAbsent > 0 ? (' · Nghỉ: ' + invAbsent) : '') + '</span>';
+            html += '</div>';
+            html += '<div class="session-badges">';
+            if (studentLogs && studentLogs.length > 0) {
+                studentLogs.forEach(function(l, idx) {
+                    if (!l) return;
+                    var lDateText = l.studyDate || l.ngay || "";
+                    var dObj = parseInputDate(lDateText);
+                    var shortDate = dObj ? (String(dObj.getDate()).padStart(2, '0') + '/' + String(dObj.getMonth() + 1).padStart(2, '0')) : lDateText;
+                    var rawStatus = l.trangThai || l.chuyenCan || l.attendance_status || l.attendance || l.status || "";
+                    var normTt = String(rawStatus).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/đ/g, 'd').trim();
+                    var isDaBu = (normTt.includes("da bu") || normTt.includes("hoc bu"));
+                    var isAbsent = !isDaBu && (
+                        normTt.includes("nghi") || normTt.includes("huy") || normTt.includes("vang") || normTt.includes("off") || normTt.includes("khong hoc") || normTt.includes("chua hoc") || normTt.includes("tam hoan") || normTt === "v" || normTt === "n" || normTt === "x"
+                    );
+                    var bClass = 'done';
+                    var bIcon = '✓';
+                    if (isDaBu) { bClass = 'done'; bIcon = '⟳'; }
+                    else if (isAbsent) { bClass = 'miss'; bIcon = '✗'; }
+                    html += '<div class="s-badge ' + bClass + '">B' + (idx + 1) + ' · ' + escapeHtml(shortDate) + ' ' + bIcon + '</div>';
+                });
+            } else {
+                html += '<div style="grid-column: 1 / -1; font-size: 11.5px; color: #94A3B8; text-align: center; padding: 6px;">Chưa có buổi học nào</div>';
+            }
+            html += '</div></div>';
+        }
+
+        // Calculation Rows
+        html += '<div class="calc-table">';
+        html += '<div class="calc-row">';
+        html += '<span>' + (isMonthly ? 'Học phí trọn gói kỳ này' : ('Học phí cơ bản (' + invBillableCount + ' buổi × ' + formatNumberWithDots(unitFee) + 'đ)')) + '</span>';
+        html += '<span>' + formatNumberWithDots(baseFee) + ' đ</span>';
+        html += '</div>';
+        if (surcharge > 0) {
+            html += '<div class="calc-row"><span>Phụ thu / Tài liệu:</span><span>+' + formatNumberWithDots(surcharge) + ' đ</span></div>';
+        }
+        if (discount > 0) {
+            html += '<div class="calc-row" style="color: #15803D;"><span>Khấu trừ / Học bổng:</span><span>-' + formatNumberWithDots(discount) + ' đ</span></div>';
+        }
+        html += '<div class="calc-row total">';
+        html += '<span>TỔNG HỌC PHÍ:</span>';
+        html += '<span>' + grandTotalStr + '</span>';
+        html += '</div></div>';
+
+        // Nhận xét học tập & tiến bộ (3 phần)
+        html += '<div class="aio-feedback-box">';
+        html += '<div class="af-header">';
+        html += '<i class="fa-solid fa-graduation-cap"></i> NHẬN XÉT HỌC TẬP & TIẾN BỘ';
+        html += '<span style="margin-left: auto; font-size: 10px; font-weight: 600; color: #713F12;"><i class="fa-solid fa-pen"></i> Nhấp để sửa</span>';
+        html += '</div>';
+        html += '<div id="invFeedbackContent" contenteditable="true" style="outline: none;" oninput="onTuitionInlineFeedbackInput(this.innerText)">';
+        html += formatFeedbackToHtml(feedbackRaw);
+        html += '</div></div>';
+
+        // Bank & QR Box
+        if (toggles.qr !== false) {
+            html += '<div class="aio-pay-box">';
+            html += '<div class="qr-frame">';
+            html += '<img src="' + safeUrlAttr(qrImgSrc) + '" alt="VietQR" crossorigin="anonymous">';
+            html += '</div>';
+            html += '<div class="pay-details">';
+            html += '<div>Ngân hàng: <b>' + escapeHtml(bankName || 'MB Bank') + '</b></div>';
+            html += '<div>Số tài khoản: <b>' + escapeHtml(bankAcc || tutorPhone || '0987654321') + '</b></div>';
+            html += '<div>Chủ TK: <b>' + escapeHtml(tutorName || 'Gia sư') + '</b></div>';
+            html += '<div style="color: #B45309; font-weight: 700; margin-top: 2px;">Cú pháp: HOC PHI ' + escapeHtml(st.name.toUpperCase()) + '</div>';
+            html += '</div></div>';
+        }
+
+        // Cute teacher sticky note
+        if (state.teacherNote && state.teacherNote.trim()) {
+            html += '<div class="teacher-note">';
+            html += '<i class="fa-solid fa-lightbulb" style="color: #D97706; margin-top: 2px;"></i>';
+            html += '<span><strong>Lời dặn:</strong> ' + escapeHtml(state.teacherNote.trim()) + '</span>';
+            html += '</div>';
+        }
+
+        html += '</div>'; // End Mẫu 1
+    } else if (tmpl === 3) {
+        // ==========================================
+        // MẪU 3: AIOENGLISH EDITORIAL CLEAN PAPER
+        // ==========================================
+        html += '<div id="tuitionInvoiceCard" class="inv-aio-editorial" data-tmpl="3">';
+
+        // Paid watermark stamp
+        html += '<div class="paid-stamp-watermark" id="stamp-paid">PAID IN FULL<small>CẢM ƠN QUÝ PHỤ HUYNH</small></div>';
+
+        html += '<div class="ed-header">';
+        html += '<div class="ed-super">Bản tin học tập & Học phí gia sư</div>';
+        html += '<div class="ed-title">Thư Báo Học Phí</div>';
+        html += '<div class="ed-pills">';
+        html += '<span class="ed-pill">' + escapeHtml(classSubjectStr) + '</span>';
+        html += '<span class="ed-pill">' + escapeHtml(periodTitle) + '</span>';
+        html += '</div></div>';
+
+        html += '<div class="ed-body">';
+        html += '<p>Kính gửi quý phụ huynh em <strong>' + escapeHtml(toggles.student !== false ? st.name : 'học sinh') + '</strong>,</p>';
+        html += '<p style="margin-top: 4px; color: #52525B;">Dưới đây là bảng tổng hợp số buổi học và học phí của em trong kỳ vừa qua:</p>';
+
+        html += '<div class="ed-box">';
+        html += '<div style="display: flex; justify-content: space-between; padding: 4px 0;">';
+        html += '<span>Số buổi học thực tế:</span>';
+        html += '<strong>' + invBillableCount + ' buổi (Có mặt: ' + invPresent + (invMakeup > 0 ? (', Bù: ' + invMakeup) : '') + (invAbsent > 0 ? (', Nghỉ: ' + invAbsent) : '') + ')</strong>';
+        html += '</div>';
+        html += '<div style="display: flex; justify-content: space-between; padding: 4px 0;">';
+        html += '<span>Đơn giá học phí:</span>';
+        html += '<strong>' + unitFeeStr + '</strong>';
+        html += '</div>';
+        if (surcharge > 0) {
+            html += '<div style="display: flex; justify-content: space-between; padding: 4px 0; color: #D97706;"><span>Phụ thu / Tài liệu:</span><strong>+' + formatNumberWithDots(surcharge) + ' đ</strong></div>';
+        }
+        if (discount > 0) {
+            html += '<div style="display: flex; justify-content: space-between; padding: 4px 0; color: #16A34A;"><span>Khấu trừ / Học bổng:</span><strong>-' + formatNumberWithDots(discount) + ' đ</strong></div>';
+        }
+        html += '<div style="display: flex; justify-content: space-between; padding: 8px 0 2px; border-top: 1.5px solid #27272A; margin-top: 6px; font-size: 15px; font-weight: 800;">';
+        html += '<span>Tổng cộng:</span>';
+        html += '<span style="color: #B45309;">' + grandTotalStr + '</span>';
+        html += '</div></div></div>';
+
+        // Đánh giá sư phạm định kỳ
+        html += '<div class="ed-feedback-box">';
+        html += '<div class="ef-header">';
+        html += '<i class="fa-solid fa-pen-nib"></i> NHẬN XÉT HỌC TẬP & TIẾN BỘ';
+        html += '<span style="margin-left: auto; font-size: 10px; font-weight: 600; color: #92400E;"><i class="fa-solid fa-pen"></i> Nhấp để sửa</span>';
+        html += '</div>';
+        html += '<div id="invFeedbackContent" contenteditable="true" style="outline: none;" oninput="onTuitionInlineFeedbackInput(this.innerText)">';
+        html += formatFeedbackToHtml(feedbackRaw);
+        html += '</div></div>';
+
+        html += '<div class="ed-tear-line"></div>';
+
+        // Footer & Pay
+        if (toggles.qr !== false) {
+            html += '<div class="ed-footer-pay">';
+            html += '<div style="width: 76px; height: 76px; border: 1.5px solid #27272A; border-radius: 8px; padding: 3px; background: #FFF; flex-shrink: 0;">';
+            html += '<img src="' + safeUrlAttr(qrImgSrc) + '" alt="VietQR" crossorigin="anonymous">';
+            html += '</div>';
+            html += '<div style="font-size: 12px; line-height: 1.5;">';
+            html += '<div>Tài khoản: <strong>' + escapeHtml(bankAcc || tutorPhone || '0987654321') + '</strong> (' + escapeHtml(bankName || 'MB Bank') + ')</div>';
+            html += '<div>Người thụ hưởng: <strong>' + escapeHtml(tutorName || 'Gia sư') + '</strong></div>';
+            html += '<div style="color: #71717A; font-style: italic; margin-top: 2px;">' + (state.teacherNote && state.teacherNote.trim() ? escapeHtml(state.teacherNote.trim()) : 'Chân thành cảm ơn sự đồng hành của quý phụ huynh!') + '</div>';
+            html += '</div></div>';
+        }
+
+        html += '</div>'; // End Mẫu 3
+    } else {
+        // ==========================================
+        // MẪU 6: ACADEMIC DIPLOMA & CERTIFICATE
+        // ==========================================
+        html += '<div id="tuitionInvoiceCard" class="inv-diploma" data-tmpl="6">';
+
+        // Paid watermark stamp
+        html += '<div class="paid-stamp-watermark" id="stamp-paid">ĐÃ XÁC NHẬN<small>HỌC PHÍ ĐÃ HOÀN TẤT</small></div>';
+
+        html += '<div class="dip-head">';
+        html += '<div class="dip-badge">ZUNTUTOR ACADEMIA</div>';
+        html += '<div class="dip-title">THƯ BÁO HỌC PHÍ</div>';
+        html += '<div class="dip-subtitle">' + escapeHtml(periodTitle) + '</div>';
+        html += '</div>';
+
+        html += '<div class="dip-content">';
+        html += '<div class="dip-row"><span>Học sinh:</span><b>' + escapeHtml(toggles.student !== false ? st.name : 'Học sinh') + '</b></div>';
+        html += '<div class="dip-row"><span>Chương trình:</span><b>' + escapeHtml(classSubjectStr) + '</b></div>';
+        html += '<div class="dip-row"><span>Thời lượng đào tạo:</span><b>' + invBillableCount + ' buổi (Có mặt: ' + invPresent + (invMakeup > 0 ? (', Bù: ' + invMakeup) : '') + ')</b></div>';
+        html += '<div class="dip-row"><span>Chi phí đào tạo:</span><b>' + formatNumberWithDots(baseFee) + ' đ</b></div>';
+        if (surcharge > 0) {
+            html += '<div class="dip-row"><span>Giáo trình & Phụ thu:</span><b>+' + formatNumberWithDots(surcharge) + ' đ</b></div>';
+        }
+        if (discount > 0) {
+            html += '<div class="dip-row"><span>Học bổng khuyến khích:</span><b style="color: #15803D;">-' + formatNumberWithDots(discount) + ' đ</b></div>';
+        }
+        html += '</div>';
+
+        // Lời phê học thuật của giáo viên
+        html += '<div class="dip-feedback-box">';
+        html += '<div class="dip-fb-head">LỜI PHÊ & NHẬN XÉT CỦA GIA SƯ<span style="font-size: 10px; font-weight: normal; color: #92400E; display: block; font-family: sans-serif; margin-top: 2px;"><i class="fa-solid fa-pen"></i> Nhấp để sửa</span></div>';
+        html += '<div id="invFeedbackContent" contenteditable="true" style="outline: none;" oninput="onTuitionInlineFeedbackInput(this.innerText)">';
+        html += formatFeedbackToHtml(feedbackRaw);
+        html += '</div></div>';
+
+        html += '<div class="dip-total">TỔNG KINH PHÍ: ' + grandTotalStr.toUpperCase() + '</div>';
+
+        html += '<div class="dip-sign-block">';
+        html += '<div class="wax-seal"><i class="fa-solid fa-stamp"></i></div>';
+        html += '<div style="display: flex; align-items: center; gap: 10px;">';
+        if (toggles.qr !== false) {
+            html += '<div style="width: 58px; height: 58px; background: #FFF; border: 1px solid #D6D3D1; border-radius: 6px; padding: 2px;">';
+            html += '<img src="' + safeUrlAttr(qrImgSrc) + '" alt="VietQR" crossorigin="anonymous">';
+            html += '</div>';
+        }
+        html += '<div class="sign-box">';
+        html += '<div>Gia sư phụ trách</div>';
+        html += '<div class="sig-font">' + escapeHtml(tutorName || 'Nguyễn Văn A') + '</div>';
+        html += '<div style="color: #78716C;">STK: ' + escapeHtml(bankAcc || tutorPhone || '0987654321') + ' · ' + escapeHtml(bankName || 'MB Bank') + '</div>';
+        html += '</div></div></div>';
+
+        html += '</div>'; // End Mẫu 6
     }
-    html += '</div>';
 
-    html += '</div>'; // End #tuitionInvoiceCard
-
-    // Áp dụng màu riêng của phiếu (chỉ phiếu, không đụng theme hệ thống)
-    html = applyInvoiceThemeToHtml(html);
-    html = html.replace('id="tuitionInvoiceCard" class="invoice-container', 'id="tuitionInvoiceCard" data-inv-theme="' + getInvoiceThemeId() + '" class="invoice-container inv-themed');
     modalBody.innerHTML = html;
-    var invCardEl = document.getElementById('tuitionInvoiceCard');
-    if (invCardEl) invCardEl.style.cssText += ';' + invoiceThemeCssVars();
-    renderInvoiceThemeSwatches();
 }
 window.renderTuitionLivePreview = renderTuitionLivePreview;
 
 function switchTuitionTemplate(tmpl, isInitial) {
-    window.currentTuitionTemplate = 1;
+    tmpl = Number(tmpl) || 1;
+    if ([1, 3, 6].indexOf(tmpl) === -1) tmpl = 1;
+    window.currentTuitionTemplate = tmpl;
     if (window.tuitionInvoiceModalState) {
-        window.tuitionInvoiceModalState.template = 1;
+        window.tuitionInvoiceModalState.template = tmpl;
         if (!window.tuitionInvoiceModalState.isCustomTitle) {
             var autoTitle = generateTuitionPeriodTitle(
                 window.tuitionInvoiceModalState.startDate, 
@@ -3504,12 +3598,16 @@ function switchTuitionTemplate(tmpl, isInitial) {
         window.tuitionInvoiceHasUnsavedChanges = true;
     }
     var b1 = document.getElementById('btnTemplate1');
-    var b2 = document.getElementById('btnTemplate2');
-    if (b1) b1.classList.add('active');
-    if (b2) b2.classList.remove('active');
+    var b3 = document.getElementById('btnTemplate3');
+    var b6 = document.getElementById('btnTemplate6');
+    if (b1) b1.classList.toggle('active', tmpl === 1);
+    if (b3) b3.classList.toggle('active', tmpl === 3);
+    if (b6) b6.classList.toggle('active', tmpl === 6);
+    
     var previewTitleEl = document.getElementById('tuitionPreviewTitle');
     if (previewTitleEl) {
-        previewTitleEl.textContent = "Phiếu hiển thị trực tiếp";
+        var names = { 1: "Mẫu 1 · Aio Neobrutalism", 3: "Mẫu 3 · Aio Editorial Paper", 6: "Mẫu 6 · Academic Diploma" };
+        previewTitleEl.textContent = "Phiếu trực tiếp (" + (names[tmpl] || ("Mẫu " + tmpl)) + ")";
     }
     if (window.currentTuitionInvoiceStudent && typeof buildTuitionModalForm === 'function') {
         buildTuitionModalForm(window.currentTuitionInvoiceStudent, window.currentTuitionInvoiceLogs);
@@ -3647,7 +3745,7 @@ function openStudentInvoiceModal(studentName) {
 
         window.tuitionInvoiceModalState = {
             studentName: st.name,
-            template: 1,
+            template: ([1, 3, 6].indexOf(Number(draftObj.template)) !== -1 ? Number(draftObj.template) : 1),
             toggles: draftObj.toggles || {
                 student: true,
                 class: true,

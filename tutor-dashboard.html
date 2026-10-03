@@ -21,7 +21,7 @@
         };
     </script>
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600;700&family=Inter:wght@400;500;600;700;800&family=Lexend:wght@400;500;600;700;800;900&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;0,6..72,700;1,6..72,400&family=Playfair+Display:ital,wght@0,600;0,700;0,900;1,600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=Quicksand:wght@500;600;700&family=Space+Grotesk:wght@600;700;800&display=swap" rel="stylesheet">
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Themes CSS & Bootstrap -->
@@ -2803,6 +2803,484 @@
         }
     </style>
     <style>
+
+        /* ========================================================
+           3 MẪU PHIẾU HỌC PHÍ ĐƯỢC CHỌN (MẪU 1, MẪU 3, MẪU 6)
+           ======================================================== */
+/* --------------------------------------------------------
+       MẪU 1: AIOENGLISH WARM NEOBRUTALISM (Flashcard Ledger)
+       - Đặc trưng Aio: Nền kem #FAF6EE, viền đen 2.5px solid #18181B,
+       - Đổ bóng retro đanh 4px 4px 0 #18181B, font Lexend/Quicksand,
+       - Nhãn sticker nghiêng, tag vàng saffron #FBBF24.
+       -------------------------------------------------------- */
+    .inv-aio-neobrutal {
+      width: 100%;
+      max-width: 440px;
+      background: #FAF6EE;
+      border: 2.5px solid #18181B;
+      border-radius: 18px;
+      box-shadow: 5px 5px 0px #18181B;
+      padding: 22px;
+      font-family: 'Lexend', 'Quicksand', sans-serif;
+      color: #18181B;
+      position: relative;
+    }
+    .inv-aio-neobrutal .aio-badge-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+    .inv-aio-neobrutal .sticker-title {
+      background: #FBBF24;
+      border: 2px solid #18181B;
+      box-shadow: 2px 2px 0px #18181B;
+      padding: 4px 12px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 900;
+      transform: rotate(-1.5deg);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      letter-spacing: -0.2px;
+    }
+    .inv-aio-neobrutal .brand-pill {
+      background: #FFF;
+      border: 2px solid #18181B;
+      box-shadow: 2px 2px 0px #18181B;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 11.5px;
+      font-weight: 800;
+    }
+    .inv-aio-neobrutal .student-hero {
+      background: #FFF;
+      border: 2px solid #18181B;
+      border-radius: 12px;
+      padding: 14px;
+      margin-bottom: 14px;
+      box-shadow: 3px 3px 0px #18181B;
+    }
+    .inv-aio-neobrutal .sh-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .inv-aio-neobrutal .sh-name {
+      font-size: 17px;
+      font-weight: 900;
+      letter-spacing: -0.3px;
+    }
+    .inv-aio-neobrutal .sh-meta {
+      font-size: 12px;
+      color: #52525B;
+      margin-top: 2px;
+      display: flex;
+      gap: 8px;
+    }
+    .inv-aio-neobrutal .session-grid {
+      background: #FFF;
+      border: 2px solid #18181B;
+      border-radius: 12px;
+      padding: 12px;
+      margin-bottom: 14px;
+      box-shadow: 3px 3px 0px #18181B;
+    }
+    .inv-aio-neobrutal .grid-title {
+      font-size: 11.5px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .inv-aio-neobrutal .session-badges {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+    }
+    .inv-aio-neobrutal .s-badge {
+      background: #F4F4F5;
+      border: 1.5px solid #18181B;
+      border-radius: 8px;
+      padding: 6px 4px;
+      text-align: center;
+      font-size: 11px;
+      font-weight: 700;
+    }
+    .inv-aio-neobrutal .s-badge.done {
+      background: #DCFCE7;
+      border-color: #18181B;
+      color: #14532D;
+    }
+    .inv-aio-neobrutal .s-badge.miss {
+      background: #FEE2E2;
+      border-color: #18181B;
+      color: #991B1B;
+    }
+    .inv-aio-neobrutal .calc-table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0 6px;
+      margin-bottom: 14px;
+    }
+    .inv-aio-neobrutal .calc-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 13px;
+      font-weight: 600;
+      padding: 3px 0;
+    }
+    .inv-aio-neobrutal .calc-row.total {
+      background: #FDE68A;
+      border: 2px solid #18181B;
+      border-radius: 10px;
+      padding: 10px 12px;
+      margin-top: 6px;
+      font-size: 15px;
+      font-weight: 900;
+      box-shadow: 2px 2px 0px #18181B;
+    }
+    .inv-aio-neobrutal .aio-pay-box {
+      background: #FFF;
+      border: 2px solid #18181B;
+      border-radius: 12px;
+      padding: 12px;
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      box-shadow: 3px 3px 0px #18181B;
+    }
+    .inv-aio-neobrutal .qr-frame {
+      width: 86px;
+      height: 86px;
+      border: 2px solid #18181B;
+      border-radius: 8px;
+      overflow: hidden;
+      flex-shrink: 0;
+      background: #FFF;
+      padding: 3px;
+    }
+    .inv-aio-neobrutal .qr-frame img, .inv-aio-neobrutal .qr-frame svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+    .inv-aio-neobrutal .pay-details {
+      flex: 1;
+      font-size: 12px;
+      line-height: 1.45;
+    }
+    .inv-aio-neobrutal .pay-details b {
+      font-weight: 800;
+    }
+    .inv-aio-neobrutal .teacher-note {
+      margin-top: 12px;
+      background: #FEF9C3;
+      border: 1.5px dashed #18181B;
+      border-radius: 10px;
+      padding: 8px 12px;
+      font-size: 11.5px;
+      font-style: italic;
+      color: #713F12;
+      display: flex;
+      gap: 8px;
+      align-items: flex-start;
+    }
+
+    
+/* Mẫu 1: Aio Neobrutalism Feedback Box */
+    .inv-aio-neobrutal .aio-feedback-box {
+      margin-top: 14px;
+      background: #FEF9C3;
+      border: 2px solid #18181B;
+      border-radius: 12px;
+      padding: 12px 14px;
+      box-shadow: 3px 3px 0px #18181B;
+      text-align: left;
+    }
+    .inv-aio-neobrutal .af-header {
+      font-size: 11.5px;
+      font-weight: 800;
+      color: #713F12;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+      padding-bottom: 6px;
+      border-bottom: 1.5px dashed #CA8A04;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .inv-aio-neobrutal .af-body {
+      font-size: 12px;
+      line-height: 1.55;
+      color: #18181B;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    
+/* --------------------------------------------------------
+       MẪU 3: AIOENGLISH EDITORIAL CLEAN PAPER (Ấm áp, Font tròn)
+       - Nền màu giấy kem sữa #FBF9F4, viền đen tinh gọn 2px,
+       - Font Newsreader tiêu đề phong cách báo chí + Quicksand thân thiện,
+       - Cuống vé xé viền răng cưa nhẹ nhàng.
+       -------------------------------------------------------- */
+    .inv-aio-editorial {
+      width: 100%;
+      max-width: 440px;
+      background: #FBF9F4;
+      border: 2px solid #27272A;
+      border-radius: 16px;
+      box-shadow: 4px 4px 0px #27272A;
+      padding: 24px;
+      font-family: 'Quicksand', sans-serif;
+      color: #27272A;
+      position: relative;
+    }
+    .inv-aio-editorial .ed-header {
+      text-align: center;
+      border-bottom: 2px dashed #D4D4D8;
+      padding-bottom: 14px;
+      margin-bottom: 14px;
+    }
+    .inv-aio-editorial .ed-super {
+      font-family: 'Newsreader', serif;
+      font-style: italic;
+      font-size: 14px;
+      color: #71717A;
+    }
+    .inv-aio-editorial .ed-title {
+      font-family: 'Newsreader', serif;
+      font-size: 22px;
+      font-weight: 700;
+      color: #18181B;
+      margin: 2px 0 4px;
+    }
+    .inv-aio-editorial .ed-pills {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 6px;
+    }
+    .inv-aio-editorial .ed-pill {
+      border: 1.5px solid #27272A;
+      background: #FFF;
+      border-radius: 999px;
+      padding: 2px 10px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+    .inv-aio-editorial .ed-body {
+      font-size: 13px;
+      line-height: 1.6;
+      margin-bottom: 14px;
+    }
+    .inv-aio-editorial .ed-box {
+      background: #FFF;
+      border: 1.5px solid #27272A;
+      border-radius: 10px;
+      padding: 12px;
+      margin-top: 10px;
+    }
+    .inv-aio-editorial .ed-tear-line {
+      border-top: 2px dashed #A1A1AA;
+      margin: 16px -24px;
+      position: relative;
+    }
+    .inv-aio-editorial .ed-tear-line::before, .inv-aio-editorial .ed-tear-line::after {
+      content: '';
+      position: absolute;
+      width: 16px;
+      height: 16px;
+      background: var(--showcase-bg);
+      border-radius: 50%;
+      top: -8px;
+      border: 2px solid #27272A;
+    }
+    .inv-aio-editorial .ed-tear-line::before { left: -9px; }
+    .inv-aio-editorial .ed-tear-line::after { right: -9px; }
+    .inv-aio-editorial .ed-footer-pay {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    
+/* Mẫu 3: Aio Editorial Clean Paper Feedback Box */
+    .inv-aio-editorial .ed-feedback-box {
+      margin: 14px 0;
+      background: #FFFBEB;
+      border-left: 3px solid #D97706;
+      border-radius: 4px 8px 8px 4px;
+      padding: 10px 14px;
+      font-size: 12px;
+      line-height: 1.6;
+    }
+    .inv-aio-editorial .ef-header {
+      font-size: 11.5px;
+      font-weight: 800;
+      color: #92400E;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .inv-aio-editorial .ef-content {
+      font-size: 12px;
+      color: #27272A;
+      line-height: 1.55;
+    }
+
+    
+/* --------------------------------------------------------
+       MẪU 6: ACADEMIC DIPLOMA (Bằng Chứng Nhận / Thư Viện Cổ Điển)
+       - Nền giấy da cổ #FCFBF7, viền kép màu vàng đồng Antique Gold,
+       - Font có chân cổ điển Playfair Display, con dấu mộc sáp đỏ danh giá.
+       -------------------------------------------------------- */
+    .inv-diploma {
+      width: 100%;
+      max-width: 440px;
+      background: #FCFBF7;
+      border: 3px double #B45309;
+      border-radius: 8px;
+      padding: 24px;
+      box-shadow: 0 10px 25px rgba(180, 83, 9, 0.12);
+      font-family: 'Playfair Display', serif;
+      color: #372A1C;
+      position: relative;
+    }
+    .inv-diploma::after {
+      content: '';
+      position: absolute;
+      inset: 6px;
+      border: 1px solid rgba(180, 83, 9, 0.3);
+      pointer-events: none;
+    }
+    .inv-diploma .dip-head {
+      text-align: center;
+      margin-bottom: 14px;
+    }
+    .inv-diploma .dip-badge {
+      display: inline-block;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 10px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: #B45309;
+      font-weight: 700;
+      border-bottom: 1px solid #B45309;
+      padding-bottom: 2px;
+    }
+    .inv-diploma .dip-title {
+      font-size: 20px;
+      font-weight: 900;
+      margin: 6px 0 2px;
+      color: #1C1917;
+      letter-spacing: 0.5px;
+    }
+    .inv-diploma .dip-subtitle {
+      font-size: 12px;
+      font-style: italic;
+      color: #78716C;
+    }
+    .inv-diploma .dip-content {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 12.5px;
+      line-height: 1.6;
+      background: rgba(255, 255, 255, 0.6);
+      border: 1px solid #E7E5E4;
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 14px;
+    }
+    .inv-diploma .dip-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 4px 0;
+      border-bottom: 1px dashed #D6D3D1;
+    }
+    .inv-diploma .dip-row:last-child {
+      border-bottom: none;
+    }
+    .inv-diploma .dip-total {
+      text-align: center;
+      padding: 8px 0;
+      font-size: 14px;
+      font-weight: 800;
+      color: #9A3412;
+      border-top: 1px solid #B45309;
+      border-bottom: 1px solid #B45309;
+      margin-bottom: 14px;
+    }
+    .inv-diploma .dip-sign-block {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+    .inv-diploma .wax-seal {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: radial-gradient(circle, #DC2626 0%, #991B1B 100%);
+      color: #FFF;
+      display: grid;
+      place-items: center;
+      font-size: 18px;
+      box-shadow: 0 4px 10px rgba(153, 27, 27, 0.35);
+      border: 2px dashed rgba(255,255,255,0.4);
+    }
+    .inv-diploma .sign-box {
+      text-align: right;
+      font-size: 11px;
+    }
+    .inv-diploma .sig-font {
+      font-family: 'Dancing Script', cursive;
+      font-size: 24px;
+      color: #1E3A8A;
+      margin-top: 2px;
+    }
+
+    
+/* Mẫu 6: Academic Diploma Feedback Box */
+    .inv-diploma .dip-feedback-box {
+      background: #FFFDF8;
+      border: 1px solid #D4AF37;
+      border-radius: 6px;
+      padding: 12px 14px;
+      margin: 14px 0;
+      font-family: 'Newsreader', serif;
+      font-size: 13px;
+      line-height: 1.6;
+      color: #451A03;
+    }
+    .inv-diploma .dip-fb-head {
+      font-family: 'Playfair Display', serif;
+      font-size: 12px;
+      font-weight: 800;
+      font-style: normal;
+      color: #92400E;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      border-bottom: 1px dashed #D4AF37;
+      padding-bottom: 4px;
+      margin-bottom: 6px;
+      text-align: center;
+    }
+    .inv-diploma .dip-fb-body {
+      font-style: italic;
+    }
+
+    
+
         /* ===== MÀU RIÊNG CỦA PHIẾU HỌC PHÍ ===== */
         .inv-theme-bar { display: flex; align-items: center; gap: 8px; width: 100%; max-width: 480px; margin-bottom: 12px; flex-wrap: wrap; }
         .inv-theme-bar-label { font-size: 12px; font-weight: 700; color: #64748B; margin-right: 2px; display: inline-flex; align-items: center; gap: 6px; }
@@ -2838,6 +3316,14 @@
                 </div>
 
                 <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                    <!-- Bộ 3 Mẫu Phiếu Được Chọn (Mẫu 1, Mẫu 3, Mẫu 6) -->
+                    <div style="display: inline-flex; align-items: center; gap: 4px; background: #F1F5F9; padding: 3px 6px; border-radius: 999px; border: 1px solid #CBD5E1;">
+                        <span style="font-size: 11px; font-weight: 700; color: #475569; padding-left: 6px;"><i class="fa-solid fa-palette" style="color: #7C3AED;"></i> Mẫu:</span>
+                        <button type="button" class="btn-template-pill active" id="btnTemplate1" onclick="switchTuitionTemplate(1)">Mẫu 1 (Aio Brutal)</button>
+                        <button type="button" class="btn-template-pill" id="btnTemplate3" onclick="switchTuitionTemplate(3)">Mẫu 3 (Editorial)</button>
+                        <button type="button" class="btn-template-pill" id="btnTemplate6" onclick="switchTuitionTemplate(6)">Mẫu 6 (Diploma)</button>
+                    </div>
+
                     <button type="button" onclick="startTabOnboarding('invoice', true)" class="btn-tuition-help" title="Xem hướng dẫn sử dụng phiếu học phí">
                         <i class="fa-solid fa-circle-question" style="color: #7C3AED;"></i> Hướng dẫn
                     </button>
