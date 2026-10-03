@@ -995,59 +995,57 @@
             opacity: 0.5 !important;
         }
 
-        /* Minh họa nghệ thuật ngày lễ Quốc khánh 1/9, 2/9 & Tết Trung thu */
-        .fc-day-holiday-quockhanh-1 .fc-daygrid-day-frame {
-            background: linear-gradient(180deg, #FFF1F2 0%, #FFE4E6 40%, #FED7AA 100%) !important;
-            border-color: #FECDD3 !important;
-        }
-
-        .fc-day-holiday-quockhanh-1 .fc-daygrid-day-frame::after {
-            content: '';
+        /* ẢNH CHÌM NGÀY LỄ: tranh màu nước mờ dưới nền ô ngày (img/holidays/*.jpg) */
+        .fc-holiday-art-bg {
             position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 52px;
-            background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 240 60' opacity='0.32'%3E%3Cpath fill='%23E11D48' d='M0,50 L25,50 L25,42 L35,42 L35,50 L55,50 L55,32 L68,32 L68,50 L85,50 L90,24 L102,24 L108,50 L130,50 L136,18 L148,18 L154,50 L175,50 L180,34 L192,34 L198,50 L240,50 L240,60 L0,60 Z'/%3E%3Cpolygon fill='%23DC2626' points='30,32 30,22 42,25'/%3E%3Cline x1='30' y1='22' x2='30' y2='42' stroke='%23DC2626' stroke-width='1.5'/%3E%3C/svg%3E") bottom right no-repeat;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
             background-size: cover;
-            pointer-events: none;
-            z-index: 0;
+            background-position: center;
+            background-repeat: no-repeat;
+            opacity: 0.6;
+            -webkit-mask-image: linear-gradient(180deg, rgba(0,0,0,0.35) 0%, rgba(0,0,0,0.9) 45%, #000 100%);
+                    mask-image: linear-gradient(180deg, rgba(0,0,0,0.35) 0%, rgba(0,0,0,0.9) 45%, #000 100%);
+            transition: opacity 0.35s ease, transform 0.8s cubic-bezier(.2,.8,.2,1);
         }
-
-        .fc-day-holiday-quockhanh-2 .fc-daygrid-day-frame {
-            background: linear-gradient(180deg, #FFF1F2 0%, #FFE4E6 40%, #FED7AA 100%) !important;
-            border-color: #FECDD3 !important;
+        .fc-day-holiday .fc-daygrid-day-frame:hover .fc-holiday-art-bg {
+            opacity: 0.8;
+            transform: scale(1.06);
         }
-
-        .fc-day-holiday-quockhanh-2 .fc-daygrid-day-frame::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 50px;
-            background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 60' opacity='0.3'%3E%3Cpath fill='%23E11D48' d='M40,50 L48,34 L54,34 L54,24 L146,24 L146,34 L152,34 L160,50 Z'/%3E%3Crect x='64' y='32' width='6' height='16' fill='%23FFE4E6'/%3E%3Crect x='78' y='32' width='6' height='16' fill='%23FFE4E6'/%3E%3Crect x='92' y='32' width='6' height='16' fill='%23FFE4E6'/%3E%3Crect x='106' y='32' width='6' height='16' fill='%23FFE4E6'/%3E%3Crect x='120' y='32' width='6' height='16' fill='%23FFE4E6'/%3E%3C/svg%3E") bottom center no-repeat;
-            background-size: contain;
-            pointer-events: none;
-            z-index: 0;
+        .fc-day-holiday .fc-daygrid-day-top,
+        .fc-day-holiday .fc-daygrid-day-events,
+        .fc-day-holiday .fc-daygrid-day-bottom {
+            position: relative;
+            z-index: 1;
         }
-
-        .fc-day-festive-lantern .fc-daygrid-day-frame {
-            background: linear-gradient(180deg, #FEF3C7 0%, #FED7AA 45%, #FDBA74 100%) !important;
-            border-color: #FCD34D !important;
+        .fc-day-holiday .fc-daygrid-day-frame {
+            border-color: color-mix(in srgb, var(--holiday-tint, #E11D48) 35%, var(--border-card, #E2E8F0)) !important;
         }
-
-        .fc-day-festive-lantern .fc-daygrid-day-frame::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 48px;
-            background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 60' opacity='0.28'%3E%3Ccircle cx='30' cy='22' r='9' fill='%23EA580C'/%3E%3Ccircle cx='100' cy='26' r='8' fill='%23D97706'/%3E%3Ccircle cx='170' cy='20' r='11' fill='%23EA580C'/%3E%3C/svg%3E") bottom center no-repeat;
-            background-size: cover;
-            pointer-events: none;
-            z-index: 0;
+        .fc-day-holiday .fc-vn-holiday-badge {
+            color: var(--holiday-tint, #DC2626) !important;
+            background: rgba(255, 255, 255, 0.78) !important;
+            padding: 2px 6px !important;
+            border-radius: 6px !important;
+            font-size: 10.5px !important;
+            white-space: nowrap !important;
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+        }
+        [data-theme="dark"] .fc-holiday-art-bg {
+            opacity: 0.3;
+            filter: saturate(0.9) brightness(0.85);
+        }
+        [data-theme="dark"] .fc-day-holiday .fc-daygrid-day-frame:hover .fc-holiday-art-bg {
+            opacity: 0.45;
+        }
+        [data-theme="dark"] .fc-day-holiday .fc-vn-holiday-badge {
+            background: rgba(15, 10, 30, 0.6) !important;
+            color: color-mix(in srgb, var(--holiday-tint, #F87171) 55%, #FFFFFF) !important;
+        }
+        @media (max-width: 600px) {
+            .fc-day-holiday .fc-vn-holiday-badge { display: none !important; }
         }
 
         /* Ngày ngoài tháng: Card làm mờ nhẹ */
@@ -4343,12 +4341,109 @@
         // DANH SÁCH NGÀY LỄ QUỐC GIA VIỆT NAM (TASK 10.3)
         // ==========================================
         const VN_HOLIDAYS = {
-            '1/1': 'Tết Dương lịch',
-            '10/3': 'Giỗ Tổ Hùng Vương',
-            '30/4': 'Giải phóng miền Nam',
-            '1/5': 'Quốc tế Lao động',
-            '2/9': 'Quốc khánh'
+            '1/1':   { name: 'Tết Dương lịch', full: 'Tết Dương lịch', img: 'tet-duong', tint: '#9333EA' },
+            '8/3':   { name: 'Ngày Phụ nữ', full: 'Quốc tế Phụ nữ 8/3', img: 'phu-nu', tint: '#DB2777' },
+            '30/4':  { name: 'Thống nhất', full: 'Giải phóng miền Nam, thống nhất đất nước', img: 'giai-phong', tint: '#DC2626' },
+            '1/5':   { name: 'Lao động', full: 'Quốc tế Lao động', img: 'lao-dong', tint: '#DC2626' },
+            '1/6':   { name: 'Thiếu nhi', full: 'Quốc tế Thiếu nhi', img: 'thieu-nhi', tint: '#2563EB' },
+            '1/9':   { name: 'Quốc khánh', full: 'Nghỉ lễ Quốc khánh', img: 'quoc-khanh', tint: '#DC2626' },
+            '2/9':   { name: 'Quốc khánh', full: 'Quốc khánh nước CHXHCN Việt Nam', img: 'quoc-khanh', tint: '#DC2626' },
+            '20/10': { name: 'Phụ nữ VN', full: 'Ngày Phụ nữ Việt Nam', img: 'phu-nu', tint: '#DB2777' },
+            '20/11': { name: 'Nhà giáo VN', full: 'Ngày Nhà giáo Việt Nam', img: 'nha-giao', tint: '#BE185D' },
+            '24/12': { name: 'Đêm Noel', full: 'Đêm Giáng sinh', img: 'giang-sinh', tint: '#15803D' },
+            '25/12': { name: 'Giáng sinh', full: 'Lễ Giáng sinh', img: 'giang-sinh', tint: '#15803D' }
         };
+        // Ngày lễ âm lịch (key = ngày/tháng âm)
+        const VN_LUNAR_HOLIDAYS = {
+            '1/1':  { name: 'Mùng 1 Tết', full: 'Tết Nguyên Đán - Mùng 1', img: 'tet-nguyen-dan', tint: '#DC2626' },
+            '2/1':  { name: 'Mùng 2 Tết', full: 'Tết Nguyên Đán - Mùng 2', img: 'tet-nguyen-dan', tint: '#DC2626' },
+            '3/1':  { name: 'Mùng 3 Tết', full: 'Tết Nguyên Đán - Mùng 3', img: 'tet-nguyen-dan', tint: '#DC2626' },
+            '10/3': { name: 'Giỗ Tổ', full: 'Giỗ Tổ Hùng Vương (10/3 âm lịch)', img: 'gio-to', tint: '#B45309' },
+            '15/8': { name: 'Trung thu', full: 'Tết Trung thu (15/8 âm lịch)', img: 'trung-thu', tint: '#EA580C' }
+        };
+
+        // Chuyển đổi Dương lịch -> Âm lịch Việt Nam (thuật toán Hồ Ngọc Đức, múi giờ +7)
+        const VNLunar = (function() {
+            const TZ = 7, PI = Math.PI;
+            function jdFromDate(dd, mm, yy) {
+                let a = Math.floor((14 - mm) / 12), y = yy + 4800 - a, m = mm + 12 * a - 3;
+                let jd = dd + Math.floor((153 * m + 2) / 5) + 365 * y + Math.floor(y / 4) - Math.floor(y / 100) + Math.floor(y / 400) - 32045;
+                if (jd < 2299161) jd = dd + Math.floor((153 * m + 2) / 5) + 365 * y + Math.floor(y / 4) - 32083;
+                return jd;
+            }
+            function newMoon(k) {
+                let T = k / 1236.85, T2 = T * T, T3 = T2 * T, dr = PI / 180;
+                let Jd1 = 2415020.75933 + 29.53058868 * k + 0.0001178 * T2 - 0.000000155 * T3;
+                Jd1 += 0.00033 * Math.sin((166.56 + 132.87 * T - 0.009173 * T2) * dr);
+                let M = 359.2242 + 29.10535608 * k - 0.0000333 * T2 - 0.00000347 * T3;
+                let Mpr = 306.0253 + 385.81691806 * k + 0.0107306 * T2 + 0.00001236 * T3;
+                let F = 21.2964 + 390.67050646 * k - 0.0016528 * T2 - 0.00000239 * T3;
+                let C1 = (0.1734 - 0.000393 * T) * Math.sin(M * dr) + 0.0021 * Math.sin(2 * dr * M);
+                C1 = C1 - 0.4068 * Math.sin(Mpr * dr) + 0.0161 * Math.sin(dr * 2 * Mpr) - 0.0004 * Math.sin(dr * 3 * Mpr);
+                C1 = C1 + 0.0104 * Math.sin(dr * 2 * F) - 0.0051 * Math.sin(dr * (M + Mpr));
+                C1 = C1 - 0.0074 * Math.sin(dr * (M - Mpr)) + 0.0004 * Math.sin(dr * (2 * F + M));
+                C1 = C1 - 0.0004 * Math.sin(dr * (2 * F - M)) - 0.0006 * Math.sin(dr * (2 * F + Mpr));
+                C1 = C1 + 0.0010 * Math.sin(dr * (2 * F - Mpr)) + 0.0005 * Math.sin(dr * (2 * Mpr + M));
+                let deltat = T < -11
+                    ? 0.001 + 0.000839 * T + 0.0002261 * T2 - 0.00000845 * T3 - 0.000000081 * T * T3
+                    : -0.000278 + 0.000265 * T + 0.000262 * T2;
+                return Math.floor(Jd1 + C1 - deltat + 0.5 + TZ / 24);
+            }
+            function sunLong(jdn) {
+                let T = (jdn - 2451545.5 - TZ / 24) / 36525, T2 = T * T, dr = PI / 180;
+                let M = 357.52910 + 35999.05030 * T - 0.0001559 * T2 - 0.00000048 * T * T2;
+                let L0 = 280.46645 + 36000.76983 * T + 0.0003032 * T2;
+                let DL = (1.914600 - 0.004817 * T - 0.000014 * T2) * Math.sin(dr * M);
+                DL += (0.019993 - 0.000101 * T) * Math.sin(dr * 2 * M) + 0.000290 * Math.sin(dr * 3 * M);
+                let L = (L0 + DL) * dr;
+                L = L - PI * 2 * Math.floor(L / (PI * 2));
+                return Math.floor(L / PI * 6);
+            }
+            function month11(yy) {
+                let k = Math.floor((jdFromDate(31, 12, yy) - 2415021) / 29.530588853);
+                let nm = newMoon(k);
+                if (sunLong(nm) >= 9) nm = newMoon(k - 1);
+                return nm;
+            }
+            function leapOffset(a11) {
+                let k = Math.floor((a11 - 2415021.076998695) / 29.530588853 + 0.5), last = 0, i = 1;
+                let arc = sunLong(newMoon(k + i));
+                do { last = arc; i++; arc = sunLong(newMoon(k + i)); } while (arc !== last && i < 14);
+                return i - 1;
+            }
+            const cache = {};
+            function toLunar(dd, mm, yy) {
+                let ck = dd + '-' + mm + '-' + yy;
+                if (cache[ck]) return cache[ck];
+                let dayNumber = jdFromDate(dd, mm, yy);
+                let k = Math.floor((dayNumber - 2415021.076998695) / 29.530588853);
+                let monthStart = newMoon(k + 1);
+                if (monthStart > dayNumber) monthStart = newMoon(k);
+                let a11 = month11(yy), b11 = a11, lunarYear;
+                if (a11 >= monthStart) { lunarYear = yy; a11 = month11(yy - 1); }
+                else { lunarYear = yy + 1; b11 = month11(yy + 1); }
+                let lunarDay = dayNumber - monthStart + 1;
+                let diff = Math.floor((monthStart - a11) / 29);
+                let leap = 0, lunarMonth = diff + 11;
+                if (b11 - a11 > 365) {
+                    let lmd = leapOffset(a11);
+                    if (diff >= lmd) { lunarMonth = diff + 10; if (diff === lmd) leap = 1; }
+                }
+                if (lunarMonth > 12) lunarMonth -= 12;
+                if (lunarMonth >= 11 && diff < 4) lunarYear -= 1;
+                return (cache[ck] = { day: lunarDay, month: lunarMonth, year: lunarYear, leap: leap });
+            }
+            return { toLunar: toLunar };
+        })();
+
+        function getVNHoliday(date) {
+            let d = date.getDate(), m = date.getMonth() + 1;
+            let solar = VN_HOLIDAYS[d + '/' + m];
+            if (solar) return solar;
+            let lu = VNLunar.toLunar(d, m, date.getFullYear());
+            if (!lu.leap) return VN_LUNAR_HOLIDAYS[lu.day + '/' + lu.month] || null;
+            return null;
+        }
 
         // ==========================================
         // THANH ĐÁY LỊCH: LEGEND HỌC SINH & STATUS BAR (TASK 10.4)
@@ -4798,31 +4893,29 @@
                 },
                 dayCellDidMount: function(arg) {
                     if (arg.view.type !== 'dayGridMonth') return;
-                    let m = arg.date.getMonth() + 1;
-                    let d = arg.date.getDate();
-                    let key = d + '/' + m;
-                    let holidayName = VN_HOLIDAYS[key];
+                    let hol = getVNHoliday(arg.date);
+                    if (!hol) return;
 
-                    // Quốc khánh 1/9, 2/9 & Trung thu 25/9: thêm tranh minh họa
-                    if (d === 1 && m === 9) {
-                        arg.el.classList.add('fc-day-holiday-quockhanh-1');
-                        holidayName = 'Quốc khánh';
-                    } else if (d === 2 && m === 9) {
-                        arg.el.classList.add('fc-day-holiday-quockhanh-2');
-                        holidayName = 'Quốc khánh';
-                    } else if (d === 25 && m === 9) {
-                        arg.el.classList.add('fc-day-festive-lantern');
+                    arg.el.classList.add('fc-day-holiday');
+                    arg.el.style.setProperty('--holiday-tint', hol.tint);
+
+                    // Ảnh chìm minh họa ngày lễ
+                    let frame = arg.el.querySelector('.fc-daygrid-day-frame');
+                    if (frame && !frame.querySelector('.fc-holiday-art-bg')) {
+                        let bg = document.createElement('div');
+                        bg.className = 'fc-holiday-art-bg';
+                        bg.style.backgroundImage = "url('img/holidays/" + hol.img + ".jpg')";
+                        frame.insertBefore(bg, frame.firstChild);
+                        frame.title = hol.full;
                     }
 
-                    if (holidayName) {
-                        let topEl = arg.el.querySelector('.fc-daygrid-day-top');
-                        if (topEl && !topEl.querySelector('.fc-vn-holiday-badge')) {
-                            let holEl = document.createElement('span');
-                            holEl.className = 'fc-vn-holiday-badge';
-                            holEl.title = holidayName;
-                            holEl.innerText = holidayName;
-                            topEl.appendChild(holEl);
-                        }
+                    let topEl = arg.el.querySelector('.fc-daygrid-day-top');
+                    if (topEl && !topEl.querySelector('.fc-vn-holiday-badge')) {
+                        let holEl = document.createElement('span');
+                        holEl.className = 'fc-vn-holiday-badge';
+                        holEl.title = hol.full;
+                        holEl.innerText = hol.name;
+                        topEl.appendChild(holEl);
                     }
                 },
                 events: function(info, successCallback, failureCallback) {
