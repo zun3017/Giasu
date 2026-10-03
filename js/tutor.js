@@ -2878,200 +2878,10 @@ function buildTuitionModalForm(st, studentLogs) {
     if (!st) return;
 
     var state = window.tuitionInvoiceModalState || {};
-    var toggles = state.toggles || {};
-
-    var billableSess = 0;
-    if (studentLogs && Array.isArray(studentLogs)) {
-        studentLogs.forEach(function(log) {
-            if (!log) return;
-            var rawStatus = log.trangThai || log.chuyenCan || log.attendance_status || log.attendance || log.status || "";
-            var normTt = String(rawStatus).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').trim();
-            var isDaBu = (normTt.includes("da bu") || normTt.includes("hoc bu"));
-            var isAbsent = !isDaBu && (
-                normTt.includes("nghi") || 
-                normTt.includes("huy") || 
-                normTt.includes("vang") || 
-                normTt.includes("off") || 
-                normTt.includes("khong hoc") ||
-                normTt.includes("chua hoc") ||
-                normTt.includes("tam hoan") ||
-                normTt === "v" || 
-                normTt === "n" || 
-                normTt === "x"
-            );
-            if (!isAbsent) billableSess++;
-        });
-    }
-    var totalSess = billableSess;
-    var totalHours = (totalSess * 1.5).toFixed(1);
-    var unitFee = getStudentUnitFee(st);
-    var unitFeeStr = unitFee > 0 ? (Number(unitFee).toLocaleString('vi-VN') + " đ") : "--";
-    var classSubjectStr = [st.classLevel, st.subject].filter(Boolean).join(' - ') || 'Gia sư';
 
     var html = '';
 
-    // Box 1: Thông tin học sinh (2 Cột Toggles)
-    html += '<div id="tuitionBoxStudentInfo" class="tuition-card-box">';
-    html += '<div style="font-size: 15px; font-weight: 700; color: #0F172A; margin-bottom: 2px;">Thông tin học sinh</div>';
-    html += '<div style="font-size: 12px; color: #64748B; margin-bottom: 12px;">Chọn thông tin hiển thị trên phiếu</div>';
-    html += '<div class="tuition-toggle-grid">';
-
-    // Card 1: Học sinh
-    html += '<div class="tuition-toggle-card">';
-    html += '  <div>';
-    html += '    <div class="tuition-toggle-label">Học sinh</div>';
-    html += '    <div class="tuition-toggle-val">' + escapeHtml(st.name) + '</div>';
-    html += '  </div>';
-    html += '  <label class="tuition-switch">';
-    html += '    <input type="checkbox" id="toggleStudent" data-key="student"' + (toggles.student !== false ? ' checked' : '') + ' onchange="onTuitionToggleChange(\'toggleStudent\', \'student\')">';
-    html += '    <span class="tuition-slider"></span>';
-    html += '  </label>';
-    html += '</div>';
-
-    // Card 2: Lớp / Môn
-    html += '<div class="tuition-toggle-card">';
-    html += '  <div>';
-    html += '    <div class="tuition-toggle-label">Lớp / Môn</div>';
-    html += '    <div class="tuition-toggle-val">' + escapeHtml(classSubjectStr) + '</div>';
-    html += '  </div>';
-    html += '  <label class="tuition-switch">';
-    html += '    <input type="checkbox" id="toggleClass" data-key="class"' + (toggles.class !== false ? ' checked' : '') + ' onchange="onTuitionToggleChange(\'toggleClass\', \'class\')">';
-    html += '    <span class="tuition-slider"></span>';
-    html += '  </label>';
-    html += '</div>';
-
-    // Card 3: Học phí áp dụng
-    html += '<div class="tuition-toggle-card">';
-    html += '  <div>';
-    html += '    <div class="tuition-toggle-label">Học phí áp dụng</div>';
-    html += '    <div class="tuition-toggle-val">' + unitFeeStr + '</div>';
-    html += '  </div>';
-    html += '  <label class="tuition-switch">';
-    html += '    <input type="checkbox" id="toggleFee" data-key="fee"' + (toggles.fee !== false ? ' checked' : '') + ' onchange="onTuitionToggleChange(\'toggleFee\', \'fee\')">';
-    html += '    <span class="tuition-slider"></span>';
-    html += '  </label>';
-    html += '</div>';
-
-    // Card 4: Số buổi học
-    html += '<div class="tuition-toggle-card">';
-    html += '  <div>';
-    html += '    <div class="tuition-toggle-label">Số buổi học</div>';
-    html += '    <div class="tuition-toggle-val" id="val_toggleSessions">' + totalSess + '</div>';
-    html += '  </div>';
-    html += '  <label class="tuition-switch">';
-    html += '    <input type="checkbox" id="toggleSessions" data-key="sessions"' + (toggles.sessions !== false ? ' checked' : '') + ' onchange="onTuitionToggleChange(\'toggleSessions\', \'sessions\')">';
-    html += '    <span class="tuition-slider"></span>';
-    html += '  </label>';
-    html += '</div>';
-
-    // Card 5: Số giờ tích lũy
-    html += '<div class="tuition-toggle-card">';
-    html += '  <div>';
-    html += '    <div class="tuition-toggle-label">Số giờ tích lũy</div>';
-    html += '    <div class="tuition-toggle-val" id="val_toggleHours">' + totalHours + ' giờ</div>';
-    html += '  </div>';
-    html += '  <label class="tuition-switch">';
-    html += '    <input type="checkbox" id="toggleHours" data-key="hours"' + (toggles.hours !== false ? ' checked' : '') + ' onchange="onTuitionToggleChange(\'toggleHours\', \'hours\')">';
-    html += '    <span class="tuition-slider"></span>';
-    html += '  </label>';
-    html += '</div>';
-
-    // Card 6: Ngày học
-    html += '<div class="tuition-toggle-card">';
-    html += '  <div>';
-    html += '    <div class="tuition-toggle-label">Ngày học</div>';
-    html += '    <div class="tuition-toggle-val">Hiển thị</div>';
-    html += '  </div>';
-    html += '  <label class="tuition-switch">';
-    html += '    <input type="checkbox" id="toggleDates" data-key="dates"' + (toggles.dates !== false ? ' checked' : '') + ' onchange="onTuitionToggleChange(\'toggleDates\', \'dates\')">';
-    html += '    <span class="tuition-slider"></span>';
-    html += '  </label>';
-    html += '</div>';
-
-    // Card 7: Giảm học phí
-    html += '<div class="tuition-toggle-card">';
-    html += '  <div>';
-    html += '    <div class="tuition-toggle-label">Giảm học phí</div>';
-    html += '    <div class="tuition-toggle-val" id="val_toggleDiscount">' + Number(state.discountAmount || 0).toLocaleString('vi-VN') + ' đ</div>';
-    html += '  </div>';
-    html += '  <label class="tuition-switch">';
-    html += '    <input type="checkbox" id="toggleDiscount" data-key="discount"' + (toggles.discount === true ? ' checked' : '') + ' onchange="onTuitionToggleChange(\'toggleDiscount\', \'discount\')">';
-    html += '    <span class="tuition-slider"></span>';
-    html += '  </label>';
-    html += '</div>';
-
-    // Card 8: Phụ thu
-    html += '<div class="tuition-toggle-card">';
-    html += '  <div>';
-    html += '    <div class="tuition-toggle-label">Phụ thu</div>';
-    html += '    <div class="tuition-toggle-val" id="val_toggleSurcharge">' + Number(state.surchargeAmount || 0).toLocaleString('vi-VN') + ' đ</div>';
-    html += '  </div>';
-    html += '  <label class="tuition-switch">';
-    html += '    <input type="checkbox" id="toggleSurcharge" data-key="surcharge"' + (toggles.surcharge === true ? ' checked' : '') + ' onchange="onTuitionToggleChange(\'toggleSurcharge\', \'surcharge\')">';
-    html += '    <span class="tuition-slider"></span>';
-    html += '  </label>';
-    html += '</div>';
-
-    // Card 9: Ảnh QR (Full width)
-    html += '<div class="tuition-toggle-card" style="grid-column: 1 / -1;">';
-    html += '  <div>';
-    html += '    <div class="tuition-toggle-label">Ảnh QR</div>';
-    html += '    <div class="tuition-toggle-val">Có thể tắt trên phiếu này</div>';
-    html += '  </div>';
-    html += '  <label class="tuition-switch">';
-    html += '    <input type="checkbox" id="toggleQr" data-key="qr"' + (toggles.qr !== false ? ' checked' : '') + ' onchange="onTuitionToggleChange(\'toggleQr\', \'qr\')">';
-    html += '    <span class="tuition-slider"></span>';
-    html += '  </label>';
-    html += '</div>';
-
-    var curTmpl = state.template || window.currentTuitionTemplate || 1;
-    if (curTmpl === 2) {
-        // Card 10: Nhận xét học tập
-        html += '<div class="tuition-toggle-card">';
-        html += '  <div>';
-        html += '    <div class="tuition-toggle-label">Nhận xét học tập</div>';
-        html += '    <div class="tuition-toggle-val">' + (toggles.feedback !== false ? 'Hiển thị' : 'Đã ẩn') + '</div>';
-        html += '  </div>';
-        html += '  <label class="tuition-switch">';
-        html += '    <input type="checkbox" id="toggleFeedback" data-key="feedback"' + (toggles.feedback !== false ? ' checked' : '') + ' onchange="onTuitionToggleChange(\'toggleFeedback\', \'feedback\')">';
-        html += '    <span class="tuition-slider"></span>';
-        html += '  </label>';
-        html += '</div>';
-
-        // Card 11: Khung lịch học
-        html += '<div class="tuition-toggle-card">';
-        html += '  <div>';
-        html += '    <div class="tuition-toggle-label">Khung lịch học</div>';
-        html += '    <div class="tuition-toggle-val">' + (toggles.schedule !== false ? 'Hiển thị' : 'Đã ẩn') + '</div>';
-        html += '  </div>';
-        html += '  <label class="tuition-switch">';
-        html += '    <input type="checkbox" id="toggleSchedule" data-key="schedule"' + (toggles.schedule !== false ? ' checked' : '') + ' onchange="onTuitionToggleChange(\'toggleSchedule\', \'schedule\')">';
-        html += '    <span class="tuition-slider"></span>';
-        html += '  </label>';
-        html += '</div>';
-    }
-
-    html += '</div>'; // End .tuition-toggle-grid
-
-    // Input for discount
-    html += '<div id="wrapperDiscountInput" style="display: ' + (toggles.discount === true ? 'block' : 'none') + '; margin-top: 10px; padding: 10px 12px; background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 10px;">';
-    html += '<div style="font-size: 11px; font-weight: 600; color: #64748B; margin-bottom: 4px;">Số tiền giảm trừ học phí:</div>';
-    html += '<div style="display: flex; align-items: center; gap: 8px;">';
-    html += '<input type="text" inputmode="numeric" class="currency-input" id="inputDiscountFee" value="' + (state.discountAmount ? formatNumberWithDots(state.discountAmount) : '') + '" placeholder="0" oninput="formatCurrencyInput(this); onTuitionFeeAdjustmentChange()" style="flex: 1; background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 8px; padding: 6px 10px; color: #EA580C; font-weight: 700; font-size: 13px; outline: none;">';
-    html += '<span style="font-size: 12px; color: #64748B; font-weight: 600;">VNĐ</span>';
-    html += '</div></div>';
-
-    // Input for surcharge
-    html += '<div id="wrapperSurchargeInput" style="display: ' + (toggles.surcharge === true ? 'block' : 'none') + '; margin-top: 10px; padding: 10px 12px; background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 10px;">';
-    html += '<div style="font-size: 11px; font-weight: 600; color: #64748B; margin-bottom: 4px;">Số tiền phụ thu thêm:</div>';
-    html += '<div style="display: flex; align-items: center; gap: 8px;">';
-    html += '<input type="text" inputmode="numeric" class="currency-input" id="inputSurchargeFee" value="' + (state.surchargeAmount ? formatNumberWithDots(state.surchargeAmount) : '') + '" placeholder="0" oninput="formatCurrencyInput(this); onTuitionFeeAdjustmentChange()" style="flex: 1; background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 8px; padding: 6px 10px; color: #16A34A; font-weight: 700; font-size: 13px; outline: none;">';
-    html += '<span style="font-size: 12px; color: #64748B; font-weight: 600;">VNĐ</span>';
-    html += '</div></div>';
-
-    html += '</div>'; // End Box 1
-
-    // Box 2: Thông tin kỳ học
+    // Box 1: Thông tin kỳ học
     html += '<div id="tuitionBoxPeriodInfo" class="tuition-card-box">';
     html += '<div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">';
     html += '<span style="background: #7C3AED; color: #FFFFFF; font-size: 11px; font-weight: 800; padding: 2px 7px; border-radius: 6px;">01</span>';
@@ -11463,12 +11273,6 @@ var tabOnboardingSteps = {
             placement: 'bottom'
         },
         {
-            target: '#tuitionBoxStudentInfo',
-            title: '⚙️ Bật / Tắt Các Mục Hiển Thị',
-            desc: 'Chủ động bật hoặc tắt các thông tin bạn muốn hiển thị trên phiếu: Tên học sinh, Lớp/Môn, Học phí, Số buổi học, Ngày học, Chiết khấu, Phụ thu và Mã QR.',
-            placement: 'right'
-        },
-        {
             target: '#tuitionBoxPeriodInfo',
             title: '📅 Kỳ Học & Tự Động Tính Học Phí',
             desc: 'Chọn khoảng thời gian (Từ ngày - Đến ngày) để hệ thống tự đếm số buổi học, số giờ và tính học phí chính xác; hoặc tùy chỉnh tiêu đề kỳ học theo ý bạn.',
@@ -11640,12 +11444,6 @@ var tabOnboardingStepsMobile = {
             target: '.tuition-template-pills',
             title: '🎨 Chọn Mẫu Phiếu Học Tập',
             desc: 'Chuyển đổi linh hoạt giữa Mẫu 1 (chi tiết từng buổi học, chuyên cần, bài tập về nhà) và Mẫu 2 (tinh gọn, hiện đại, hiển thị lịch học và mã QR thanh toán).',
-            placement: 'bottom'
-        },
-        {
-            target: '#tuitionBoxStudentInfo',
-            title: '⚙️ Bật / Tắt Các Mục Hiển Thị',
-            desc: 'Chủ động bật hoặc tắt các thông tin bạn muốn hiển thị trên phiếu: Tên học sinh, Lớp/Môn, Học phí, Số buổi học, Ngày học, Chiết khấu, Phụ thu và Mã QR.',
             placement: 'bottom'
         },
         {
