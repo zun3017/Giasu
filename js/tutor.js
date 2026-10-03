@@ -11370,7 +11370,7 @@ var tabOnboardingSteps = {
         {
             target: '#tuitionInvoicePreviewCol',
             title: '👁️ Xem Trước Trực Tiếp (Live Preview)',
-            desc: 'Phiếu học phí tự động cập nhật ngay khi bạn thay đổi thông tin ở cột trái. Với Mẫu 2, bạn còn có thể nhấp trực tiếp vào phần nhận xét để sửa lời dặn dò!',
+            desc: 'Phiếu học tập tự động cập nhật ngay khi bạn thay đổi thông tin ở cột trái. Với Mẫu 2, bạn còn có thể nhấp trực tiếp vào phần nhận xét để sửa lời dặn dò!',
             placement: 'left'
         },
         {
@@ -11387,6 +11387,195 @@ var tabOnboardingSteps = {
         }
     ]
 };
+
+// Hướng dẫn riêng biệt chuẩn theo giao diện Điện thoại (Mobile)
+var tabOnboardingStepsMobile = {
+    overview: [
+        {
+            target: '#tutorKpiGrid',
+            title: '📊 Chỉ số Tổng quan',
+            desc: 'Theo dõi nhanh tổng số học sinh, số buổi đã dạy, tổng giờ dạy và học phí dự kiến trong tháng ngay trên màn hình chính.',
+            placement: 'bottom'
+        },
+        {
+            target: '.tutor-mobile-menu-btn',
+            title: '☰ Menu Quản Lý Lớp Học',
+            desc: 'Chạm vào nút Menu 3 gạch ở góc trên bên trái để mở danh mục các mục: Báo cáo, Nhật ký, Lịch dạy, Học sinh và Học phí.',
+            placement: 'bottom'
+        },
+        {
+            target: '#mobileBtnTheme, #sidebarBtnTheme',
+            title: '🎨 Đổi Giao Diện & Màu Sắc',
+            desc: 'Chạm vào biểu tượng bảng màu ở góc trên để chọn hơn 30 phong cách giao diện (Sáng, Tối, Pastel, Hiện đại...) theo sở thích cá nhân.',
+            placement: 'bottom'
+        },
+        {
+            target: '#mobileBtnAccount, #sidebarBtnAccount',
+            title: '👤 Quản Lý Tài Khoản & VietQR',
+            desc: 'Chạm vào biểu tượng tài khoản để cập nhật họ tên, ảnh đại diện và ảnh mã QR ngân hàng để tự động tạo mã VietQR trên phiếu học tập.',
+            placement: 'bottom'
+        },
+        {
+            target: '#mobileBtnSettings, #sidebarBtnSettings',
+            title: '⚙️ Cài Đặt & Hướng Dẫn',
+            desc: 'Chạm vào biểu tượng bánh răng để bật/tắt chuông báo hoặc xem lại hướng dẫn sử dụng của bất kỳ mục nào mỗi khi bạn cần.',
+            placement: 'bottom'
+        },
+        {
+            target: '#tutorUpcomingScheduleBox',
+            title: '📅 Lịch Dạy Sắp Tới',
+            desc: 'Xem nhanh danh sách các ca dạy hôm nay và ngày mai được sắp xếp gọn gàng theo dạng thẻ trên điện thoại.',
+            placement: 'top'
+        },
+        {
+            target: '#revenueBarChartBox',
+            title: '📈 Thống Kê & Biểu Đồ',
+            desc: 'Vuốt xuống dưới để xem biểu đồ trực quan hóa doanh thu và số giờ dạy theo từng tháng giúp bạn dễ dàng theo dõi tiến độ.',
+            placement: 'top'
+        }
+    ],
+    reports: [
+        {
+            target: '.report-filter-toolbar',
+            title: '📊 Bộ Lọc Báo Cáo',
+            desc: 'Chọn khoảng thời gian (Từ ngày - Đến ngày) và chọn học sinh cụ thể để tổng hợp kết quả học tập.',
+            placement: 'bottom'
+        },
+        {
+            target: '.report-actions',
+            title: '📸 Xuất Báo Cáo Gửi Phụ Huynh',
+            desc: 'Chạm để xuất ảnh PNG sắc nét hoặc tải file PDF để gửi trực tiếp cho phụ huynh qua Zalo, Messenger.',
+            placement: 'bottom'
+        },
+        {
+            target: '#reportPreviewContainer',
+            title: '👁️ Xem Trước Báo Cáo Trực Quan',
+            desc: 'Vuốt xuống dưới để xem toàn bộ nhận xét, số buổi học, tỷ lệ chuyên cần và biểu đồ điểm số trước khi xuất.',
+            placement: 'top'
+        }
+    ],
+    diary: [
+        {
+            target: '.diary-filters',
+            title: '🔍 Bộ Lọc Nhật Ký Buổi Học',
+            desc: 'Lọc lịch sử bài giảng theo từng học sinh và theo tháng để theo dõi tiến độ chi tiết.',
+            placement: 'bottom'
+        },
+        {
+            target: '#tutorQuickAnnouncementWidget',
+            title: '📢 Thông Báo Nhanh Cho Phụ Huynh',
+            desc: 'Chạm để gửi tin nhắn, lời dặn dò hoặc thông báo dời/nghỉ học nhanh chóng đến phụ huynh và học sinh.',
+            placement: 'bottom'
+        },
+        {
+            target: '#tutorHomeworkSection',
+            title: '📝 Quản Lý Bài Tập Về Nhà',
+            desc: 'Giao bài tập mới (đính kèm ảnh, file Word/PDF hoặc liên kết), hẹn ngày nộp bài và xem, chấm điểm bài học sinh đã nộp.',
+            placement: 'bottom'
+        },
+        {
+            target: '.schedule-section',
+            title: '📋 Lịch Sử Học & Thêm Buổi Học',
+            desc: 'Chạm nút "Thêm buổi học" để điểm danh, ghi nhận xét bài giảng và chấm điểm buổi học cho học sinh.',
+            placement: 'top'
+        }
+    ],
+    calendar: [
+        {
+            target: '.calendar-embed-wrapper',
+            title: '📅 Bảng Lịch Dạy Dạng Di Động',
+            desc: 'Xem trực quan toàn bộ các ca dạy trong tuần và tháng với màu sắc riêng biệt cho từng em học sinh, tối ưu hiển thị vừa vặn trên điện thoại.',
+            placement: 'bottom'
+        },
+        {
+            target: '#tutorCalendarIframe',
+            title: '⚡ Thao Tác Trực Tiếp Trên Lịch',
+            desc: 'Chạm vào bất kỳ ca học nào để xem chi tiết, đổi giờ dạy, đổi ngày học hoặc báo nghỉ một cách nhanh chóng.',
+            placement: 'top'
+        }
+    ],
+    students: [
+        {
+            target: '.students-toolbar-actions',
+            title: '➕ Thêm & Quản Lý Học Sinh',
+            desc: 'Chạm "Thêm học sinh" để nhập thông tin học sinh mới, hoặc vào "Thùng rác" để khôi phục học sinh đã xóa.',
+            placement: 'bottom'
+        },
+        {
+            target: '#tutorStudentsGrid',
+            title: '📇 Danh Sách Thẻ Học Sinh',
+            desc: 'Mỗi thẻ hiển thị tiến độ bài học, chuyên cần, lịch học, ghi chú và các nút thao tác: Sửa thông tin, Vào nhật ký hoặc Phiếu học phí.',
+            placement: 'top'
+        }
+    ],
+    tuition: [
+        {
+            target: '.tuition-filters',
+            title: '📅 Lọc Kỳ Học Phí',
+            desc: 'Chọn xem học phí theo từng tháng hoặc tất cả các tháng để theo dõi thu chi rõ ràng.',
+            placement: 'bottom'
+        },
+        {
+            target: '.tuition-banner-grid',
+            title: '💰 3 Thẻ Tổng Quan Thu Nhập',
+            desc: 'Theo dõi tổng thu dự kiến, tổng tiền đã thanh toán và khoản học phí còn phải thu.',
+            placement: 'bottom'
+        },
+        {
+            target: '#tuitionMobileList, #tuitionTable',
+            title: '🧾 Danh Sách Học Phí Dạng Thẻ',
+            desc: 'Xem tình trạng đóng học phí từng học sinh trên điện thoại, chạm nút "Hóa đơn" để tạo phiếu học tập kèm mã VietQR gửi phụ huynh.',
+            placement: 'top'
+        }
+    ],
+    invoice: [
+        {
+            target: '.tuition-template-pills',
+            title: '🎨 Chọn Mẫu Phiếu Học Tập',
+            desc: 'Chuyển đổi linh hoạt giữa Mẫu 1 (chi tiết từng buổi học, chuyên cần, bài tập về nhà) và Mẫu 2 (tinh gọn, hiện đại, hiển thị lịch học và mã QR thanh toán).',
+            placement: 'bottom'
+        },
+        {
+            target: '#tuitionBoxStudentInfo',
+            title: '⚙️ Bật / Tắt Các Mục Hiển Thị',
+            desc: 'Chủ động bật hoặc tắt các thông tin bạn muốn hiển thị trên phiếu: Tên học sinh, Lớp/Môn, Học phí, Số buổi học, Ngày học, Chiết khấu, Phụ thu và Mã QR.',
+            placement: 'bottom'
+        },
+        {
+            target: '#tuitionBoxPeriodInfo',
+            title: '📅 Kỳ Học & Tự Động Tính Học Phí',
+            desc: 'Chọn khoảng thời gian (Từ ngày - Đến ngày) để hệ thống tự đếm số buổi học, số giờ và tính học phí chính xác.',
+            placement: 'bottom'
+        },
+        {
+            target: '#tuitionInvoicePreviewCol',
+            title: '👁️ Xem Trước Trực Tiếp Phiếu Học Tập',
+            desc: 'Cuộn xuống dưới để xem trước phiếu học tập tự động cập nhật ngay khi bạn thay đổi thông tin. Với Mẫu 2, bạn có thể chạm trực tiếp vào phần nhận xét để sửa lời dặn dò!',
+            placement: 'top'
+        },
+        {
+            target: '#btnTuitionPromptAI',
+            title: '✨ Nút Tạo Prompt AI Nhận Xét',
+            desc: 'Tự động tổng hợp dữ liệu 30 ngày qua (điểm số, chuyên cần, bài tập) thành mẫu Prompt AI hoàn chỉnh chuẩn bố cục 3 phần. Chỉ cần chạm để sao chép rồi dán vào ChatGPT / Gemini trên điện thoại!',
+            placement: 'top'
+        },
+        {
+            target: '.tuition-modal-footer',
+            title: '🚀 Xuất Phiếu & Gửi Phụ Huynh',
+            desc: 'Dễ dàng "Lưu bản nháp" để sửa tiếp sau này, "Xuất PDF", hoặc chạm "Copy ảnh" để dán gửi ngay cho phụ huynh qua Zalo, Messenger.',
+            placement: 'top'
+        }
+    ]
+};
+
+function getTabOnboardingSteps(tabKey) {
+    var isMobile = (window.innerWidth <= 768);
+    if (isMobile && tabOnboardingStepsMobile && tabOnboardingStepsMobile[tabKey]) {
+        return tabOnboardingStepsMobile[tabKey];
+    }
+    return tabOnboardingSteps[tabKey] || [];
+}
+window.getTabOnboardingSteps = getTabOnboardingSteps;
 
 function getCurrentActiveTutorTab() {
     var invModal = document.getElementById('tutorTuitionInvoiceModal');
@@ -11409,7 +11598,8 @@ function getCurrentActiveTutorTab() {
 window.getCurrentActiveTutorTab = getCurrentActiveTutorTab;
 
 function shouldShowTabOnboarding(tabKey) {
-    if (!tabOnboardingSteps[tabKey] || tabOnboardingSteps[tabKey].length === 0) return false;
+    var steps = getTabOnboardingSteps(tabKey);
+    if (!steps || steps.length === 0) return false;
     var phone = (tutorDataGlobal && tutorDataGlobal.tutorPhone) ? tutorDataGlobal.tutorPhone : (currentTutorPhone || 'default');
     if (tabKey === 'overview' && localStorage.getItem('tutorOnboarded_' + phone) === 'true') {
         return false;
@@ -11424,12 +11614,13 @@ function shouldShowOnboarding() {
 window.shouldShowOnboarding = shouldShowOnboarding;
 
 function startTabOnboarding(tabKey, force) {
-    if (!tabOnboardingSteps[tabKey] || tabOnboardingSteps[tabKey].length === 0) return;
+    var steps = getTabOnboardingSteps(tabKey);
+    if (!steps || steps.length === 0) return;
     if (!force && !shouldShowTabOnboarding(tabKey)) return;
 
     currentOnboardingTab = tabKey;
     currentOnboardingStep = 0;
-    onboardingSteps = tabOnboardingSteps[tabKey];
+    onboardingSteps = steps;
 
     var overlay = document.getElementById('onboardingOverlay');
     if (overlay) overlay.style.display = 'block';
@@ -11446,13 +11637,36 @@ function startOnboarding() {
 }
 window.startOnboarding = startOnboarding;
 
+function isElementVisibleInViewportFlow(el) {
+    if (!el) return false;
+    var style = window.getComputedStyle(el);
+    if (style.display === 'none' || style.visibility === 'hidden' || style.opacity === '0') {
+        return false;
+    }
+    var rect = el.getBoundingClientRect();
+    if (rect.width <= 0 || rect.height <= 0) return false;
+    // Bỏ qua các phần tử bị ẩn lệch hoàn toàn ra ngoài lề trái hoặc lề phải (ví dụ sidebar desktop trên mobile có left: -290px)
+    if (rect.right <= 0 || rect.left >= window.innerWidth) {
+        return false;
+    }
+    return true;
+}
+
 function getOnboardingTargetElement(targetSelector) {
     if (!targetSelector) return null;
     var els = document.querySelectorAll(targetSelector);
+    // Ưu tiên phần tử thực sự hiển thị trên màn hình hiện tại (Mobile/Desktop)
     for (var i = 0; i < els.length; i++) {
         var el = els[i];
-        if (el && el.offsetParent !== null && el.getBoundingClientRect().height > 0) {
+        if (isElementVisibleInViewportFlow(el)) {
             return el;
+        }
+    }
+    // Dự phòng kiểm tra offsetParent & chiều cao > 0
+    for (var j = 0; j < els.length; j++) {
+        var el2 = els[j];
+        if (el2 && el2.offsetParent !== null && el2.getBoundingClientRect().height > 0) {
+            return el2;
         }
     }
     return document.querySelector(targetSelector);
@@ -11486,7 +11700,8 @@ function updateOnboardingPositions() {
         return;
     }
 
-    var pad = 8;
+    var isMobile = (window.innerWidth <= 768);
+    var pad = isMobile ? 6 : 8;
 
     // Khoét lỗ sáng trực tiếp quanh phần tử mục tiêu (sáng rõ nét 100%, không mờ che chữ)
     if (spotlight) {
@@ -11495,25 +11710,45 @@ function updateOnboardingPositions() {
         spotlight.style.left = Math.max(0, rect.left - pad) + 'px';
         spotlight.style.width = (rect.width + pad * 2) + 'px';
         spotlight.style.height = (rect.height + pad * 2) + 'px';
+        if (isMobile && rect.width < 50 && rect.height < 50 && Math.abs(rect.width - rect.height) < 12) {
+            spotlight.style.borderRadius = '50%';
+        } else {
+            spotlight.style.borderRadius = isMobile ? '12px' : '16px';
+        }
     }
 
     // Căn vị trí Tooltip
-    var tooltipWidth = Math.min(380, window.innerWidth - 40);
-    var tooltipHeight = tooltip.offsetHeight || 180;
     tooltip.style.transform = 'none';
 
-    if (window.innerWidth <= 768) {
-        tooltip.style.top = 'auto';
-        tooltip.style.bottom = '20px';
-        tooltip.style.left = '20px';
-        tooltip.style.right = '20px';
-        tooltip.style.width = 'calc(100vw - 40px)';
+    if (isMobile) {
+        var viewportHeight = window.innerHeight;
+        var tooltipH = tooltip.offsetHeight || 160;
+        var targetCenterY = rect.top + (rect.height / 2);
+
+        // Nếu phần tử mục tiêu nằm ở nửa dưới màn hình hoặc chiếm đáy:
+        // Đặt tooltip ở phía TRÊN đỉnh màn hình (top: 16px) để KHÔNG che lấp phần tử đang hướng dẫn!
+        if (targetCenterY > viewportHeight * 0.45 || rect.bottom > viewportHeight - tooltipH - 24) {
+            tooltip.style.top = '16px';
+            tooltip.style.bottom = 'auto';
+        } else {
+            // Ngược lại nếu mục tiêu ở phía trên (menu bar, header...), đặt tooltip ở ĐÁY (bottom: 16px)
+            tooltip.style.top = 'auto';
+            tooltip.style.bottom = '16px';
+        }
+        tooltip.style.left = '16px';
+        tooltip.style.right = '16px';
+        tooltip.style.width = 'calc(100vw - 32px)';
+        tooltip.style.maxWidth = 'calc(100vw - 32px)';
         return;
     }
 
+    // --- Căn vị trí Tooltip trên Desktop ---
+    var tooltipWidth = Math.min(380, window.innerWidth - 40);
+    var tooltipHeight = tooltip.offsetHeight || 180;
     tooltip.style.bottom = 'auto';
     tooltip.style.right = 'auto';
     tooltip.style.width = tooltipWidth + 'px';
+    tooltip.style.maxWidth = '380px';
 
     var top = 0;
     var left = 0;
@@ -11585,8 +11820,43 @@ function showOnboardingStep(idx) {
 
     if (targetEl) {
         try {
-            targetEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            var isMobile = (window.innerWidth <= 768);
+            if (isMobile && targetEl.closest && targetEl.closest('.tutor-mobile-header')) {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            } else {
+                targetEl.scrollIntoView({ 
+                    behavior: 'smooth', 
+                    block: isMobile ? 'center' : 'nearest' 
+                });
+            }
         } catch(e) {}
+    }
+
+    // Đính kèm touch swipe trên điện thoại nếu chưa có
+    var tooltip = document.getElementById('onboardingTooltip');
+    if (tooltip && !tooltip.dataset.hasSwipeListener) {
+        tooltip.dataset.hasSwipeListener = 'true';
+        var touchStartX = 0;
+        var touchStartY = 0;
+        tooltip.addEventListener('touchstart', function(e) {
+            if (e.changedTouches && e.changedTouches[0]) {
+                touchStartX = e.changedTouches[0].clientX;
+                touchStartY = e.changedTouches[0].clientY;
+            }
+        }, { passive: true });
+        tooltip.addEventListener('touchend', function(e) {
+            if (e.changedTouches && e.changedTouches[0]) {
+                var diffX = e.changedTouches[0].clientX - touchStartX;
+                var diffY = e.changedTouches[0].clientY - touchStartY;
+                if (Math.abs(diffX) > 45 && Math.abs(diffX) > Math.abs(diffY) * 1.4) {
+                    if (diffX < 0) {
+                        nextOnboardingStep();
+                    } else {
+                        prevOnboardingStep();
+                    }
+                }
+            }
+        }, { passive: true });
     }
 
     updateOnboardingPositions();
@@ -11644,7 +11914,13 @@ function restartOnboarding(resetAll) {
     var phone = (tutorDataGlobal && tutorDataGlobal.tutorPhone) ? tutorDataGlobal.tutorPhone : (currentTutorPhone || 'default');
     
     if (resetAll) {
-        Object.keys(tabOnboardingSteps).forEach(function(k) {
+        var allKeys = Object.keys(tabOnboardingSteps);
+        if (typeof tabOnboardingStepsMobile === 'object') {
+            Object.keys(tabOnboardingStepsMobile).forEach(function(k) {
+                if (allKeys.indexOf(k) === -1) allKeys.push(k);
+            });
+        }
+        allKeys.forEach(function(k) {
             localStorage.removeItem('tutorOnboarded_' + k + '_' + phone);
         });
         localStorage.removeItem('tutorOnboarded_' + phone);
@@ -11669,5 +11945,6 @@ function startInvoiceOnboarding(force) {
     }
 }
 window.startInvoiceOnboarding = startInvoiceOnboarding;
+
 
 
