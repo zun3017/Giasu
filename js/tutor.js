@@ -901,9 +901,6 @@ function renderRevenueBarChart(selM, selY) {
     var period = periodSelect ? parseInt(periodSelect.value, 10) : 12;
     if (isNaN(period) || period <= 0) period = 12;
 
-    var typeSelect = document.getElementById('revenueTypeFilter');
-    var chartType = typeSelect ? typeSelect.value : 'bar';
-
     var yearSelect = document.getElementById('revenueYearFilter');
     // If selY passed (e.g. from top month navigator), sync year select if available
     if (selY && yearSelect) {
@@ -1000,8 +997,6 @@ function renderRevenueBarChart(selM, selY) {
 
     var maxVal = Math.max.apply(null, dataValues);
     if (maxVal <= 0) maxVal = 2000000;
-    var trackHeight = maxVal * 1.08;
-    var trackData = labels.map(function() { return trackHeight; });
 
     var ctx = canvasEl.getContext('2d');
     if (revenueBarChartInstance) {
@@ -1009,14 +1004,12 @@ function renderRevenueBarChart(selM, selY) {
         revenueBarChartInstance = null;
     }
 
-    var isLine = (chartType === 'line');
-
-    // Top data labels plugin matching Image 2 for both Bar and Line charts
+    // Top data labels plugin (Biểu đồ đường - hiển thị số tiền phía trên mỗi điểm)
     var topLabelsPlugin = {
         id: 'topDataLabels',
         afterDatasetsDraw: function(chart) {
             var c = chart.ctx;
-            var meta = chart.getDatasetMeta(isLine ? 0 : 1);
+            var meta = chart.getDatasetMeta(0);
             if (!meta || !meta.data) return;
 
             c.save();
@@ -1024,14 +1017,6 @@ function renderRevenueBarChart(selM, selY) {
             c.textAlign = 'center';
             c.textBaseline = 'bottom';
             c.fillStyle = '#94A3B8';
-
-            var labelY = 16;
-            if (!isLine) {
-                var trackMeta = chart.getDatasetMeta(0);
-                labelY = (trackMeta && trackMeta.data && trackMeta.data[0]) 
-                    ? Math.max(trackMeta.data[0].y - 4, 14) 
-                    : 16;
-            }
 
             meta.data.forEach(function(item, idx) {
                 var v = dataValues[idx] || 0;
@@ -1043,71 +1028,37 @@ function renderRevenueBarChart(selM, selY) {
                 } else {
                     text = (v / 1000).toFixed(0) + 'k';
                 }
-                var yPos = isLine ? (item.y - 8) : labelY;
-                c.fillText(text, item.x, yPos);
+                c.fillText(text, item.x, item.y - 8);
             });
             c.restore();
         }
     };
 
-    var barPct = (period === 12) ? 0.76 : (period === 6 ? 0.50 : 0.32);
-    var catPct = (period === 12) ? 0.88 : (period === 6 ? 0.72 : 0.50);
-
     var themeComp = getComputedStyle(document.documentElement);
     var chartThemeBar = (themeComp.getPropertyValue('--chart-bar') || '#4A72E8').trim();
     var chartThemeRgb = (themeComp.getPropertyValue('--chart-bar-rgb') || '74, 114, 232').trim();
 
-    var datasets = [];
-    if (isLine) {
-        var lineGrad = ctx.createLinearGradient(0, 0, 0, 220);
-        lineGrad.addColorStop(0, 'rgba(' + chartThemeRgb + ', 0.40)');
-        lineGrad.addColorStop(1, 'rgba(' + chartThemeRgb + ', 0.02)');
+    var lineGrad = ctx.createLinearGradient(0, 0, 0, 220);
+    lineGrad.addColorStop(0, 'rgba(' + chartThemeRgb + ', 0.38)');
+    lineGrad.addColorStop(1, 'rgba(' + chartThemeRgb + ', 0.01)');
 
-        datasets = [{
-            label: 'Doanh thu',
-            data: dataValues,
-            borderColor: chartThemeBar,
-            borderWidth: 3,
-            backgroundColor: lineGrad,
-            fill: true,
-            tension: 0.35,
-            pointBackgroundColor: chartThemeBar,
-            pointBorderColor: '#FFFFFF',
-            pointBorderWidth: 2,
-            pointRadius: 4.5,
-            pointHoverRadius: 7
-        }];
-    } else {
-        datasets = [
-            {
-                label: 'Track',
-                data: trackData,
-                backgroundColor: 'rgba(' + chartThemeRgb + ', 0.16)',
-                hoverBackgroundColor: 'rgba(' + chartThemeRgb + ', 0.16)',
-                borderRadius: 8,
-                borderSkipped: false,
-                barPercentage: barPct,
-                categoryPercentage: catPct,
-                grouped: false,
-                order: 2
-            },
-            {
-                label: 'Doanh thu',
-                data: dataValues,
-                backgroundColor: chartThemeBar,
-                hoverBackgroundColor: chartThemeBar,
-                borderRadius: 8,
-                borderSkipped: false,
-                barPercentage: barPct,
-                categoryPercentage: catPct,
-                grouped: false,
-                order: 1
-            }
-        ];
-    }
+    var datasets = [{
+        label: 'Doanh thu',
+        data: dataValues,
+        borderColor: chartThemeBar,
+        borderWidth: 3,
+        backgroundColor: lineGrad,
+        fill: true,
+        tension: 0.35,
+        pointBackgroundColor: chartThemeBar,
+        pointBorderColor: '#FFFFFF',
+        pointBorderWidth: 2,
+        pointRadius: 4.5,
+        pointHoverRadius: 7
+    }];
 
     revenueBarChartInstance = new Chart(ctx, {
-        type: isLine ? 'line' : 'bar',
+        type: 'line',
         plugins: [topLabelsPlugin],
         data: {
             labels: labels,
@@ -1115,7 +1066,7 @@ function renderRevenueBarChart(selM, selY) {
         },
         options: {
             animation: {
-                duration: 1500,
+                duration: 1200,
                 easing: 'easeOutQuart'
             },
             responsive: true,
@@ -1134,10 +1085,6 @@ function renderRevenueBarChart(selM, selY) {
                     borderWidth: 1,
                     padding: 10,
                     displayColors: false,
-                    filter: function(tooltipItem) {
-                        if (isLine) return true;
-                        return tooltipItem.datasetIndex === 1;
-                    },
                     callbacks: {
                         label: function(context) {
                             return 'Doanh thu: ' + Number(context.parsed.y).toLocaleString('vi-VN') + ' đ';

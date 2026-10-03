@@ -915,18 +915,13 @@
                         </div>
                     </div>
                     
-                    <!-- 3 Dropdown Filters in separate row below total (White rounded pills as in Image 2) -->
+                    <!-- 2 Dropdown Filters in separate row below total (White rounded pills) -->
                     <div class="overview-chart-filters" style="display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap;">
                         <!-- Khoảng thời gian -->
                         <select class="chart-filter-select-img2" id="revenuePeriodFilter" onchange="updateRevenueBarChart()" title="Khoảng thời gian">
                             <option value="12" selected>12 tháng</option>
                             <option value="6">6 tháng</option>
                             <option value="3">3 tháng</option>
-                        </select>
-                        <!-- Loại biểu đồ -->
-                        <select class="chart-filter-select-img2" id="revenueTypeFilter" onchange="updateRevenueBarChart()" title="Loại biểu đồ">
-                            <option value="bar" selected>Biểu đồ cột</option>
-                            <option value="line">Biểu đồ đường</option>
                         </select>
                         <!-- Năm -->
                         <select class="chart-filter-select-img2" id="revenueYearFilter" onchange="updateRevenueBarChart()" title="Năm">
@@ -3083,7 +3078,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="js/api.js?v=20261002_v16"></script>
-    <script src="js/tutor.js?v=20261002_v18"></script>
+    <script src="js/tutor.js?v=20261003_linechart"></script>
     <script>
         function toggleTutorMobileSidebar(force) {
             var sidebar = document.getElementById('tutorSidebar');
