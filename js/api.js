@@ -1,15 +1,15 @@
-/**
+﻿/**
  * ============================================================================
- * SUPABASE API GATEWAY - PHÂN VÙNG: HỆ THỐNG GIA SƯ 1-1 (SCOPE: GIASU)
+ * SUPABASE API GATEWAY - PHÃ‚N VÃ™NG: Há»† THá»NG GIA SÆ¯ 1-1 (SCOPE: GIASU)
  * ============================================================================
- * - Độc lập 100% với Web Lớp Học, toàn bộ bảng mang tiền tố gs_*
- * - Tương thích 100% với toàn bộ hàm gọi từ Google Apps Script (Tutor, Student, Admin)
- * - Tự động nạp dữ liệu gốc từ Supabase
- * - Kế thừa đầy đủ: Xóa mềm, Thùng rác, và Tự động hủy sau 10 ngày.
+ * - Äá»™c láº­p 100% vá»›i Web Lá»›p Há»c, toÃ n bá»™ báº£ng mang tiá»n tá»‘ gs_*
+ * - TÆ°Æ¡ng thÃ­ch 100% vá»›i toÃ n bá»™ hÃ m gá»i tá»« Google Apps Script (Tutor, Student, Admin)
+ * - Tá»± Ä‘á»™ng náº¡p dá»¯ liá»‡u gá»‘c tá»« Supabase
+ * - Káº¿ thá»«a Ä‘áº§y Ä‘á»§: XÃ³a má»m, ThÃ¹ng rÃ¡c, vÃ  Tá»± Ä‘á»™ng há»§y sau 10 ngÃ y.
  */
 
 const APP_CONFIG = {
-    APP_NAME: 'Hệ Thống Gia Sư',
+    APP_NAME: 'Há»‡ Thá»‘ng Gia SÆ°',
     SCOPE: 'giasu',
     SUPABASE_URL: 'https://iefnuwhdvzxomusvfuqz.supabase.co',
     SUPABASE_KEY: 'sb_publishable_TSuZENBNGAJIzsnLyCAauQ_Z-KVZKlZ',
@@ -23,19 +23,24 @@ const APP_CONFIG = {
         FEEDBACKS: 'gs_feedbacks',
         ADMINS: 'gs_admins'
     },
-    // URL Google Apps Script Web App của bạn để tự động lưu bài nộp vào Google Drive
+    // URL Google Apps Script Web App cá»§a báº¡n Ä‘á»ƒ tá»± Ä‘á»™ng lÆ°u bÃ i ná»™p vÃ o Google Drive
     DRIVE_UPLOAD_URL: 'https://script.google.com/macros/s/AKfycbwQZA0UlCibTKjuq0AIJM1kfQjKwPbiIKE7-VfDjpiizjU-gaxJBuYOLTKdTmnETjbd/exec',
     SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbwQZA0UlCibTKjuq0AIJM1kfQjKwPbiIKE7-VfDjpiizjU-gaxJBuYOLTKdTmnETjbd/exec',
     HOMEWORK_DRIVE_FOLDER: 'https://drive.google.com/drive/folders/1cGu7nt0K0paWCg-9nlHgqxVp0I_6h8M8?usp=drive_link',
     ASSIGNMENT_DRIVE_FOLDER: 'https://drive.google.com/drive/folders/11z6CIwULBhR6CKcUzhvHDaTMjiUA7Iiu?usp=drive_link'
 };
 
-const HEADERS = {
-    'apikey': APP_CONFIG.SUPABASE_KEY,
-    'Authorization': `Bearer ${APP_CONFIG.SUPABASE_KEY}`,
-    'Content-Type': 'application/json',
-    'Prefer': 'return=representation'
-};
+function getHeaders() {
+    return {
+        'apikey': APP_CONFIG.SUPABASE_KEY,
+        'Authorization': `Bearer ${APP_CONFIG.SUPABASE_KEY}`,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=representation',
+        'x-giasu-phone': sessionStorage.getItem('userPhone') || (window.tempAuth ? window.tempAuth.phone : ''),
+        'x-giasu-pin': sessionStorage.getItem('userPin') || (window.tempAuth ? window.tempAuth.pin : ''),
+        'x-giasu-role': sessionStorage.getItem('userRole') || ''
+    };
+}
 
 function normalizePhone(p) {
     if (!p) return "";
@@ -43,7 +48,7 @@ function normalizePhone(p) {
 }
 
 function cleanScore(s) {
-    if (!s || s === "Không có" || s === "-" || s === "null" || s === "") return "Không có";
+    if (!s || s === "KhÃ´ng cÃ³" || s === "-" || s === "null" || s === "") return "KhÃ´ng cÃ³";
     let str = String(s).trim();
     if (str.includes('2026-07-07') || str.includes('07/07')) return "7";
     if (str.includes('2026-06-06') || str.includes('06/06')) return "6";
@@ -92,7 +97,7 @@ function computeDefaultDueDate(releaseDateStr) {
             baseDate = new Date(y, m, d);
         }
     }
-    // Mặc định sau ngày giao bài trong vòng 4 ngày
+    // Máº·c Ä‘á»‹nh sau ngÃ y giao bÃ i trong vÃ²ng 4 ngÃ y
     baseDate.setDate(baseDate.getDate() + 4);
     let dd = String(baseDate.getDate()).padStart(2, '0');
     let mm = String(baseDate.getMonth() + 1).padStart(2, '0');
@@ -103,11 +108,11 @@ function computeDefaultDueDate(releaseDateStr) {
 function extractHwTitleAndDueDate(rawName, rawDueDate, rawReleaseDate) {
     let title = String(rawName || "").trim();
     let dueDate = (rawDueDate && String(rawDueDate).trim()) ? String(rawDueDate).trim() : "";
-    if (!dueDate && title.includes("[Hạn:")) {
-        let m = title.match(/\[Hạn:\s*([^\]]+)\]/);
+    if (!dueDate && title.includes("[Háº¡n:")) {
+        let m = title.match(/\[Háº¡n:\s*([^\]]+)\]/);
         if (m) {
             dueDate = m[1].trim();
-            title = title.replace(/\[Hạn:\s*[^\]]+\]/, "").trim();
+            title = title.replace(/\[Háº¡n:\s*[^\]]+\]/, "").trim();
         }
     }
     if (!dueDate && rawReleaseDate) {
@@ -147,7 +152,7 @@ function sortLogsChronological(logs) {
 async function supaGet(table, queryParams = "") {
     try {
         const url = `${APP_CONFIG.SUPABASE_URL}/rest/v1/${table}${queryParams ? '?' + queryParams : ''}`;
-        const res = await fetch(url, { method: 'GET', headers: HEADERS });
+        const res = await fetch(url, { method: 'GET', headers: getHeaders() });
         if (!res.ok) {
             console.error(`[${APP_CONFIG.SCOPE}] SupaGet Error [${table}]:`, res.status, await res.text());
             return [];
@@ -163,7 +168,7 @@ async function supaPost(table, body) {
     const url = `${APP_CONFIG.SUPABASE_URL}/rest/v1/${table}`;
     const res = await fetch(url, {
         method: 'POST',
-        headers: { ...HEADERS, 'Prefer': 'resolution=merge-duplicates,return=representation' },
+        headers: { ...getHeaders(), 'Prefer': 'resolution=merge-duplicates,return=representation' },
         body: JSON.stringify(body)
     });
     if (!res.ok) throw new Error(await res.text());
@@ -174,7 +179,7 @@ async function supaPatch(table, matchParam, body) {
     const url = `${APP_CONFIG.SUPABASE_URL}/rest/v1/${table}?${matchParam}`;
     const res = await fetch(url, {
         method: 'PATCH',
-        headers: HEADERS,
+        headers: getHeaders(),
         body: JSON.stringify(body)
     });
     if (!res.ok) throw new Error(await res.text());
@@ -183,22 +188,22 @@ async function supaPatch(table, matchParam, body) {
 
 async function supaDelete(table, matchParam) {
     const url = `${APP_CONFIG.SUPABASE_URL}/rest/v1/${table}?${matchParam}`;
-    const res = await fetch(url, { method: 'DELETE', headers: HEADERS });
+    const res = await fetch(url, { method: 'DELETE', headers: getHeaders() });
     if (!res.ok) throw new Error(await res.text());
     return true;
 }
 
 // ============================================================================
-// BẢO MẬT: CHỐNG XSS (dùng chung cho mọi trang có nạp api.js)
+// Báº¢O Máº¬T: CHá»NG XSS (dÃ¹ng chung cho má»i trang cÃ³ náº¡p api.js)
 // ============================================================================
-// escapeHtml: dùng cho MỌI dữ liệu người dùng chèn vào innerHTML / thuộc tính HTML
+// escapeHtml: dÃ¹ng cho Má»ŒI dá»¯ liá»‡u ngÆ°á»i dÃ¹ng chÃ¨n vÃ o innerHTML / thuá»™c tÃ­nh HTML
 function escapeHtml(v) {
     if (v === null || v === undefined) return '';
     return String(v).replace(/[&<>"'`]/g, function (c) {
         return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;', '`': '&#96;' }[c];
     });
 }
-// safeUrl: chỉ cho phép http(s), blob, data:image, hoặc đường dẫn tương đối. Chặn javascript:, vbscript:, data:text/html...
+// safeUrl: chá»‰ cho phÃ©p http(s), blob, data:image, hoáº·c Ä‘Æ°á»ng dáº«n tÆ°Æ¡ng Ä‘á»‘i. Cháº·n javascript:, vbscript:, data:text/html...
 function safeUrl(u) {
     if (u === null || u === undefined) return '';
     var s = String(u).trim();
@@ -206,12 +211,12 @@ function safeUrl(u) {
     var probe = s.replace(/[\u0000-\u0020\u007f-\u009f]/g, '').toLowerCase();
     if (/^(https?:|blob:)/.test(probe)) return s;
     if (/^data:(image\/(png|jpe?g|gif|webp|bmp)|application\/pdf);base64,/.test(probe)) return s;
-    if (!/^[a-z][a-z0-9+.\-]*:/.test(probe)) return s; // tương đối
+    if (!/^[a-z][a-z0-9+.\-]*:/.test(probe)) return s; // tÆ°Æ¡ng Ä‘á»‘i
     return '#';
 }
-// safeUrlAttr: safeUrl + escape để đặt trong href="..." / src="..."
+// safeUrlAttr: safeUrl + escape Ä‘á»ƒ Ä‘áº·t trong href="..." / src="..."
 function safeUrlAttr(u) { return escapeHtml(safeUrl(u)); }
-// jsStr: chèn giá trị vào chuỗi JS nằm trong thuộc tính onclick="fn('...')" hoặc onclick='fn("...")'
+// jsStr: chÃ¨n giÃ¡ trá»‹ vÃ o chuá»—i JS náº±m trong thuá»™c tÃ­nh onclick="fn('...')" hoáº·c onclick='fn("...")'
 function jsStr(v) {
     var s = (v === null || v === undefined) ? '' : String(v);
     s = s.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '\\"')
@@ -225,7 +230,7 @@ window.safeUrlAttr = safeUrlAttr;
 window.jsStr = jsStr;
 
 // ============================================================================
-// ĐỊNH DẠNG TIỀN TỆ & HỌC PHÍ (DẤU CHẤM NGĂN CÁCH MỖI 3 SỐ: 200.000)
+// Äá»ŠNH Dáº NG TIá»€N Tá»† & Há»ŒC PHÃ (Dáº¤U CHáº¤M NGÄ‚N CÃCH Má»–I 3 Sá»: 200.000)
 // ============================================================================
 window.formatCurrencyInput = function(el) {
     if (!el) return;
@@ -238,7 +243,7 @@ window.formatCurrencyInput = function(el) {
         return;
     }
     
-    // Xóa số 0 vô nghĩa ở đầu (ví dụ: 050000 -> 50.000)
+    // XÃ³a sá»‘ 0 vÃ´ nghÄ©a á»Ÿ Ä‘áº§u (vÃ­ dá»¥: 050000 -> 50.000)
     if (rawVal.length > 1) {
         rawVal = rawVal.replace(/^0+/, '') || '0';
     }
@@ -264,7 +269,7 @@ window.formatNumberWithDots = function(val) {
     return rawVal.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
 };
 
-// Tự động bắt sự kiện định dạng tiền tệ trên toàn hệ thống cho mọi ô nhập giá tiền
+// Tá»± Ä‘á»™ng báº¯t sá»± kiá»‡n Ä‘á»‹nh dáº¡ng tiá»n tá»‡ trÃªn toÃ n há»‡ thá»‘ng cho má»i Ã´ nháº­p giÃ¡ tiá»n
 document.addEventListener('input', function(e) {
     var target = e.target;
     if (!target) return;
@@ -278,14 +283,14 @@ document.addEventListener('input', function(e) {
 }, true);
 
 // ============================================================================
-// CƠ CHẾ TỰ ĐỘNG DỌN DẸP THÙNG RÁC VÀ Ý KIẾN PHẢN HỒI QUÁ 10 NGÀY (PHÂN VÙNG: GIA SƯ)
+// CÆ  CHáº¾ Tá»° Äá»˜NG Dá»ŒN Dáº¸P THÃ™NG RÃC VÃ€ Ã KIáº¾N PHáº¢N Há»’I QUÃ 10 NGÃ€Y (PHÃ‚N VÃ™NG: GIA SÆ¯)
 // ============================================================================
 function parseDateCustom(str) {
     if (!str) return null;
     if (typeof str === 'number') return new Date(str);
     str = String(str).trim();
     
-    // Khớp định dạng DD/MM/YYYY hoặc HH:MM:SS DD/MM/YYYY hoặc DD/MM/YYYY, HH:MM:SS
+    // Khá»›p Ä‘á»‹nh dáº¡ng DD/MM/YYYY hoáº·c HH:MM:SS DD/MM/YYYY hoáº·c DD/MM/YYYY, HH:MM:SS
     let match = str.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
     if (match) {
         let day = parseInt(match[1], 10);
@@ -338,7 +343,7 @@ async function autoPurgeOldTrashItems() {
             }
         }
 
-        // Tự động quét và xóa sạch các phản hồi quá 10 ngày khỏi bảng Feedbacks
+        // Tá»± Ä‘á»™ng quÃ©t vÃ  xÃ³a sáº¡ch cÃ¡c pháº£n há»“i quÃ¡ 10 ngÃ y khá»i báº£ng Feedbacks
         let fbs = await supaGet(APP_CONFIG.TABLES.FEEDBACKS, 'select=*');
         for (let fb of fbs) {
             if (fb.feedback_id !== 'SYSTEM_MARQUEE' && isOlderThan10Days(fb.submitted_at)) {
@@ -346,7 +351,7 @@ async function autoPurgeOldTrashItems() {
             }
         }
 
-        // Tự động quét và xóa vĩnh viễn các bài tập đã nộp ở trạng thái Thùng rác (Deleted) quá 10 ngày
+        // Tá»± Ä‘á»™ng quÃ©t vÃ  xÃ³a vÄ©nh viá»…n cÃ¡c bÃ i táº­p Ä‘Ã£ ná»™p á»Ÿ tráº¡ng thÃ¡i ThÃ¹ng rÃ¡c (Deleted) quÃ¡ 10 ngÃ y
         let delSubs = await supaGet(APP_CONFIG.TABLES.SUBMISSIONS, 'status=eq.Deleted&select=*');
         for (let sub of delSubs) {
             let delTime = sub.submitted_at || sub.submission_date;
@@ -364,7 +369,7 @@ async function autoPurgeOldTrashItems() {
 }
 
 // ============================================================================
-// GOOGLE APPS SCRIPT RUN INSTANCE CHO HỆ THỐNG GIA SƯ
+// GOOGLE APPS SCRIPT RUN INSTANCE CHO Há»† THá»NG GIA SÆ¯
 // ============================================================================
 class GoogleScriptRunInstance {
     constructor() {
@@ -399,7 +404,7 @@ class GoogleScriptRunInstance {
             }
             
             // ==========================================
-            // 1. ĐĂNG NHẬP & XÁC THỰC
+            // 1. ÄÄ‚NG NHáº¬P & XÃC THá»°C
             // ==========================================
             if (functionName === 'loginSystem') {
                 const phone = args[0] || "";
@@ -408,32 +413,33 @@ class GoogleScriptRunInstance {
                 const norm = normalizePhone(phone);
                 
                 if (pin && String(pin).trim() !== "") {
-                    // BẢO MẬT: không tải cả bảng PIN về trình duyệt nữa. So khớp PIN ngay trong truy vấn (pin=eq.X),
-                    // chỉ trả về dòng khớp và KHÔNG select cột pin.
+                    // Báº¢O Máº¬T: khÃ´ng táº£i cáº£ báº£ng PIN vá» trÃ¬nh duyá»‡t ná»¯a. So khá»›p PIN ngay trong truy váº¥n (pin=eq.X),
+                    // chá»‰ tráº£ vá» dÃ²ng khá»›p vÃ  KHÃ”NG select cá»™t pin.
                     const rawId = String(phone).trim();
                     const pinStr = String(pin).trim();
                     const idCands = Array.from(new Set([rawId, norm, norm ? '0' + norm : '', norm ? '84' + norm : ''].filter(Boolean)));
                     const enc = v => encodeURIComponent('"' + String(v).replace(/"/g, '') + '"');
                     const phoneOr = (col, idCol) => 'or=(' + idCands.map(c => `${col}.eq.${enc(c)}`).concat(idCands.map(c => `${idCol}.eq.${enc(c)}`)).join(',') + ')';
-                    const GENERIC_ERR = 'Số điện thoại hoặc mã PIN không chính xác!';
+                    window.tempAuth = { phone: rawId, pin: pinStr };
+                    const GENERIC_ERR = 'Sá»‘ Ä‘iá»‡n thoáº¡i hoáº·c mÃ£ PIN khÃ´ng chÃ­nh xÃ¡c!';
                     let admins = (rawId && pinStr) ? await supaGet(APP_CONFIG.TABLES.ADMINS, `select=admin_id,name,phone&${phoneOr('phone', 'admin_id')}&pin=eq.${encodeURIComponent(pinStr)}`) : [];
                     let mAdmin = admins.find(a => normalizePhone(a.phone) === norm || String(a.admin_id).trim() === rawId);
                     if (mAdmin) {
                         result = {
                             role: 'admin',
-                            thongBao: "Đăng nhập với quyền Admin thành công!",
+                            thongBao: "ÄÄƒng nháº­p vá»›i quyá»n Admin thÃ nh cÃ´ng!",
                             data: await getAdminDashboardDataInternal()
                         };
                     } else {
                         let tutors = (rawId && pinStr) ? await supaGet(APP_CONFIG.TABLES.TUTORS, `select=tutor_id,name,phone,status,deleted_date&${phoneOr('phone', 'tutor_id')}&pin=eq.${encodeURIComponent(pinStr)}`) : [];
                         let mTutor = tutors.find(t => (normalizePhone(t.phone) === norm || String(t.tutor_id).trim() === rawId) && !t.deleted_date);
                         if (mTutor) {
-                            if (mTutor.status === 'Vô hiệu hóa') {
-                                result = { error: 'Tài khoản của bạn đã bị vô hiệu hóa. Vui lòng liên hệ Admin!' };
+                            if (mTutor.status === 'VÃ´ hiá»‡u hÃ³a') {
+                                result = { error: 'TÃ i khoáº£n cá»§a báº¡n Ä‘Ã£ bá»‹ vÃ´ hiá»‡u hÃ³a. Vui lÃ²ng liÃªn há»‡ Admin!' };
                             } else {
                                 result = {
                                     role: 'tutor',
-                                    thongBao: "Đăng nhập với quyền Gia sư thành công!",
+                                    thongBao: "ÄÄƒng nháº­p vá»›i quyá»n Gia sÆ° thÃ nh cÃ´ng!",
                                     data: await getTutorDashboardDataInternal(mTutor.phone)
                                 };
                             }
@@ -444,7 +450,7 @@ class GoogleScriptRunInstance {
                 } else {
                     let studentsRaw = await supaGet(APP_CONFIG.TABLES.STUDENTS, `select=*`);
                     let activeStudents = studentsRaw.filter(s => !s.deleted_date);
-                    // BẢO MẬT: chỉ khớp theo SĐT phụ huynh / mã học sinh / mã bài tập. KHÔNG cho đăng nhập bằng tên học sinh.
+                    // Báº¢O Máº¬T: chá»‰ khá»›p theo SÄT phá»¥ huynh / mÃ£ há»c sinh / mÃ£ bÃ i táº­p. KHÃ”NG cho Ä‘Äƒng nháº­p báº±ng tÃªn há»c sinh.
                     let matches = activeStudents.filter(s => {
                         let sPhone = normalizePhone(s.parent_phone);
                         let sId = normalizePhone(s.student_id);
@@ -454,7 +460,7 @@ class GoogleScriptRunInstance {
                     });
                     
                     if (matches.length === 0) {
-                        result = { error: 'Số điện thoại hoặc Mã học sinh không tồn tại trên hệ thống.' };
+                        result = { error: 'Sá»‘ Ä‘iá»‡n thoáº¡i hoáº·c MÃ£ há»c sinh khÃ´ng tá»“n táº¡i trÃªn há»‡ thá»‘ng.' };
                     } else if (matches.length > 1 && !childName) {
                         result = {
                             role: 'student',
@@ -474,10 +480,10 @@ class GoogleScriptRunInstance {
                         }
                         
                         let rawLogs = evalsRaw.filter(e => !e.deleted_date).map((e, idx) => {
-                            let att = e.attendance_status || "Đã học";
+                            let att = e.attendance_status || "ÄÃ£ há»c";
                             let content = e.lesson_content || "";
                             let comment = (e.nhan_xet !== undefined && e.nhan_xet !== null) ? String(e.nhan_xet).trim() : 
-                                          ((e["nhận xét"] !== undefined && e["nhận xét"] !== null) ? String(e["nhận xét"]).trim() : 
+                                          ((e["nháº­n xÃ©t"] !== undefined && e["nháº­n xÃ©t"] !== null) ? String(e["nháº­n xÃ©t"]).trim() : 
                                           ((e.tutor_comment !== undefined && e.tutor_comment !== null) ? String(e.tutor_comment).trim() : 
                                           ((e.comment !== undefined && e.comment !== null) ? String(e.comment).trim() : "")));
                             if (!comment && content.includes("---NHAN_XET---")) {
@@ -491,11 +497,11 @@ class GoogleScriptRunInstance {
                                 tuan: e.week_num || "-",
                                 ngay: formatShortDate(e.study_date),
                                 studyDate: e.study_date || "",
-                                mon: e.subject || "Toán học",
+                                mon: e.subject || "ToÃ¡n há»c",
                                 noiDung: content,
                                 nhanXet: comment,
-                                danhGiaBTVN: (e.hw_eval && String(e.hw_eval).trim()) ? String(e.hw_eval).trim() : ((att.toLowerCase().indexOf('nghi') !== -1 || att.toLowerCase().indexOf('huy') !== -1 || att.toLowerCase().indexOf('vang') !== -1) ? "-" : "Hoàn thành"),
-                                btvn: (e.hw_eval && String(e.hw_eval).trim()) ? String(e.hw_eval).trim() : ((att.toLowerCase().indexOf('nghi') !== -1 || att.toLowerCase().indexOf('huy') !== -1 || att.toLowerCase().indexOf('vang') !== -1) ? "-" : "Hoàn thành"),
+                                danhGiaBTVN: (e.hw_eval && String(e.hw_eval).trim()) ? String(e.hw_eval).trim() : ((att.toLowerCase().indexOf('nghi') !== -1 || att.toLowerCase().indexOf('huy') !== -1 || att.toLowerCase().indexOf('vang') !== -1) ? "-" : "HoÃ n thÃ nh"),
+                                btvn: (e.hw_eval && String(e.hw_eval).trim()) ? String(e.hw_eval).trim() : ((att.toLowerCase().indexOf('nghi') !== -1 || att.toLowerCase().indexOf('huy') !== -1 || att.toLowerCase().indexOf('vang') !== -1) ? "-" : "HoÃ n thÃ nh"),
                                 diemDauGio: cleanScore(e.entry_test),
                                 diemDinhKi: cleanScore(e.term_test),
                                 trangThai: att,
@@ -511,14 +517,14 @@ class GoogleScriptRunInstance {
                             h.homework_code === target.homework_id ||
                             h.homework_code === target.student_id
                         )).map(h => ({
-                            mon: "Gia sư",
+                            mon: "Gia sÆ°",
                             tenBai: extractHwTitleAndDueDate(h.hw_name, h.due_date, h.release_date).title,
                             link: h.external_link || h.file_url || ""
                         }));
                         
                         result = {
                             role: 'student',
-                            thongBao: "Đăng nhập thành công",
+                            thongBao: "ÄÄƒng nháº­p thÃ nh cÃ´ng",
                             data: {
                                 timThay: true,
                                 studentId: target.student_id,
@@ -534,7 +540,7 @@ class GoogleScriptRunInstance {
             }
             
             // ==========================================
-            // 2. DASHBOARD GIA SƯ & CHI TIẾT HỌC SINH
+            // 2. DASHBOARD GIA SÆ¯ & CHI TIáº¾T Há»ŒC SINH
             // ==========================================
             else if (functionName === 'getTutorDashboardData') {
                 const phone = args[0];
@@ -555,10 +561,10 @@ class GoogleScriptRunInstance {
                 ));
                 
                 let rawLogs = matched.map((e, idx) => {
-                    let att = e.attendance_status || "Đã học";
+                    let att = e.attendance_status || "ÄÃ£ há»c";
                     let content = e.lesson_content || "";
                     let comment = (e.nhan_xet !== undefined && e.nhan_xet !== null) ? String(e.nhan_xet).trim() : 
-                                  ((e["nhận xét"] !== undefined && e["nhận xét"] !== null) ? String(e["nhận xét"]).trim() : 
+                                  ((e["nháº­n xÃ©t"] !== undefined && e["nháº­n xÃ©t"] !== null) ? String(e["nháº­n xÃ©t"]).trim() : 
                                   ((e.tutor_comment !== undefined && e.tutor_comment !== null) ? String(e.tutor_comment).trim() : 
                                   ((e.comment !== undefined && e.comment !== null) ? String(e.comment).trim() : "")));
                     if (!comment && content.includes("---NHAN_XET---")) {
@@ -572,11 +578,11 @@ class GoogleScriptRunInstance {
                         tuan: e.week_num || "-",
                         ngay: formatShortDate(e.study_date),
                         studyDate: e.study_date || "",
-                        mon: e.subject || "Toán học",
+                        mon: e.subject || "ToÃ¡n há»c",
                         noiDung: content,
                         nhanXet: comment,
-                        danhGiaBTVN: (e.hw_eval && String(e.hw_eval).trim()) ? String(e.hw_eval).trim() : ((att.toLowerCase().indexOf('nghi') !== -1 || att.toLowerCase().indexOf('huy') !== -1 || att.toLowerCase().indexOf('vang') !== -1) ? "-" : "Hoàn thành"),
-                        btvn: (e.hw_eval && String(e.hw_eval).trim()) ? String(e.hw_eval).trim() : ((att.toLowerCase().indexOf('nghi') !== -1 || att.toLowerCase().indexOf('huy') !== -1 || att.toLowerCase().indexOf('vang') !== -1) ? "-" : "Hoàn thành"),
+                        danhGiaBTVN: (e.hw_eval && String(e.hw_eval).trim()) ? String(e.hw_eval).trim() : ((att.toLowerCase().indexOf('nghi') !== -1 || att.toLowerCase().indexOf('huy') !== -1 || att.toLowerCase().indexOf('vang') !== -1) ? "-" : "HoÃ n thÃ nh"),
+                        btvn: (e.hw_eval && String(e.hw_eval).trim()) ? String(e.hw_eval).trim() : ((att.toLowerCase().indexOf('nghi') !== -1 || att.toLowerCase().indexOf('huy') !== -1 || att.toLowerCase().indexOf('vang') !== -1) ? "-" : "HoÃ n thÃ nh"),
                         diemDauGio: cleanScore(e.entry_test),
                         diemDinhKi: cleanScore(e.term_test),
                         trangThai: att,
@@ -647,7 +653,7 @@ class GoogleScriptRunInstance {
             }
             
             // ==========================================
-            // 3. THÊM / SỬA / XÓA BUỔI HỌC
+            // 3. THÃŠM / Sá»¬A / XÃ“A BUá»”I Há»ŒC
             // ==========================================
             else if (functionName === 'themBuoiHoc') {
                 const [studentPhone, studentName, tuan, ngayDay, monHoc, noiDung, danhGiaBTVN, diemDauGio, diemDinhKi, trangThai, nhanXet] = args;
@@ -659,26 +665,26 @@ class GoogleScriptRunInstance {
                     student_name: studentName,
                     week_num: String(tuan || "1"),
                     study_date: ngayDay || "",
-                    subject: monHoc || "Toán học",
+                    subject: monHoc || "ToÃ¡n há»c",
                     lesson_content: noiDung || "",
-                    hw_eval: (danhGiaBTVN && String(danhGiaBTVN).trim()) ? String(danhGiaBTVN).trim() : ((trangThai && (trangThai.toLowerCase().indexOf('nghi') !== -1 || trangThai.toLowerCase().indexOf('huy') !== -1 || trangThai.toLowerCase().indexOf('vang') !== -1)) ? "-" : "Hoàn thành"),
+                    hw_eval: (danhGiaBTVN && String(danhGiaBTVN).trim()) ? String(danhGiaBTVN).trim() : ((trangThai && (trangThai.toLowerCase().indexOf('nghi') !== -1 || trangThai.toLowerCase().indexOf('huy') !== -1 || trangThai.toLowerCase().indexOf('vang') !== -1)) ? "-" : "HoÃ n thÃ nh"),
                     entry_test: diemDauGio ? String(diemDauGio) : "",
                     term_test: diemDinhKi ? String(diemDinhKi) : "",
-                    attendance_status: trangThai || "Đã học",
-                    paid_status: "Chưa đóng",
+                    attendance_status: trangThai || "ÄÃ£ há»c",
+                    paid_status: "ChÆ°a Ä‘Ã³ng",
                     nhan_xet: commentVal
                 };
                 try {
                     await supaPost(APP_CONFIG.TABLES.EVALUATIONS, [payload]);
                 } catch (errPost) {
                     let errStr = (errPost && (errPost.message || errPost.toString())) || "";
-                    if (errStr.includes("nhan_xet") || errStr.includes("nhận xét") || errStr.includes("PGRST204")) {
+                    if (errStr.includes("nhan_xet") || errStr.includes("nháº­n xÃ©t") || errStr.includes("PGRST204")) {
                         try {
                             delete payload.nhan_xet;
-                            payload["nhận xét"] = commentVal;
+                            payload["nháº­n xÃ©t"] = commentVal;
                             await supaPost(APP_CONFIG.TABLES.EVALUATIONS, [payload]);
                         } catch (errPostVN) {
-                            delete payload["nhận xét"];
+                            delete payload["nháº­n xÃ©t"];
                             if (commentVal) {
                                 payload.lesson_content = (noiDung || "") + "\n---NHAN_XET---\n" + commentVal;
                             }
@@ -698,25 +704,25 @@ class GoogleScriptRunInstance {
                 const patchData = {
                     week_num: String(tuan || "1"),
                     study_date: ngayDay || "",
-                    subject: monHoc || "Toán học",
+                    subject: monHoc || "ToÃ¡n há»c",
                     lesson_content: noiDung || "",
-                    hw_eval: (danhGiaBTVN && String(danhGiaBTVN).trim()) ? String(danhGiaBTVN).trim() : ((trangThai && (trangThai.toLowerCase().indexOf('nghi') !== -1 || trangThai.toLowerCase().indexOf('huy') !== -1 || trangThai.toLowerCase().indexOf('vang') !== -1)) ? "-" : "Hoàn thành"),
+                    hw_eval: (danhGiaBTVN && String(danhGiaBTVN).trim()) ? String(danhGiaBTVN).trim() : ((trangThai && (trangThai.toLowerCase().indexOf('nghi') !== -1 || trangThai.toLowerCase().indexOf('huy') !== -1 || trangThai.toLowerCase().indexOf('vang') !== -1)) ? "-" : "HoÃ n thÃ nh"),
                     entry_test: diemDauGio ? String(diemDauGio) : "",
                     term_test: diemDinhKi ? String(diemDinhKi) : "",
-                    attendance_status: trangThai || "Đã học",
+                    attendance_status: trangThai || "ÄÃ£ há»c",
                     nhan_xet: commentVal
                 };
                 try {
                     await supaPatch(APP_CONFIG.TABLES.EVALUATIONS, `eval_id=eq.${encodeURIComponent(evalId)}`, patchData);
                 } catch (errPatch) {
                     let errStr = (errPatch && (errPatch.message || errPatch.toString())) || "";
-                    if (errStr.includes("nhan_xet") || errStr.includes("nhận xét") || errStr.includes("PGRST204")) {
+                    if (errStr.includes("nhan_xet") || errStr.includes("nháº­n xÃ©t") || errStr.includes("PGRST204")) {
                         try {
                             delete patchData.nhan_xet;
-                            patchData["nhận xét"] = commentVal;
+                            patchData["nháº­n xÃ©t"] = commentVal;
                             await supaPatch(APP_CONFIG.TABLES.EVALUATIONS, `eval_id=eq.${encodeURIComponent(evalId)}`, patchData);
                         } catch (errPatchVN) {
-                            delete patchData["nhận xét"];
+                            delete patchData["nháº­n xÃ©t"];
                             if (commentVal) {
                                 patchData.lesson_content = (noiDung || "") + "\n---NHAN_XET---\n" + commentVal;
                             } else {
@@ -745,7 +751,7 @@ class GoogleScriptRunInstance {
                 const nowStr = new Date().toLocaleDateString('vi-VN');
                 for (let id of ids) {
                     await supaPatch(APP_CONFIG.TABLES.EVALUATIONS, `eval_id=eq.${encodeURIComponent(id)}`, {
-                        paid_status: "Đã đóng",
+                        paid_status: "ÄÃ£ Ä‘Ã³ng",
                         paid_date: nowStr
                     });
                 }
@@ -758,7 +764,7 @@ class GoogleScriptRunInstance {
                 if (paidRowIndices && paidRowIndices.length > 0) {
                     for (let id of paidRowIndices) {
                         await supaPatch(APP_CONFIG.TABLES.EVALUATIONS, `eval_id=eq.${encodeURIComponent(id)}`, {
-                            paid_status: "Đã đóng",
+                            paid_status: "ÄÃ£ Ä‘Ã³ng",
                             paid_date: nowStr
                         });
                     }
@@ -766,7 +772,7 @@ class GoogleScriptRunInstance {
                 if (unpaidRowIndices && unpaidRowIndices.length > 0) {
                     for (let id of unpaidRowIndices) {
                         await supaPatch(APP_CONFIG.TABLES.EVALUATIONS, `eval_id=eq.${encodeURIComponent(id)}`, {
-                            paid_status: "Chưa đóng",
+                            paid_status: "ChÆ°a Ä‘Ã³ng",
                             paid_date: ""
                         });
                     }
@@ -775,7 +781,7 @@ class GoogleScriptRunInstance {
             }
             
             // ==========================================
-            // 4. QUẢN LÝ HỌC SINH & THÙNG RÁC GIA SƯ
+            // 4. QUáº¢N LÃ Há»ŒC SINH & THÃ™NG RÃC GIA SÆ¯
             // ==========================================
             else if (functionName === 'themHocSinhMoi' || functionName === 'saveTutorStudent') {
                 const [tutorPhone, phuHuynhName, studentName, studentPhone, tuition, maBaiTap, thongBao, billingType] = args;
@@ -787,10 +793,10 @@ class GoogleScriptRunInstance {
                 
                 let students = await supaGet(APP_CONFIG.TABLES.STUDENTS, `select=*`);
                 
-                // Kiểm tra xem mã bài tập có bị trùng với học sinh khác không
+                // Kiá»ƒm tra xem mÃ£ bÃ i táº­p cÃ³ bá»‹ trÃ¹ng vá»›i há»c sinh khÃ¡c khÃ´ng
                 let dupHw = students.find(s => {
                     if (s.deleted_date) return false;
-                    // Bỏ qua chính học sinh này nếu đang thêm lại hoặc khôi phục
+                    // Bá» qua chÃ­nh há»c sinh nÃ y náº¿u Ä‘ang thÃªm láº¡i hoáº·c khÃ´i phá»¥c
                     if (s.student_id === sId || (norm && (normalizePhone(s.student_id) === norm || normalizePhone(s.parent_phone) === norm))) {
                         return false;
                     }
@@ -807,7 +813,7 @@ class GoogleScriptRunInstance {
 
                 if (dupHw) {
                     result = { 
-                        error: `Mã bài tập "${finalHwId}" đã được sử dụng. Vui lòng đổi mã bài tập khác!` 
+                        error: `MÃ£ bÃ i táº­p "${finalHwId}" Ä‘Ã£ Ä‘Æ°á»£c sá»­ dá»¥ng. Vui lÃ²ng Ä‘á»•i mÃ£ bÃ i táº­p khÃ¡c!` 
                     };
                 } else {
                     let existing = students.find(s => 
@@ -817,7 +823,7 @@ class GoogleScriptRunInstance {
 
                     let studentPayload = {
                         student_name: studentName,
-                        parent_name: phuHuynhName || ("Phụ huynh " + studentName),
+                        parent_name: phuHuynhName || ("Phá»¥ huynh " + studentName),
                         parent_phone: p || sId,
                         tutor_phone: tutorPhone || "",
                         tuition_fee: tuition ? Number(String(tuition).replace(/\D/g, '')) : 0,
@@ -847,10 +853,10 @@ class GoogleScriptRunInstance {
                 
                 let students = await supaGet(APP_CONFIG.TABLES.STUDENTS, `select=*`);
                 
-                // Kiểm tra xem mã bài tập mới có bị trùng với học sinh khác không
+                // Kiá»ƒm tra xem mÃ£ bÃ i táº­p má»›i cÃ³ bá»‹ trÃ¹ng vá»›i há»c sinh khÃ¡c khÃ´ng
                 let dupHw = students.find(s => {
                     if (s.deleted_date) return false;
-                    // Bỏ qua chính học sinh đang sửa
+                    // Bá» qua chÃ­nh há»c sinh Ä‘ang sá»­a
                     if (s.student_id === oldPhone || (normOld && (normalizePhone(s.student_id) === normOld || normalizePhone(s.parent_phone) === normOld))) {
                         return false;
                     }
@@ -867,7 +873,7 @@ class GoogleScriptRunInstance {
 
                 if (dupHw) {
                     result = { 
-                        error: `Mã bài tập "${finalHwId}" đã được sử dụng. Vui lòng đổi mã bài tập khác!` 
+                        error: `MÃ£ bÃ i táº­p "${finalHwId}" Ä‘Ã£ Ä‘Æ°á»£c sá»­ dá»¥ng. Vui lÃ²ng Ä‘á»•i mÃ£ bÃ i táº­p khÃ¡c!` 
                     };
                 } else {
                     let updateData = {
@@ -931,7 +937,7 @@ class GoogleScriptRunInstance {
             }
             
             // ==========================================
-            // 5. BÀI TẬP GIA SƯ
+            // 5. BÃ€I Táº¬P GIA SÆ¯
             // ==========================================
             else if (functionName === 'getAssignedHomework') {
                 const studentName = String(args[0] || "").trim();
@@ -986,7 +992,7 @@ class GoogleScriptRunInstance {
                 const hwId = `HW_GS_${Date.now()}`;
                 let fileUrl = externalLink || "";
                 
-                // Nếu Gia sư có đính kèm file và đã cấu hình Google Apps Script Web App, lưu file thẳng vào Google Drive
+                // Náº¿u Gia sÆ° cÃ³ Ä‘Ã­nh kÃ¨m file vÃ  Ä‘Ã£ cáº¥u hÃ¬nh Google Apps Script Web App, lÆ°u file tháº³ng vÃ o Google Drive
                 if (APP_CONFIG.DRIVE_UPLOAD_URL && fileBase64) {
                     try {
                         const controller = new AbortController();
@@ -999,8 +1005,8 @@ class GoogleScriptRunInstance {
                                 functionName: 'uploadHomeworkFiles',
                                 arguments: [
                                     maBaiTap || tutorPhone || 'DE_GIA_SU',
-                                    studentName || 'Giao bài tập',
-                                    title || 'Đề bài tập',
+                                    studentName || 'Giao bÃ i táº­p',
+                                    title || 'Äá» bÃ i táº­p',
                                     [{
                                         fileName: fileName || (`${title || "De_BaiTap"}.pdf`),
                                         mimeType: mimeType || 'application/pdf',
@@ -1016,11 +1022,11 @@ class GoogleScriptRunInstance {
                             fileUrl = resObj.fileUrl;
                         }
                     } catch (driveErr) {
-                        console.warn("Lưu Drive timeout hoặc lỗi, tự động chuyển sang lưu an toàn trực tiếp:", driveErr);
+                        console.warn("LÆ°u Drive timeout hoáº·c lá»—i, tá»± Ä‘á»™ng chuyá»ƒn sang lÆ°u an toÃ n trá»±c tiáº¿p:", driveErr);
                     }
                 }
                 
-                // Lưu trữ trực tiếp file base64 an toàn nếu Drive chưa trả về link
+                // LÆ°u trá»¯ trá»±c tiáº¿p file base64 an toÃ n náº¿u Drive chÆ°a tráº£ vá» link
                 if (!fileUrl && fileBase64) {
                     const mime = mimeType || "application/octet-stream";
                     fileUrl = `data:${mime};base64,${fileBase64}`;
@@ -1048,7 +1054,7 @@ class GoogleScriptRunInstance {
                     let errStr = (errPost && (errPost.message || errPost.toString())) || "";
                     if (errStr.includes("due_date") || errStr.includes("PGRST204")) {
                         delete payload.due_date;
-                        payload.hw_name = title + (finalDue ? ` [Hạn: ${finalDue}]` : "");
+                        payload.hw_name = title + (finalDue ? ` [Háº¡n: ${finalDue}]` : "");
                         await supaPost(APP_CONFIG.TABLES.HOMEWORK, [payload]);
                     } else {
                         throw errPost;
@@ -1068,7 +1074,7 @@ class GoogleScriptRunInstance {
                 };
                 if (externalLink !== undefined) updateData.external_link = externalLink;
                 
-                // Nếu có file mới, upload lên Google Drive
+                // Náº¿u cÃ³ file má»›i, upload lÃªn Google Drive
                 if (APP_CONFIG.DRIVE_UPLOAD_URL && fileBase64) {
                     try {
                         const controller = new AbortController();
@@ -1081,8 +1087,8 @@ class GoogleScriptRunInstance {
                                 functionName: 'uploadHomeworkFiles',
                                 arguments: [
                                     'DE_GIA_SU',
-                                    'Giao bài tập',
-                                    title || 'Đề bài tập',
+                                    'Giao bÃ i táº­p',
+                                    title || 'Äá» bÃ i táº­p',
                                     [{
                                         fileName: fileName || (`${title || "De_BaiTap"}.pdf`),
                                         mimeType: mimeType || 'application/pdf',
@@ -1098,7 +1104,7 @@ class GoogleScriptRunInstance {
                             updateData.file_url = resObj.fileUrl;
                         }
                     } catch (driveErr) {
-                        console.warn("Lỗi cập nhật file lên Drive, chuyển sang lưu trực tiếp:", driveErr);
+                        console.warn("Lá»—i cáº­p nháº­t file lÃªn Drive, chuyá»ƒn sang lÆ°u trá»±c tiáº¿p:", driveErr);
                         const mime = mimeType || "application/octet-stream";
                         updateData.file_url = `data:${mime};base64,${fileBase64}`;
                     }
@@ -1113,7 +1119,7 @@ class GoogleScriptRunInstance {
                     let errStr = (errPatch && (errPatch.message || errPatch.toString())) || "";
                     if (errStr.includes("due_date") || errStr.includes("PGRST204")) {
                         delete updateData.due_date;
-                        updateData.hw_name = title + (finalDue ? ` [Hạn: ${finalDue}]` : "");
+                        updateData.hw_name = title + (finalDue ? ` [Háº¡n: ${finalDue}]` : "");
                         await supaPatch(APP_CONFIG.TABLES.HOMEWORK, `hw_id=eq.${encodeURIComponent(hwId)}`, updateData);
                     } else {
                         throw errPatch;
@@ -1212,7 +1218,7 @@ class GoogleScriptRunInstance {
                 await supaPatch(APP_CONFIG.TABLES.SUBMISSIONS, `submission_id=eq.${encodeURIComponent(subId)}`, {
                     score: score || "",
                     comment: comment || "",
-                    status: "Đã chấm"
+                    status: "ÄÃ£ cháº¥m"
                 });
                 if (APP_CONFIG.DRIVE_UPLOAD_URL) {
                     try {
@@ -1261,13 +1267,13 @@ class GoogleScriptRunInstance {
                     let sHw = normalizePhone(s.homework_id);
                     let sId = normalizePhone(s.student_id);
                     let sParent = normalizePhone(s.parent_phone);
-                    // BẢO MẬT: không chấp nhận tên học sinh làm mã truy cập
+                    // Báº¢O Máº¬T: khÃ´ng cháº¥p nháº­n tÃªn há»c sinh lÃ m mÃ£ truy cáº­p
                     return (sHw && sHw === norm) || (sId && sId === norm) || (sParent && sParent === norm) ||
                            (s.homework_id && s.homework_id === rawCode) || (s.student_id && s.student_id === rawCode) || (s.parent_phone && s.parent_phone === rawCode);
                 });
                 
                 if (!target) {
-                    result = { timThay: false, thongBao: "Mã bài tập không hợp lệ!" };
+                    result = { timThay: false, thongBao: "MÃ£ bÃ i táº­p khÃ´ng há»£p lá»‡!" };
                 } else {
                     let codesToMatch = new Set();
                     codesToMatch.add(rawCode.toLowerCase());
@@ -1354,22 +1360,22 @@ class GoogleScriptRunInstance {
                 const todayStr = new Date().toLocaleDateString('vi-VN');
                 let fileUrl = "";
                 
-                // Tra cứu thông tin học sinh để gắn chuẩn mã
+                // Tra cá»©u thÃ´ng tin há»c sinh Ä‘á»ƒ gáº¯n chuáº©n mÃ£
                 let studentsRaw = await supaGet(APP_CONFIG.TABLES.STUDENTS, `select=*`);
                 let norm = normalizePhone(ma);
                 let target = studentsRaw.find(s => {
                     let sHw = normalizePhone(s.homework_id);
                     let sId = normalizePhone(s.student_id);
                     let sParent = normalizePhone(s.parent_phone);
-                    // BẢO MẬT: chỉ xác định học sinh theo mã, không theo tên do client gửi lên (chống nộp bài giả danh)
+                    // Báº¢O Máº¬T: chá»‰ xÃ¡c Ä‘á»‹nh há»c sinh theo mÃ£, khÃ´ng theo tÃªn do client gá»­i lÃªn (chá»‘ng ná»™p bÃ i giáº£ danh)
                     return (sHw && sHw === norm) || (sId && sId === norm) || (sParent && sParent === norm) ||
                            (s.homework_id && s.homework_id === ma) || (s.student_id && s.student_id === ma) || (s.parent_phone && s.parent_phone === ma);
                 });
 
                 const finalCode = (target && target.homework_id) ? target.homework_id : ma;
-                const finalStudentName = (target && target.student_name) ? target.student_name : (studentName || "Học sinh");
+                const finalStudentName = (target && target.student_name) ? target.student_name : (studentName || "Há»c sinh");
 
-                // Nếu đã cấu hình Google Apps Script Web App cũ, gọi trực tiếp hàm uploadHomeworkFiles trong Student.gs
+                // Náº¿u Ä‘Ã£ cáº¥u hÃ¬nh Google Apps Script Web App cÅ©, gá»i trá»±c tiáº¿p hÃ m uploadHomeworkFiles trong Student.gs
                 if (APP_CONFIG.DRIVE_UPLOAD_URL && filesList && filesList.length > 0 && filesList[0].fileBase64) {
                     try {
                         let driveRes = await fetch(APP_CONFIG.DRIVE_UPLOAD_URL, {
@@ -1386,11 +1392,11 @@ class GoogleScriptRunInstance {
                             fileUrl = resObj.fileUrl;
                         }
                     } catch (driveErr) {
-                        console.warn("Lỗi gọi Apps Script Web App cũ, chuyển sang lưu trữ an toàn:", driveErr);
+                        console.warn("Lá»—i gá»i Apps Script Web App cÅ©, chuyá»ƒn sang lÆ°u trá»¯ an toÃ n:", driveErr);
                     }
                 }
                 
-                // Fallback nếu chưa cấu hình Google Drive Web App hoặc không dùng Drive
+                // Fallback náº¿u chÆ°a cáº¥u hÃ¬nh Google Drive Web App hoáº·c khÃ´ng dÃ¹ng Drive
                 if (!fileUrl) {
                     if (filesList && filesList.length > 0) {
                         if (filesList.length === 1) {
@@ -1404,7 +1410,7 @@ class GoogleScriptRunInstance {
                             fileUrl = JSON.stringify(filesList.map((f, fIdx) => {
                                 const mime = f.mimeType || "image/jpeg";
                                 return {
-                                    name: f.fileName || (`Ảnh ${fIdx + 1}`),
+                                    name: f.fileName || (`áº¢nh ${fIdx + 1}`),
                                     url: f.url || `data:${mime};base64,${f.fileBase64}`,
                                     isImage: !mime.includes("pdf") && !mime.includes("zip")
                                 };
@@ -1419,7 +1425,7 @@ class GoogleScriptRunInstance {
                     submission_id: subId,
                     homework_code: finalCode,
                     student_name: finalStudentName,
-                    lesson_name: lessonName || "Bài làm gia sư",
+                    lesson_name: lessonName || "BÃ i lÃ m gia sÆ°",
                     file_url: fileUrl || 'https://drive.google.com/',
                     submitted_at: nowStr,
                     submission_date: todayStr,
@@ -1456,13 +1462,13 @@ class GoogleScriptRunInstance {
             }
             
             // ==========================================
-            // 6. Ý KIẾN PHẢN HỒI PHỤ HUYNH (10 NGÀY GẦN NHẤT)
+            // 6. Ã KIáº¾N PHáº¢N Há»’I PHá»¤ HUYNH (10 NGÃ€Y Gáº¦N NHáº¤T)
             // ==========================================
             else if (functionName === 'getTutorFeedback') {
                 const [tutorPhone] = args;
                 let fbs = await supaGet(APP_CONFIG.TABLES.FEEDBACKS, `select=*`);
                 
-                // Lấy danh sách học sinh của gia sư này (nếu có tutorPhone)
+                // Láº¥y danh sÃ¡ch há»c sinh cá»§a gia sÆ° nÃ y (náº¿u cÃ³ tutorPhone)
                 let myStudentPhones = new Set();
                 let myStudentNames = new Set();
                 if (tutorPhone) {
@@ -1477,19 +1483,19 @@ class GoogleScriptRunInstance {
                     });
                 }
 
-                // Lọc chính xác chỉ lấy các phản hồi của PHỤ HUYNH trong 10 ngày gần nhất
+                // Lá»c chÃ­nh xÃ¡c chá»‰ láº¥y cÃ¡c pháº£n há»“i cá»§a PHá»¤ HUYNH trong 10 ngÃ y gáº§n nháº¥t
                 let recentFbs = [];
                 for (let fb of fbs) {
-                    // TUYỆT ĐỐI KHÔNG LẤY THÔNG BÁO HỆ THỐNG CỦA ADMIN
-                    if (fb.feedback_id === 'SYSTEM_MARQUEE' || fb.student_phone === 'ADMIN' || fb.student_name === 'Thông báo hệ thống') {
+                    // TUYá»†T Äá»I KHÃ”NG Láº¤Y THÃ”NG BÃO Há»† THá»NG Cá»¦A ADMIN
+                    if (fb.feedback_id === 'SYSTEM_MARQUEE' || fb.student_phone === 'ADMIN' || fb.student_name === 'ThÃ´ng bÃ¡o há»‡ thá»‘ng') {
                         continue;
                     }
 
                     if (isOlderThan10Days(fb.submitted_at)) {
-                        // Tự động dọn dẹp xóa khỏi Supabase nếu quá 10 ngày
+                        // Tá»± Ä‘á»™ng dá»n dáº¹p xÃ³a khá»i Supabase náº¿u quÃ¡ 10 ngÃ y
                         supaDelete(APP_CONFIG.TABLES.FEEDBACKS, `feedback_id=eq.${encodeURIComponent(fb.feedback_id)}`).catch(() => {});
                     } else {
-                        // Nếu có tutorPhone, chỉ lấy phản hồi của học sinh thuộc gia sư đó
+                        // Náº¿u cÃ³ tutorPhone, chá»‰ láº¥y pháº£n há»“i cá»§a há»c sinh thuá»™c gia sÆ° Ä‘Ã³
                         if (myStudentPhones.size > 0 || myStudentNames.size > 0) {
                             let fbPhoneNorm = normalizePhone(fb.student_phone);
                             let fbNameNorm = (fb.student_name || "").trim().toLowerCase();
@@ -1520,7 +1526,7 @@ class GoogleScriptRunInstance {
                 await supaPost(APP_CONFIG.TABLES.FEEDBACKS, [{
                     feedback_id: fbId,
                     student_phone: String(maHS || ""),
-                    student_name: tenHocSinh || "Phụ huynh",
+                    student_name: tenHocSinh || "Phá»¥ huynh",
                     content: noiDung || "",
                     submitted_at: new Date().toLocaleString('vi-VN')
                 }]);
@@ -1536,9 +1542,9 @@ class GoogleScriptRunInstance {
                 const normAdminPhone = normalizePhone(adminPhone);
                 
                 if (!adminPhone || !adminPin) {
-                    result = { error: 'Từ chối truy cập: Thiếu thông tin xác thực Admin!' };
+                    result = { error: 'Tá»« chá»‘i truy cáº­p: Thiáº¿u thÃ´ng tin xÃ¡c thá»±c Admin!' };
                 } else {
-                    // BẢO MẬT: đã xóa backdoor 302001/1234. So khớp PIN trong truy vấn, không tải cả bảng admin.
+                    // Báº¢O Máº¬T: Ä‘Ã£ xÃ³a backdoor 302001/1234. So khá»›p PIN trong truy váº¥n, khÃ´ng táº£i cáº£ báº£ng admin.
                     const rawA = String(adminPhone).trim();
                     const candsA = Array.from(new Set([rawA, normAdminPhone, normAdminPhone ? '0' + normAdminPhone : ''].filter(Boolean)));
                     const encA = v => encodeURIComponent('"' + String(v).replace(/"/g, '') + '"');
@@ -1549,7 +1555,7 @@ class GoogleScriptRunInstance {
                     );
                     
                     if (!validAdmin) {
-                        result = { error: 'Từ chối truy cập: Thông tin xác thực Admin không hợp lệ hoặc đã hết hạn!' };
+                        result = { error: 'Tá»« chá»‘i truy cáº­p: ThÃ´ng tin xÃ¡c thá»±c Admin khÃ´ng há»£p lá»‡ hoáº·c Ä‘Ã£ háº¿t háº¡n!' };
                     } else {
                         result = await getAdminDashboardDataInternal();
                     }
@@ -1583,7 +1589,7 @@ class GoogleScriptRunInstance {
                         qr_url: qrUrl !== undefined ? qrUrl : existing.qr_url,
                         registered_date: createdDate || existing.registered_date,
                         next_due_date: nextBilling || existing.next_due_date,
-                        account_type: accountType || existing.account_type || "Gia sư (1-1)"
+                        account_type: accountType || existing.account_type || "Gia sÆ° (1-1)"
                     });
                 } else {
                     await supaPost(APP_CONFIG.TABLES.TUTORS, [{
@@ -1594,8 +1600,8 @@ class GoogleScriptRunInstance {
                         qr_url: qrUrl || "",
                         registered_date: createdDate || new Date().toLocaleDateString('vi-VN'),
                         next_due_date: nextBilling,
-                        account_type: accountType || "Gia sư (1-1)",
-                        status: "Hoạt động"
+                        account_type: accountType || "Gia sÆ° (1-1)",
+                        status: "Hoáº¡t Ä‘á»™ng"
                     }]);
                 }
                 result = { success: true };
@@ -1623,7 +1629,7 @@ class GoogleScriptRunInstance {
                 if (qrUrl !== undefined) updateData.qr_url = qrUrl;
                 if (phone && phone !== oldPhone) updateData.phone = phone;
                 
-                // Kiểm tra xem có phải tài khoản admin không
+                // Kiá»ƒm tra xem cÃ³ pháº£i tÃ i khoáº£n admin khÃ´ng
                 let admins = await supaGet(APP_CONFIG.TABLES.ADMINS, `select=*`);
                 let targetAdmin = admins.find(a => normalizePhone(a.phone) === normalizePhone(p) || String(a.admin_id).trim() === String(p).trim());
                 if (targetAdmin) {
@@ -1638,7 +1644,7 @@ class GoogleScriptRunInstance {
                     let targetId = target ? target.tutor_id : p;
                     await supaPatch(APP_CONFIG.TABLES.TUTORS, `tutor_id=eq.${encodeURIComponent(targetId)}`, updateData);
 
-                    // Đồng bộ đổi số điện thoại gia sư trong danh sách học sinh nếu có đổi phone
+                    // Äá»“ng bá»™ Ä‘á»•i sá»‘ Ä‘iá»‡n thoáº¡i gia sÆ° trong danh sÃ¡ch há»c sinh náº¿u cÃ³ Ä‘á»•i phone
                     if (phone && oldPhone && normalizePhone(phone) !== normalizePhone(oldPhone)) {
                         let stList = await supaGet(APP_CONFIG.TABLES.STUDENTS, `select=*`);
                         for (let s of stList) {
@@ -1725,7 +1731,7 @@ class GoogleScriptRunInstance {
                 let target = tutors.find(t => normalizePhone(t.phone) === normalizePhone(tutorPhone) || String(t.tutor_id).trim() === String(tutorPhone).trim());
                 let targetId = target ? target.tutor_id : tutorPhone;
                 
-                await supaPatch(APP_CONFIG.TABLES.TUTORS, `tutor_id=eq.${encodeURIComponent(targetId)}`, { status: status || 'Hoạt động' });
+                await supaPatch(APP_CONFIG.TABLES.TUTORS, `tutor_id=eq.${encodeURIComponent(targetId)}`, { status: status || 'Hoáº¡t Ä‘á»™ng' });
                 result = { success: true };
             }
             
@@ -1756,12 +1762,12 @@ class GoogleScriptRunInstance {
                     }
                 }
                 
-                // Gia hạn thêm 1 tháng cho đến khi ngày hạn mới vượt qua ngày hiện tại
+                // Gia háº¡n thÃªm 1 thÃ¡ng cho Ä‘áº¿n khi ngÃ y háº¡n má»›i vÆ°á»£t qua ngÃ y hiá»‡n táº¡i
                 do {
                     nextDate.setMonth(nextDate.getMonth() + 1);
                 } while (nextDate <= today);
                 
-                // Giữ lại đúng ngày chu kỳ nếu hợp lệ
+                // Giá»¯ láº¡i Ä‘Ãºng ngÃ y chu ká»³ náº¿u há»£p lá»‡
                 if (dayOfMonth && dayOfMonth <= 28) {
                     nextDate.setDate(dayOfMonth);
                 }
@@ -1770,7 +1776,7 @@ class GoogleScriptRunInstance {
                 
                 await supaPatch(APP_CONFIG.TABLES.TUTORS, `tutor_id=eq.${encodeURIComponent(targetId)}`, {
                     next_due_date: nextDueStr,
-                    status: 'Hoạt động'
+                    status: 'Hoáº¡t Ä‘á»™ng'
                 });
                 result = { success: true, nextDue: nextDueStr };
             }
@@ -1789,7 +1795,7 @@ class GoogleScriptRunInstance {
                         await supaPost(APP_CONFIG.TABLES.FEEDBACKS, [{
                             feedback_id: 'SYSTEM_MARQUEE',
                             student_phone: 'ADMIN',
-                            student_name: 'Thông báo hệ thống',
+                            student_name: 'ThÃ´ng bÃ¡o há»‡ thá»‘ng',
                             content: cleanText,
                             submitted_at: new Date().toLocaleString('vi-VN')
                         }]);
@@ -1803,23 +1809,25 @@ class GoogleScriptRunInstance {
             }
             
             else {
-                console.warn(`[${APP_CONFIG.SCOPE}] Hàm ${functionName} đang fallback.`);
+                console.warn(`[${APP_CONFIG.SCOPE}] HÃ m ${functionName} Ä‘ang fallback.`);
                 result = { success: true };
             }
             
+            window.tempAuth = null;
             if (self._successHandler) {
                 self._successHandler(result);
             }
             
         } catch (err) {
-            console.error(`[${APP_CONFIG.SCOPE}] Lỗi API [${functionName}]:`, err);
+            window.tempAuth = null;
+            console.error(`[${APP_CONFIG.SCOPE}] Lá»—i API [${functionName}]:`, err);
             if (self._failureHandler) self._failureHandler(err.toString());
             else if (self._successHandler) self._successHandler({ error: err.message || err.toString() });
         }
     }
 }
 
-// HELPER INTERNAL: Load Dashboard Gia Sư
+// HELPER INTERNAL: Load Dashboard Gia SÆ°
 async function getTutorDashboardDataInternal(tutorPhone) {
     let norm = normalizePhone(tutorPhone);
     let tutors = await supaGet(APP_CONFIG.TABLES.TUTORS, `select=*`);
@@ -1844,7 +1852,7 @@ async function getTutorDashboardDataInternal(tutorPhone) {
         parentName: s.parent_name || "",
         tuition: s.tuition_fee || 0,
         billing_type: s.billing_type || 'session',
-        deletedDate: s.deleted_date || "Gần đây",
+        deletedDate: s.deleted_date || "Gáº§n Ä‘Ã¢y",
         maBaiTap: s.homework_id || s.student_id || s.parent_phone || "",
         thongBao: s.announcement || ""
     }));
@@ -1859,8 +1867,8 @@ async function getTutorDashboardDataInternal(tutorPhone) {
         ));
         stEvals.forEach(e => {
             let att = String(e.attendance_status || "").toLowerCase();
-            let isAttended = att.includes("đã học") || att.includes("học bù") || att.includes("có mặt");
-            let isPaid = String(e.paid_status || "").toLowerCase().includes("đã đóng");
+            let isAttended = att.includes("Ä‘Ã£ há»c") || att.includes("há»c bÃ¹") || att.includes("cÃ³ máº·t");
+            let isPaid = String(e.paid_status || "").toLowerCase().includes("Ä‘Ã£ Ä‘Ã³ng");
             if (isAttended && !isPaid) {
                 totalUnpaid += Number(st.tuition) || 0;
             }
@@ -1872,7 +1880,7 @@ async function getTutorDashboardDataInternal(tutorPhone) {
     
     return {
         tutorPhone: matchedTutor ? matchedTutor.phone : tutorPhone,
-        tutorName: matchedTutor ? matchedTutor.name : "Gia sư",
+        tutorName: matchedTutor ? matchedTutor.name : "Gia sÆ°",
         tutorPin: matchedTutor ? matchedTutor.pin : "",
         qrCode: matchedTutor ? matchedTutor.qr_url : "",
         students: activeStudents,
@@ -1899,9 +1907,9 @@ async function getAdminDashboardDataInternal() {
         qrUrl: t.qr_url,
         createdDate: t.registered_date || "18/07/2026",
         nextBillingDate: t.next_due_date || "18/09/2026",
-        lastActive: t.last_active || "Vừa xong",
-        status: t.status || "Hoạt động",
-        accountType: t.account_type || "Gia sư (1-1)"
+        lastActive: t.last_active || "Vá»«a xong",
+        status: t.status || "Hoáº¡t Ä‘á»™ng",
+        accountType: t.account_type || "Gia sÆ° (1-1)"
     }));
     
     let deletedTutors = tutorsRaw.filter(t => !!t.deleted_date).map(t => ({
@@ -1918,13 +1926,13 @@ async function getAdminDashboardDataInternal() {
         tuition: s.tuition_fee || 0
     }));
     
-    // Tính toán báo cáo doanh thu & lương chi tiết theo tháng và gia sư
+    // TÃ­nh toÃ¡n bÃ¡o cÃ¡o doanh thu & lÆ°Æ¡ng chi tiáº¿t theo thÃ¡ng vÃ  gia sÆ°
     let defaultYear = new Date().getFullYear();
     let incomeReports = {};
     
     evalsRaw.filter(e => !e.deleted_date).forEach(e => {
         let att = String(e.attendance_status || '').toLowerCase();
-        let isAttended = att.includes('đã học') || att.includes('học bù') || att.includes('có mặt');
+        let isAttended = att.includes('Ä‘Ã£ há»c') || att.includes('há»c bÃ¹') || att.includes('cÃ³ máº·t');
         if (!isAttended) return;
 
         let month = 0, year = defaultYear;
@@ -1941,7 +1949,7 @@ async function getAdminDashboardDataInternal() {
         if (!month || month < 1 || month > 12) {
             month = new Date().getMonth() + 1;
         }
-        let mKey = 'Tháng ' + month + '/' + year;
+        let mKey = 'ThÃ¡ng ' + month + '/' + year;
 
         let normPhone = normalizePhone(e.student_phone);
         let st = studentsRaw.find(s => 
@@ -1950,13 +1958,13 @@ async function getAdminDashboardDataInternal() {
         );
 
         let fee = st ? (Number(st.tuition_fee) || 0) : 0;
-        let isPaid = String(e.paid_status || '').toLowerCase().includes('đã đóng');
+        let isPaid = String(e.paid_status || '').toLowerCase().includes('Ä‘Ã£ Ä‘Ã³ng');
 
         let tutorPhone = e.tutor_phone || (st ? st.tutor_phone : '');
         let normTutor = normalizePhone(tutorPhone);
         let tutor = tutorsRaw.find(t => normalizePhone(t.phone) === normTutor || String(t.tutor_id).trim() === String(tutorPhone).trim());
         let tKey = tutor ? tutor.phone : (tutorPhone || 'OTHER');
-        let tName = tutor ? tutor.name : 'Gia sư';
+        let tName = tutor ? tutor.name : 'Gia sÆ°';
 
         if (!incomeReports[mKey]) {
             incomeReports[mKey] = { expected: 0, paid: 0, unpaid: 0, tutors: {} };
@@ -1983,7 +1991,7 @@ async function getAdminDashboardDataInternal() {
         name: adminsRaw[0].name,
         phone: adminsRaw[0].phone,
         pin: adminsRaw[0].pin
-    } : { name: 'Quản trị viên', phone: '', pin: '' };
+    } : { name: 'Quáº£n trá»‹ viÃªn', phone: '', pin: '' };
     
     return {
         tutors: tutors,
@@ -2002,3 +2010,4 @@ window.google = {
         }
     }
 };
+
