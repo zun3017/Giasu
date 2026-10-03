@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
+    <script>window.__tutorThemeKey = window.__tutorThemeKey || function () { var p = ''; try { p = sessionStorage.getItem('userPhone') || ''; } catch (e) {} if (!p) { try { var d = JSON.parse(sessionStorage.getItem('dashboardData') || 'null'); p = (d && (d.tutorPhone || d.phone)) || ''; } catch (e) {} } var dir = (location.pathname || '/').replace(/[^\/]*$/, ''); return 'tutorTheme::' + dir + '::' + (p || 'guest'); };</script>
     <link rel="icon" type="image/png" href="https://i.postimg.cc/66rKbPmb/trinh-duyet.png">
 
     <meta charset="UTF-8">
@@ -27,7 +28,7 @@
     <link rel="stylesheet" href="css/themes.css">
     <script>
       (function() {
-        var t = localStorage.getItem('tutorTheme') || 'theme-dark-purple';
+        var t = localStorage.getItem(window.__tutorThemeKey()) || 'theme-dark-purple';
         if (t.startsWith('custom:')) {
           var hex = t.split(':')[1];
           if (/^#[0-9A-Fa-f]{6}$/.test(hex)) {

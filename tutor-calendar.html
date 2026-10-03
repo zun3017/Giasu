@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
+    <script>window.__tutorThemeKey = window.__tutorThemeKey || function () { var p = ''; try { p = sessionStorage.getItem('userPhone') || ''; } catch (e) {} if (!p) { try { var d = JSON.parse(sessionStorage.getItem('dashboardData') || 'null'); p = (d && (d.tutorPhone || d.phone)) || ''; } catch (e) {} } var dir = (location.pathname || '/').replace(/[^\/]*$/, ''); return 'tutorTheme::' + dir + '::' + (p || 'guest'); };</script>
     <script>
         window.onerror = function(message, source, lineno, colno, error) {
             console.error("JS Error: " + message + " at " + source + ":" + lineno + ":" + colno);
@@ -168,7 +169,7 @@
         });
 
         root.classList.add(themeId);
-        try { localStorage.setItem('tutorTheme', themeId); } catch(e) {}
+        try { localStorage.setItem(window.__tutorThemeKey(), themeId); } catch(e) {}
 
         root.setAttribute('data-theme', DARK_THEME_IDS.indexOf(themeId) !== -1 ? 'dark' : 'light');
 
@@ -194,7 +195,7 @@
         }
         if (!hex) {
           try {
-            var cur = localStorage.getItem('tutorTheme');
+            var cur = localStorage.getItem(window.__tutorThemeKey());
             if (cur && cur.startsWith('custom:')) hex = cur.split(':')[1];
           } catch(e) {}
         }
@@ -219,7 +220,7 @@
         });
         root.setAttribute('data-theme', 'light');
 
-        try { localStorage.setItem('tutorTheme', 'custom:' + hex); } catch(e) {}
+        try { localStorage.setItem(window.__tutorThemeKey(), 'custom:' + hex); } catch(e) {}
 
         var hexInput = document.getElementById('customColorHex');
         if (hexInput && hexInput.value.toUpperCase() !== hex.toUpperCase()) hexInput.value = hex.toUpperCase();
@@ -298,13 +299,13 @@
         if (!t && isEmbedded) {
           try {
             if (window.parent && window.parent !== window && window.parent.localStorage) {
-              t = window.parent.localStorage.getItem('tutorTheme');
+              t = window.parent.localStorage.getItem(window.__tutorThemeKey());
             }
           } catch(e) {}
         }
 
         if (!t) {
-          try { t = localStorage.getItem('tutorTheme'); } catch(e) {}
+          try { t = localStorage.getItem(window.__tutorThemeKey()); } catch(e) {}
         }
 
         if (t && t.startsWith('custom:')) {
@@ -6116,7 +6117,7 @@ function applyTheme(themeId) {
 
   // 3. Kích hoạt theme mới
   root.classList.add(themeId);
-  localStorage.setItem('tutorTheme', themeId);
+  localStorage.setItem(window.__tutorThemeKey(), themeId);
 
   // Set data-theme cho dark mode CSS selectors
   var darkThemes = [
@@ -6157,7 +6158,7 @@ function openThemeSwitcher() {
   if (!panel) return;
   panel.style.display = 'flex';
 
-  var cur = localStorage.getItem('tutorTheme') || 'theme-dark-purple';
+  var cur = localStorage.getItem(window.__tutorThemeKey()) || 'theme-dark-purple';
   if (cur.startsWith('custom:')) {
     var hex = cur.split(':')[1];
     var p = document.getElementById('customColorPicker');
@@ -6298,7 +6299,7 @@ function applyCustomTheme(silent, explicitHex) {
   }
   if (!hex) {
     try {
-      var cur = localStorage.getItem('tutorTheme');
+      var cur = localStorage.getItem(window.__tutorThemeKey());
       if (cur && cur.startsWith('custom:')) hex = cur.split(':')[1];
     } catch(e) {}
   }
@@ -6328,7 +6329,7 @@ function applyCustomTheme(silent, explicitHex) {
   });
   root.setAttribute('data-theme', 'light');
 
-  try { localStorage.setItem('tutorTheme', 'custom:' + hex); } catch(e) {}
+  try { localStorage.setItem(window.__tutorThemeKey(), 'custom:' + hex); } catch(e) {}
 
   var hexInput = document.getElementById('customColorHex');
   if (hexInput && hexInput.value.toUpperCase() !== hex.toUpperCase()) hexInput.value = hex.toUpperCase();
@@ -6399,12 +6400,12 @@ document.addEventListener('DOMContentLoaded', function() {
   if (isEmbedded) {
     try {
       if (window.parent && window.parent !== window && window.parent.localStorage) {
-        saved = window.parent.localStorage.getItem('tutorTheme');
+        saved = window.parent.localStorage.getItem(window.__tutorThemeKey());
       }
     } catch(e) {}
   }
   if (!saved) {
-    try { saved = localStorage.getItem('tutorTheme'); } catch(e) {}
+    try { saved = localStorage.getItem(window.__tutorThemeKey()); } catch(e) {}
   }
 
   if (saved && saved.startsWith('custom:')) {

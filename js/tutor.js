@@ -1,3 +1,4 @@
+window.__tutorThemeKey = window.__tutorThemeKey || function () { var p = ''; try { p = sessionStorage.getItem('userPhone') || ''; } catch (e) {} if (!p) { try { var d = JSON.parse(sessionStorage.getItem('dashboardData') || 'null'); p = (d && (d.tutorPhone || d.phone)) || ''; } catch (e) {} } var dir = (location.pathname || '/').replace(/[^\/]*$/, ''); return 'tutorTheme::' + dir + '::' + (p || 'guest'); };
 var tutorChartInstance = null;
 var tutorDataGlobal = null;
 var currentTutorStudent = null;
@@ -5140,7 +5141,7 @@ function switchTutorNavTab(element, tabKey) {
     } else if (tabKey === 'calendar') {
         var calFrame = document.getElementById('tutorCalendarIframe');
         if (calFrame) {
-            var curTheme = localStorage.getItem('tutorTheme') || 'theme-dark-purple';
+            var curTheme = localStorage.getItem(window.__tutorThemeKey()) || 'theme-dark-purple';
             if (!calFrame.src || calFrame.src.indexOf('tutor-calendar.html') === -1) {
                 calFrame.src = 'tutor-calendar.html?embedded=1&theme=' + encodeURIComponent(curTheme);
             }
@@ -10653,7 +10654,7 @@ function syncThemeToCalendarIframe() {
   if (!calFrame) return;
 
   var curTheme = null;
-  try { curTheme = localStorage.getItem('tutorTheme'); } catch(e) {}
+  try { curTheme = localStorage.getItem(window.__tutorThemeKey()); } catch(e) {}
   if (!curTheme) {
     var root = document.documentElement;
     Array.from(root.classList).forEach(function(cls) {
@@ -10726,7 +10727,7 @@ function applyTheme(themeId) {
 
   // 3. Kích hoạt theme mới
   root.classList.add(themeId);
-  try { localStorage.setItem('tutorTheme', themeId); } catch(e) {}
+  try { localStorage.setItem(window.__tutorThemeKey(), themeId); } catch(e) {}
 
   // Set data-theme cho dark mode CSS selectors
   var darkThemes = [
@@ -10766,7 +10767,7 @@ function openThemeSwitcher() {
   if (!panel) return;
   panel.style.display = 'flex';
 
-  var cur = localStorage.getItem('tutorTheme') || 'theme-dark-purple';
+  var cur = localStorage.getItem(window.__tutorThemeKey()) || 'theme-dark-purple';
   if (cur.startsWith('custom:')) {
     var hex = cur.split(':')[1];
     var p = document.getElementById('customColorPicker');
@@ -10910,7 +10911,7 @@ function applyCustomTheme(silent, explicitHex) {
   }
   if (!hex) {
     try {
-      var cur = localStorage.getItem('tutorTheme');
+      var cur = localStorage.getItem(window.__tutorThemeKey());
       if (cur && cur.startsWith('custom:')) hex = cur.split(':')[1];
     } catch(e) {}
   }
@@ -10940,7 +10941,7 @@ function applyCustomTheme(silent, explicitHex) {
   });
   root.setAttribute('data-theme', 'light');
 
-  try { localStorage.setItem('tutorTheme', 'custom:' + hex); } catch(e) {}
+  try { localStorage.setItem(window.__tutorThemeKey(), 'custom:' + hex); } catch(e) {}
 
   var hexInput = document.getElementById('customColorHex');
   if (hexInput && hexInput.value.toUpperCase() !== hex.toUpperCase()) hexInput.value = hex.toUpperCase();
@@ -11009,7 +11010,7 @@ window.addEventListener('message', function(e) {
 // Khởi chạy khi DOM sẵn sàng
 document.addEventListener('DOMContentLoaded', function() {
   setupCustomColorSync();
-  var saved = localStorage.getItem('tutorTheme');
+  var saved = localStorage.getItem(window.__tutorThemeKey());
   if (saved && saved.startsWith('custom:')) {
     var hex = saved.split(':')[1];
     var hexInput = document.getElementById('customColorHex');
@@ -11183,7 +11184,7 @@ function renderSettingsThemes() {
 window.renderSettingsThemes = renderSettingsThemes;
 
 function updateSettingsThemeUI() {
-    var cur = localStorage.getItem('tutorTheme') || 'theme-dark-purple';
+    var cur = localStorage.getItem(window.__tutorThemeKey()) || 'theme-dark-purple';
     var nameEl = document.getElementById('settingsThemeActiveName');
     var descEl = document.getElementById('settingsThemeActiveDesc');
     var orbEl = document.getElementById('settingsThemeOrbPreview');
