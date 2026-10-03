@@ -3437,8 +3437,8 @@ function renderTuitionLivePreview() {
         // Bank & QR Box
         if (toggles.qr !== false) {
             html += '<div class="aio-pay-box">';
-            html += '<div class="qr-frame">';
-            html += '<img src="' + safeUrlAttr(qrImgSrc) + '" alt="VietQR" crossorigin="anonymous">';
+            html += '<div class="qr-frame" style="width: 86px; height: 86px; border: 2px solid #18181B; border-radius: 8px; overflow: hidden; flex-shrink: 0; background: #FFF; padding: 3px; box-sizing: border-box; display: flex; align-items: center; justify-content: center;">';
+            html += '<img src="' + safeUrlAttr(qrImgSrc) + '" alt="VietQR" crossorigin="anonymous" style="width: 100% !important; height: 100% !important; max-width: 100% !important; max-height: 100% !important; object-fit: contain !important; display: block !important;">';
             html += '</div>';
             html += '<div class="pay-details">';
             html += '<div>Ngân hàng: <b>' + escapeHtml(bankName || 'MB Bank') + '</b></div>';
@@ -3513,8 +3513,8 @@ function renderTuitionLivePreview() {
         // Footer & Pay
         if (toggles.qr !== false) {
             html += '<div class="ed-footer-pay">';
-            html += '<div style="width: 76px; height: 76px; border: 1.5px solid #27272A; border-radius: 8px; padding: 3px; background: #FFF; flex-shrink: 0;">';
-            html += '<img src="' + safeUrlAttr(qrImgSrc) + '" alt="VietQR" crossorigin="anonymous">';
+            html += '<div class="ed-qr-box" style="width: 76px; height: 76px; border: 1.5px solid #27272A; border-radius: 8px; padding: 3px; background: #FFF; flex-shrink: 0; overflow: hidden; box-sizing: border-box; display: flex; align-items: center; justify-content: center;">';
+            html += '<img src="' + safeUrlAttr(qrImgSrc) + '" alt="VietQR" crossorigin="anonymous" style="width: 100% !important; height: 100% !important; max-width: 100% !important; max-height: 100% !important; object-fit: contain !important; display: block !important;">';
             html += '</div>';
             html += '<div style="font-size: 12px; line-height: 1.5;">';
             html += '<div>Tài khoản: <strong>' + escapeHtml(bankAcc || tutorPhone || '0987654321') + '</strong> (' + escapeHtml(bankName || 'MB Bank') + ')</div>';
@@ -3565,8 +3565,8 @@ function renderTuitionLivePreview() {
         html += '<div class="wax-seal"><i class="fa-solid fa-stamp"></i></div>';
         html += '<div style="display: flex; align-items: center; gap: 10px;">';
         if (toggles.qr !== false) {
-            html += '<div style="width: 58px; height: 58px; background: #FFF; border: 1px solid #D6D3D1; border-radius: 6px; padding: 2px;">';
-            html += '<img src="' + safeUrlAttr(qrImgSrc) + '" alt="VietQR" crossorigin="anonymous">';
+            html += '<div class="dip-qr-box" style="width: 58px; height: 58px; background: #FFF; border: 1px solid #D6D3D1; border-radius: 6px; padding: 2px; flex-shrink: 0; overflow: hidden; box-sizing: border-box; display: flex; align-items: center; justify-content: center;">';
+            html += '<img src="' + safeUrlAttr(qrImgSrc) + '" alt="VietQR" crossorigin="anonymous" style="width: 100% !important; height: 100% !important; max-width: 100% !important; max-height: 100% !important; object-fit: contain !important; display: block !important;">';
             html += '</div>';
         }
         html += '<div class="sign-box">';

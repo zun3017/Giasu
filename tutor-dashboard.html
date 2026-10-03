@@ -2805,6 +2805,11 @@
         }
     </style>
     <style>
+        #tuitionInvoiceModalBody img,
+        #tuitionInvoiceCard img {
+            max-width: 100% !important;
+            box-sizing: border-box;
+        }
 
         /* ========================================================
            3 MẪU PHIẾU HỌC PHÍ ĐƯỢC CHỌN (MẪU 1, MẪU 3, MẪU 6)
@@ -2826,6 +2831,8 @@
       font-family: 'Lexend', 'Quicksand', sans-serif;
       color: #18181B;
       position: relative;
+      box-sizing: border-box;
+      overflow: hidden;
     }
     .inv-aio-neobrutal .aio-badge-head {
       display: flex;
@@ -3044,6 +3051,8 @@
       font-family: 'Quicksand', sans-serif;
       color: #27272A;
       position: relative;
+      box-sizing: border-box;
+      overflow: hidden;
     }
     .inv-aio-editorial .ed-header {
       text-align: center;
@@ -3112,6 +3121,29 @@
       align-items: center;
       gap: 14px;
     }
+    .inv-aio-editorial .ed-footer-pay .ed-qr-box {
+      width: 76px;
+      height: 76px;
+      border: 1.5px solid #27272A;
+      border-radius: 8px;
+      padding: 3px;
+      background: #FFF;
+      flex-shrink: 0;
+      overflow: hidden;
+      box-sizing: border-box;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .inv-aio-editorial .ed-footer-pay img,
+    .inv-aio-editorial .ed-qr-box img {
+      width: 100% !important;
+      height: 100% !important;
+      max-width: 100% !important;
+      max-height: 100% !important;
+      object-fit: contain !important;
+      display: block !important;
+    }
 
     
 /* Mẫu 3: Aio Editorial Clean Paper Feedback Box */
@@ -3158,6 +3190,8 @@
       font-family: 'Playfair Display', serif;
       color: #372A1C;
       position: relative;
+      box-sizing: border-box;
+      overflow: hidden;
     }
     .inv-diploma::after {
       content: '';
@@ -3227,6 +3261,29 @@
       justify-content: space-between;
       align-items: center;
       font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+    .inv-diploma .dip-qr-box {
+      width: 58px;
+      height: 58px;
+      background: #FFF;
+      border: 1px solid #D6D3D1;
+      border-radius: 6px;
+      padding: 2px;
+      flex-shrink: 0;
+      overflow: hidden;
+      box-sizing: border-box;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .inv-diploma .dip-sign-block img,
+    .inv-diploma .dip-qr-box img {
+      width: 100% !important;
+      height: 100% !important;
+      max-width: 100% !important;
+      max-height: 100% !important;
+      object-fit: contain !important;
+      display: block !important;
     }
     .inv-diploma .wax-seal {
       width: 48px;
