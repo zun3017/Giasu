@@ -1288,7 +1288,7 @@
         .fc-daygrid-event {
             border: none !important;
             border-radius: 999px !important;
-            margin: 2.5px 6px !important;
+            margin: 2px 2px !important;
             padding: 0 !important;
             box-shadow: none !important;
             background: transparent !important;
@@ -1300,14 +1300,14 @@
         .fc-month-chip-inner {
             display: flex !important;
             align-items: center !important;
-            gap: 6.5px !important;
-            padding: 3.5px 10px !important;
+            gap: 4.5px !important;
+            padding: 2.5px 7px !important;
             border-radius: 999px !important;
-            font-size: 11.5px !important;
-            line-height: 1.35 !important;
+            font-size: 11px !important;
+            line-height: 1.3 !important;
             white-space: nowrap !important;
             overflow: hidden !important;
-            text-overflow: ellipsis !important;
+            text-overflow: clip !important;
             width: 100% !important;
             box-sizing: border-box !important;
             box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03) !important;
@@ -1321,8 +1321,8 @@
         }
 
         .fc-chip-dot {
-            width: 6.5px !important;
-            height: 6.5px !important;
+            width: 5.5px !important;
+            height: 5.5px !important;
             border-radius: 50% !important;
             flex-shrink: 0 !important;
             display: inline-block !important;
@@ -1330,21 +1330,21 @@
         }
 
         .fc-chip-time {
-            font-weight: 750 !important;
-            font-size: 11px !important;
+            font-weight: 700 !important;
+            font-size: 10.5px !important;
             flex-shrink: 0 !important;
             letter-spacing: -0.2px !important;
         }
 
         .fc-chip-title {
             font-weight: 600 !important;
-            font-size: 11.5px !important;
+            font-size: 11px !important;
             overflow: hidden !important;
-            text-overflow: ellipsis !important;
+            text-overflow: clip !important;
             white-space: nowrap !important;
             flex: 1 !important;
             color: var(--text-primary) !important;
-            letter-spacing: -0.1px !important;
+            letter-spacing: -0.2px !important;
         }
 
         .fc-event-main-frame {
@@ -4635,8 +4635,9 @@
                             chipBorder = 'rgba(' + hexToRgbStr(color) + ', 0.42)';
                         }
                         let timeClr = isCancelled ? '#9CA3AF' : (isDark ? '#FFFFFF' : color);
+                        let fullTooltip = (titleStr + (timeStr ? ' (' + timeStr + ')' : '')).replace(/"/g, '&quot;');
                         
-                        let html = '<div class="fc-month-chip-inner" style="background: ' + chipBg + '; border: 1px solid ' + chipBorder + '; ' + textDecor + '">' +
+                        let html = '<div class="fc-month-chip-inner" title="' + fullTooltip + '" style="background: ' + chipBg + '; border: 1px solid ' + chipBorder + '; ' + textDecor + '">' +
                                    '<span class="fc-chip-dot" style="background-color: ' + dotColor + '; box-shadow: 0 0 0 1.5px ' + (isDark ? 'rgba(0,0,0,0.6)' : '#FFFFFF') + ', 0 1px 3px ' + color + '55;"></span>' +
                                    (timeStr ? '<span class="fc-chip-time" style="color: ' + timeClr + ';">' + timeStr + '</span>' : '') +
                                    '<span class="fc-chip-title" style="color: ' + textClr + ';">' + titleStr + '</span>' +
@@ -4773,14 +4774,12 @@
                             if (isDark) {
                                 innerChip.style.setProperty('background', 'rgba(' + hexToRgbStr(evColor) + ', 0.32)', 'important');
                                 innerChip.style.setProperty('border', '1px solid ' + evColor, 'important');
-                                innerChip.style.setProperty('border-left', '3.5px solid ' + evColor, 'important');
                                 innerChip.style.setProperty('box-shadow', '0 1px 3px rgba(0, 0, 0, 0.25)', 'important');
                                 if (chipTitle) chipTitle.style.setProperty('color', '#FFFFFF', 'important');
                                 if (chipTime) chipTime.style.setProperty('color', '#FFFFFF', 'important');
                             } else {
                                 innerChip.style.setProperty('background', 'rgba(' + hexToRgbStr(evColor) + ', 0.22)', 'important');
                                 innerChip.style.setProperty('border', '1px solid rgba(' + hexToRgbStr(evColor) + ', 0.80)', 'important');
-                                innerChip.style.setProperty('border-left', '3.5px solid ' + evColor, 'important');
                                 innerChip.style.setProperty('box-shadow', '0 1px 3px rgba(0, 0, 0, 0.06)', 'important');
                                 if (chipTitle) chipTitle.style.setProperty('color', 'var(--text-primary)', 'important');
                                 if (chipTime) chipTime.style.setProperty('color', 'var(--text-primary)', 'important');
