@@ -2615,6 +2615,7 @@ function autoSaveTuitionDraft() {
             scheduleText: state.scheduleText || "",
             tuitionExtraText: state.tuitionExtraText || "",
             footerNoteText: state.footerNoteText || "",
+            teacherNote: state.teacherNote || "",
             savedAt: new Date().toISOString()
         };
         localStorage.setItem(key, JSON.stringify(draftData));
@@ -2663,6 +2664,7 @@ function saveTuitionDraftModal() {
                 scheduleText: state.scheduleText || "",
                 tuitionExtraText: state.tuitionExtraText || "",
                 footerNoteText: state.footerNoteText || "",
+                teacherNote: state.teacherNote || "",
                 savedAt: new Date().toISOString()
             };
             localStorage.setItem(draftKey, JSON.stringify(draftData));
@@ -2696,6 +2698,9 @@ function onTuitionPeriodDateChange() {
         if (titleInp) titleInp.value = autoTitle;
     }
 
+    if (window.currentTuitionInvoiceStudent) {
+        buildTuitionModalForm(window.currentTuitionInvoiceStudent, window.currentTuitionInvoiceLogs);
+    }
     renderTuitionLivePreview();
     autoSaveTuitionDraft();
 }
@@ -2715,6 +2720,30 @@ function onTuitionPeriodTitleChange() {
 }
 window.onTuitionPeriodTitleChange = onTuitionPeriodTitleChange;
 
+function onTuitionTeacherNoteChange() {
+    window.tuitionInvoiceHasUnsavedChanges = true;
+    var inp = document.getElementById('tuitionTeacherNoteInput');
+    if (!window.tuitionInvoiceModalState) window.tuitionInvoiceModalState = {};
+    window.tuitionInvoiceModalState.teacherNote = inp ? inp.value : "";
+    renderTuitionLivePreview();
+    autoSaveTuitionDraft();
+}
+window.onTuitionTeacherNoteChange = onTuitionTeacherNoteChange;
+
+function applyTuitionQuickNote(text) {
+    window.tuitionInvoiceHasUnsavedChanges = true;
+    var inp = document.getElementById('tuitionTeacherNoteInput');
+    if (inp) {
+        inp.value = text;
+        inp.focus();
+    }
+    if (!window.tuitionInvoiceModalState) window.tuitionInvoiceModalState = {};
+    window.tuitionInvoiceModalState.teacherNote = text;
+    renderTuitionLivePreview();
+    autoSaveTuitionDraft();
+}
+window.applyTuitionQuickNote = applyTuitionQuickNote;
+
 function buildTuitionModalForm(st, studentLogs) {
     var formCol = document.getElementById('tuitionInvoiceFormCol');
     if (!formCol) return;
@@ -2726,9 +2755,64 @@ function buildTuitionModalForm(st, studentLogs) {
 
     var state = window.tuitionInvoiceModalState || {};
 
+    // Filter logs for this student using startDate and endDate
+    var sDate = parseInputDate(state.startDate);
+    var eDate = parseInputDate(state.endDate);
+    if (sDate) sDate.setHours(0, 0, 0, 0);
+    if (eDate) eDate.setHours(23, 59, 59, 999);
+
+    var filteredLogs = [];
+    if (st.logs && Array.isArray(st.logs)) {
+        st.logs.forEach(function(l) {
+            if (!l) return;
+            var lDate = parseLogDate(l.studyDate || l.ngay);
+            if (lDate) {
+                if (sDate && lDate < sDate) return;
+                if (eDate && lDate > eDate) return;
+                filteredLogs.push(l);
+            } else if (!sDate && !eDate) {
+                filteredLogs.push(l);
+            }
+        });
+    }
+
+    var invPresent = 0;
+    var invAbsent = 0;
+    var invMakeup = 0;
+    var invBillableCount = 0;
+
+    filteredLogs.forEach(function(log) {
+        if (!log) return;
+        var rawStatus = log.trangThai || log.chuyenCan || log.attendance_status || log.attendance || log.status || "";
+        var normTt = String(rawStatus).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').trim();
+        var isDaBu = (normTt.includes("da bu") || normTt.includes("hoc bu"));
+        var isAbsent = !isDaBu && (
+            normTt.includes("nghi") || normTt.includes("huy") || normTt.includes("vang") || normTt.includes("off") || normTt.includes("khong hoc") || normTt.includes("chua hoc") || normTt.includes("tam hoan") || normTt === "v" || normTt === "n" || normTt === "x"
+        );
+        if (isDaBu) {
+            invMakeup++;
+            invBillableCount++;
+        } else if (isAbsent) {
+            invAbsent++;
+        } else {
+            invPresent++;
+            invBillableCount++;
+        }
+    });
+
+    var billingType = st.billing_type || st.billingType || st.billing_cycle || 'session';
+    var isMonthly = (billingType === 'month' || billingType === 'monthly');
+    var unitFee = getStudentUnitFee(st);
+    var baseFee = isMonthly ? unitFee : (invBillableCount * unitFee);
+    var discount = (state.discountAmount !== undefined) ? state.discountAmount : (state.toggles && state.toggles.discount ? (state.discountAmount || 0) : 0);
+    var surcharge = (state.surchargeAmount !== undefined) ? state.surchargeAmount : (state.toggles && state.toggles.surcharge ? (state.surchargeAmount || 0) : 0);
+    var grandTotal = Math.max(0, baseFee - discount + surcharge);
+
     var html = '';
 
-    // Box 1: Thông tin kỳ học
+    // ==========================================
+    // BOX 1: Thông tin kỳ học
+    // ==========================================
     html += '<div id="tuitionBoxPeriodInfo" class="tuition-card-box">';
     html += '<div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">';
     html += '<span style="background: #7C3AED; color: #FFFFFF; font-size: 11px; font-weight: 800; padding: 2px 7px; border-radius: 6px;">01</span>';
@@ -2758,8 +2842,157 @@ function buildTuitionModalForm(st, studentLogs) {
     html += '<label style="display: block; font-size: 11.5px; color: #64748B; margin-bottom: 4px; font-weight: 600;">Tiêu đề kỳ học:</label>';
     html += '<input type="text" id="tuitionPeriodTitle" value="' + escapeHtml(state.customTitle || '') + '" placeholder="Ví dụ: PHIẾU HỌC TẬP THÁNG 8/2026" oninput="onTuitionPeriodTitleChange()" style="width: 100%; background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 10px; padding: 8px 12px; color: #0F172A; font-weight: 700; font-size: 13px; outline: none; box-sizing: border-box;">';
     html += '</div>';
+    html += '</div>'; // End Box 1
+
+    // ==========================================
+    // BOX 2: Buổi học & Chuyên cần trong kỳ
+    // ==========================================
+    html += '<div id="tuitionBoxAttendanceOverview" class="tuition-card-box">';
+    html += '<div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">';
+    html += '<div style="display: flex; align-items: center; gap: 8px;">';
+    html += '<span style="background: #2563EB; color: #FFFFFF; font-size: 11px; font-weight: 800; padding: 2px 7px; border-radius: 6px;">02</span>';
+    html += '<div>';
+    html += '<div style="font-size: 15px; font-weight: 700; color: #0F172A;">Buổi học & Chuyên cần</div>';
+    html += '<div style="font-size: 12px; color: #64748B; margin-top: 1px;">Thống kê thực tế trong khoảng thời gian đã chọn</div>';
+    html += '</div></div>';
+    html += '<span style="font-size: 11.5px; font-weight: 700; color: #2563EB; background: #EFF6FF; border: 1px solid #BFDBFE; padding: 3px 8px; border-radius: 999px;">' + filteredLogs.length + ' buổi ghi nhận</span>';
+    html += '</div>';
+
+    // 3 KPI metric cards
+    html += '<div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 12px;">';
+    html += '<div style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 10px; padding: 8px; text-align: center;">';
+    html += '<div style="font-size: 11px; color: #64748B; font-weight: 600;">Buổi tính phí</div>';
+    html += '<div style="font-size: 16px; font-weight: 800; color: #0F172A; margin-top: 2px;">' + invBillableCount + ' buổi</div>';
+    html += '</div>';
+
+    html += '<div style="background: #F0FDF4; border: 1px solid #BBF7D0; border-radius: 10px; padding: 8px; text-align: center;">';
+    html += '<div style="font-size: 11px; color: #166534; font-weight: 600;">Có mặt</div>';
+    html += '<div style="font-size: 16px; font-weight: 800; color: #15803D; margin-top: 2px;">' + invPresent + ' buổi</div>';
+    html += '</div>';
+
+    html += '<div style="background: #FEF3C7; border: 1px solid #FDE68A; border-radius: 10px; padding: 8px; text-align: center;">';
+    html += '<div style="font-size: 11px; color: #92400E; font-weight: 600;">Nghỉ / Bù</div>';
+    html += '<div style="font-size: 16px; font-weight: 800; color: #B45309; margin-top: 2px;">' + (invAbsent + invMakeup) + ' buổi</div>';
+    html += '</div>';
+    html += '</div>';
+
+    // Mini log chips / list
+    html += '<div style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 10px; padding: 8px 10px; max-height: 100px; overflow-y: auto;">';
+    if (filteredLogs.length > 0) {
+        html += '<div style="display: flex; flex-wrap: wrap; gap: 6px;">';
+        filteredLogs.forEach(function(l) {
+            if (!l) return;
+            var lDateText = l.studyDate || l.ngay || "";
+            var dObj = parseInputDate(lDateText);
+            var shortDate = dObj ? (String(dObj.getDate()).padStart(2, '0') + '/' + String(dObj.getMonth() + 1).padStart(2, '0')) : lDateText;
+            var rawStatus = l.trangThai || l.chuyenCan || l.attendance_status || l.attendance || l.status || "";
+            var normTt = String(rawStatus).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').trim();
+            var isDaBu = (normTt.includes("da bu") || normTt.includes("hoc bu"));
+            var isAbsent = !isDaBu && (
+                normTt.includes("nghi") || normTt.includes("huy") || normTt.includes("vang") || normTt.includes("off") || normTt.includes("khong hoc") || normTt.includes("chua hoc") || normTt.includes("tam hoan") || normTt === "v" || normTt === "n" || normTt === "x"
+            );
+            
+            var bgTag = '#DCFCE7', textTag = '#15803D', borderTag = '#86EFAC', iconTag = 'fa-check';
+            var statusLabel = 'Có mặt';
+            if (isDaBu) {
+                bgTag = '#F3E8FF'; textTag = '#7E22CE'; borderTag = '#D8B4FE'; iconTag = 'fa-rotate';
+                statusLabel = 'Đã bù';
+            } else if (isAbsent) {
+                bgTag = '#FEE2E2'; textTag = '#B91C1C'; borderTag = '#FCA5A5'; iconTag = 'fa-xmark';
+                statusLabel = 'Nghỉ';
+            }
+            html += '<span style="background: ' + bgTag + '; color: ' + textTag + '; border: 1px solid ' + borderTag + '; font-size: 11px; font-weight: 700; padding: 2px 7px; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px;">';
+            html += '<i class="fa-solid ' + iconTag + '" style="font-size: 9.5px;"></i> ' + escapeHtml(shortDate) + ' (' + statusLabel + ')';
+            html += '</span>';
+        });
+        html += '</div>';
+    } else {
+        html += '<div style="font-size: 12px; color: #94A3B8; text-align: center; padding: 6px 0; font-style: italic;"><i class="fa-solid fa-circle-info"></i> Không có buổi học nào trong khoảng thời gian này</div>';
+    }
+    html += '</div>';
 
     html += '</div>'; // End Box 2
+
+    // ==========================================
+    // BOX 3: Học phí & Điều chỉnh
+    // ==========================================
+    html += '<div id="tuitionBoxFeeCalculation" class="tuition-card-box">';
+    html += '<div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">';
+    html += '<span style="background: #059669; color: #FFFFFF; font-size: 11px; font-weight: 800; padding: 2px 7px; border-radius: 6px;">03</span>';
+    html += '<div>';
+    html += '<div style="font-size: 15px; font-weight: 700; color: #0F172A;">Học phí & Điều chỉnh</div>';
+    html += '<div style="font-size: 12px; color: #64748B; margin-top: 1px;">Đơn giá tiêu chuẩn và các khoản cộng / trừ nếu có</div>';
+    html += '</div></div>';
+
+    // Unit fee info row
+    html += '<div style="display: flex; justify-content: space-between; align-items: center; background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 10px; padding: 8px 12px; margin-bottom: 10px;">';
+    html += '<div>';
+    html += '<div style="font-size: 12px; font-weight: 700; color: #0F172A;">Đơn giá áp dụng:</div>';
+    html += '<div style="font-size: 11px; color: #64748B;">' + (isMonthly ? 'Học phí trọn gói theo tháng' : 'Đơn giá học phí mỗi buổi') + '</div>';
+    html += '</div>';
+    html += '<div style="font-size: 14px; font-weight: 800; color: #0F172A;">' + (unitFee > 0 ? (Number(unitFee).toLocaleString('vi-VN') + ' đ' + (isMonthly ? '/tháng' : '/buổi')) : 'Chưa thiết lập') + '</div>';
+    html += '</div>';
+
+    // 2-column input for Discount & Surcharge
+    html += '<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">';
+    
+    // Discount
+    html += '<div>';
+    html += '<label style="display: block; font-size: 11.5px; color: #64748B; margin-bottom: 4px; font-weight: 600;">';
+    html += '<i class="fa-solid fa-gift" style="color: #EA580C;"></i> Giảm trừ / Học bổng (đ):';
+    html += '</label>';
+    html += '<input type="text" inputmode="numeric" class="currency-input" id="inputDiscountFee" value="' + (discount ? formatNumberWithDots(discount) : '') + '" placeholder="0" oninput="formatCurrencyInput(this); onTuitionFeeAdjustmentChange()" style="width: 100%; background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 10px; padding: 8px 10px; color: #EA580C; font-weight: 700; font-size: 13px; outline: none; box-sizing: border-box;">';
+    html += '</div>';
+
+    // Surcharge
+    html += '<div>';
+    html += '<label style="display: block; font-size: 11.5px; color: #64748B; margin-bottom: 4px; font-weight: 600;">';
+    html += '<i class="fa-solid fa-circle-plus" style="color: #16A34A;"></i> Phụ thu / Tài liệu (đ):';
+    html += '</label>';
+    html += '<input type="text" inputmode="numeric" class="currency-input" id="inputSurchargeFee" value="' + (surcharge ? formatNumberWithDots(surcharge) : '') + '" placeholder="0" oninput="formatCurrencyInput(this); onTuitionFeeAdjustmentChange()" style="width: 100%; background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 10px; padding: 8px 10px; color: #16A34A; font-weight: 700; font-size: 13px; outline: none; box-sizing: border-box;">';
+    html += '</div>';
+
+    html += '</div>';
+
+    // Grand total formula box
+    var formulaText = isMonthly 
+        ? ('Trọn gói ' + Number(unitFee).toLocaleString('vi-VN') + ' đ')
+        : (invBillableCount + ' buổi × ' + Number(unitFee).toLocaleString('vi-VN') + ' đ');
+    if (discount > 0) formulaText += ' - ' + Number(discount).toLocaleString('vi-VN') + ' đ';
+    if (surcharge > 0) formulaText += ' + ' + Number(surcharge).toLocaleString('vi-VN') + ' đ';
+
+    html += '<div style="background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%); color: #FFFFFF; border-radius: 12px; padding: 10px 14px; display: flex; justify-content: space-between; align-items: center;">';
+    html += '<div>';
+    html += '<div style="font-size: 10.5px; text-transform: uppercase; color: #94A3B8; font-weight: 700; letter-spacing: 0.5px;">TỔNG HỌC PHÍ KỲ NÀY</div>';
+    html += '<div id="tuitionFormFormulaSummary" style="font-size: 11.5px; color: #CBD5E1; margin-top: 1px;">' + escapeHtml(formulaText) + '</div>';
+    html += '</div>';
+    html += '<div id="tuitionFormGrandTotal" style="font-size: 18px; font-weight: 900; color: #38BDF8;">' + Number(grandTotal).toLocaleString('vi-VN') + ' đ</div>';
+    html += '</div>';
+
+    html += '</div>'; // End Box 3
+
+    // ==========================================
+    // BOX 4: Lời nhắn gửi phụ huynh
+    // ==========================================
+    html += '<div id="tuitionBoxTeacherNote" class="tuition-card-box">';
+    html += '<div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">';
+    html += '<span style="background: #D97706; color: #FFFFFF; font-size: 11px; font-weight: 800; padding: 2px 7px; border-radius: 6px;">04</span>';
+    html += '<div>';
+    html += '<div style="font-size: 15px; font-weight: 700; color: #0F172A;">Lời nhắn gửi phụ huynh</div>';
+    html += '<div style="font-size: 12px; color: #64748B; margin-top: 1px;">Đính kèm lời động viên, dặn dò trực tiếp vào phiếu</div>';
+    html += '</div></div>';
+
+    var currentNote = (state.teacherNote !== undefined) ? state.teacherNote : '';
+    html += '<textarea id="tuitionTeacherNoteInput" placeholder="Nhập lời dặn dò, nhận xét sự tiến bộ của con để gửi phụ huynh..." oninput="onTuitionTeacherNoteChange()" style="width: 100%; min-height: 72px; background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 10px; padding: 8px 12px; font-size: 12.5px; line-height: 1.5; color: #0F172A; resize: vertical; box-sizing: border-box; font-family: inherit; outline: none; margin-bottom: 8px;">' + escapeHtml(currentNote) + '</textarea>';
+
+    // Quick template pills
+    html += '<div style="display: flex; gap: 6px; flex-wrap: wrap;">';
+    html += '<button type="button" onclick="applyTuitionQuickNote(\'🌟 Tháng này con học rất chăm chỉ, tiếp thu bài tốt và hoàn thành BTVN đầy đủ. Rất tuyên dương con!\')" style="border: 1px solid #CBD5E1; background: #FFF; border-radius: 6px; padding: 3px 8px; font-size: 11px; font-weight: 600; color: #334155; cursor: pointer;">🌟 Khen ngợi</button>';
+    html += '<button type="button" onclick="applyTuitionQuickNote(\'📚 Con cần chú ý ôn lại bài và làm BTVN đầy đủ hơn ở kỳ tới để vững vàng kiến thức nhé!\')" style="border: 1px solid #CBD5E1; background: #FFF; border-radius: 6px; padding: 3px 8px; font-size: 11px; font-weight: 600; color: #334155; cursor: pointer;">📚 Nhắc BTVN</button>';
+    html += '<button type="button" onclick="applyTuitionQuickNote(\'🎯 Kỳ này lớp sẽ tăng cường luyện đề ôn thi, gia đình tiếp tục đồng hành và nhắc nhở con nhé ạ!\')" style="border: 1px solid #CBD5E1; background: #FFF; border-radius: 6px; padding: 3px 8px; font-size: 11px; font-weight: 600; color: #334155; cursor: pointer;">🎯 Ôn luyện thi</button>';
+    html += '</div>';
+
+    html += '</div>'; // End Box 4
 
     formCol.innerHTML = html;
 
@@ -2770,51 +3003,6 @@ function buildTuitionModalForm(st, studentLogs) {
         onTuitionPeriodDateChange();
     });
 }
-
-function onTuitionToggleChange(id, key) {
-    window.tuitionInvoiceHasUnsavedChanges = true;
-    var cb = document.getElementById(id);
-    if (!cb) return;
-    if (!window.tuitionInvoiceModalState) window.tuitionInvoiceModalState = {};
-    if (!window.tuitionInvoiceModalState.toggles) window.tuitionInvoiceModalState.toggles = {};
-    window.tuitionInvoiceModalState.toggles[key] = cb.checked;
-
-    if (id === 'toggleDiscount') {
-        var wrap = document.getElementById('wrapperDiscountInput');
-        if (wrap) wrap.style.display = cb.checked ? 'block' : 'none';
-        if (!cb.checked) {
-            window.tuitionInvoiceModalState.discountAmount = 0;
-            var valEl = document.getElementById('val_toggleDiscount');
-            if (valEl) valEl.textContent = "0 đ";
-        } else {
-            var inp = document.getElementById('inputDiscountFee');
-            var val = inp ? (parseInt(String(inp.value).replace(/\D/g, ''), 10) || 0) : 0;
-            window.tuitionInvoiceModalState.discountAmount = val;
-            var valEl = document.getElementById('val_toggleDiscount');
-            if (valEl) valEl.textContent = Number(val).toLocaleString('vi-VN') + " đ";
-        }
-    }
-
-    if (id === 'toggleSurcharge') {
-        var wrap = document.getElementById('wrapperSurchargeInput');
-        if (wrap) wrap.style.display = cb.checked ? 'block' : 'none';
-        if (!cb.checked) {
-            window.tuitionInvoiceModalState.surchargeAmount = 0;
-            var valEl = document.getElementById('val_toggleSurcharge');
-            if (valEl) valEl.textContent = "0 đ";
-        } else {
-            var inp = document.getElementById('inputSurchargeFee');
-            var val = inp ? (parseInt(String(inp.value).replace(/\D/g, ''), 10) || 0) : 0;
-            window.tuitionInvoiceModalState.surchargeAmount = val;
-            var valEl = document.getElementById('val_toggleSurcharge');
-            if (valEl) valEl.textContent = Number(val).toLocaleString('vi-VN') + " đ";
-        }
-    }
-
-    renderTuitionLivePreview();
-    autoSaveTuitionDraft();
-}
-window.onTuitionToggleChange = onTuitionToggleChange;
 
 function onTuitionFeeAdjustmentChange() {
     window.tuitionInvoiceHasUnsavedChanges = true;
@@ -2827,11 +3015,48 @@ function onTuitionFeeAdjustmentChange() {
     window.tuitionInvoiceModalState.discountAmount = discVal;
     window.tuitionInvoiceModalState.surchargeAmount = surVal;
 
-    var discValEl = document.getElementById('val_toggleDiscount');
-    if (discValEl) discValEl.textContent = Number(discVal).toLocaleString('vi-VN') + " đ";
+    // Update grand total in Box 3
+    var st = window.currentTuitionInvoiceStudent;
+    if (st) {
+        var unitFee = getStudentUnitFee(st);
+        var billingType = st.billing_type || st.billingType || st.billing_cycle || 'session';
+        var isMonthly = (billingType === 'month' || billingType === 'monthly');
+        
+        var sDate = parseInputDate(window.tuitionInvoiceModalState.startDate);
+        var eDate = parseInputDate(window.tuitionInvoiceModalState.endDate);
+        if (sDate) sDate.setHours(0, 0, 0, 0);
+        if (eDate) eDate.setHours(23, 59, 59, 999);
+        var billable = 0;
+        if (st.logs && Array.isArray(st.logs)) {
+            st.logs.forEach(function(l) {
+                if (!l) return;
+                var lDate = parseLogDate(l.studyDate || l.ngay);
+                if (lDate && sDate && lDate < sDate) return;
+                if (lDate && eDate && lDate > eDate) return;
+                var rawStatus = l.trangThai || l.chuyenCan || l.attendance_status || l.attendance || l.status || "";
+                var normTt = String(rawStatus).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').trim();
+                var isDaBu = (normTt.includes("da bu") || normTt.includes("hoc bu"));
+                var isAbsent = !isDaBu && (
+                    normTt.includes("nghi") || normTt.includes("huy") || normTt.includes("vang") || normTt.includes("off") || normTt.includes("khong hoc") || normTt.includes("chua hoc") || normTt.includes("tam hoan") || normTt === "v" || normTt === "n" || normTt === "x"
+                );
+                if (!isAbsent || isDaBu) billable++;
+            });
+        }
+        var base = isMonthly ? unitFee : (billable * unitFee);
+        var total = Math.max(0, base - discVal + surVal);
 
-    var surValEl = document.getElementById('val_toggleSurcharge');
-    if (surValEl) surValEl.textContent = Number(surVal).toLocaleString('vi-VN') + " đ";
+        var formulaEl = document.getElementById('tuitionFormFormulaSummary');
+        if (formulaEl) {
+            var fText = isMonthly 
+                ? ('Trọn gói ' + Number(unitFee).toLocaleString('vi-VN') + ' đ')
+                : (billable + ' buổi × ' + Number(unitFee).toLocaleString('vi-VN') + ' đ');
+            if (discVal > 0) fText += ' - ' + Number(discVal).toLocaleString('vi-VN') + ' đ';
+            if (surVal > 0) fText += ' + ' + Number(surVal).toLocaleString('vi-VN') + ' đ';
+            formulaEl.textContent = fText;
+        }
+        var totalEl = document.getElementById('tuitionFormGrandTotal');
+        if (totalEl) totalEl.textContent = Number(total).toLocaleString('vi-VN') + ' đ';
+    }
 
     renderTuitionLivePreview();
     autoSaveTuitionDraft();
@@ -2846,8 +3071,8 @@ function renderTuitionLivePreview() {
     var sName = state.studentName || "";
     var tmpl = state.template || window.currentTuitionTemplate || 1;
     var toggles = state.toggles || {};
-    var discount = toggles.discount ? (state.discountAmount || 0) : 0;
-    var surcharge = toggles.surcharge ? (state.surchargeAmount || 0) : 0;
+    var discount = (state.discountAmount !== undefined) ? state.discountAmount : (toggles.discount ? (state.discountAmount || 0) : 0);
+    var surcharge = (state.surchargeAmount !== undefined) ? state.surchargeAmount : (toggles.surcharge ? (state.surchargeAmount || 0) : 0);
     var themeColors = getActiveThemeInvoiceColors();
 
     var students = (typeof getTutorStudentsResolved === 'function') 
@@ -3022,7 +3247,9 @@ function renderTuitionLivePreview() {
     // Prepare message content for parent note
     var sDisplayName = escapeHtml((toggles.student !== false) ? st.name : "học sinh");
     var msgContent = "";
-    if (isMonthly) {
+    if (state.teacherNote && state.teacherNote.trim()) {
+        msgContent = escapeHtml(state.teacherNote.trim());
+    } else if (isMonthly) {
         msgContent = "Dạ em chào anh/chị, em gửi anh/chị phiếu học tập tổng kết của bé <b>" + sDisplayName + "</b> ạ. Học phí kỳ này (" + escapeHtml(periodTitle) + ") là <b>" + grandTotalStr + "</b>. Anh/chị xem qua và quét mã QR chuyển khoản giúp em nhé ạ. Em cảm ơn anh/chị nhiều ạ!";
     } else {
         var feeWord = (grandTotal === 0) ? "0 VNĐ" : (Number(grandTotal).toLocaleString('vi-VN') + " VNĐ");
@@ -3118,10 +3345,10 @@ function renderTuitionLivePreview() {
         var feeCalcTotal = isMonthly ? periodTitle : (invBillableCount + " buổi");
         html += '<div class="fee-row"><span id="invFeeCalcText">' + feeCalcText + '</span><b id="invFeeCalcTotal">' + escapeHtml(feeCalcTotal) + '</b></div>';
     }
-    if (toggles.discount && discount > 0) {
+    if (discount > 0) {
         html += '<div class="fee-row" style="color: #EA580C;"><span>Giảm trừ học phí:</span><b>-' + Number(discount).toLocaleString('vi-VN') + ' đ</b></div>';
     }
-    if (toggles.surcharge && surcharge > 0) {
+    if (surcharge > 0) {
         html += '<div class="fee-row" style="color: #16A34A;"><span>Phụ thu thêm:</span><b>+' + Number(surcharge).toLocaleString('vi-VN') + ' đ</b></div>';
     }
     html += '<div class="fee-row grand-total">';
@@ -3350,6 +3577,7 @@ function openStudentInvoiceModal(studentName) {
             scheduleText: draftObj.scheduleText || "",
             tuitionExtraText: draftObj.tuitionExtraText || "",
             footerNoteText: draftObj.footerNoteText || "",
+            teacherNote: draftObj.teacherNote || "",
             restoredFromDraft: true,
             isDraftSaved: true
         };
@@ -3382,6 +3610,7 @@ function openStudentInvoiceModal(studentName) {
             scheduleText: "",
             tuitionExtraText: "",
             footerNoteText: "",
+            teacherNote: "",
             restoredFromDraft: false,
             isDraftSaved: false
         };
