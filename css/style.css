@@ -4869,14 +4869,16 @@
         }
         .modal-form-group input, .modal-form-group select, .modal-form-group textarea {
             width: 100%;
-            padding: 12px 15px;
+            padding: 10px 14px;
             border-radius: 10px;
             border: 1px solid var(--border-color);
             background: var(--bg-input);
             color: var(--text-primary);
             outline: none;
-            font-family: Inter, sans-serif;
+            font-family: Inter, -apple-system, BlinkMacSystemFont, sans-serif;
             font-size: 14px;
+            line-height: 1.5;
+            box-sizing: border-box;
         }
         .modal-form-group input:focus, .modal-form-group select:focus, .modal-form-group textarea:focus {
             border-color: var(--color-primary);

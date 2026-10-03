@@ -2374,10 +2374,10 @@ window.formatToYmd = formatToYmd;
 
 function generateTuitionPeriodTitle(startDateStr, endDateStr, tmpl) {
     tmpl = tmpl || (window.tuitionInvoiceModalState ? window.tuitionInvoiceModalState.template : 1);
-    if (!startDateStr || !endDateStr) return tmpl === 1 ? "KỲ HỌC NÀY" : "HỌC PHÍ KỲ NÀY";
+    if (!startDateStr || !endDateStr) return tmpl === 1 ? "KỲ HỌC NÀY" : "PHIẾU HỌC TẬP KỲ NÀY";
     var sD = parseInputDate(startDateStr);
     var eD = parseInputDate(endDateStr);
-    if (!sD || !eD) return tmpl === 1 ? "KỲ HỌC NÀY" : "HỌC PHÍ KỲ NÀY";
+    if (!sD || !eD) return tmpl === 1 ? "KỲ HỌC NÀY" : "PHIẾU HỌC TẬP KỲ NÀY";
     var sM = sD.getMonth() + 1;
     var sY = sD.getFullYear();
     var eM = eD.getMonth() + 1;
@@ -2387,11 +2387,11 @@ function generateTuitionPeriodTitle(startDateStr, endDateStr, tmpl) {
     var eDay = String(eD.getDate()).padStart(2, '0');
     var eMo = String(eM).padStart(2, '0');
     if (sY === eY && sM === eM) {
-        return tmpl === 1 ? ("KỲ HỌC THÁNG " + sM) : ("HỌC PHÍ THÁNG " + sM + "/" + sY);
+        return tmpl === 1 ? ("KỲ HỌC THÁNG " + sM) : ("PHIẾU HỌC TẬP THÁNG " + sM + "/" + sY);
     } else {
         return tmpl === 1 
             ? ("KỲ HỌC " + sDay + "/" + sMo + " – " + eDay + "/" + eMo)
-            : ("HỌC PHÍ " + sDay + "/" + sMo + " – " + eDay + "/" + eMo + "/" + eY);
+            : ("PHIẾU HỌC TẬP " + sDay + "/" + sMo + " – " + eDay + "/" + eMo + "/" + eY);
     }
 }
 window.generateTuitionPeriodTitle = generateTuitionPeriodTitle;
@@ -3026,7 +3026,7 @@ function buildTuitionModalForm(st, studentLogs) {
 
     html += '<div>';
     html += '<label style="display: block; font-size: 11.5px; color: #64748B; margin-bottom: 4px; font-weight: 600;">Tiêu đề kỳ học:</label>';
-    html += '<input type="text" id="tuitionPeriodTitle" value="' + (state.customTitle || '') + '" placeholder="Ví dụ: HỌC PHÍ THÁNG 8/2026" oninput="onTuitionPeriodTitleChange()" style="width: 100%; background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 10px; padding: 8px 12px; color: #0F172A; font-weight: 700; font-size: 13px; outline: none; box-sizing: border-box;">';
+    html += '<input type="text" id="tuitionPeriodTitle" value="' + (state.customTitle || '') + '" placeholder="Ví dụ: PHIẾU HỌC TẬP THÁNG 8/2026" oninput="onTuitionPeriodTitleChange()" style="width: 100%; background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 10px; padding: 8px 12px; color: #0F172A; font-weight: 700; font-size: 13px; outline: none; box-sizing: border-box;">';
     html += '</div>';
 
     html += '</div>'; // End Box 2
@@ -3241,6 +3241,12 @@ function renderTuitionLivePreview() {
     var classSubjectStr = [st.classLevel, st.subject].filter(Boolean).join(' - ') || 'Gia sư';
 
     var periodTitle = state.customTitle || generateTuitionPeriodTitle(state.startDate, state.endDate, tmpl);
+    if (tmpl === 2 && periodTitle && /^HỌC\s*PHÍ/i.test(periodTitle) && !state.isCustomTitle) {
+        periodTitle = periodTitle.replace(/^HỌC\s*PHÍ/i, 'PHIẾU HỌC TẬP');
+        state.customTitle = periodTitle;
+        var tInp = document.getElementById('tuitionPeriodTitle');
+        if (tInp) tInp.value = periodTitle;
+    }
 
     var bankName = (tutorDataGlobal && tutorDataGlobal.bankName) ? tutorDataGlobal.bankName : "";
     var tutorPhone = (tutorDataGlobal && tutorDataGlobal.tutorPhone) 
@@ -3753,7 +3759,13 @@ function openStudentInvoiceModal(studentName) {
             surchargeAmount: draftObj.surchargeAmount || 0,
             startDate: sDateVal,
             endDate: eDateVal,
-            customTitle: draftObj.customTitle || generateTuitionPeriodTitle(sDateVal, eDateVal, restoredTmpl),
+            customTitle: (function() {
+                var t = draftObj.customTitle || generateTuitionPeriodTitle(sDateVal, eDateVal, restoredTmpl);
+                if (restoredTmpl === 2 && t && /^HỌC\s*PHÍ/i.test(t) && !draftObj.isCustomTitle) {
+                    t = t.replace(/^HỌC\s*PHÍ/i, 'PHIẾU HỌC TẬP');
+                }
+                return t;
+            })(),
             isCustomTitle: !!draftObj.isCustomTitle,
             feedbackText: (draftObj.feedbackText && (draftObj.feedbackText.indexOf("Chưa chủ động trong quá trình học") !== -1 || draftObj.feedbackText.indexOf("tam giác đồng dạng") !== -1)) ? "" : (draftObj.feedbackText || ""),
             roadmapText: (draftObj.roadmapText && draftObj.roadmapText.indexOf("Hoàn thành chuyên đề hệ phương trình") !== -1) ? "" : (draftObj.roadmapText || ""),
@@ -8138,6 +8150,12 @@ window.initTutorSidebarState = initTutorSidebarState;
                         var cParts = parsedContent.split("---NHAN_XET---");
                         parsedContent = cParts[0].trim();
                         parsedNhanXet = cParts.slice(1).join("---NHAN_XET---").trim();
+                    } else if (!parsedNhanXet && /(?:[\.\n\r]|\s+)?\s*nhận\s*xét\s*:\s*/i.test(parsedContent)) {
+                        var matchNx = parsedContent.match(/^(.*?)(?:\.|\n|\r|\s+)?\s*nhận\s*xét\s*:\s*(.*)$/i);
+                        if (matchNx) {
+                            parsedContent = matchNx[1].trim();
+                            parsedNhanXet = matchNx[2].trim();
+                        }
                     }
 
                     // Điểm số
@@ -8390,6 +8408,12 @@ window.initTutorSidebarState = initTutorSidebarState;
                 var cParts = cContent.split("---NHAN_XET---");
                 cContent = cParts[0].trim();
                 cNhanXet = cParts.slice(1).join("---NHAN_XET---").trim();
+            } else if (!cNhanXet && /(?:[\.\n\r]|\s+)?\s*nhận\s*xét\s*:\s*/i.test(cContent)) {
+                var matchNx = cContent.match(/^(.*?)(?:\.|\n|\r|\s+)?\s*nhận\s*xét\s*:\s*(.*)$/i);
+                if (matchNx) {
+                    cContent = matchNx[1].trim();
+                    cNhanXet = matchNx[2].trim();
+                }
             }
             document.getElementById('editLesNoiDung').value = cContent;
             if (document.getElementById('editLesNhanXet')) {
