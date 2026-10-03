@@ -2808,7 +2808,6 @@
 
                 <div class="cal-title-block">
                     <h2 id="calendarHeaderTitle" class="calendar-month-title"><span class="cal-title-main">Tháng 9</span><span class="cal-title-year">2026</span></h2>
-                    <div id="calendarHeaderSub" class="cal-title-sub"></div>
                 </div>
             </div>
 
@@ -4204,17 +4203,10 @@
                 year = eIncl.getFullYear();
                 icon = 'fa-calendar-week';
             }
-            let st = countSessionsInView(view);
-            let parts = [];
-            if (!/Day$/.test(view.type) && view.type !== 'dayGridMonth') parts.push('Tuần ' + getISOWeekNum(s));
-            parts.push('<b>' + st.sessions + '</b> buổi học');
-            if (st.students) parts.push('<b>' + st.students + '</b> học sinh');
-
             let key = view.type + '|' + s.getTime();
             titleEl.innerHTML = '<i class="fa-solid ' + icon + ' cal-title-icon"></i>' +
                 '<span class="cal-title-main">' + main + '</span>' +
                 '<span class="cal-title-year">' + year + '</span>';
-            if (subEl) subEl.innerHTML = parts.join('<span class="cal-title-dot">•</span>');
             if (key !== _lastHeaderKey) {
                 let block = titleEl.parentElement;
                 if (block) {
@@ -5239,12 +5231,21 @@
                 let left, top;
                 if (elRect.right + margin + popW <= vw) {
                     left = elRect.right + margin;     // bên phải sự kiện
-                } else {
+                    top = elRect.top;
+                } else if (elRect.left - margin - popW >= 0) {
                     left = elRect.left - margin - popW; // bên trái sự kiện
+                    top = elRect.top;
+                } else {
+                    // Sự kiện quá rộng (chế độ Ngày): hiện ngay tại vị trí click
+                    const cx = (jsEvent.jsEvent && jsEvent.jsEvent.clientX) || (elRect.left + elRect.width / 2);
+                    const cy = (jsEvent.jsEvent && jsEvent.jsEvent.clientY) || elRect.top;
+                    left = cx - popW / 2;
+                    top = cy + 12;
                 }
+                // Luôn giữ trong màn hình
+                left = Math.max(margin, Math.min(left, vw - popW - margin));
 
-                // Canh theo đỉnh của sự kiện, giữ trong màn hình theo chiều dọc
-                top = elRect.top;
+                // Giữ trong màn hình theo chiều dọc
                 if (top + popH > vh - margin) top = vh - popH - margin;
                 if (top < margin) top = margin;
 
