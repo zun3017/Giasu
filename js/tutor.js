@@ -5220,7 +5220,7 @@ function switchTutorNavTab(element, tabKey) {
     } else if (tabKey === 'calendar') {
         var calFrame = document.getElementById('tutorCalendarIframe');
         if (calFrame) {
-            var curTheme = localStorage.getItem(window.__tutorThemeKey()) || 'theme-dark-purple';
+            var curTheme = localStorage.getItem(window.__tutorThemeKey()) || 'theme-azure-mist-minimal';
             if (!calFrame.src || calFrame.src.indexOf('tutor-calendar.html') === -1) {
                 calFrame.src = 'tutor-calendar.html?embedded=1&theme=' + encodeURIComponent(curTheme);
             }
@@ -10742,7 +10742,7 @@ function syncThemeToCalendarIframe() {
       }
     });
   }
-  if (!curTheme) curTheme = 'theme-dark-purple';
+  if (!curTheme) curTheme = 'theme-azure-mist-minimal';
 
   var isCustom = curTheme.startsWith('custom:');
   var customHex = isCustom ? curTheme.split(':')[1] : null;
@@ -10846,7 +10846,7 @@ function openThemeSwitcher() {
   if (!panel) return;
   panel.style.display = 'flex';
 
-  var cur = localStorage.getItem(window.__tutorThemeKey()) || 'theme-dark-purple';
+  var cur = localStorage.getItem(window.__tutorThemeKey()) || 'theme-azure-mist-minimal';
   if (cur.startsWith('custom:')) {
     var hex = cur.split(':')[1];
     var p = document.getElementById('customColorPicker');
@@ -11100,7 +11100,7 @@ document.addEventListener('DOMContentLoaded', function() {
   } else if (saved) {
     applyTheme(saved);
   } else {
-    applyTheme('theme-dark-purple');
+    applyTheme('theme-azure-mist-minimal');
   }
 
   // Tự động gắn hook load cho iframe lịch để đồng bộ ngay khi load xong
@@ -11263,7 +11263,7 @@ function renderSettingsThemes() {
 window.renderSettingsThemes = renderSettingsThemes;
 
 function updateSettingsThemeUI() {
-    var cur = localStorage.getItem(window.__tutorThemeKey()) || 'theme-dark-purple';
+    var cur = localStorage.getItem(window.__tutorThemeKey()) || 'theme-azure-mist-minimal';
     var nameEl = document.getElementById('settingsThemeActiveName');
     var descEl = document.getElementById('settingsThemeActiveDesc');
     var orbEl = document.getElementById('settingsThemeOrbPreview');

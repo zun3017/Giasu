@@ -314,7 +314,7 @@
         } else if (t) {
           applyTheme(t);
         } else if (!isEmbedded) {
-          applyTheme('theme-dark-purple');
+          applyTheme('theme-azure-mist-minimal');
         }
       })();
     </script>
@@ -6158,7 +6158,7 @@ function openThemeSwitcher() {
   if (!panel) return;
   panel.style.display = 'flex';
 
-  var cur = localStorage.getItem(window.__tutorThemeKey()) || 'theme-dark-purple';
+  var cur = localStorage.getItem(window.__tutorThemeKey()) || 'theme-azure-mist-minimal';
   if (cur.startsWith('custom:')) {
     var hex = cur.split(':')[1];
     var p = document.getElementById('customColorPicker');
@@ -6418,7 +6418,7 @@ document.addEventListener('DOMContentLoaded', function() {
   } else if (saved) {
     applyTheme(saved);
   } else if (!isEmbedded) {
-    applyTheme('theme-dark-purple');
+    applyTheme('theme-azure-mist-minimal');
   }
 });
 

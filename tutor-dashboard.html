@@ -28,7 +28,7 @@
     <link rel="stylesheet" href="css/themes.css">
     <script>
       (function() {
-        var t = localStorage.getItem(window.__tutorThemeKey()) || 'theme-dark-purple';
+        var t = localStorage.getItem(window.__tutorThemeKey()) || 'theme-azure-mist-minimal';
         if (t.startsWith('custom:')) {
           var hex = t.split(':')[1];
           if (/^#[0-9A-Fa-f]{6}$/.test(hex)) {
@@ -87,8 +87,8 @@
             root.style.setProperty('--is-dark-theme', '0');
             root.setAttribute('data-theme', 'light');
           } else {
-            document.documentElement.className = 'theme-dark-purple';
-            document.documentElement.setAttribute('data-theme', 'dark');
+            document.documentElement.className = 'theme-azure-mist-minimal';
+            document.documentElement.setAttribute('data-theme', 'light');
           }
         } else {
           document.documentElement.className = t;
