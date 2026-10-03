@@ -3438,13 +3438,9 @@ function renderTuitionLivePreview() {
             html += '<div class="qr-frame" style="width: 86px; height: 86px; border: 2px solid #18181B; border-radius: 8px; overflow: hidden; flex-shrink: 0; background: #FFF; padding: 3px; box-sizing: border-box; display: flex; align-items: center; justify-content: center;">';
             html += '<img src="' + safeUrlAttr(qrImgSrc) + '" alt="VietQR" crossorigin="anonymous" style="width: 100% !important; height: 100% !important; max-width: 100% !important; max-height: 100% !important; object-fit: contain !important; display: block !important;">';
             html += '</div>';
-            html += '<div class="pay-details">';
-            if (bankName) {
-                html += '<div>Ngân hàng: <b>' + escapeHtml(bankName) + '</b></div>';
-            }
-            html += '<div>Số tài khoản: <b>' + escapeHtml(bankAcc || tutorPhone || '0987654321') + '</b></div>';
-            html += '<div>Chủ TK: <b>' + escapeHtml(tutorName || 'Gia sư') + '</b></div>';
-            html += '<div style="color: #B45309; font-weight: 700; margin-top: 2px;">Cú pháp: HOC PHI ' + escapeHtml(st.name.toUpperCase()) + '</div>';
+            html += '<div class="pay-details" style="display: flex; flex-direction: column; justify-content: center;">';
+            html += '<div style="font-weight: 800; font-size: 13px; color: #18181B;"><i class="fa-solid fa-qrcode"></i> Quét mã VietQR</div>';
+            html += '<div style="font-size: 11.5px; color: #71717A; margin-top: 3px;">Quét mã thanh toán qua ngân hàng</div>';
             html += '</div></div>';
         }
 
@@ -3513,10 +3509,9 @@ function renderTuitionLivePreview() {
             html += '<div class="ed-qr-box" style="width: 76px; height: 76px; border: 1.5px solid #27272A; border-radius: 8px; padding: 3px; background: #FFF; flex-shrink: 0; overflow: hidden; box-sizing: border-box; display: flex; align-items: center; justify-content: center;">';
             html += '<img src="' + safeUrlAttr(qrImgSrc) + '" alt="VietQR" crossorigin="anonymous" style="width: 100% !important; height: 100% !important; max-width: 100% !important; max-height: 100% !important; object-fit: contain !important; display: block !important;">';
             html += '</div>';
-            html += '<div style="font-size: 12px; line-height: 1.5;">';
-            html += '<div>Tài khoản: <strong>' + escapeHtml(bankAcc || tutorPhone || '0987654321') + '</strong>' + (bankName ? (' (' + escapeHtml(bankName) + ')') : '') + '</div>';
-            html += '<div>Người thụ hưởng: <strong>' + escapeHtml(tutorName || 'Gia sư') + '</strong></div>';
-            html += '<div style="color: #71717A; font-style: italic; margin-top: 2px;">' + (state.teacherNote && state.teacherNote.trim() ? escapeHtml(state.teacherNote.trim()) : 'Chân thành cảm ơn sự đồng hành của quý phụ huynh!') + '</div>';
+            html += '<div style="font-size: 12px; line-height: 1.5; display: flex; flex-direction: column; justify-content: center;">';
+            html += '<div style="font-weight: 700; color: #27272A;"><i class="fa-solid fa-qrcode"></i> Quét mã VietQR</div>';
+            html += '<div style="color: #71717A; font-style: italic; margin-top: 3px;">' + (state.teacherNote && state.teacherNote.trim() ? escapeHtml(state.teacherNote.trim()) : 'Chân thành cảm ơn sự đồng hành của quý phụ huynh!') + '</div>';
             html += '</div></div>';
         }
 
@@ -3566,7 +3561,7 @@ function renderTuitionLivePreview() {
         html += '<div class="sign-box">';
         html += '<div>Gia sư phụ trách</div>';
         html += '<div class="sig-font">' + escapeHtml(tutorName || 'Nguyễn Văn A') + '</div>';
-        html += '<div style="color: #78716C;">STK: ' + escapeHtml(bankAcc || tutorPhone || '0987654321') + (bankName ? (' · ' + escapeHtml(bankName)) : '') + '</div>';
+        html += '<div style="color: #78716C; font-size: 11px;"><i class="fa-solid fa-qrcode"></i> Quét mã VietQR</div>';
         html += '</div></div></div>';
 
         html += '</div>'; // End Mẫu 6
