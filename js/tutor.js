@@ -2884,33 +2884,33 @@ function buildTuitionModalForm(st, studentLogs) {
     // BOX 1: Thông tin kỳ học
     // ==========================================
     html += '<div id="tuitionBoxPeriodInfo" class="tuition-card-box">';
-    html += '<div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">';
-    html += '<span style="background: #7C3AED; color: #FFFFFF; font-size: 11px; font-weight: 800; padding: 2px 7px; border-radius: 6px;">01</span>';
+    html += '<div style="display: flex; align-items: center; gap: 10px; margin-bottom: 14px;">';
+    html += '<span style="background: #7C3AED; color: #FFFFFF; font-size: 11.5px; font-weight: 800; padding: 3px 8px; border-radius: 7px;">01</span>';
     html += '<div>';
-    html += '<div style="font-size: 15px; font-weight: 700; color: #0F172A;">Thông tin kỳ học</div>';
-    html += '<div style="font-size: 12px; color: #64748B; margin-top: 1px;">Chọn khoảng thời gian và tiêu đề của phiếu</div>';
+    html += '<div style="font-size: 15.5px; font-weight: 750; color: #0F172A;">Thông tin kỳ học</div>';
+    html += '<div style="font-size: 12px; color: #64748B; margin-top: 2px;">Chọn khoảng thời gian và tiêu đề của phiếu</div>';
     html += '</div></div>';
 
-    html += '<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px;">';
+    html += '<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;">';
     html += '<div>';
-    html += '<label style="display: block; font-size: 11.5px; color: #64748B; margin-bottom: 4px; font-weight: 600;">Từ ngày:</label>';
+    html += '<label style="display: block; font-size: 12px; color: #64748B; margin-bottom: 6px; font-weight: 600;">Từ ngày:</label>';
     html += '<div class="vn-date-picker-box" style="width: 100%;">';
-    html += '<input type="text" id="tuitionPeriodStartDate" value="' + escapeHtml(formatToDmy(state.startDate) || '') + '" placeholder="dd/mm/yyyy" maxlength="10" autocomplete="off" onchange="onTuitionPeriodDateChange()" style="width: 100%; background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 10px; padding: 8px 36px 8px 10px; color: #0F172A; font-size: 12.5px; font-weight: 600; outline: none; box-sizing: border-box;">';
+    html += '<input type="text" id="tuitionPeriodStartDate" value="' + escapeHtml(formatToDmy(state.startDate) || '') + '" placeholder="dd/mm/yyyy" maxlength="10" autocomplete="off" onchange="onTuitionPeriodDateChange()" style="width: 100%; background: #F8FAFC; border: 1px solid #CBD5E1; border-radius: 10px; padding: 10px 38px 10px 12px; color: #0F172A; font-size: 13px; font-weight: 600; outline: none; box-sizing: border-box;">';
     html += '<button type="button" class="vn-date-picker-icon-btn" style="color: #64748B;" tabindex="-1"><i class="fa-regular fa-calendar"></i></button>';
     html += '<input type="date" id="tuitionPeriodStartDate_picker" class="vn-hidden-native-picker" tabindex="-1">';
     html += '</div></div>';
 
     html += '<div>';
-    html += '<label style="display: block; font-size: 11.5px; color: #64748B; margin-bottom: 4px; font-weight: 600;">Đến ngày:</label>';
+    html += '<label style="display: block; font-size: 12px; color: #64748B; margin-bottom: 6px; font-weight: 600;">Đến ngày:</label>';
     html += '<div class="vn-date-picker-box" style="width: 100%;">';
-    html += '<input type="text" id="tuitionPeriodEndDate" value="' + escapeHtml(formatToDmy(state.endDate) || '') + '" placeholder="dd/mm/yyyy" maxlength="10" autocomplete="off" onchange="onTuitionPeriodDateChange()" style="width: 100%; background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 10px; padding: 8px 36px 8px 10px; color: #0F172A; font-size: 12.5px; font-weight: 600; outline: none; box-sizing: border-box;">';
+    html += '<input type="text" id="tuitionPeriodEndDate" value="' + escapeHtml(formatToDmy(state.endDate) || '') + '" placeholder="dd/mm/yyyy" maxlength="10" autocomplete="off" onchange="onTuitionPeriodDateChange()" style="width: 100%; background: #F8FAFC; border: 1px solid #CBD5E1; border-radius: 10px; padding: 10px 38px 10px 12px; color: #0F172A; font-size: 13px; font-weight: 600; outline: none; box-sizing: border-box;">';
     html += '<button type="button" class="vn-date-picker-icon-btn" style="color: #64748B;" tabindex="-1"><i class="fa-regular fa-calendar-check"></i></button>';
     html += '<input type="date" id="tuitionPeriodEndDate_picker" class="vn-hidden-native-picker" tabindex="-1">';
     html += '</div></div></div>';
 
     html += '<div>';
-    html += '<label style="display: block; font-size: 11.5px; color: #64748B; margin-bottom: 4px; font-weight: 600;">Tiêu đề kỳ học:</label>';
-    html += '<input type="text" id="tuitionPeriodTitle" value="' + escapeHtml(state.customTitle || '') + '" placeholder="Ví dụ: PHIẾU HỌC TẬP THÁNG 8/2026" oninput="onTuitionPeriodTitleChange()" style="width: 100%; background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 10px; padding: 8px 12px; color: #0F172A; font-weight: 700; font-size: 13px; outline: none; box-sizing: border-box;">';
+    html += '<label style="display: block; font-size: 12px; color: #64748B; margin-bottom: 6px; font-weight: 600;">Tiêu đề kỳ học:</label>';
+    html += '<input type="text" id="tuitionPeriodTitle" value="' + escapeHtml(state.customTitle || '') + '" placeholder="Ví dụ: PHIẾU HỌC TẬP THÁNG 8/2026" oninput="onTuitionPeriodTitleChange()" style="width: 100%; background: #F8FAFC; border: 1px solid #CBD5E1; border-radius: 10px; padding: 10px 14px; color: #0F172A; font-weight: 700; font-size: 13.5px; outline: none; box-sizing: border-box;">';
     html += '</div>';
     html += '</div>'; // End Box 1
 
@@ -2918,38 +2918,38 @@ function buildTuitionModalForm(st, studentLogs) {
     // BOX 2: Buổi học & Chuyên cần trong kỳ
     // ==========================================
     html += '<div id="tuitionBoxAttendanceOverview" class="tuition-card-box">';
-    html += '<div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">';
-    html += '<div style="display: flex; align-items: center; gap: 8px;">';
-    html += '<span style="background: #2563EB; color: #FFFFFF; font-size: 11px; font-weight: 800; padding: 2px 7px; border-radius: 6px;">02</span>';
+    html += '<div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;">';
+    html += '<div style="display: flex; align-items: center; gap: 10px;">';
+    html += '<span style="background: #2563EB; color: #FFFFFF; font-size: 11.5px; font-weight: 800; padding: 3px 8px; border-radius: 7px;">02</span>';
     html += '<div>';
-    html += '<div style="font-size: 15px; font-weight: 700; color: #0F172A;">Buổi học & Chuyên cần</div>';
-    html += '<div style="font-size: 12px; color: #64748B; margin-top: 1px;">Thống kê thực tế trong khoảng thời gian đã chọn</div>';
+    html += '<div style="font-size: 15.5px; font-weight: 750; color: #0F172A;">Buổi học & Chuyên cần</div>';
+    html += '<div style="font-size: 12px; color: #64748B; margin-top: 2px;">Thống kê thực tế trong khoảng thời gian đã chọn</div>';
     html += '</div></div>';
-    html += '<span style="font-size: 11.5px; font-weight: 700; color: #2563EB; background: #EFF6FF; border: 1px solid #BFDBFE; padding: 3px 8px; border-radius: 999px;">' + filteredLogs.length + ' buổi ghi nhận</span>';
+    html += '<span style="font-size: 11.5px; font-weight: 700; color: #2563EB; background: #EFF6FF; border: 1px solid #BFDBFE; padding: 4px 10px; border-radius: 999px;">' + filteredLogs.length + ' buổi ghi nhận</span>';
     html += '</div>';
 
     // 3 KPI metric cards
-    html += '<div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 12px;">';
-    html += '<div style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 10px; padding: 8px; text-align: center;">';
-    html += '<div style="font-size: 11px; color: #64748B; font-weight: 600;">Buổi tính phí</div>';
-    html += '<div style="font-size: 16px; font-weight: 800; color: #0F172A; margin-top: 2px;">' + invBillableCount + ' buổi</div>';
+    html += '<div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 14px;">';
+    html += '<div style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 12px; padding: 12px 8px; text-align: center;">';
+    html += '<div style="font-size: 11.5px; color: #64748B; font-weight: 600;">Buổi tính phí</div>';
+    html += '<div style="font-size: 16.5px; font-weight: 800; color: #0F172A; margin-top: 3px;">' + invBillableCount + ' buổi</div>';
     html += '</div>';
 
-    html += '<div style="background: #F0FDF4; border: 1px solid #BBF7D0; border-radius: 10px; padding: 8px; text-align: center;">';
-    html += '<div style="font-size: 11px; color: #166534; font-weight: 600;">Có mặt</div>';
-    html += '<div style="font-size: 16px; font-weight: 800; color: #15803D; margin-top: 2px;">' + invPresent + ' buổi</div>';
+    html += '<div style="background: #F0FDF4; border: 1px solid #BBF7D0; border-radius: 12px; padding: 12px 8px; text-align: center;">';
+    html += '<div style="font-size: 11.5px; color: #166534; font-weight: 600;">Có mặt</div>';
+    html += '<div style="font-size: 16.5px; font-weight: 800; color: #15803D; margin-top: 3px;">' + invPresent + ' buổi</div>';
     html += '</div>';
 
-    html += '<div style="background: #FEF3C7; border: 1px solid #FDE68A; border-radius: 10px; padding: 8px; text-align: center;">';
-    html += '<div style="font-size: 11px; color: #92400E; font-weight: 600;">Nghỉ / Bù</div>';
-    html += '<div style="font-size: 16px; font-weight: 800; color: #B45309; margin-top: 2px;">' + (invAbsent + invMakeup) + ' buổi</div>';
+    html += '<div style="background: #FEF3C7; border: 1px solid #FDE68A; border-radius: 12px; padding: 12px 8px; text-align: center;">';
+    html += '<div style="font-size: 11.5px; color: #92400E; font-weight: 600;">Nghỉ / Bù</div>';
+    html += '<div style="font-size: 16.5px; font-weight: 800; color: #B45309; margin-top: 3px;">' + (invAbsent + invMakeup) + ' buổi</div>';
     html += '</div>';
     html += '</div>';
 
     // Mini log chips / list
-    html += '<div style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 10px; padding: 8px 10px; max-height: 100px; overflow-y: auto;">';
+    html += '<div style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 12px; padding: 12px 14px; max-height: 120px; overflow-y: auto;">';
     if (filteredLogs.length > 0) {
-        html += '<div style="display: flex; flex-wrap: wrap; gap: 6px;">';
+        html += '<div style="display: flex; flex-wrap: wrap; gap: 8px;">';
         filteredLogs.forEach(function(l) {
             if (!l) return;
             var lDateText = l.studyDate || l.ngay || "";
@@ -2971,13 +2971,13 @@ function buildTuitionModalForm(st, studentLogs) {
                 bgTag = '#FEE2E2'; textTag = '#B91C1C'; borderTag = '#FCA5A5'; iconTag = 'fa-xmark';
                 statusLabel = 'Nghỉ';
             }
-            html += '<span style="background: ' + bgTag + '; color: ' + textTag + '; border: 1px solid ' + borderTag + '; font-size: 11px; font-weight: 700; padding: 2px 7px; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px;">';
-            html += '<i class="fa-solid ' + iconTag + '" style="font-size: 9.5px;"></i> ' + escapeHtml(shortDate) + ' (' + statusLabel + ')';
+            html += '<span style="background: ' + bgTag + '; color: ' + textTag + '; border: 1px solid ' + borderTag + '; font-size: 11.5px; font-weight: 700; padding: 4px 9px; border-radius: 8px; display: inline-flex; align-items: center; gap: 5px;">';
+            html += '<i class="fa-solid ' + iconTag + '" style="font-size: 10px;"></i> ' + escapeHtml(shortDate) + ' (' + statusLabel + ')';
             html += '</span>';
         });
         html += '</div>';
     } else {
-        html += '<div style="font-size: 12px; color: #94A3B8; text-align: center; padding: 6px 0; font-style: italic;"><i class="fa-solid fa-circle-info"></i> Không có buổi học nào trong khoảng thời gian này</div>';
+        html += '<div style="font-size: 12px; color: #94A3B8; text-align: center; padding: 8px 0; font-style: italic;"><i class="fa-solid fa-circle-info"></i> Không có buổi học nào trong khoảng thời gian này</div>';
     }
     html += '</div>';
 
@@ -2987,39 +2987,39 @@ function buildTuitionModalForm(st, studentLogs) {
     // BOX 3: Học phí & Điều chỉnh
     // ==========================================
     html += '<div id="tuitionBoxFeeCalculation" class="tuition-card-box">';
-    html += '<div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">';
-    html += '<span style="background: #059669; color: #FFFFFF; font-size: 11px; font-weight: 800; padding: 2px 7px; border-radius: 6px;">03</span>';
+    html += '<div style="display: flex; align-items: center; gap: 10px; margin-bottom: 14px;">';
+    html += '<span style="background: #059669; color: #FFFFFF; font-size: 11.5px; font-weight: 800; padding: 3px 8px; border-radius: 7px;">03</span>';
     html += '<div>';
-    html += '<div style="font-size: 15px; font-weight: 700; color: #0F172A;">Học phí & Điều chỉnh</div>';
-    html += '<div style="font-size: 12px; color: #64748B; margin-top: 1px;">Đơn giá tiêu chuẩn và các khoản cộng / trừ nếu có</div>';
+    html += '<div style="font-size: 15.5px; font-weight: 750; color: #0F172A;">Học phí & Điều chỉnh</div>';
+    html += '<div style="font-size: 12px; color: #64748B; margin-top: 2px;">Đơn giá tiêu chuẩn và các khoản cộng / trừ nếu có</div>';
     html += '</div></div>';
 
     // Unit fee info row
-    html += '<div style="display: flex; justify-content: space-between; align-items: center; background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 10px; padding: 8px 12px; margin-bottom: 10px;">';
+    html += '<div style="display: flex; justify-content: space-between; align-items: center; background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 12px; padding: 12px 14px; margin-bottom: 14px;">';
     html += '<div>';
-    html += '<div style="font-size: 12px; font-weight: 700; color: #0F172A;">Đơn giá áp dụng:</div>';
-    html += '<div style="font-size: 11px; color: #64748B;">' + (isMonthly ? 'Học phí trọn gói theo tháng' : 'Đơn giá học phí mỗi buổi') + '</div>';
+    html += '<div style="font-size: 12.5px; font-weight: 700; color: #0F172A;">Đơn giá áp dụng:</div>';
+    html += '<div style="font-size: 11.5px; color: #64748B; margin-top: 2px;">' + (isMonthly ? 'Học phí trọn gói theo tháng' : 'Đơn giá học phí mỗi buổi') + '</div>';
     html += '</div>';
-    html += '<div style="font-size: 14px; font-weight: 800; color: #0F172A;">' + (unitFee > 0 ? (Number(unitFee).toLocaleString('vi-VN') + ' đ' + (isMonthly ? '/tháng' : '/buổi')) : 'Chưa thiết lập') + '</div>';
+    html += '<div style="font-size: 15px; font-weight: 800; color: #0F172A;">' + (unitFee > 0 ? (Number(unitFee).toLocaleString('vi-VN') + ' đ' + (isMonthly ? '/tháng' : '/buổi')) : 'Chưa thiết lập') + '</div>';
     html += '</div>';
 
     // 2-column input for Discount & Surcharge
-    html += '<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">';
+    html += '<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;">';
     
     // Discount
     html += '<div>';
-    html += '<label style="display: block; font-size: 11.5px; color: #64748B; margin-bottom: 4px; font-weight: 600;">';
+    html += '<label style="display: block; font-size: 12px; color: #64748B; margin-bottom: 6px; font-weight: 600;">';
     html += '<i class="fa-solid fa-gift" style="color: #EA580C;"></i> Giảm trừ / Học bổng (đ):';
     html += '</label>';
-    html += '<input type="text" inputmode="numeric" class="currency-input" id="inputDiscountFee" value="' + (discount ? formatNumberWithDots(discount) : '') + '" placeholder="0" oninput="formatCurrencyInput(this); onTuitionFeeAdjustmentChange()" style="width: 100%; background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 10px; padding: 8px 10px; color: #EA580C; font-weight: 700; font-size: 13px; outline: none; box-sizing: border-box;">';
+    html += '<input type="text" inputmode="numeric" class="currency-input" id="inputDiscountFee" value="' + (discount ? formatNumberWithDots(discount) : '') + '" placeholder="0" oninput="formatCurrencyInput(this); onTuitionFeeAdjustmentChange()" style="width: 100%; background: #F8FAFC; border: 1px solid #CBD5E1; border-radius: 10px; padding: 10px 12px; color: #EA580C; font-weight: 700; font-size: 13.5px; outline: none; box-sizing: border-box;">';
     html += '</div>';
 
     // Surcharge
     html += '<div>';
-    html += '<label style="display: block; font-size: 11.5px; color: #64748B; margin-bottom: 4px; font-weight: 600;">';
+    html += '<label style="display: block; font-size: 12px; color: #64748B; margin-bottom: 6px; font-weight: 600;">';
     html += '<i class="fa-solid fa-circle-plus" style="color: #16A34A;"></i> Phụ thu / Tài liệu (đ):';
     html += '</label>';
-    html += '<input type="text" inputmode="numeric" class="currency-input" id="inputSurchargeFee" value="' + (surcharge ? formatNumberWithDots(surcharge) : '') + '" placeholder="0" oninput="formatCurrencyInput(this); onTuitionFeeAdjustmentChange()" style="width: 100%; background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 10px; padding: 8px 10px; color: #16A34A; font-weight: 700; font-size: 13px; outline: none; box-sizing: border-box;">';
+    html += '<input type="text" inputmode="numeric" class="currency-input" id="inputSurchargeFee" value="' + (surcharge ? formatNumberWithDots(surcharge) : '') + '" placeholder="0" oninput="formatCurrencyInput(this); onTuitionFeeAdjustmentChange()" style="width: 100%; background: #F8FAFC; border: 1px solid #CBD5E1; border-radius: 10px; padding: 10px 12px; color: #16A34A; font-weight: 700; font-size: 13.5px; outline: none; box-sizing: border-box;">';
     html += '</div>';
 
     html += '</div>';
@@ -3031,12 +3031,12 @@ function buildTuitionModalForm(st, studentLogs) {
     if (discount > 0) formulaText += ' - ' + Number(discount).toLocaleString('vi-VN') + ' đ';
     if (surcharge > 0) formulaText += ' + ' + Number(surcharge).toLocaleString('vi-VN') + ' đ';
 
-    html += '<div style="background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%); color: #FFFFFF; border-radius: 12px; padding: 10px 14px; display: flex; justify-content: space-between; align-items: center;">';
+    html += '<div style="background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%); color: #FFFFFF; border-radius: 12px; padding: 14px 16px; display: flex; justify-content: space-between; align-items: center;">';
     html += '<div>';
     html += '<div style="font-size: 10.5px; text-transform: uppercase; color: #94A3B8; font-weight: 700; letter-spacing: 0.5px;">TỔNG HỌC PHÍ KỲ NÀY</div>';
-    html += '<div id="tuitionFormFormulaSummary" style="font-size: 11.5px; color: #CBD5E1; margin-top: 1px;">' + escapeHtml(formulaText) + '</div>';
+    html += '<div id="tuitionFormFormulaSummary" style="font-size: 12px; color: #CBD5E1; margin-top: 3px; line-height: 1.4;">' + escapeHtml(formulaText) + '</div>';
     html += '</div>';
-    html += '<div id="tuitionFormGrandTotal" style="font-size: 18px; font-weight: 900; color: #38BDF8;">' + Number(grandTotal).toLocaleString('vi-VN') + ' đ</div>';
+    html += '<div id="tuitionFormGrandTotal" style="font-size: 19px; font-weight: 900; color: #38BDF8;">' + Number(grandTotal).toLocaleString('vi-VN') + ' đ</div>';
     html += '</div>';
 
     html += '</div>'; // End Box 3
@@ -3045,33 +3045,33 @@ function buildTuitionModalForm(st, studentLogs) {
     // BOX 4: Nhận xét học tập & Đánh giá
     // ==========================================
     html += '<div id="tuitionBoxTeacherNote" class="tuition-card-box">';
-    html += '<div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">';
-    html += '<div style="display: flex; align-items: center; gap: 8px;">';
-    html += '<span style="background: #7C3AED; color: #FFFFFF; font-size: 11px; font-weight: 800; padding: 2px 7px; border-radius: 6px;">04</span>';
+    html += '<div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;">';
+    html += '<div style="display: flex; align-items: center; gap: 10px;">';
+    html += '<span style="background: #7C3AED; color: #FFFFFF; font-size: 11.5px; font-weight: 800; padding: 3px 8px; border-radius: 7px;">04</span>';
     html += '<div>';
-    html += '<div style="font-size: 15px; font-weight: 700; color: #0F172A;">Nhận xét học tập & Đánh giá</div>';
-    html += '<div style="font-size: 12px; color: #64748B; margin-top: 1px;">Hiển thị trực tiếp vào phần nhận xét của phiếu học tập</div>';
+    html += '<div style="font-size: 15.5px; font-weight: 750; color: #0F172A;">Nhận xét học tập & Đánh giá</div>';
+    html += '<div style="font-size: 12px; color: #64748B; margin-top: 2px;">Hiển thị trực tiếp vào phần nhận xét của phiếu học tập</div>';
     html += '</div></div>';
-    html += '<button type="button" onclick="copyTuitionAIPrompt()" style="border: 1px solid #C4B5FD; background: #F5F3FF; color: #7C3AED; border-radius: 8px; padding: 4px 10px; font-size: 11px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 5px;" title="Tạo & copy Prompt AI nhận xét chuẩn 3 phần"><i class="fa-solid fa-wand-magic-sparkles"></i> Prompt AI</button>';
+    html += '<button type="button" onclick="copyTuitionAIPrompt()" style="border: 1px solid #C4B5FD; background: #F5F3FF; color: #7C3AED; border-radius: 8px; padding: 5px 11px; font-size: 11.5px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 5px;" title="Tạo & copy Prompt AI nhận xét chuẩn 3 phần"><i class="fa-solid fa-wand-magic-sparkles"></i> Prompt AI</button>';
     html += '</div>';
 
     var currentFeedback = (state.feedbackText !== undefined) ? state.feedbackText : generateDefaultStudentFeedback(st, invPresent, invBillableCount, invDoneHw, invMissingHw);
-    html += '<textarea id="tuitionFeedbackTextInput" placeholder="Nhập nhận xét học tập theo bố cục 3 phần: Tổng quan, Kiến thức, Điểm cần cải thiện..." oninput="onTuitionFeedbackTextChange()" style="width: 100%; min-height: 86px; background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 10px; padding: 8px 12px; font-size: 12px; line-height: 1.55; color: #0F172A; resize: vertical; box-sizing: border-box; font-family: inherit; outline: none; margin-bottom: 8px;">' + escapeHtml(currentFeedback) + '</textarea>';
+    html += '<textarea id="tuitionFeedbackTextInput" placeholder="Nhập nhận xét học tập theo bố cục 3 phần: Tổng quan, Kiến thức, Điểm cần cải thiện..." oninput="onTuitionFeedbackTextChange()" style="width: 100%; min-height: 96px; background: #F8FAFC; border: 1px solid #CBD5E1; border-radius: 12px; padding: 10px 14px; font-size: 12.5px; line-height: 1.6; color: #0F172A; resize: vertical; box-sizing: border-box; font-family: inherit; outline: none; margin-bottom: 10px;">' + escapeHtml(currentFeedback) + '</textarea>';
 
     // Quick template pills
     var safeStName = escapeHtml(st.name).replace(/'/g, "\\'");
-    html += '<div style="display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px;">';
-    html += '<button type="button" onclick="applyTuitionFeedbackPreset(getPresetFeedback(1, \'' + safeStName + '\'))" style="border: 1px solid #CBD5E1; background: #FFF; border-radius: 6px; padding: 3px 8px; font-size: 11px; font-weight: 600; color: #334155; cursor: pointer;">✨ Chuẩn 3 phần</button>';
-    html += '<button type="button" onclick="applyTuitionFeedbackPreset(getPresetFeedback(2, \'' + safeStName + '\'))" style="border: 1px solid #CBD5E1; background: #FFF; border-radius: 6px; padding: 3px 8px; font-size: 11px; font-weight: 600; color: #334155; cursor: pointer;">🌟 Khen ngợi</button>';
-    html += '<button type="button" onclick="applyTuitionFeedbackPreset(getPresetFeedback(3, \'' + safeStName + '\'))" style="border: 1px solid #CBD5E1; background: #FFF; border-radius: 6px; padding: 3px 8px; font-size: 11px; font-weight: 600; color: #334155; cursor: pointer;">📚 Cần cố gắng</button>';
-    html += '<button type="button" onclick="applyTuitionFeedbackPreset(getPresetFeedback(4, \'' + safeStName + '\'))" style="border: 1px solid #CBD5E1; background: #FFF; border-radius: 6px; padding: 3px 8px; font-size: 11px; font-weight: 600; color: #334155; cursor: pointer;">🎯 Luyện thi</button>';
+    html += '<div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px;">';
+    html += '<button type="button" onclick="applyTuitionFeedbackPreset(getPresetFeedback(1, \'' + safeStName + '\'))" style="border: 1px solid #CBD5E1; background: #FFF; border-radius: 7px; padding: 4px 10px; font-size: 11.5px; font-weight: 600; color: #334155; cursor: pointer;">✨ Chuẩn 3 phần</button>';
+    html += '<button type="button" onclick="applyTuitionFeedbackPreset(getPresetFeedback(2, \'' + safeStName + '\'))" style="border: 1px solid #CBD5E1; background: #FFF; border-radius: 7px; padding: 4px 10px; font-size: 11.5px; font-weight: 600; color: #334155; cursor: pointer;">🌟 Khen ngợi</button>';
+    html += '<button type="button" onclick="applyTuitionFeedbackPreset(getPresetFeedback(3, \'' + safeStName + '\'))" style="border: 1px solid #CBD5E1; background: #FFF; border-radius: 7px; padding: 4px 10px; font-size: 11.5px; font-weight: 600; color: #334155; cursor: pointer;">📚 Cần cố gắng</button>';
+    html += '<button type="button" onclick="applyTuitionFeedbackPreset(getPresetFeedback(4, \'' + safeStName + '\'))" style="border: 1px solid #CBD5E1; background: #FFF; border-radius: 7px; padding: 4px 10px; font-size: 11.5px; font-weight: 600; color: #334155; cursor: pointer;">🎯 Luyện thi</button>';
     html += '</div>';
 
     // Lời nhắn ngắn gửi kèm (payment memo)
     var currentNote = (state.teacherNote !== undefined) ? state.teacherNote : '';
-    html += '<div style="border-top: 1px dashed #E2E8F0; padding-top: 10px; margin-top: 4px;">';
-    html += '<label style="display: block; font-size: 11.5px; color: #64748B; margin-bottom: 4px; font-weight: 600;"><i class="fa-regular fa-comment-dots" style="color: #D97706;"></i> Lời nhắn ngắn gửi kèm:</label>';
-    html += '<input type="text" id="tuitionTeacherNoteInput" value="' + escapeHtml(currentNote) + '" placeholder="Ví dụ: Dạ em gửi anh/chị phiếu học phí tháng này của con ạ..." oninput="onTuitionTeacherNoteChange()" style="width: 100%; background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 8px; padding: 7px 10px; font-size: 12px; color: #0F172A; outline: none; box-sizing: border-box;">';
+    html += '<div style="border-top: 1px dashed #E2E8F0; padding-top: 12px; margin-top: 6px;">';
+    html += '<label style="display: block; font-size: 12px; color: #64748B; margin-bottom: 6px; font-weight: 600;"><i class="fa-regular fa-comment-dots" style="color: #D97706;"></i> Lời nhắn ngắn gửi kèm:</label>';
+    html += '<input type="text" id="tuitionTeacherNoteInput" value="' + escapeHtml(currentNote) + '" placeholder="Ví dụ: Dạ em gửi anh/chị phiếu học phí tháng này của con ạ..." oninput="onTuitionTeacherNoteChange()" style="width: 100%; background: #F8FAFC; border: 1px solid #CBD5E1; border-radius: 10px; padding: 9px 12px; font-size: 12.5px; color: #0F172A; outline: none; box-sizing: border-box;">';
     html += '</div>';
 
     html += '</div>'; // End Box 4
