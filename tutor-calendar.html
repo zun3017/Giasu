@@ -890,21 +890,27 @@
             border-right: 1px solid #ECE7F6 !important;
         }
 
-        /* DayGrid (Month view: Thẻ Card độc lập bo tròn) */
+        /* DayGrid (Month view: Thẻ Card độc lập bo tròn hiện đại) */
+        .fc-daygrid-body {
+            background: color-mix(in srgb, var(--color-primary, #8E4DFF) 2%, var(--bg-card-alt, #F8FAFC));
+            border-radius: 16px;
+            padding: 2px;
+        }
+
         .fc-daygrid-day {
             background: transparent !important;
             border: none !important;
-            padding: 3.5px !important;
+            padding: 4px !important;
         }
 
         .fc-daygrid-day-frame {
-            background: #FFFFFF !important;
-            border: 1px solid #ECE3D8 !important;
-            border-radius: 12px !important;
-            min-height: 105px !important;
+            background: var(--bg-card, #FFFFFF) !important;
+            border: 1px solid var(--border-card, #E2E8F0) !important;
+            border-radius: 14px !important;
+            min-height: 108px !important;
             height: 100% !important;
-            box-shadow: 0 1px 3px rgba(45, 31, 14, 0.03) !important;
-            transition: all 0.2s ease !important;
+            box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04), 0 1px 2px rgba(15, 23, 42, 0.02) !important;
+            transition: transform 0.22s cubic-bezier(.2,.8,.2,1), box-shadow 0.22s cubic-bezier(.2,.8,.2,1), border-color 0.2s ease !important;
             position: relative !important;
             display: flex !important;
             flex-direction: column !important;
@@ -912,8 +918,42 @@
         }
 
         .fc-daygrid-day-frame:hover {
-            border-color: #DCCEC0 !important;
-            box-shadow: 0 3px 10px rgba(45, 31, 14, 0.07) !important;
+            border-color: color-mix(in srgb, var(--color-primary, #8E4DFF) 55%, var(--border-card, #E2E8F0)) !important;
+            box-shadow: 0 8px 22px rgba(15, 23, 42, 0.08), 0 2px 6px rgba(15, 23, 42, 0.04) !important;
+            transform: translateY(-2px) !important;
+            z-index: 2 !important;
+        }
+
+        /* Biểu tượng '+' thêm nhanh xuất hiện ở góc trên phải khi rê chuột vào ô ngày */
+        .fc-daygrid-day-frame::before {
+            content: '+';
+            position: absolute;
+            top: 7px;
+            right: 8px;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: color-mix(in srgb, var(--color-primary, #8E4DFF) 14%, transparent);
+            color: var(--color-primary, #8E4DFF);
+            font-size: 14px;
+            font-weight: 700;
+            line-height: 18px;
+            text-align: center;
+            opacity: 0;
+            transform: scale(0.6);
+            transition: opacity 0.2s ease, transform 0.2s cubic-bezier(.34,1.56,.64,1);
+            pointer-events: none;
+            z-index: 3;
+        }
+        .fc-daygrid-day-frame:hover::before {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        /* Điểm xuyết nhẹ nhàng cho 2 ngày cuối tuần */
+        .fc-day-sat .fc-daygrid-day-frame,
+        .fc-day-sun .fc-daygrid-day-frame {
+            background: color-mix(in srgb, var(--bg-card, #FFFFFF) 96%, var(--color-primary, #8E4DFF) 4%) !important;
         }
 
         /* Số ngày đặt ở GÓC TRÊN BÊN TRÁI của Card */
@@ -922,19 +962,20 @@
             flex-direction: row !important;
             justify-content: flex-start !important;
             align-items: center !important;
-            gap: 5px !important;
-            padding: 6px 8px 2px 8px !important;
+            gap: 6px !important;
+            padding: 7px 10px 3px 10px !important;
             z-index: 2 !important;
             position: relative !important;
         }
 
         .fc-daygrid-day-number {
             color: var(--text-primary) !important;
-            font-size: 13px !important;
+            font-size: 13.5px !important;
             font-weight: 700 !important;
             padding: 0 !important;
             text-decoration: none !important;
             line-height: 1 !important;
+            letter-spacing: -0.2px !important;
         }
 
         /* Ngày lễ quốc gia Việt Nam (Task 10.3 + Mockup styling) */
@@ -1018,7 +1059,13 @@
             background: var(--bg-card, #FFFFFF) !important;
             border-color: var(--border-card) !important;
             box-shadow: none !important;
-            opacity: 0.45 !important;
+            opacity: 0.38 !important;
+            filter: grayscale(15%);
+        }
+
+        .fc-day-other:hover .fc-daygrid-day-frame {
+            opacity: 0.72 !important;
+            transform: none !important;
         }
 
         .fc-day-other .fc-daygrid-day-number {
@@ -1027,60 +1074,64 @@
         }
 
         .fc-day-other .fc-daygrid-day-events {
-            opacity: 0.9 !important;
+            opacity: 0.85 !important;
         }
 
-        /* Hôm nay (Today highlight): Viền đỏ Card + Badge tròn đỏ số ngày */
+        /* Hôm nay (Today highlight): Viền Card nổi bật + Badge tròn gradient số ngày */
         .fc-daygrid-day.fc-day-today {
             background: transparent !important;
         }
 
         .fc-daygrid-day.fc-day-today .fc-daygrid-day-frame {
-            border: 1.5px solid #E11D48 !important;
-            background: #FFFFFF !important;
-            box-shadow: 0 2px 8px rgba(225, 29, 72, 0.12) !important;
+            border: 2px solid var(--color-primary, #8E4DFF) !important;
+            background: linear-gradient(180deg, color-mix(in srgb, var(--color-primary, #8E4DFF) 6%, var(--bg-card, #FFFFFF)) 0%, var(--bg-card, #FFFFFF) 50%) !important;
+            box-shadow: 0 4px 16px color-mix(in srgb, var(--color-primary, #8E4DFF) 18%, transparent) !important;
         }
 
         .fc-daygrid-day.fc-day-today .fc-daygrid-day-number {
-            background: #E11D48 !important;
+            background: linear-gradient(135deg, var(--color-primary, #8E4DFF), color-mix(in srgb, var(--color-primary, #8E4DFF) 65%, #EC4899)) !important;
             color: #FFFFFF !important;
             border-radius: 50% !important;
-            width: 20px !important;
-            height: 20px !important;
+            width: 24px !important;
+            height: 24px !important;
             display: inline-flex !important;
             align-items: center !important;
             justify-content: center !important;
-            font-size: 11px !important;
-            font-weight: 700 !important;
+            font-size: 12px !important;
+            font-weight: 800 !important;
             line-height: 1 !important;
             margin: 0 !important;
+            box-shadow: 0 2px 8px color-mix(in srgb, var(--color-primary, #8E4DFF) 40%, transparent) !important;
         }
 
         .fc th.fc-day-today .fc-col-header-cell-cushion {
-            color: #E11D48 !important;
+            color: var(--color-primary, #8E4DFF) !important;
+            background: color-mix(in srgb, var(--color-primary, #8E4DFF) 12%, transparent) !important;
             font-weight: 800 !important;
         }
 
-        /* +N buổi nữa link: phong cách chữ xám gọn gàng góc trái */
+        /* +N buổi nữa link: phong cách viên thuốc tinh tế */
         .fc .fc-daygrid-more-link {
-            color: #7D6F63 !important;
+            color: var(--color-primary, #8E4DFF) !important;
             font-size: 11px !important;
-            font-weight: 500 !important;
-            padding: 2px 4px !important;
-            border-radius: 4px !important;
-            background: transparent !important;
-            margin-left: 4px !important;
-            margin-top: 1px !important;
+            font-weight: 700 !important;
+            padding: 2.5px 8px !important;
+            border-radius: 999px !important;
+            background: color-mix(in srgb, var(--color-primary, #8E4DFF) 10%, transparent) !important;
+            margin-left: 6px !important;
+            margin-top: 2px !important;
             display: inline-block !important;
             text-decoration: none !important;
             cursor: pointer !important;
             z-index: 2 !important;
             position: relative !important;
+            transition: all 0.15s ease !important;
         }
 
         .fc .fc-daygrid-more-link:hover {
-            color: #2D1F0E !important;
-            background: rgba(45, 31, 14, 0.06) !important;
+            color: var(--color-primary, #8E4DFF) !important;
+            background: color-mix(in srgb, var(--color-primary, #8E4DFF) 20%, transparent) !important;
+            transform: translateY(-0.5px) !important;
         }
 
         .fc .fc-popover {
@@ -1237,7 +1288,7 @@
         .fc-daygrid-event {
             border: none !important;
             border-radius: 999px !important;
-            margin: 2px 6px !important;
+            margin: 2.5px 6px !important;
             padding: 0 !important;
             box-shadow: none !important;
             background: transparent !important;
@@ -1249,8 +1300,8 @@
         .fc-month-chip-inner {
             display: flex !important;
             align-items: center !important;
-            gap: 6px !important;
-            padding: 2.5px 9px !important;
+            gap: 6.5px !important;
+            padding: 3.5px 10px !important;
             border-radius: 999px !important;
             font-size: 11.5px !important;
             line-height: 1.35 !important;
@@ -1259,28 +1310,30 @@
             text-overflow: ellipsis !important;
             width: 100% !important;
             box-sizing: border-box !important;
-            transition: transform 0.15s ease, box-shadow 0.15s ease !important;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03) !important;
+            transition: transform 0.18s cubic-bezier(.2,.8,.2,1), box-shadow 0.18s cubic-bezier(.2,.8,.2,1), filter 0.18s ease !important;
         }
 
         .fc-month-chip-inner:hover {
-            transform: translateY(-1px) !important;
-            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.10) !important;
+            transform: translateY(-1.5px) !important;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12) !important;
+            filter: brightness(1.02) !important;
         }
 
         .fc-chip-dot {
-            width: 6px !important;
-            height: 6px !important;
+            width: 6.5px !important;
+            height: 6.5px !important;
             border-radius: 50% !important;
             flex-shrink: 0 !important;
             display: inline-block !important;
+            box-shadow: 0 0 0 1.5px #FFFFFF, 0 1px 2px rgba(0,0,0,0.18) !important;
         }
 
         .fc-chip-time {
-            font-weight: 700 !important;
+            font-weight: 750 !important;
             font-size: 11px !important;
             flex-shrink: 0 !important;
             letter-spacing: -0.2px !important;
-            color: var(--text-primary) !important;
         }
 
         .fc-chip-title {
@@ -1291,6 +1344,7 @@
             white-space: nowrap !important;
             flex: 1 !important;
             color: var(--text-primary) !important;
+            letter-spacing: -0.1px !important;
         }
 
         .fc-event-main-frame {
@@ -2492,45 +2546,60 @@
             background: var(--bg-card) !important;
             border: 1px solid var(--border-card) !important;
             border-radius: 14px !important;
-            box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03) !important;
+            box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04), 0 1px 2px rgba(15, 23, 42, 0.02) !important;
         }
         .fc-daygrid-day-frame:hover {
-            border-color: var(--color-primary) !important;
-            box-shadow: 0 4px 12px rgba(15, 23, 42, 0.07) !important;
+            border-color: color-mix(in srgb, var(--color-primary) 55%, var(--border-card)) !important;
+            box-shadow: 0 8px 22px rgba(15, 23, 42, 0.08), 0 2px 6px rgba(15, 23, 42, 0.04) !important;
         }
         .fc-daygrid-day-number {
             color: var(--text-primary) !important;
-            font-size: 13px !important;
+            font-size: 13.5px !important;
             font-weight: 700 !important;
         }
         .fc-day-other .fc-daygrid-day-frame {
             background: var(--bg-card) !important;
             border-color: var(--border-card) !important;
             box-shadow: none !important;
-            opacity: 0.45 !important;
+            opacity: 0.38 !important;
         }
         .fc-day-other .fc-daygrid-day-number {
             color: var(--text-muted) !important;
             font-weight: 600 !important;
         }
         .fc-daygrid-day.fc-day-today .fc-daygrid-day-frame {
-            border: 1.5px solid var(--color-primary) !important;
-            background: var(--bg-card) !important;
+            border: 2px solid var(--color-primary) !important;
+            background: linear-gradient(180deg, color-mix(in srgb, var(--color-primary) 6%, var(--bg-card)) 0%, var(--bg-card) 50%) !important;
+            box-shadow: 0 4px 16px color-mix(in srgb, var(--color-primary) 18%, transparent) !important;
         }
         .fc-daygrid-day.fc-day-today .fc-daygrid-day-number {
-            background: var(--color-primary) !important;
-            color: var(--btn-text) !important;
+            background: linear-gradient(135deg, var(--color-primary), color-mix(in srgb, var(--color-primary) 65%, #EC4899)) !important;
+            color: #FFFFFF !important;
+            border-radius: 50% !important;
+            width: 24px !important;
+            height: 24px !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            font-size: 12px !important;
+            font-weight: 800 !important;
+            box-shadow: 0 2px 8px color-mix(in srgb, var(--color-primary) 40%, transparent) !important;
         }
         .fc th.fc-day-today .fc-col-header-cell-cushion {
             color: var(--color-primary) !important;
+            background: color-mix(in srgb, var(--color-primary) 12%, transparent) !important;
+            font-weight: 800 !important;
         }
         .fc .fc-daygrid-more-link {
-            color: var(--color-primary, var(--text-primary)) !important;
+            color: var(--color-primary) !important;
+            background: color-mix(in srgb, var(--color-primary) 10%, transparent) !important;
             font-weight: 700 !important;
+            border-radius: 999px !important;
+            padding: 2.5px 8px !important;
         }
         .fc .fc-daygrid-more-link:hover {
-            color: var(--text-primary) !important;
-            background: var(--nav-hover-bg) !important;
+            color: var(--color-primary) !important;
+            background: color-mix(in srgb, var(--color-primary) 20%, transparent) !important;
         }
         .fc .fc-popover {
             background: var(--bg-card) !important;
@@ -4562,13 +4631,13 @@
                             chipBg = 'rgba(' + hexToRgbStr(color) + ', 0.28)';
                             chipBorder = 'rgba(' + hexToRgbStr(color) + ', 0.65)';
                         } else {
-                            chipBg = 'rgba(' + hexToRgbStr(color) + ', 0.16)';
-                            chipBorder = 'rgba(' + hexToRgbStr(color) + ', 0.55)';
+                            chipBg = 'rgba(' + hexToRgbStr(color) + ', 0.13)';
+                            chipBorder = 'rgba(' + hexToRgbStr(color) + ', 0.42)';
                         }
-                        let timeClr = isCancelled ? '#9CA3AF' : (isDark ? '#FFFFFF' : 'color-mix(in srgb, ' + color + ' 70%, #000)');
+                        let timeClr = isCancelled ? '#9CA3AF' : (isDark ? '#FFFFFF' : color);
                         
                         let html = '<div class="fc-month-chip-inner" style="background: ' + chipBg + '; border: 1px solid ' + chipBorder + '; ' + textDecor + '">' +
-                                   '<span class="fc-chip-dot" style="background-color: ' + dotColor + ';"></span>' +
+                                   '<span class="fc-chip-dot" style="background-color: ' + dotColor + '; box-shadow: 0 0 0 1.5px ' + (isDark ? 'rgba(0,0,0,0.6)' : '#FFFFFF') + ', 0 1px 3px ' + color + '55;"></span>' +
                                    (timeStr ? '<span class="fc-chip-time" style="color: ' + timeClr + ';">' + timeStr + '</span>' : '') +
                                    '<span class="fc-chip-title" style="color: ' + textClr + ';">' + titleStr + '</span>' +
                                    '</div>';
