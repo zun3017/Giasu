@@ -3229,11 +3229,6 @@ function openStudentInvoiceModal(studentName) {
     var bName = (tutorDataGlobal && tutorDataGlobal.bankName) ? tutorDataGlobal.bankName : "";
     var tName = (tutorDataGlobal && tutorDataGlobal.tutorName) ? tutorDataGlobal.tutorName : "Gia sư";
 
-    var headerSub = document.getElementById('tuitionModalHeaderSubtitle');
-    if (headerSub) {
-        headerSub.textContent = "GV. " + tName + " · STK " + bAcc;
-    }
-
     var stNameEl = document.getElementById('tuitionModalStudentName');
     if (stNameEl) stNameEl.textContent = st.name;
     var stBadge = document.getElementById('tuitionModalStudentBadge');
