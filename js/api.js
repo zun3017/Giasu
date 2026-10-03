@@ -1491,7 +1491,30 @@ class GoogleScriptRunInstance {
             // 7. ADMIN MANAGEMENT
             // ==========================================
             else if (functionName === 'getAdminDashboardData') {
-                result = await getAdminDashboardDataInternal();
+                const adminPhone = args[0] || "";
+                const adminPin = args[1] || "";
+                const normAdminPhone = normalizePhone(adminPhone);
+                
+                if (!adminPhone || !adminPin) {
+                    result = { error: 'Từ chối truy cập: Thiếu thông tin xác thực Admin!' };
+                } else {
+                    let adminsRaw = await supaGet(APP_CONFIG.TABLES.ADMINS, `select=*`);
+                    let validAdmin = false;
+                    if (adminsRaw && adminsRaw.length > 0) {
+                        validAdmin = adminsRaw.some(a => 
+                            (normalizePhone(a.phone) === normAdminPhone || String(a.admin_id).trim() === String(adminPhone).trim()) &&
+                            String(a.pin).trim() === String(adminPin).trim()
+                        );
+                    } else if (normAdminPhone === '302001' && String(adminPin).trim() === '1234') {
+                        validAdmin = true;
+                    }
+                    
+                    if (!validAdmin) {
+                        result = { error: 'Từ chối truy cập: Thông tin xác thực Admin không hợp lệ hoặc đã hết hạn!' };
+                    } else {
+                        result = await getAdminDashboardDataInternal();
+                    }
+                }
             }
             
             else if (functionName === 'adminLuuGiaSu' || functionName === 'adminLuuGiaSur' || functionName === 'saveTutorAccount') {

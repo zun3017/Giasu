@@ -421,11 +421,12 @@
         }
 
         window.addEventListener('DOMContentLoaded', () => {
-            var data = JSON.parse(sessionStorage.getItem('dashboardData'));
+            var data = JSON.parse(sessionStorage.getItem('dashboardData') || 'null');
             var role = sessionStorage.getItem('userRole');
             var phone = sessionStorage.getItem('userPhone');
             var pin = sessionStorage.getItem('userPin');
-            if (!data || role !== 'admin') {
+            if (!data || role !== 'admin' || !phone || !pin) {
+                sessionStorage.clear();
                 window.location.href = 'tutor-login.html';
                 return;
             }

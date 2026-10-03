@@ -1013,10 +1013,20 @@ var pinVerifyAction = "deleteStudent";
                 showToast("Đang đồng bộ dữ liệu mới nhất...", "info");
             }
             
+            var phone = sessionStorage.getItem('userPhone') || (document.getElementById('maHocSinh') ? document.getElementById('maHocSinh').value : "") || "";
+            var pin = sessionStorage.getItem('userPin') || (document.getElementById('maPin') ? document.getElementById('maPin').value : "") || "";
+
             google.script.run
                 .withSuccessHandler(function(res) {
                     if (refreshBtn) {
                         refreshBtn.innerHTML = '<i class="fa-solid fa-arrows-rotate"></i> Làm mới';
+                    }
+                    if (res && res.error) {
+                        if (typeof showToast === 'function') showToast(res.error, "error");
+                        if (res.error.includes("Từ chối truy cập")) {
+                            setTimeout(function() { window.location.href = 'tutor-login.html'; }, 1500);
+                        }
+                        return;
                     }
                     var data = (res && res.data) ? res.data : res;
                     if (data && (data.tutors || data.students)) {
@@ -1036,7 +1046,7 @@ var pinVerifyAction = "deleteStudent";
                         showToast("Lỗi làm mới: " + err.toString(), "error");
                     }
                 })
-                .getAdminDashboardData();
+                .getAdminDashboardData(phone, pin);
         }
 
         // Các hàm phụ trợ hóa đơn của Gia sư đã được di chuyển sang đúng file js/tutor.js.
