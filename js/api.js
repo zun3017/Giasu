@@ -189,6 +189,42 @@ async function supaDelete(table, matchParam) {
 }
 
 // ============================================================================
+// BẢO MẬT: CHỐNG XSS (dùng chung cho mọi trang có nạp api.js)
+// ============================================================================
+// escapeHtml: dùng cho MỌI dữ liệu người dùng chèn vào innerHTML / thuộc tính HTML
+function escapeHtml(v) {
+    if (v === null || v === undefined) return '';
+    return String(v).replace(/[&<>"'`]/g, function (c) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;', '`': '&#96;' }[c];
+    });
+}
+// safeUrl: chỉ cho phép http(s), blob, data:image, hoặc đường dẫn tương đối. Chặn javascript:, vbscript:, data:text/html...
+function safeUrl(u) {
+    if (u === null || u === undefined) return '';
+    var s = String(u).trim();
+    if (!s) return '';
+    var probe = s.replace(/[\u0000-\u0020\u007f-\u009f]/g, '').toLowerCase();
+    if (/^(https?:|blob:)/.test(probe)) return s;
+    if (/^data:(image\/(png|jpe?g|gif|webp|bmp)|application\/pdf);base64,/.test(probe)) return s;
+    if (!/^[a-z][a-z0-9+.\-]*:/.test(probe)) return s; // tương đối
+    return '#';
+}
+// safeUrlAttr: safeUrl + escape để đặt trong href="..." / src="..."
+function safeUrlAttr(u) { return escapeHtml(safeUrl(u)); }
+// jsStr: chèn giá trị vào chuỗi JS nằm trong thuộc tính onclick="fn('...')" hoặc onclick='fn("...")'
+function jsStr(v) {
+    var s = (v === null || v === undefined) ? '' : String(v);
+    s = s.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '\\"')
+         .replace(/\r/g, '\\r').replace(/\n/g, '\\n').replace(/\u2028/g, '\\u2028').replace(/\u2029/g, '\\u2029')
+         .replace(/</g, '\\x3C').replace(/>/g, '\\x3E');
+    return escapeHtml(s);
+}
+window.escapeHtml = escapeHtml;
+window.safeUrl = safeUrl;
+window.safeUrlAttr = safeUrlAttr;
+window.jsStr = jsStr;
+
+// ============================================================================
 // ĐỊNH DẠNG TIỀN TỆ & HỌC PHÍ (DẤU CHẤM NGĂN CÁCH MỖI 3 SỐ: 200.000)
 // ============================================================================
 window.formatCurrencyInput = function(el) {
@@ -372,45 +408,49 @@ class GoogleScriptRunInstance {
                 const norm = normalizePhone(phone);
                 
                 if (pin && String(pin).trim() !== "") {
-                    let admins = await supaGet(APP_CONFIG.TABLES.ADMINS, `select=*`);
-                    let mAdmin = admins.find(a => normalizePhone(a.phone) === norm || String(a.admin_id).trim() === String(phone).trim());
-                    if (mAdmin && String(mAdmin.pin).trim() === String(pin).trim()) {
+                    // BẢO MẬT: không tải cả bảng PIN về trình duyệt nữa. So khớp PIN ngay trong truy vấn (pin=eq.X),
+                    // chỉ trả về dòng khớp và KHÔNG select cột pin.
+                    const rawId = String(phone).trim();
+                    const pinStr = String(pin).trim();
+                    const idCands = Array.from(new Set([rawId, norm, norm ? '0' + norm : '', norm ? '84' + norm : ''].filter(Boolean)));
+                    const enc = v => encodeURIComponent('"' + String(v).replace(/"/g, '') + '"');
+                    const phoneOr = (col, idCol) => 'or=(' + idCands.map(c => `${col}.eq.${enc(c)}`).concat(idCands.map(c => `${idCol}.eq.${enc(c)}`)).join(',') + ')';
+                    const GENERIC_ERR = 'Số điện thoại hoặc mã PIN không chính xác!';
+                    let admins = (rawId && pinStr) ? await supaGet(APP_CONFIG.TABLES.ADMINS, `select=admin_id,name,phone&${phoneOr('phone', 'admin_id')}&pin=eq.${encodeURIComponent(pinStr)}`) : [];
+                    let mAdmin = admins.find(a => normalizePhone(a.phone) === norm || String(a.admin_id).trim() === rawId);
+                    if (mAdmin) {
                         result = {
                             role: 'admin',
                             thongBao: "Đăng nhập với quyền Admin thành công!",
                             data: await getAdminDashboardDataInternal()
                         };
                     } else {
-                        let tutors = await supaGet(APP_CONFIG.TABLES.TUTORS, `select=*`);
-                        let mTutor = tutors.find(t => normalizePhone(t.phone) === norm || String(t.tutor_id).trim() === String(phone).trim());
-                        if (mTutor && !mTutor.deleted_date) {
-                            if (String(mTutor.pin).trim() === String(pin).trim()) {
-                                if (mTutor.status === 'Vô hiệu hóa') {
-                                    result = { error: 'Tài khoản của bạn đã bị vô hiệu hóa. Vui lòng liên hệ Admin!' };
-                                } else {
-                                    result = {
-                                        role: 'tutor',
-                                        thongBao: "Đăng nhập với quyền Gia sư thành công!",
-                                        data: await getTutorDashboardDataInternal(mTutor.phone)
-                                    };
-                                }
+                        let tutors = (rawId && pinStr) ? await supaGet(APP_CONFIG.TABLES.TUTORS, `select=tutor_id,name,phone,status,deleted_date&${phoneOr('phone', 'tutor_id')}&pin=eq.${encodeURIComponent(pinStr)}`) : [];
+                        let mTutor = tutors.find(t => (normalizePhone(t.phone) === norm || String(t.tutor_id).trim() === rawId) && !t.deleted_date);
+                        if (mTutor) {
+                            if (mTutor.status === 'Vô hiệu hóa') {
+                                result = { error: 'Tài khoản của bạn đã bị vô hiệu hóa. Vui lòng liên hệ Admin!' };
                             } else {
-                                result = { error: 'Mã PIN không chính xác!' };
+                                result = {
+                                    role: 'tutor',
+                                    thongBao: "Đăng nhập với quyền Gia sư thành công!",
+                                    data: await getTutorDashboardDataInternal(mTutor.phone)
+                                };
                             }
                         } else {
-                            result = { error: 'Không tìm thấy số điện thoại trong hệ thống!' };
+                            result = { error: GENERIC_ERR };
                         }
                     }
                 } else {
                     let studentsRaw = await supaGet(APP_CONFIG.TABLES.STUDENTS, `select=*`);
                     let activeStudents = studentsRaw.filter(s => !s.deleted_date);
+                    // BẢO MẬT: chỉ khớp theo SĐT phụ huynh / mã học sinh / mã bài tập. KHÔNG cho đăng nhập bằng tên học sinh.
                     let matches = activeStudents.filter(s => {
                         let sPhone = normalizePhone(s.parent_phone);
                         let sId = normalizePhone(s.student_id);
                         let sHw = normalizePhone(s.homework_id);
                         return (sPhone && sPhone === norm) || (sId && sId === norm) || (sHw && sHw === norm) ||
-                               (s.student_id === phone) || (s.parent_phone === phone) ||
-                               (s.student_name && s.student_name.toLowerCase() === String(phone).toLowerCase());
+                               (s.student_id && s.student_id === String(phone).trim()) || (s.parent_phone && s.parent_phone === String(phone).trim());
                     });
                     
                     if (matches.length === 0) {
@@ -1221,9 +1261,9 @@ class GoogleScriptRunInstance {
                     let sHw = normalizePhone(s.homework_id);
                     let sId = normalizePhone(s.student_id);
                     let sParent = normalizePhone(s.parent_phone);
+                    // BẢO MẬT: không chấp nhận tên học sinh làm mã truy cập
                     return (sHw && sHw === norm) || (sId && sId === norm) || (sParent && sParent === norm) ||
-                           (s.homework_id === rawCode) || (s.student_id === rawCode) || (s.parent_phone === rawCode) ||
-                           (s.student_name && s.student_name.toLowerCase() === rawCode.toLowerCase());
+                           (s.homework_id && s.homework_id === rawCode) || (s.student_id && s.student_id === rawCode) || (s.parent_phone && s.parent_phone === rawCode);
                 });
                 
                 if (!target) {
@@ -1321,9 +1361,9 @@ class GoogleScriptRunInstance {
                     let sHw = normalizePhone(s.homework_id);
                     let sId = normalizePhone(s.student_id);
                     let sParent = normalizePhone(s.parent_phone);
+                    // BẢO MẬT: chỉ xác định học sinh theo mã, không theo tên do client gửi lên (chống nộp bài giả danh)
                     return (sHw && sHw === norm) || (sId && sId === norm) || (sParent && sParent === norm) ||
-                           (s.homework_id === ma) || (s.student_id === ma) || (s.parent_phone === ma) ||
-                           (studentName && s.student_name && s.student_name.trim().toLowerCase() === studentName.trim().toLowerCase());
+                           (s.homework_id && s.homework_id === ma) || (s.student_id && s.student_id === ma) || (s.parent_phone && s.parent_phone === ma);
                 });
 
                 const finalCode = (target && target.homework_id) ? target.homework_id : ma;
@@ -1498,16 +1538,15 @@ class GoogleScriptRunInstance {
                 if (!adminPhone || !adminPin) {
                     result = { error: 'Từ chối truy cập: Thiếu thông tin xác thực Admin!' };
                 } else {
-                    let adminsRaw = await supaGet(APP_CONFIG.TABLES.ADMINS, `select=*`);
-                    let validAdmin = false;
-                    if (adminsRaw && adminsRaw.length > 0) {
-                        validAdmin = adminsRaw.some(a => 
-                            (normalizePhone(a.phone) === normAdminPhone || String(a.admin_id).trim() === String(adminPhone).trim()) &&
-                            String(a.pin).trim() === String(adminPin).trim()
-                        );
-                    } else if (normAdminPhone === '302001' && String(adminPin).trim() === '1234') {
-                        validAdmin = true;
-                    }
+                    // BẢO MẬT: đã xóa backdoor 302001/1234. So khớp PIN trong truy vấn, không tải cả bảng admin.
+                    const rawA = String(adminPhone).trim();
+                    const candsA = Array.from(new Set([rawA, normAdminPhone, normAdminPhone ? '0' + normAdminPhone : ''].filter(Boolean)));
+                    const encA = v => encodeURIComponent('"' + String(v).replace(/"/g, '') + '"');
+                    const orA = 'or=(' + candsA.map(c => `phone.eq.${encA(c)}`).concat(candsA.map(c => `admin_id.eq.${encA(c)}`)).join(',') + ')';
+                    let adminsRaw = await supaGet(APP_CONFIG.TABLES.ADMINS, `select=admin_id,phone&${orA}&pin=eq.${encodeURIComponent(String(adminPin).trim())}`);
+                    let validAdmin = Array.isArray(adminsRaw) && adminsRaw.some(a =>
+                        normalizePhone(a.phone) === normAdminPhone || String(a.admin_id).trim() === rawA
+                    );
                     
                     if (!validAdmin) {
                         result = { error: 'Từ chối truy cập: Thông tin xác thực Admin không hợp lệ hoặc đã hết hạn!' };
@@ -1944,7 +1983,7 @@ async function getAdminDashboardDataInternal() {
         name: adminsRaw[0].name,
         phone: adminsRaw[0].phone,
         pin: adminsRaw[0].pin
-    } : { name: 'Quản trị viên', phone: '302001', pin: '1234' };
+    } : { name: 'Quản trị viên', phone: '', pin: '' };
     
     return {
         tutors: tutors,

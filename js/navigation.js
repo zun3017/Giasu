@@ -206,7 +206,7 @@
                 var btn = document.createElement('button');
                 btn.className = 'btn-child-select';
                 btn.style.cssText = 'width: 100%; padding: 14px 20px; margin-bottom: 10px; background: linear-gradient(135deg, #8E4DFF, #5B2EFF); border: none; border-radius: 14px; color: #FFF; font-weight: 700; font-size: 15px; cursor: pointer; display: flex; align-items: center; justify-content: space-between; transition: all 0.2s ease; box-shadow: 0 4px 15px rgba(142,77,255,0.3);';
-                btn.innerHTML = '<span><i class="fa-solid fa-user-graduate" style="margin-right:10px; color:#FFD23F;"></i>' + child.name + '</span> <i class="fa-solid fa-chevron-right" style="font-size:12px; opacity:0.8;"></i>';
+                btn.innerHTML = '<span><i class="fa-solid fa-user-graduate" style="margin-right:10px; color:#FFD23F;"></i>' + escapeHtml(child.name) + '</span> <i class="fa-solid fa-chevron-right" style="font-size:12px; opacity:0.8;"></i>';
                 btn.onclick = function() {
                     chonConVaDangNhap(phone, child.name);
                 };

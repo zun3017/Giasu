@@ -347,7 +347,7 @@ function formatScheduleCell(val) {
     if (!val || val.trim() === "") {
         return "<span style='color: var(--text-muted); font-weight: normal;'>-</span>";
     }
-    return "<span style='color: var(--text-primary); font-weight:600; font-size:13.5px; white-space:nowrap;'>" + val + "</span>";
+    return "<span style='color: var(--text-primary); font-weight:600; font-size:13.5px; white-space:nowrap;'>" + escapeHtml(val) + "</span>";
 }
 
 var tutorOverviewMonth = new Date().getMonth() + 1;
@@ -797,10 +797,10 @@ function renderUpcomingSchedule(scheduleList, selM, selY) {
                 var customBorder = it.color || st.border;
                 html += '<div class="upcoming-session-card">' +
                     '<div class="upcoming-session-info">' +
-                        '<span class="upcoming-student-tag" style="background: ' + st.bg + '; border-color: ' + customBorder + '; color: ' + st.text + ';"><i class="fa-solid fa-user-graduate"></i> ' + it.studentName + '</span>' +
-                        '<span class="upcoming-subject-badge"><i class="fa-solid fa-book-bookmark" style="color: var(--color-primary);"></i> ' + it.subject + '</span>' +
+                        '<span class="upcoming-student-tag" style="background: ' + escapeHtml(st.bg) + '; border-color: ' + escapeHtml(customBorder) + '; color: ' + escapeHtml(st.text) + ';"><i class="fa-solid fa-user-graduate"></i> ' + escapeHtml(it.studentName) + '</span>' +
+                        '<span class="upcoming-subject-badge"><i class="fa-solid fa-book-bookmark" style="color: var(--color-primary);"></i> ' + escapeHtml(it.subject) + '</span>' +
                     '</div>' +
-                    '<span class="upcoming-time-badge"><i class="fa-regular fa-clock"></i> ' + it.time + '</span>' +
+                    '<span class="upcoming-time-badge"><i class="fa-regular fa-clock"></i> ' + escapeHtml(it.time) + '</span>' +
                 '</div>';
             });
             todayListEl.innerHTML = html;
@@ -816,10 +816,10 @@ function renderUpcomingSchedule(scheduleList, selM, selY) {
                 var customBorder = it.color || st.border;
                 html += '<div class="upcoming-session-card">' +
                     '<div class="upcoming-session-info">' +
-                        '<span class="upcoming-student-tag" style="background: ' + st.bg + '; border-color: ' + customBorder + '; color: ' + st.text + ';"><i class="fa-solid fa-user-graduate"></i> ' + it.studentName + '</span>' +
-                        '<span class="upcoming-subject-badge"><i class="fa-solid fa-book-bookmark" style="color: var(--color-primary);"></i> ' + it.subject + '</span>' +
+                        '<span class="upcoming-student-tag" style="background: ' + escapeHtml(st.bg) + '; border-color: ' + escapeHtml(customBorder) + '; color: ' + escapeHtml(st.text) + ';"><i class="fa-solid fa-user-graduate"></i> ' + escapeHtml(it.studentName) + '</span>' +
+                        '<span class="upcoming-subject-badge"><i class="fa-solid fa-book-bookmark" style="color: var(--color-primary);"></i> ' + escapeHtml(it.subject) + '</span>' +
                     '</div>' +
-                    '<span class="upcoming-time-badge"><i class="fa-regular fa-clock"></i> ' + it.time + '</span>' +
+                    '<span class="upcoming-time-badge"><i class="fa-regular fa-clock"></i> ' + escapeHtml(it.time) + '</span>' +
                 '</div>';
             });
             tomorrowListEl.innerHTML = html;
@@ -871,10 +871,10 @@ function renderUpcomingSchedule(scheduleList, selM, selY) {
                     var st = getStudentStyle(it.studentName);
                     html += '<div class="upcoming-session-card">' +
                         '<div class="upcoming-session-info">' +
-                            '<span class="upcoming-student-tag" style="background: ' + st.bg + '; border-color: ' + st.border + '; color: ' + st.text + ';"><i class="fa-solid fa-user-graduate"></i> ' + it.studentName + '</span>' +
-                            '<span class="upcoming-subject-badge" title="' + it.topic + '"><i class="fa-solid fa-book-bookmark" style="color: var(--color-primary);"></i> ' + (it.topic ? (it.topic.length > 25 ? it.topic.substring(0, 25) + '...' : it.topic) : it.subject) + '</span>' +
+                            '<span class="upcoming-student-tag" style="background: ' + escapeHtml(st.bg) + '; border-color: ' + escapeHtml(st.border) + '; color: ' + escapeHtml(st.text) + ';"><i class="fa-solid fa-user-graduate"></i> ' + escapeHtml(it.studentName) + '</span>' +
+                            '<span class="upcoming-subject-badge" title="' + escapeHtml(it.topic) + '"><i class="fa-solid fa-book-bookmark" style="color: var(--color-primary);"></i> ' + escapeHtml(it.topic ? (it.topic.length > 25 ? it.topic.substring(0, 25) + '...' : it.topic) : it.subject) + '</span>' +
                         '</div>' +
-                        '<span class="upcoming-time-badge"><i class="fa-regular fa-calendar"></i> ' + it.date + '</span>' +
+                        '<span class="upcoming-time-badge"><i class="fa-regular fa-calendar"></i> ' + escapeHtml(it.date) + '</span>' +
                     '</div>';
                 });
                 listEl.innerHTML = html;
@@ -1238,9 +1238,9 @@ function renderStudentRevenueDonut(selM, selY) {
             var amtClass = s.revenue > 0 ? "student-revenue-amount" : "student-revenue-amount zero";
             listHtml += '<div class="student-revenue-item">' +
                 '<div class="student-revenue-left">' +
-                    '<span class="student-color-dot" style="background: ' + s.color + '; box-shadow: 0 0 6px ' + s.color + '66;"></span>' +
+                    '<span class="student-color-dot" style="background: ' + escapeHtml(s.color) + '; box-shadow: 0 0 6px ' + escapeHtml(s.color) + '66;"></span>' +
                     '<div class="student-revenue-info">' +
-                        '<span class="student-revenue-name">' + s.name + '</span>' +
+                        '<span class="student-revenue-name">' + escapeHtml(s.name) + '</span>' +
                         '<span class="student-revenue-sessions">' + s.sessions + ' buổi học</span>' +
                     '</div>' +
                 '</div>' +
@@ -1348,24 +1348,24 @@ function getDiaryBtvnBadge(btvn) {
     if (pctMatch) {
         var pct = parseFloat(pctMatch[1]);
         if (pct >= 90) {
-            return '<span class="status-badge badge-hoanthanh">' + raw + '</span>';
+            return '<span class="status-badge badge-hoanthanh">' + escapeHtml(raw) + '</span>';
         } else if (pct >= 50) {
-            return '<span class="status-badge badge-thieu">' + raw + '</span>';
+            return '<span class="status-badge badge-thieu">' + escapeHtml(raw) + '</span>';
         } else {
-            return '<span class="status-badge badge-nghi">' + raw + '</span>';
+            return '<span class="status-badge badge-nghi">' + escapeHtml(raw) + '</span>';
         }
     }
 
     if (bt.indexOf("không làm") !== -1 || bt.indexOf("chưa làm") !== -1 || bt.indexOf("chưa nộp") !== -1 || bt.indexOf("chưa đạt") !== -1 || bt === "không") {
-        return '<span class="status-badge badge-nghi">' + raw + '</span>';
+        return '<span class="status-badge badge-nghi">' + escapeHtml(raw) + '</span>';
     }
     if (bt.indexOf("hoàn thành") !== -1 || bt === "đạt" || bt === "tốt" || bt === "xuất sắc" || bt === "có") {
-        return '<span class="status-badge badge-hoanthanh">' + raw + '</span>';
+        return '<span class="status-badge badge-hoanthanh">' + escapeHtml(raw) + '</span>';
     }
     if (bt.indexOf("thiếu") !== -1) {
-        return '<span class="status-badge badge-thieu">' + raw + '</span>';
+        return '<span class="status-badge badge-thieu">' + escapeHtml(raw) + '</span>';
     }
-    return '<span class="status-badge badge-hoanthanh">' + raw + '</span>';
+    return '<span class="status-badge badge-hoanthanh">' + escapeHtml(raw) + '</span>';
 }
 window.getDiaryBtvnBadge = getDiaryBtvnBadge;
 
@@ -1389,9 +1389,9 @@ function initTutorDiaryFilters() {
         studentSelect.appendChild(opt);
     });
 
-    if (currentTutorStudent && currentTutorStudent.name && studentSelect.querySelector('option[value="' + currentTutorStudent.name.trim() + '"]')) {
+    if (currentTutorStudent && currentTutorStudent.name && studentSelect.querySelector('option[value="' + CSS.escape(currentTutorStudent.name.trim()) + '"]')) {
         studentSelect.value = currentTutorStudent.name.trim();
-    } else if (prevStudent && prevStudent !== 'all' && studentSelect.querySelector('option[value="' + prevStudent + '"]')) {
+    } else if (prevStudent && prevStudent !== 'all' && studentSelect.querySelector('option[value="' + CSS.escape(prevStudent) + '"]')) {
         studentSelect.value = prevStudent;
     } else if (students.length > 0) {
         studentSelect.value = students[0].name.trim();
@@ -1427,7 +1427,7 @@ function initTutorDiaryFilters() {
         opt.innerText = "Tháng " + mKey;
         monthSelect.appendChild(opt);
     });
-    if (prevMonth && monthSelect.querySelector('option[value="' + prevMonth + '"]')) {
+    if (prevMonth && monthSelect.querySelector('option[value="' + CSS.escape(prevMonth) + '"]')) {
         monthSelect.value = prevMonth;
     }
 
@@ -1487,7 +1487,7 @@ function renderTutorDiarySection(reinitFilters) {
             if (histContainer) {
                 histContainer.innerHTML = '<div style="text-align: center; color: var(--text-muted); padding: 30px; font-style: italic;">' +
                     '<i class="fa-solid fa-circle-notch fa-spin" style="font-size: 24px; color: var(--color-primary); margin-bottom: 8px; display: block;"></i>' +
-                    'Đang tải dữ liệu nhật ký học tập của ' + matchingSt.name + '...</div>';
+                    'Đang tải dữ liệu nhật ký học tập của ' + escapeHtml(matchingSt.name) + '...</div>';
             }
             if (countBadge) countBadge.innerText = "... buổi học";
 
@@ -1586,7 +1586,7 @@ function openDiaryInlineEdit(btn) {
 
     var editorHtml = document.createElement('div');
     editorHtml.className = 'diary-inline-editor';
-    editorHtml.innerHTML = '<textarea class="diary-inline-textarea">' + currentText + '</textarea>' +
+    editorHtml.innerHTML = '<textarea class="diary-inline-textarea">' + escapeHtml(currentText) + '</textarea>' +
         '<div class="diary-inline-actions">' +
             '<button type="button" class="btn-inline-cancel" onclick="cancelDiaryInlineEdit(this)">Hủy</button>' +
             '<button type="button" class="btn-inline-save" onclick="saveDiaryInlineComment(this)"><i class="fa-solid fa-floppy-disk"></i> Lưu</button>' +
@@ -1763,15 +1763,15 @@ function renderTutorStudentsGrid() {
 
         html += '<div class="student-profile-card' + (isSelected ? ' active' : '') + '" id="studentCard_' + idx + '" onclick="openEditStudentModalByIndex(' + idx + ', event)">' +
             '<div class="student-card-header">' +
-                '<div class="student-initial-avatar" style="background: ' + stStyle.bg + '; border: 2px solid ' + stStyle.border + '; color: ' + stStyle.text + ';">' + initial + '</div>' +
+                '<div class="student-initial-avatar" style="background: ' + escapeHtml(stStyle.bg) + '; border: 2px solid ' + escapeHtml(stStyle.border) + '; color: ' + escapeHtml(stStyle.text) + ';">' + escapeHtml(initial) + '</div>' +
                 '<div class="student-card-info">' +
-                    '<div class="student-card-name" title="' + st.name + '">' + st.name + '</div>' +
-                    '<div class="student-card-sub"><i class="fa-solid fa-graduation-cap" style="color: var(--color-primary);"></i> ' + (st.subject || "Gia sư") + (st.classLevel ? ' • ' + st.classLevel : '') + '</div>' +
+                    '<div class="student-card-name" title="' + escapeHtml(st.name) + '">' + escapeHtml(st.name) + '</div>' +
+                    '<div class="student-card-sub"><i class="fa-solid fa-graduation-cap" style="color: var(--color-primary);"></i> ' + escapeHtml(st.subject || "Gia sư") + (st.classLevel ? ' • ' + escapeHtml(st.classLevel) : '') + '</div>' +
                 '</div>' +
             '</div>' +
-            '<div class="student-card-schedule" title="' + schedSummary + '">' +
+            '<div class="student-card-schedule" title="' + escapeHtml(schedSummary) + '">' +
                 '<i class="fa-regular fa-clock"></i>' +
-                '<span>' + schedSummary + '</span>' +
+                '<span>' + escapeHtml(schedSummary) + '</span>' +
             '</div>' +
             '<div class="student-card-metrics">' +
                 '<div class="card-metric-box">' +
@@ -1779,17 +1779,17 @@ function renderTutorStudentsGrid() {
                     '<div class="card-metric-lbl">' + cardSessionLabel + '</div>' +
                 '</div>' +
                 '<div class="card-metric-box">' +
-                    '<div class="card-metric-val" style="color: var(--text-primary);">' + hwRate + '</div>' +
+                    '<div class="card-metric-val" style="color: var(--text-primary);">' + escapeHtml(hwRate) + '</div>' +
                     '<div class="card-metric-lbl">Nộp BTVN</div>' +
                 '</div>' +
                 '<div class="card-metric-box">' +
-                    '<div class="card-metric-val text-amber">' + feeDisplay + '</div>' +
+                    '<div class="card-metric-val text-amber">' + escapeHtml(feeDisplay) + '</div>' +
                     '<div class="card-metric-lbl">Học phí/buổi</div>' +
                 '</div>' +
             '</div>' +
             '<div class="student-card-actions">' +
                 '<button type="button" class="btn-card-detail" onclick="openEditStudentModalByIndex(' + idx + ', event)" title="Chỉnh sửa hoặc xóa học sinh"><i class="fa-solid fa-user-pen"></i> Chỉnh sửa</button>' +
-                '<button type="button" class="btn-card-diary" onclick="goToStudentDiary(\'' + st.name.replace(/'/g, "\\'").replace(/"/g, '&quot;') + '\', event)" title="Xem nhật ký học sinh này"><i class="fa-solid fa-book-open"></i> Nhật ký</button>' +
+                '<button type="button" class="btn-card-diary" onclick="goToStudentDiary(\'' + jsStr(st.name) + '\', event)" title="Xem nhật ký học sinh này"><i class="fa-solid fa-book-open"></i> Nhật ký</button>' +
             '</div>' +
         '</div>';
     });
@@ -1919,7 +1919,7 @@ function syncCustomDropdownFromSelect(selectId) {
             iconHtml = '<i class="fa-regular fa-calendar-check" style="margin-right: 8px; opacity: 0.7; font-size: 12px;"></i>';
         }
 
-        item.innerHTML = '<span style="display: inline-flex; align-items: center;">' + iconHtml + opt.innerText + '</span>' +
+        item.innerHTML = '<span style="display: inline-flex; align-items: center;">' + iconHtml + escapeHtml(opt.innerText) + '</span>' +
                          '<i class="fa-solid fa-check item-check"></i>';
 
         item.onclick = function(ev) {
@@ -2137,19 +2137,19 @@ function renderTutorTuitionSection() {
         tableHtml += '<tr style="border-bottom: 1px solid rgba(255,255,255,0.06);">' +
             '<td style="padding: 12px 14px;">' +
                 '<div style="display: flex; align-items: center; gap: 10px;">' +
-                    '<span style="background:' + stStyle.bg + '; border:1px solid ' + stStyle.border + '; color:' + stStyle.text + '; width: 32px; height: 32px; border-radius: 50%; font-size: 13px; font-weight: 800; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;">' + getStudentInitial(sName) + '</span>' +
+                    '<span style="background:' + escapeHtml(stStyle.bg) + '; border:1px solid ' + escapeHtml(stStyle.border) + '; color:' + escapeHtml(stStyle.text) + '; width: 32px; height: 32px; border-radius: 50%; font-size: 13px; font-weight: 800; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;">' + escapeHtml(getStudentInitial(sName)) + '</span>' +
                     '<div>' +
-                        '<div style="font-weight: 700; color: var(--text-primary); font-size: 14px;">' + sName + '</div>' +
-                        '<div style="font-size: 11.5px; color: var(--text-secondary);">' + (st.subject || "Gia sư") + (st.classLevel ? ' • ' + st.classLevel : '') + '</div>' +
+                        '<div style="font-weight: 700; color: var(--text-primary); font-size: 14px;">' + escapeHtml(sName) + '</div>' +
+                        '<div style="font-size: 11.5px; color: var(--text-secondary);">' + escapeHtml(st.subject || "Gia sư") + (st.classLevel ? ' • ' + escapeHtml(st.classLevel) : '') + '</div>' +
                     '</div>' +
                 '</div>' +
             '</td>' +
             '<td style="padding: 12px 10px; text-align: center;"><span style="background: var(--nav-active-bg); color: var(--text-heading); border: 1px solid var(--border-color); padding: 4px 10px; border-radius: 12px; font-size: 12.5px; font-weight: 700;">' + sessionCount + ' buổi</span></td>' +
-            '<td style="padding: 12px 10px; text-align: right; color: var(--text-secondary); font-size: 13px; font-weight: 600;">' + unitFeeStr + '</td>' +
+            '<td style="padding: 12px 10px; text-align: right; color: var(--text-secondary); font-size: 13px; font-weight: 600;">' + escapeHtml(unitFeeStr) + '</td>' +
             '<td style="padding: 12px 14px; text-align: right; color: var(--color-primary); font-size: 15px; font-weight: 800; font-family: \'Space Grotesk\', sans-serif;">' + studentTotalFormatted + '</td>' +
             '<td style="padding: 12px 10px; text-align: center;">' + statusBtnHtml + '</td>' +
             '<td style="padding: 12px 14px; text-align: center;">' +
-                '<button type="button" class="btn-tuition-invoice" onclick="openStudentInvoiceModal(\'' + sName.replace(/'/g, "\\'") + '\')"><i class="fa-solid fa-file-invoice-dollar"></i> Xem hóa đơn</button>' +
+                '<button type="button" class="btn-tuition-invoice" onclick="openStudentInvoiceModal(\'' + jsStr(sName) + '\')"><i class="fa-solid fa-file-invoice-dollar"></i> Xem hóa đơn</button>' +
             '</td>' +
         '</tr>';
 
@@ -2157,23 +2157,23 @@ function renderTutorTuitionSection() {
         mobileHtml += '<div style="background: var(--glass-inner, rgba(255, 255, 255, 0.35)); border: 1px solid var(--border-card); border-radius: 16px; padding: 16px; margin-bottom: 12px;">' +
             '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">' +
                 '<div style="display: flex; align-items: center; gap: 8px;">' +
-                    '<span style="background:' + stStyle.bg + '; border:1px solid ' + stStyle.border + '; color:' + stStyle.text + '; width: 30px; height: 30px; border-radius: 50%; font-size: 12px; font-weight: 800; display: inline-flex; align-items: center; justify-content: center;">' + getStudentInitial(sName) + '</span>' +
+                    '<span style="background:' + escapeHtml(stStyle.bg) + '; border:1px solid ' + escapeHtml(stStyle.border) + '; color:' + escapeHtml(stStyle.text) + '; width: 30px; height: 30px; border-radius: 50%; font-size: 12px; font-weight: 800; display: inline-flex; align-items: center; justify-content: center;">' + escapeHtml(getStudentInitial(sName)) + '</span>' +
                     '<div>' +
-                        '<div style="font-weight: 700; color: var(--text-primary); font-size: 14.5px;">' + sName + '</div>' +
-                        '<div style="font-size: 11px; color: var(--text-secondary);">' + (st.subject || "Gia sư") + '</div>' +
+                        '<div style="font-weight: 700; color: var(--text-primary); font-size: 14.5px;">' + escapeHtml(sName) + '</div>' +
+                        '<div style="font-size: 11px; color: var(--text-secondary);">' + escapeHtml(st.subject || "Gia sư") + '</div>' +
                     '</div>' +
                 '</div>' +
                 statusBtnHtml +
             '</div>' +
             '<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; background: var(--bg-input); border-radius: 10px; padding: 10px 12px; margin-bottom: 12px; font-size: 12px;">' +
                 '<div><span style="color:var(--text-secondary);">Số buổi:</span> <b style="color:var(--text-primary);">' + sessionCount + ' buổi</b></div>' +
-                '<div><span style="color:var(--text-secondary);">Đơn giá:</span> <b style="color:var(--text-primary);">' + unitFeeStr + '</b></div>' +
+                '<div><span style="color:var(--text-secondary);">Đơn giá:</span> <b style="color:var(--text-primary);">' + escapeHtml(unitFeeStr) + '</b></div>' +
                 '<div style="grid-column: 1 / -1; border-top: 1px dashed rgba(255,255,255,0.1); padding-top: 6px; display: flex; justify-content: space-between; align-items: center;">' +
                     '<span style="color:var(--text-secondary); font-weight:600;">Tổng học phí:</span>' +
                     '<span style="color:var(--color-primary); font-size: 16px; font-weight:800; font-family: \'Space Grotesk\', sans-serif;">' + studentTotalFormatted + '</span>' +
                 '</div>' +
             '</div>' +
-            '<button type="button" class="btn-tuition-invoice" style="width: 100%; justify-content: center; padding: 8px;" onclick="openStudentInvoiceModal(\'' + sName.replace(/'/g, "\\'") + '\')"><i class="fa-solid fa-file-invoice-dollar"></i> Xem chi tiết hóa đơn</button>' +
+            '<button type="button" class="btn-tuition-invoice" style="width: 100%; justify-content: center; padding: 8px;" onclick="openStudentInvoiceModal(\'' + jsStr(sName) + '\')"><i class="fa-solid fa-file-invoice-dollar"></i> Xem chi tiết hóa đơn</button>' +
         '</div>';
     });
 
@@ -2583,7 +2583,7 @@ function getDefaultInvoiceSections(st, isMonthly, unitFeeStr) {
     if (sSched) {
         dayLabels.forEach(function(d) {
             if (sSched[d.k] && String(sSched[d.k]).trim() !== "") {
-                schedLines.push('<div><b>' + d.label + ':</b> ' + String(sSched[d.k]).trim() + '</div>');
+                schedLines.push('<div><b>' + d.label + ':</b> ' + escapeHtml(String(sSched[d.k]).trim()) + '</div>');
             }
         });
     }
@@ -2594,7 +2594,7 @@ function getDefaultInvoiceSections(st, isMonthly, unitFeeStr) {
     }
 
     var tuitionExtraHtml = 
-        '<div><b>Học phí cơ bản:</b> ' + unitFeeStr + (isMonthly ? '/tháng' : '/buổi') + '</div>' +
+        '<div><b>Học phí cơ bản:</b> ' + escapeHtml(unitFeeStr) + (isMonthly ? '/tháng' : '/buổi') + '</div>' +
         '<div><b>Học phí bổ trợ tối:</b> 30k/buổi</div>';
 
     var footerNote = 'Phụ huynh vui lòng kiểm tra thông tin học phí và lịch học. Cháu cảm ơn ạ.';
@@ -2678,7 +2678,8 @@ function handleTuitionFeedbackPaste(e) {
     var hasHeaders = /(tổng\s*quan|kiến\s*thức|cải\s*thiện)/i.test(pastedText);
     if (hasHeaders) {
         e.preventDefault();
-        var formattedHtml = formatTuitionFeedback(pastedText);
+        // BẢO MẬT: nội dung dán là văn bản thuần -> vô hiệu hóa thẻ HTML trước khi định dạng
+        var formattedHtml = formatTuitionFeedback(pastedText.replace(/</g, '&lt;').replace(/>/g, '&gt;'));
         var target = e.currentTarget || e.target;
         if (target && formattedHtml) {
             target.innerHTML = formattedHtml;
@@ -2919,7 +2920,7 @@ function buildTuitionModalForm(st, studentLogs) {
     html += '<div class="tuition-toggle-card">';
     html += '  <div>';
     html += '    <div class="tuition-toggle-label">Học sinh</div>';
-    html += '    <div class="tuition-toggle-val">' + st.name + '</div>';
+    html += '    <div class="tuition-toggle-val">' + escapeHtml(st.name) + '</div>';
     html += '  </div>';
     html += '  <label class="tuition-switch">';
     html += '    <input type="checkbox" id="toggleStudent" data-key="student"' + (toggles.student !== false ? ' checked' : '') + ' onchange="onTuitionToggleChange(\'toggleStudent\', \'student\')">';
@@ -2931,7 +2932,7 @@ function buildTuitionModalForm(st, studentLogs) {
     html += '<div class="tuition-toggle-card">';
     html += '  <div>';
     html += '    <div class="tuition-toggle-label">Lớp / Môn</div>';
-    html += '    <div class="tuition-toggle-val">' + classSubjectStr + '</div>';
+    html += '    <div class="tuition-toggle-val">' + escapeHtml(classSubjectStr) + '</div>';
     html += '  </div>';
     html += '  <label class="tuition-switch">';
     html += '    <input type="checkbox" id="toggleClass" data-key="class"' + (toggles.class !== false ? ' checked' : '') + ' onchange="onTuitionToggleChange(\'toggleClass\', \'class\')">';
@@ -3083,7 +3084,7 @@ function buildTuitionModalForm(st, studentLogs) {
     html += '<div>';
     html += '<label style="display: block; font-size: 11.5px; color: #64748B; margin-bottom: 4px; font-weight: 600;">Từ ngày:</label>';
     html += '<div class="vn-date-picker-box" style="width: 100%;">';
-    html += '<input type="text" id="tuitionPeriodStartDate" value="' + (formatToDmy(state.startDate) || '') + '" placeholder="dd/mm/yyyy" maxlength="10" autocomplete="off" onchange="onTuitionPeriodDateChange()" style="width: 100%; background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 10px; padding: 8px 36px 8px 10px; color: #0F172A; font-size: 12.5px; font-weight: 600; outline: none; box-sizing: border-box;">';
+    html += '<input type="text" id="tuitionPeriodStartDate" value="' + escapeHtml(formatToDmy(state.startDate) || '') + '" placeholder="dd/mm/yyyy" maxlength="10" autocomplete="off" onchange="onTuitionPeriodDateChange()" style="width: 100%; background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 10px; padding: 8px 36px 8px 10px; color: #0F172A; font-size: 12.5px; font-weight: 600; outline: none; box-sizing: border-box;">';
     html += '<button type="button" class="vn-date-picker-icon-btn" style="color: #64748B;" tabindex="-1"><i class="fa-regular fa-calendar"></i></button>';
     html += '<input type="date" id="tuitionPeriodStartDate_picker" class="vn-hidden-native-picker" tabindex="-1">';
     html += '</div></div>';
@@ -3091,14 +3092,14 @@ function buildTuitionModalForm(st, studentLogs) {
     html += '<div>';
     html += '<label style="display: block; font-size: 11.5px; color: #64748B; margin-bottom: 4px; font-weight: 600;">Đến ngày:</label>';
     html += '<div class="vn-date-picker-box" style="width: 100%;">';
-    html += '<input type="text" id="tuitionPeriodEndDate" value="' + (formatToDmy(state.endDate) || '') + '" placeholder="dd/mm/yyyy" maxlength="10" autocomplete="off" onchange="onTuitionPeriodDateChange()" style="width: 100%; background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 10px; padding: 8px 36px 8px 10px; color: #0F172A; font-size: 12.5px; font-weight: 600; outline: none; box-sizing: border-box;">';
+    html += '<input type="text" id="tuitionPeriodEndDate" value="' + escapeHtml(formatToDmy(state.endDate) || '') + '" placeholder="dd/mm/yyyy" maxlength="10" autocomplete="off" onchange="onTuitionPeriodDateChange()" style="width: 100%; background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 10px; padding: 8px 36px 8px 10px; color: #0F172A; font-size: 12.5px; font-weight: 600; outline: none; box-sizing: border-box;">';
     html += '<button type="button" class="vn-date-picker-icon-btn" style="color: #64748B;" tabindex="-1"><i class="fa-regular fa-calendar-check"></i></button>';
     html += '<input type="date" id="tuitionPeriodEndDate_picker" class="vn-hidden-native-picker" tabindex="-1">';
     html += '</div></div></div>';
 
     html += '<div>';
     html += '<label style="display: block; font-size: 11.5px; color: #64748B; margin-bottom: 4px; font-weight: 600;">Tiêu đề kỳ học:</label>';
-    html += '<input type="text" id="tuitionPeriodTitle" value="' + (state.customTitle || '') + '" placeholder="Ví dụ: PHIẾU HỌC TẬP THÁNG 8/2026" oninput="onTuitionPeriodTitleChange()" style="width: 100%; background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 10px; padding: 8px 12px; color: #0F172A; font-weight: 700; font-size: 13px; outline: none; box-sizing: border-box;">';
+    html += '<input type="text" id="tuitionPeriodTitle" value="' + escapeHtml(state.customTitle || '') + '" placeholder="Ví dụ: PHIẾU HỌC TẬP THÁNG 8/2026" oninput="onTuitionPeriodTitleChange()" style="width: 100%; background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 10px; padding: 8px 12px; color: #0F172A; font-weight: 700; font-size: 13px; outline: none; box-sizing: border-box;">';
     html += '</div>';
 
     html += '</div>'; // End Box 2
@@ -3360,7 +3361,7 @@ function renderTuitionLivePreview() {
                 attendedLogs.push(l);
                 var dObj = parseInputDate(lDateText);
                 var chipLabel = dObj ? (String(dObj.getDate()).padStart(2, '0') + '/' + String(dObj.getMonth() + 1).padStart(2, '0')) : lDateText;
-                dateChipsHtml += '<span style="background: ' + themeColors.softBg + '; color: ' + themeColors.primary + '; border: 1px solid ' + themeColors.softBorder + '; font-size: 10.5px; font-weight: 700; padding: 2.5px 6px; border-radius: 6px; text-align: center; min-width: 42px; display: inline-block;">' + chipLabel + '</span>';
+                dateChipsHtml += '<span style="background: ' + themeColors.softBg + '; color: ' + themeColors.primary + '; border: 1px solid ' + themeColors.softBorder + '; font-size: 10.5px; font-weight: 700; padding: 2.5px 6px; border-radius: 6px; text-align: center; min-width: 42px; display: inline-block;">' + escapeHtml(chipLabel) + '</span>';
             }
         });
     }
@@ -3368,10 +3369,10 @@ function renderTuitionLivePreview() {
     var html = '';
 
     // Prepare message content for parent note (used in both Template 1 and Template 2)
-    var sDisplayName = (toggles.student !== false) ? st.name : "học sinh";
+    var sDisplayName = escapeHtml((toggles.student !== false) ? st.name : "học sinh");
     var msgContent = "";
     if (isMonthly) {
-        msgContent = "Dạ em chào anh/chị, em gửi anh/chị phiếu học tập tổng kết của bé <b>" + sDisplayName + "</b> ạ. Học phí kỳ này (" + periodTitle + ") là <b>" + grandTotalStr + "</b>. Anh/chị xem qua và quét mã QR chuyển khoản giúp em nhé ạ. Em cảm ơn anh/chị nhiều ạ!";
+        msgContent = "Dạ em chào anh/chị, em gửi anh/chị phiếu học tập tổng kết của bé <b>" + sDisplayName + "</b> ạ. Học phí kỳ này (" + escapeHtml(periodTitle) + ") là <b>" + grandTotalStr + "</b>. Anh/chị xem qua và quét mã QR chuyển khoản giúp em nhé ạ. Em cảm ơn anh/chị nhiều ạ!";
     } else {
         var feeWord = (grandTotal === 0) ? "0 VNĐ" : (Number(grandTotal).toLocaleString('vi-VN') + " VNĐ");
         msgContent = "Dạ em chào anh/chị, em gửi anh/chị phiếu học tập tổng kết của bé <b>" + sDisplayName + "</b> ạ. Học phí kỳ này là <b>" + feeWord + "</b> (" + invBillableCount + " buổi). Anh/chị xem qua và quét mã QR chuyển khoản giúp em nhé ạ. Em cảm ơn anh/chị nhiều ạ!";
@@ -3406,7 +3407,7 @@ function renderTuitionLivePreview() {
 
         // 1. Centered Title
         html += '<div style="text-align: center; margin-bottom: 18px; margin-top: 4px;">';
-        html += '<h2 style="font-size: 22px; font-weight: 900; color: #7C3AED; margin: 0; text-transform: uppercase; letter-spacing: 0.5px;">' + periodTitle + '</h2>';
+        html += '<h2 style="font-size: 22px; font-weight: 900; color: #7C3AED; margin: 0; text-transform: uppercase; letter-spacing: 0.5px;">' + escapeHtml(periodTitle) + '</h2>';
         html += '</div>';
 
         // 2. 2-Column Section (THÔNG TIN HỌC SINH & TỔNG HỌC PHÍ / QR)
@@ -3419,13 +3420,13 @@ function renderTuitionLivePreview() {
         if (toggles.student !== false) {
             html += '<div style="display: flex; justify-content: space-between; align-items: center; font-size: 11.5px; padding: 4.5px 0; border-bottom: 1px dotted #CBD5E1;">';
             html += '<span style="color: #64748B;">Họ và tên:</span>';
-            html += '<b style="color: #0F172A;">' + st.name + '</b>';
+            html += '<b style="color: #0F172A;">' + escapeHtml(st.name) + '</b>';
             html += '</div>';
         }
         if (toggles.class !== false) {
             html += '<div style="display: flex; justify-content: space-between; align-items: center; font-size: 11.5px; padding: 4.5px 0; border-bottom: 1px dotted #CBD5E1;">';
             html += '<span style="color: #64748B;">Lớp:</span>';
-            html += '<b style="color: #0F172A;">' + classSubjectStr + '</b>';
+            html += '<b style="color: #0F172A;">' + escapeHtml(classSubjectStr) + '</b>';
             html += '</div>';
         }
         if (toggles.fee !== false) {
@@ -3482,7 +3483,7 @@ function renderTuitionLivePreview() {
 
         if (toggles.qr !== false) {
             html += '<div style="margin: 4px 0; text-align: center;">';
-            html += '<img src="' + qrImgSrc + '" style="width: 130px; height: 130px; object-fit: contain; border-radius: 10px; border: 1px solid #E9D5FF; background: #FFF; padding: 4px; box-sizing: border-box; box-shadow: 0 4px 12px rgba(124, 58, 237, 0.08);" alt="VietQR" crossorigin="anonymous">';
+            html += '<img src="' + safeUrlAttr(qrImgSrc) + '" style="width: 130px; height: 130px; object-fit: contain; border-radius: 10px; border: 1px solid #E9D5FF; background: #FFF; padding: 4px; box-sizing: border-box; box-shadow: 0 4px 12px rgba(124, 58, 237, 0.08);" alt="VietQR" crossorigin="anonymous">';
             html += '<div style="font-size: 11px; font-weight: 700; color: #7C3AED; margin-top: 4px;"><i class="fa-solid fa-qrcode"></i> Quét VietQR</div>';
             html += '</div>';
         }
@@ -3507,7 +3508,7 @@ function renderTuitionLivePreview() {
         }
 
         // 5. Footer Banner Lời dặn dò
-        html += '<div id="invFooterNoteText" contenteditable="true" style="background: linear-gradient(135deg, #FAF5FF 0%, #F5F3FF 100%); color: #7C3AED; border: 1px solid #E9D5FF; border-radius: 20px; padding: 9px 16px; text-align: center; font-size: 11.5px; font-weight: 600; outline: none; margin-top: 16px; line-height: 1.5;" oninput="onTuitionCustomFieldInput(\'footerNoteText\', this.innerText)">' + footerNoteContent + '</div>';
+        html += '<div id="invFooterNoteText" contenteditable="true" style="background: linear-gradient(135deg, #FAF5FF 0%, #F5F3FF 100%); color: #7C3AED; border: 1px solid #E9D5FF; border-radius: 20px; padding: 9px 16px; text-align: center; font-size: 11.5px; font-weight: 600; outline: none; margin-top: 16px; line-height: 1.5;" oninput="onTuitionCustomFieldInput(\'footerNoteText\', this.innerText)">' + escapeHtml(footerNoteContent) + '</div>';
 
         html += '</div>'; // End Mẫu 2 #tuitionInvoiceCard
     } else {
@@ -3520,13 +3521,13 @@ function renderTuitionLivePreview() {
         html += '<div class="inv-avatar"><i class="fa-solid fa-graduation-cap"></i></div>';
         html += '<div class="inv-user-meta">';
         html += '<span class="inv-tag-mini">HỌC SINH</span>';
-        html += '<h2 id="invStudentName">' + (toggles.student !== false ? st.name : 'Học sinh') + '</h2>';
+        html += '<h2 id="invStudentName">' + escapeHtml(toggles.student !== false ? st.name : 'Học sinh') + '</h2>';
         if (toggles.class === true) {
-            html += '<div style="font-size: 11.5px; color: #64748B; font-weight: 600; margin-top: 2px;">' + classSubjectStr + '</div>';
+            html += '<div style="font-size: 11.5px; color: #64748B; font-weight: 600; margin-top: 2px;">' + escapeHtml(classSubjectStr) + '</div>';
         }
         html += '</div></div>';
         html += '<div class="inv-head-right">';
-        html += '<span class="inv-pill-status" id="invMonthDisplay"><i class="fa-solid fa-calendar-days"></i> ' + periodTitle + '</span>';
+        html += '<span class="inv-pill-status" id="invMonthDisplay"><i class="fa-solid fa-calendar-days"></i> ' + escapeHtml(periodTitle) + '</span>';
         html += '</div></div>';
 
         // 2. Section 1: Study Metrics
@@ -3546,7 +3547,7 @@ function renderTuitionLivePreview() {
             html += '<div class="m-badge"><div class="m-num text-purple" id="invAttB">' + invMakeup + '</div><div class="m-lbl">Đã bù</div></div>';
             html += '</div>';
             html += '<div class="metric-notes" id="invAbsentDates">';
-            html += '<div><span>Nghỉ phép:</span> ' + (invAbsentDates.length > 0 ? invAbsentDates.join(", ") : "Không có") + '</div>';
+            html += '<div><span>Nghỉ phép:</span> ' + escapeHtml(invAbsentDates.length > 0 ? invAbsentDates.join(", ") : "Không có") + '</div>';
             html += '</div>';
             html += '</div>';
 
@@ -3562,7 +3563,7 @@ function renderTuitionLivePreview() {
             html += '<div class="m-badge"><div class="m-num" id="invHwLate">' + invLateHw + '</div><div class="m-lbl">Nộp trễ</div></div>';
             html += '</div>';
             html += '<div class="metric-notes" id="invHwMissDates">';
-            html += '<div><span>Thiếu bài:</span> ' + (invMissingHwDates.length > 0 ? invMissingHwDates.join(", ") : "Không thiếu bài") + '</div>';
+            html += '<div><span>Thiếu bài:</span> ' + escapeHtml(invMissingHwDates.length > 0 ? invMissingHwDates.join(", ") : "Không thiếu bài") + '</div>';
             html += '</div>';
             html += '</div>';
 
@@ -3579,7 +3580,7 @@ function renderTuitionLivePreview() {
                     var lDateText = l.studyDate || l.ngay || "";
                     var dObj = parseInputDate(lDateText);
                     var chipLabel = dObj ? (String(dObj.getDate()).padStart(2, '0') + '/' + String(dObj.getMonth() + 1).padStart(2, '0')) : lDateText;
-                    html += '<span style="background: #FFFFFF; border: 1px solid #CBD5E1; color: #334155; font-size: 11px; padding: 2px 7px; border-radius: 6px; font-weight: 600;">' + chipLabel + '</span>';
+                    html += '<span style="background: #FFFFFF; border: 1px solid #CBD5E1; color: #334155; font-size: 11px; padding: 2px 7px; border-radius: 6px; font-weight: 600;">' + escapeHtml(chipLabel) + '</span>';
                 });
                 html += '</div>';
             } else {
@@ -3598,7 +3599,7 @@ function renderTuitionLivePreview() {
         if (toggles.sessions !== false) {
             var feeCalcText = isMonthly ? "Kỳ học phí:" : "Thời lượng học kỳ này:";
             var feeCalcTotal = isMonthly ? periodTitle : (invBillableCount + " buổi");
-            html += '<div class="fee-row"><span id="invFeeCalcText">' + feeCalcText + '</span><b id="invFeeCalcTotal">' + feeCalcTotal + '</b></div>';
+            html += '<div class="fee-row"><span id="invFeeCalcText">' + feeCalcText + '</span><b id="invFeeCalcTotal">' + escapeHtml(feeCalcTotal) + '</b></div>';
         }
         if (toggles.discount && discount > 0) {
             html += '<div class="fee-row" style="color: #EA580C;"><span>Giảm trừ học phí:</span><b>-' + Number(discount).toLocaleString('vi-VN') + ' đ</b></div>';
@@ -3624,7 +3625,7 @@ function renderTuitionLivePreview() {
 
         if (toggles.qr !== false) {
             html += '<div class="qr-card">';
-            html += '<img src="' + qrImgSrc + '" id="invQrImg" class="qr-img" alt="QR Code" crossorigin="anonymous">';
+            html += '<img src="' + safeUrlAttr(qrImgSrc) + '" id="invQrImg" class="qr-img" alt="QR Code" crossorigin="anonymous">';
             html += '<div class="qr-label" id="invQrText"><i class="fa-solid fa-qrcode"></i> Quét VietQR</div>';
             html += '</div>';
         }
@@ -4681,7 +4682,7 @@ function initReportFilterOptions() {
             studentSelect.appendChild(opt);
         });
 
-        if (curVal && curVal !== 'all' && studentSelect.querySelector('option[value="' + curVal + '"]')) {
+        if (curVal && curVal !== 'all' && studentSelect.querySelector('option[value="' + CSS.escape(curVal) + '"]')) {
             studentSelect.value = curVal;
         } else if (students.length > 0) {
             studentSelect.value = students[0].name.trim();
@@ -4732,7 +4733,7 @@ function previewTutorReport() {
         if (targetSt && !targetSt.logs) {
             container.innerHTML = '<div style="text-align: center; color: var(--text-muted); padding: 40px; font-style: italic;">' +
                 '<i class="fa-solid fa-circle-notch fa-spin" style="font-size: 24px; color: var(--color-primary); margin-bottom: 8px; display: block;"></i>' +
-                'Đang tải dữ liệu báo cáo cho ' + targetSt.name + '...</div>';
+                'Đang tải dữ liệu báo cáo cho ' + escapeHtml(targetSt.name) + '...</div>';
             if (exportBtn) exportBtn.style.display = 'none';
             if (exportPdfBtn) exportPdfBtn.style.display = 'none';
             if (typeof google !== 'undefined' && google.script && google.script.run && google.script.run.getStudentDetailsForTutor) {
@@ -4832,11 +4833,11 @@ function previewTutorReport() {
             '<div class="report-card-banner">' +
                 '<div>' +
                     '<div class="report-brand-title"><i class="fa-solid fa-graduation-cap" style="margin-right: 8px; color: var(--color-primary);"></i> BÁO CÁO TIẾN ĐỘ HỌC TẬP</div>' +
-                    '<div class="report-brand-sub">Gia sư phụ trách: <b>' + tutorName + '</b> • Hệ thống quản lý học sinh 1-1</div>' +
+                    '<div class="report-brand-sub">Gia sư phụ trách: <b>' + escapeHtml(tutorName) + '</b> • Hệ thống quản lý học sinh 1-1</div>' +
                 '</div>' +
                 '<div class="report-meta-pills">' +
-                    '<span class="report-meta-pill"><i class="fa-solid fa-user-graduate"></i> ' + targetStudentDisplay + '</span>' +
-                    '<span class="report-meta-pill"><i class="fa-regular fa-calendar-days"></i> ' + startDisplay + ' → ' + endDisplay + '</span>' +
+                    '<span class="report-meta-pill"><i class="fa-solid fa-user-graduate"></i> ' + escapeHtml(targetStudentDisplay) + '</span>' +
+                    '<span class="report-meta-pill"><i class="fa-regular fa-calendar-days"></i> ' + escapeHtml(startDisplay) + ' → ' + escapeHtml(endDisplay) + '</span>' +
                     '<span class="report-meta-pill" style="background: rgba(16,185,129,0.15); border-color: #10B981; color: #6EE7B7;"><i class="fa-solid fa-check"></i> ' + totalSessions + ' buổi học</span>' +
                 '</div>' +
             '</div>' +
@@ -4869,20 +4870,20 @@ function previewTutorReport() {
             var dateWithDay = fmtFn(log.ngay);
             var btvnBadge = (typeof getDiaryBtvnBadge === 'function') 
                 ? getDiaryBtvnBadge(log.btvn || log.danhGiaBTVN) 
-                : '<span class="status-badge">' + (log.btvn || "-") + '</span>';
+                : '<span class="status-badge">' + escapeHtml(log.btvn || "-") + '</span>';
             var comment = (log.nhanXet || "").trim() || "Chưa có nhận xét";
 
             html += '<div class="report-session-item">' +
                 '<div class="report-session-top">' +
                     '<div style="display: flex; align-items: center; gap: 8px;">' +
-                        '<span class="report-session-date"><i class="fa-regular fa-calendar-check" style="color: var(--color-primary);"></i> ' + dateWithDay + '</span>' +
-                        '<span style="background:' + stStyle.bg + '; border:1px solid ' + stStyle.border + '; color:' + stStyle.text + '; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 700;">' + it.studentName + '</span>' +
-                        '<span style="font-size: 11.5px; color: var(--text-secondary);">' + (log.mon || it.studentSubject) + '</span>' +
+                        '<span class="report-session-date"><i class="fa-regular fa-calendar-check" style="color: var(--color-primary);"></i> ' + escapeHtml(dateWithDay) + '</span>' +
+                        '<span style="background:' + escapeHtml(stStyle.bg) + '; border:1px solid ' + escapeHtml(stStyle.border) + '; color:' + escapeHtml(stStyle.text) + '; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 700;">' + escapeHtml(it.studentName) + '</span>' +
+                        '<span style="font-size: 11.5px; color: var(--text-secondary);">' + escapeHtml(log.mon || it.studentSubject) + '</span>' +
                     '</div>' +
                     '<div>' + btvnBadge + '</div>' +
                 '</div>' +
-                '<div class="report-session-topic"><b>Nội dung:</b> ' + (log.topic || log.noiDung || "Học theo giáo trình") + '</div>' +
-                '<div class="report-session-comment"><b>Nhận xét gia sư:</b> ' + comment + '</div>' +
+                '<div class="report-session-topic"><b>Nội dung:</b> ' + escapeHtml(log.topic || log.noiDung || "Học theo giáo trình") + '</div>' +
+                '<div class="report-session-comment"><b>Nhận xét gia sư:</b> ' + escapeHtml(comment) + '</div>' +
             '</div>';
         });
 
@@ -5185,7 +5186,7 @@ function switchTutorNavTab(element, tabKey) {
                 } catch(e) {}
                 try {
                     if (calFrame.contentWindow) {
-                        calFrame.contentWindow.postMessage('updateCalendarSize', '*');
+                        calFrame.contentWindow.postMessage('updateCalendarSize', window.location.origin);
                         calFrame.contentWindow.dispatchEvent(new Event('resize'));
                     }
                 } catch(e) {}
@@ -5340,7 +5341,7 @@ window.initTutorSidebarState = initTutorSidebarState;
             var btnContainer = document.getElementById('tutorStudentsList');
             btnContainer.innerHTML = "";
             data.students.forEach(function(st, idx) {
-                btnContainer.innerHTML += "<button class='student-btn' id='btn-st-" + idx + "' onclick='selectTutorStudent(" + idx + ")'>" + st.name + "</button>";
+                btnContainer.innerHTML += "<button class='student-btn' id='btn-st-" + idx + "' onclick='selectTutorStudent(" + idx + ")'>" + escapeHtml(st.name) + "</button>";
             });
             // Nút thêm học sinh mới
             btnContainer.innerHTML += "<button class='student-btn' onclick='openAddStudentModal()' style='background: var(--nav-active-bg); border: 1px dashed var(--color-primary); color: var(--color-primary);'><i class='fa-solid fa-plus'></i> Thêm học sinh</button>";
@@ -5853,7 +5854,7 @@ window.initTutorSidebarState = initTutorSidebarState;
             if (elInvB) elInvB.innerText = invMakeup;
             var elInvDates = document.getElementById('invAbsentDates');
             if (elInvDates) {
-                elInvDates.innerHTML = '<div><span>Nghỉ phép:</span> ' + (invAbsentDates.length > 0 ? invAbsentDates.join(", ") : "Không có") + '</div>';
+                elInvDates.innerHTML = '<div><span>Nghỉ phép:</span> ' + escapeHtml(invAbsentDates.length > 0 ? invAbsentDates.join(", ") : "Không có") + '</div>';
             }
             
             var elHwDone = document.getElementById('invHwDone');
@@ -5866,7 +5867,7 @@ window.initTutorSidebarState = initTutorSidebarState;
             var elHwMissDates = document.getElementById('invHwMissDates');
             if (elHwMissDates) {
                 if (invMissingHwDates.length > 0) {
-                    elHwMissDates.innerHTML = '<div><span>Thiếu bài:</span> ' + invMissingHwDates.join(", ") + '</div>';
+                    elHwMissDates.innerHTML = '<div><span>Thiếu bài:</span> ' + escapeHtml(invMissingHwDates.join(", ")) + '</div>';
                 } else {
                     elHwMissDates.innerHTML = '<div><span>Thiếu bài:</span> Không thiếu bài</div>';
                 }
@@ -5906,7 +5907,7 @@ window.initTutorSidebarState = initTutorSidebarState;
             var qrText = document.getElementById('invQrText');
             if (qrImg && qrText) {
                 if (tutorDataGlobal && tutorDataGlobal.qrCode) {
-                    qrImg.src = tutorDataGlobal.qrCode;
+                    qrImg.src = safeUrl(tutorDataGlobal.qrCode);
                     qrImg.style.display = "block";
                     qrText.innerHTML = '<i class="fa-solid fa-qrcode"></i> Quét VietQR';
                 } else {
@@ -5920,9 +5921,9 @@ window.initTutorSidebarState = initTutorSidebarState;
             var ta = document.getElementById('invTextarea');
             if (ta) {
                 if (isMonthly) {
-                    ta.innerHTML = "Dạ em chào anh/chị, em gửi anh/chị phiếu học tập tổng kết của bé <b>" + sName + "</b> ạ. Học phí kỳ này (Trọn gói tháng " + (targetMonth + 1) + ") là <b>" + totalStr + " VNĐ</b>. Anh/chị xem qua và quét mã QR chuyển khoản giúp em nhé ạ. Em cảm ơn anh/chị nhiều ạ!";
+                    ta.innerHTML = "Dạ em chào anh/chị, em gửi anh/chị phiếu học tập tổng kết của bé <b>" + escapeHtml(sName) + "</b> ạ. Học phí kỳ này (Trọn gói tháng " + (targetMonth + 1) + ") là <b>" + totalStr + " VNĐ</b>. Anh/chị xem qua và quét mã QR chuyển khoản giúp em nhé ạ. Em cảm ơn anh/chị nhiều ạ!";
                 } else {
-                    ta.innerHTML = "Dạ em chào anh/chị, em gửi anh/chị phiếu học tập tổng kết của bé <b>" + sName + "</b> ạ. Học phí kỳ này là <b>" + totalStr + " VNĐ</b> (" + billableUnpaid + " buổi). Anh/chị xem qua và quét mã QR chuyển khoản giúp em nhé ạ. Em cảm ơn anh/chị nhiều ạ!";
+                    ta.innerHTML = "Dạ em chào anh/chị, em gửi anh/chị phiếu học tập tổng kết của bé <b>" + escapeHtml(sName) + "</b> ạ. Học phí kỳ này là <b>" + totalStr + " VNĐ</b> (" + billableUnpaid + " buổi). Anh/chị xem qua và quét mã QR chuyển khoản giúp em nhé ạ. Em cảm ơn anh/chị nhiều ạ!";
                 }
             }
 
@@ -5949,9 +5950,9 @@ window.initTutorSidebarState = initTutorSidebarState;
                         div.style.borderRadius = "8px";
                         div.style.border = "1px solid rgba(255,255,255,0.05)";
                         
-                        div.innerHTML = '<input type="checkbox" class="unpaid-chk" value="' + log.rowIndex + '" style="cursor:pointer; width:16px; height:16px; accent-color:#8E4DFF;">' +
+                        div.innerHTML = '<input type="checkbox" class="unpaid-chk" value="' + escapeHtml(log.rowIndex) + '" style="cursor:pointer; width:16px; height:16px; accent-color:#8E4DFF;">' +
                                         '<span style="color: #FFF; font-size: 13px;">' +
-                                          '<b>Tuần ' + (log.tuan || "-") + '</b> (' + (log.ngay || "") + ') - ' + (log.mon || "") + ' - <span class="badge" style="background:rgba(245,158,11,0.1); color:#F59E0B; padding:2px 6px;">' + (log.trangThai || "Đã học") + '</span>' +
+                                          '<b>Tuần ' + escapeHtml(log.tuan || "-") + '</b> (' + escapeHtml(log.ngay || "") + ') - ' + escapeHtml(log.mon || "") + ' - <span class="badge" style="background:rgba(245,158,11,0.1); color:#F59E0B; padding:2px 6px;">' + escapeHtml(log.trangThai || "Đã học") + '</span>' +
                                         '</span>';
                         container.appendChild(div);
                     });
@@ -6272,7 +6273,7 @@ window.initTutorSidebarState = initTutorSidebarState;
             var mobBtn = document.querySelector('.mobile-action-btn.account-btn');
             if (mobBtn) {
                 if (url) {
-                    mobBtn.innerHTML = '<img src="' + url + '" style="width: 28px; height: 28px; border-radius: 50%; object-fit: cover; border: 1.5px solid #FFF;">';
+                    mobBtn.innerHTML = '<img src="' + safeUrlAttr(url) + '" style="width: 28px; height: 28px; border-radius: 50%; object-fit: cover; border: 1.5px solid #FFF;">';
                 } else {
                     mobBtn.innerHTML = '<i class="fa-solid fa-user-gear"></i>';
                 }
@@ -6593,7 +6594,7 @@ window.initTutorSidebarState = initTutorSidebarState;
             } else {
                 text = activeList.map(function(item) { return item.label + " (" + item.time + ")"; }).join(", ");
             }
-            summaryEl.innerHTML = '<span style="color: #6EE7B7; font-weight: 600;"><i class="fa-solid fa-calendar-check" style="margin-right: 4px;"></i>' + text + '</span>';
+            summaryEl.innerHTML = '<span style="color: #6EE7B7; font-weight: 600;"><i class="fa-solid fa-calendar-check" style="margin-right: 4px;"></i>' + escapeHtml(text) + '</span>';
         }
 
         function initScheduleForm(prefix, schedObj) {
@@ -6806,7 +6807,7 @@ window.initTutorSidebarState = initTutorSidebarState;
                     students.forEach(function(st) {
                         var s = schedMap[st.name.trim()] || schedMap[st.name.trim().toLowerCase()] || { mon: "", tue: "", wed: "", thu: "", fri: "", sat: "", sun: "" };
                         tableHtml += "<tr>" +
-                            "<td style='font-weight:700; color:var(--color-primary); text-align: left; padding: 12px 14px; white-space: nowrap;'>" + st.name + "</td>" +
+                            "<td style='font-weight:700; color:var(--color-primary); text-align: left; padding: 12px 14px; white-space: nowrap;'>" + escapeHtml(st.name) + "</td>" +
                             "<td style='text-align: center; padding: 12px 10px;'>" + formatScheduleCell(s.mon) + "</td>" +
                             "<td style='text-align: center; padding: 12px 10px;'>" + formatScheduleCell(s.tue) + "</td>" +
                             "<td style='text-align: center; padding: 12px 10px;'>" + formatScheduleCell(s.wed) + "</td>" +
@@ -6814,7 +6815,7 @@ window.initTutorSidebarState = initTutorSidebarState;
                             "<td style='text-align: center; padding: 12px 10px;'>" + formatScheduleCell(s.fri) + "</td>" +
                             "<td style='text-align: center; padding: 12px 10px;'>" + formatScheduleCell(s.sat) + "</td>" +
                             "<td style='text-align: center; padding: 12px 10px;'>" + formatScheduleCell(s.sun) + "</td>" +
-                            "<td style='text-align: center; padding: 12px 10px;'><button onclick='openEditScheduleModal(\"" + st.name.replace(/'/g, "\\'").replace(/"/g, '&quot;') + "\", \"" + (s.mon||"") + "\", \"" + (s.tue||"") + "\", \"" + (s.wed||"") + "\", \"" + (s.thu||"") + "\", \"" + (s.fri||"") + "\", \"" + (s.sat||"") + "\", \"" + (s.sun||"") + "\")' class='btn-icon-edit' style='margin: 0 auto; padding: 6px 10px; display: inline-flex; align-items: center; justify-content: center;' title='Sửa thời khóa biểu'><i class='fa-solid fa-pen-to-square'></i></button></td>" +
+                            "<td style='text-align: center; padding: 12px 10px;'><button onclick='openEditScheduleModal(\"" + jsStr(st.name) + "\", \"" + jsStr(s.mon||"") + "\", \"" + jsStr(s.tue||"") + "\", \"" + jsStr(s.wed||"") + "\", \"" + jsStr(s.thu||"") + "\", \"" + jsStr(s.fri||"") + "\", \"" + jsStr(s.sat||"") + "\", \"" + jsStr(s.sun||"") + "\")' class='btn-icon-edit' style='margin: 0 auto; padding: 6px 10px; display: inline-flex; align-items: center; justify-content: center;' title='Sửa thời khóa biểu'><i class='fa-solid fa-pen-to-square'></i></button></td>" +
                             "</tr>";
                     });
                 } else {
@@ -6842,7 +6843,7 @@ window.initTutorSidebarState = initTutorSidebarState;
                     mobileHtml += "<div class='accordion-item' id='sched-item-" + idx + "'>";
                     mobileHtml += "  <div class='accordion-header' onclick='toggleTutorScheduleAccordion(" + idx + ")'>";
                     mobileHtml += "    <div class='accordion-header-title'>";
-                    mobileHtml += "      <span>" + st.name + "</span>";
+                    mobileHtml += "      <span>" + escapeHtml(st.name) + "</span>";
                     mobileHtml += "      <span class='accordion-header-date'>" + activeDaysStr + "</span>";
                     mobileHtml += "    </div>";
                     mobileHtml += "    <div class='accordion-header-status'>";
@@ -6862,12 +6863,12 @@ window.initTutorSidebarState = initTutorSidebarState;
                     ];
                     
                     daysList.forEach(function(day) {
-                        var dayVal = day.val ? day.val : "<span style='color: var(--text-muted); font-weight: 400;'>Trống</span>";
+                        var dayVal = day.val ? escapeHtml(day.val) : "<span style='color: var(--text-muted); font-weight: 400;'>Trống</span>";
                         mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>" + day.label + "</span><span class='accordion-body-val' style='color:var(--text-primary); font-weight:600;'>" + dayVal + "</span></div>";
                     });
                     
                     mobileHtml += "    <div style='margin-top: 10px; text-align: right;'>";
-                    mobileHtml += "      <button onclick='openEditScheduleModal(\"" + st.name.replace(/'/g, "\\'").replace(/"/g, '&quot;') + "\", \"" + (s.mon||"") + "\", \"" + (s.tue||"") + "\", \"" + (s.wed||"") + "\", \"" + (s.thu||"") + "\", \"" + (s.fri||"") + "\", \"" + (s.sat||"") + "\", \"" + (s.sun||"") + "\")' class='action-btn-hw' style='border-color:var(--color-primary); color:var(--color-primary); cursor:pointer;'><i class='fa-solid fa-pen-to-square'></i> Sửa lịch học</button>";
+                    mobileHtml += "      <button onclick='openEditScheduleModal(\"" + jsStr(st.name) + "\", \"" + jsStr(s.mon||"") + "\", \"" + jsStr(s.tue||"") + "\", \"" + jsStr(s.wed||"") + "\", \"" + jsStr(s.thu||"") + "\", \"" + jsStr(s.fri||"") + "\", \"" + jsStr(s.sat||"") + "\", \"" + jsStr(s.sun||"") + "\")' class='action-btn-hw' style='border-color:var(--color-primary); color:var(--color-primary); cursor:pointer;'><i class='fa-solid fa-pen-to-square'></i> Sửa lịch học</button>";
                     mobileHtml += "    </div>";
                     mobileHtml += "  </div>";
                     mobileHtml += "</div>";
@@ -7690,7 +7691,7 @@ window.initTutorSidebarState = initTutorSidebarState;
             }
 
             var textSpan = document.createElement('span');
-            textSpan.innerHTML = iconHtml + ' ' + message;
+            textSpan.innerHTML = iconHtml + ' ' + escapeHtml(message);
             textSpan.style.display = 'inline-flex';
             textSpan.style.alignItems = 'center';
             textSpan.style.gap = '8px';
@@ -8196,27 +8197,27 @@ window.initTutorSidebarState = initTutorSidebarState;
                     if (pctMatch) {
                         var pct = parseFloat(pctMatch[1]);
                         if (pct >= 90) {
-                            return '<span class="status-badge badge-hoanthanh">' + raw + '</span>';
+                            return '<span class="status-badge badge-hoanthanh">' + escapeHtml(raw) + '</span>';
                         } else if (pct >= 50) {
-                            return '<span class="status-badge badge-thieu">' + raw + '</span>';
+                            return '<span class="status-badge badge-thieu">' + escapeHtml(raw) + '</span>';
                         } else {
-                            return '<span class="status-badge badge-nghi">' + raw + '</span>';
+                            return '<span class="status-badge badge-nghi">' + escapeHtml(raw) + '</span>';
                         }
                     }
 
                     if (bt.indexOf("không làm") !== -1 || bt.indexOf("chưa làm") !== -1 || bt.indexOf("chưa nộp") !== -1 || bt.indexOf("chưa đạt") !== -1 || bt === "không") {
-                        return '<span class="status-badge badge-nghi">' + raw + '</span>';
+                        return '<span class="status-badge badge-nghi">' + escapeHtml(raw) + '</span>';
                     }
                     if (bt.indexOf("hoàn thành") !== -1 || bt === "đạt" || bt === "tốt" || bt === "xuất sắc" || bt === "có") {
-                        return '<span class="status-badge badge-hoanthanh">' + raw + '</span>';
+                        return '<span class="status-badge badge-hoanthanh">' + escapeHtml(raw) + '</span>';
                     }
                     if (bt.indexOf("thiếu") !== -1) {
-                        return '<span class="status-badge badge-thieu">' + raw + '</span>';
+                        return '<span class="status-badge badge-thieu">' + escapeHtml(raw) + '</span>';
                     }
                     if (bt.indexOf("phụ huynh") !== -1 || bt.indexOf("nhắc") !== -1) {
-                        return '<span class="status-badge badge-hocbu" style="font-size:11px; padding:3px 10px; max-width: 220px; white-space: normal; line-height: 1.3; display: inline-block;">' + raw + '</span>';
+                        return '<span class="status-badge badge-hocbu" style="font-size:11px; padding:3px 10px; max-width: 220px; white-space: normal; line-height: 1.3; display: inline-block;">' + escapeHtml(raw) + '</span>';
                     }
-                    return '<span class="status-badge badge-hoanthanh">' + raw + '</span>';
+                    return '<span class="status-badge badge-hoanthanh">' + escapeHtml(raw) + '</span>';
                 };
 
                 var htmlLichSu = "";
@@ -8276,7 +8277,7 @@ window.initTutorSidebarState = initTutorSidebarState;
                     var ktDinhKiColor = hasDiemDinh ? scoreColor(rawDinhStr) : 'var(--text-muted, #94A3B8)';
 
                     var commentHtml = parsedNhanXet 
-                        ? "<span style='color: var(--text-primary); font-style: italic;'><i class='fa-solid fa-comment-dots' style='color: var(--color-primary, #3B82F6); font-size: 11px; margin-right: 4px;'></i>" + parsedNhanXet + "</span>" 
+                        ? "<span style='color: var(--text-primary); font-style: italic;'><i class='fa-solid fa-comment-dots' style='color: var(--color-primary, #3B82F6); font-size: 11px; margin-right: 4px;'></i>" + escapeHtml(parsedNhanXet) + "</span>" 
                         : "<span style='color: var(--text-muted); font-style: italic;'>—</span>";
 
                     var isHidden = (idx >= 5);
@@ -8284,18 +8285,18 @@ window.initTutorSidebarState = initTutorSidebarState;
 
                     // Desktop Row
                     htmlLichSu += "<tr " + styleStr + ">";
-                    htmlLichSu += "<td style='text-align: center; font-weight: 700; color: var(--text-primary);'>" + (item.tuan || "") + "</td>";
-                    htmlLichSu += "<td style='white-space: nowrap; text-align: center; color: var(--text-primary); font-weight: 500;'>" + rawDateOnly + "</td>";
-                    htmlLichSu += "<td style='text-align: center;'>" + (item.mon ? ('<span class="subj-chip">' + item.mon + '</span>') : '') + "</td>";
-                    htmlLichSu += "<td class='cell-noidung'>" + (parsedContent || "—") + "</td>";
+                    htmlLichSu += "<td style='text-align: center; font-weight: 700; color: var(--text-primary);'>" + escapeHtml(item.tuan || "") + "</td>";
+                    htmlLichSu += "<td style='white-space: nowrap; text-align: center; color: var(--text-primary); font-weight: 500;'>" + escapeHtml(rawDateOnly) + "</td>";
+                    htmlLichSu += "<td style='text-align: center;'>" + (item.mon ? ('<span class="subj-chip">' + escapeHtml(item.mon) + '</span>') : '') + "</td>";
+                    htmlLichSu += "<td class='cell-noidung'>" + escapeHtml(parsedContent || "—") + "</td>";
                     htmlLichSu += "<td class='cell-nhanxet'>" + commentHtml + "</td>";
                     htmlLichSu += "<td style='text-align: center;'>" + getBtvnBadge(btvnValue) + "</td>";
-                    htmlLichSu += "<td style='text-align: center; font-weight: 700; font-size: 14px; color:" + ktDauGioColor + ";'>" + ktDauGioText + "</td>";
-                    htmlLichSu += "<td style='text-align: center; font-weight: 700; font-size: 14px; color:" + ktDinhKiColor + ";'>" + ktDinhKiText + "</td>";
+                    htmlLichSu += "<td style='text-align: center; font-weight: 700; font-size: 14px; color:" + escapeHtml(ktDauGioColor) + ";'>" + escapeHtml(ktDauGioText) + "</td>";
+                    htmlLichSu += "<td style='text-align: center; font-weight: 700; font-size: 14px; color:" + escapeHtml(ktDinhKiColor) + ";'>" + escapeHtml(ktDinhKiText) + "</td>";
                     htmlLichSu += "<td style='text-align: center;'>" + getStatusBadge(item.trangThai || item.chuyenCan) + "</td>";
                     htmlLichSu += "<td style='text-align: center; white-space: nowrap;'>" +
-                                  "  <button onclick='openEditLessonModal(\"" + item.rowIndex + "\")' class='btn-icon-edit' title='Sửa buổi học' style='margin: 0; padding: 4px;'><i class='fa-solid fa-pen-to-square'></i></button>" +
-                                  "  <button onclick='duplicateLesson(\"" + item.rowIndex + "\")' class='btn-icon-edit' title='Nhân bản buổi học' style='margin: 0 0 0 6px; padding: 4px; color: #10B981;'><i class='fa-solid fa-copy'></i></button>" +
+                                  "  <button onclick='openEditLessonModal(\"" + jsStr(item.rowIndex) + "\")' class='btn-icon-edit' title='Sửa buổi học' style='margin: 0; padding: 4px;'><i class='fa-solid fa-pen-to-square'></i></button>" +
+                                  "  <button onclick='duplicateLesson(\"" + jsStr(item.rowIndex) + "\")' class='btn-icon-edit' title='Nhân bản buổi học' style='margin: 0 0 0 6px; padding: 4px; color: #10B981;'><i class='fa-solid fa-copy'></i></button>" +
                                   "</td>";
                     htmlLichSu += "</tr>";
 
@@ -8305,8 +8306,8 @@ window.initTutorSidebarState = initTutorSidebarState;
                     htmlMobile += "  <div class='accordion-header' onclick='toggleTutorAccordion(" + idx + ")'>";
                     htmlMobile += "    <div style='display: flex; align-items: center;'>";
                     htmlMobile += "      <div class='accordion-header-title'>";
-                    htmlMobile += "        <span style='font-size: 15px; font-weight: 700; color: var(--text-primary);'>" + (item.tuan || "") + "</span>";
-                    htmlMobile += "        <span class='accordion-header-date'>" + rawDateOnly + "</span>";
+                    htmlMobile += "        <span style='font-size: 15px; font-weight: 700; color: var(--text-primary);'>" + escapeHtml(item.tuan || "") + "</span>";
+                    htmlMobile += "        <span class='accordion-header-date'>" + escapeHtml(rawDateOnly) + "</span>";
                     htmlMobile += "      </div>";
                     htmlMobile += "    </div>";
                     htmlMobile += "    <div class='accordion-header-status'>";
@@ -8315,15 +8316,15 @@ window.initTutorSidebarState = initTutorSidebarState;
                     htmlMobile += "    </div>";
                     htmlMobile += "  </div>";
                     htmlMobile += "  <div class='accordion-body' id='tutor-accordion-body-" + idx + "' style='display: none;'>";
-                    htmlMobile += "    <div class='accordion-body-row'><span class='accordion-body-label'>Môn học</span><span class='accordion-body-val'>" + (item.mon ? ('<span class="subj-chip">' + item.mon + '</span>') : '—') + "</span></div>";
-                    htmlMobile += "    <div class='accordion-body-row'><span class='accordion-body-label'>Nội dung dạy học</span><span class='accordion-body-val' style='font-weight: 500;'>" + (parsedContent || "—") + "</span></div>";
-                    htmlMobile += "    <div class='accordion-body-row'><span class='accordion-body-label'>Nhận xét của gia sư</span><span class='accordion-body-val' style='font-style: italic; color: #2563EB; font-weight: 500;'>" + (parsedNhanXet ? ("<i class='fa-solid fa-comment-dots' style='margin-right: 4px;'></i>" + parsedNhanXet) : '—') + "</span></div>";
+                    htmlMobile += "    <div class='accordion-body-row'><span class='accordion-body-label'>Môn học</span><span class='accordion-body-val'>" + (item.mon ? ('<span class="subj-chip">' + escapeHtml(item.mon) + '</span>') : '—') + "</span></div>";
+                    htmlMobile += "    <div class='accordion-body-row'><span class='accordion-body-label'>Nội dung dạy học</span><span class='accordion-body-val' style='font-weight: 500;'>" + escapeHtml(parsedContent || "—") + "</span></div>";
+                    htmlMobile += "    <div class='accordion-body-row'><span class='accordion-body-label'>Nhận xét của gia sư</span><span class='accordion-body-val' style='font-style: italic; color: #2563EB; font-weight: 500;'>" + (parsedNhanXet ? ("<i class='fa-solid fa-comment-dots' style='margin-right: 4px;'></i>" + escapeHtml(parsedNhanXet)) : '—') + "</span></div>";
                     htmlMobile += "    <div class='accordion-body-row'><span class='accordion-body-label'>Đánh giá bài tập về nhà</span><span class='accordion-body-val'>" + getBtvnBadge(btvnValue) + "</span></div>";
-                    htmlMobile += "    <div class='accordion-body-row'><span class='accordion-body-label'>Kiểm tra đầu giờ</span><span class='accordion-body-val' style='font-weight: 700; color:" + ktDauGioColor + ";'>" + ktDauGioText + "</span></div>";
-                    htmlMobile += "    <div class='accordion-body-row'><span class='accordion-body-label'>Kiểm tra định kì</span><span class='accordion-body-val' style='font-weight: 700; color:" + ktDinhKiColor + ";'>" + ktDinhKiText + "</span></div>";
+                    htmlMobile += "    <div class='accordion-body-row'><span class='accordion-body-label'>Kiểm tra đầu giờ</span><span class='accordion-body-val' style='font-weight: 700; color:" + escapeHtml(ktDauGioColor) + ";'>" + escapeHtml(ktDauGioText) + "</span></div>";
+                    htmlMobile += "    <div class='accordion-body-row'><span class='accordion-body-label'>Kiểm tra định kì</span><span class='accordion-body-val' style='font-weight: 700; color:" + escapeHtml(ktDinhKiColor) + ";'>" + escapeHtml(ktDinhKiText) + "</span></div>";
                     htmlMobile += "    <div class='accordion-actions' style='display: flex; gap: 10px; margin-top: 10px;'>";
-                    htmlMobile += "      <button onclick='duplicateLesson(\"" + item.rowIndex + "\")' class='modal-btn modal-btn-primary' style='flex: 1; border-radius: 20px; font-size: 12px;'><i class='fa-solid fa-copy'></i> Nhân bản</button>";
-                    htmlMobile += "      <button onclick='openEditLessonModal(\"" + item.rowIndex + "\")' class='modal-btn modal-btn-secondary' style='flex: 1; border-radius: 20px; font-size: 12px;'><i class='fa-solid fa-pen-to-square'></i> Sửa</button>";
+                    htmlMobile += "      <button onclick='duplicateLesson(\"" + jsStr(item.rowIndex) + "\")' class='modal-btn modal-btn-primary' style='flex: 1; border-radius: 20px; font-size: 12px;'><i class='fa-solid fa-copy'></i> Nhân bản</button>";
+                    htmlMobile += "      <button onclick='openEditLessonModal(\"" + jsStr(item.rowIndex) + "\")' class='modal-btn modal-btn-secondary' style='flex: 1; border-radius: 20px; font-size: 12px;'><i class='fa-solid fa-pen-to-square'></i> Sửa</button>";
                     htmlMobile += "    </div>";
                     htmlMobile += "  </div>";
                     htmlMobile += "</div>";
@@ -8828,9 +8829,9 @@ window.initTutorSidebarState = initTutorSidebarState;
                 card.style.gap = "10px";
 
                 var info = document.createElement('div');
-                info.innerHTML = "<div style='color: #FFF; font-weight: bold; font-size: 14px;'>" + st.name + "</div>" +
-                                 "<div style='color: #A6ADCE; font-size: 12px; margin-top: 3px;'>SĐT: " + st.phone + "</div>" +
-                                 "<div style='color: #EF4444; font-size: 11px; margin-top: 3px;'>Đã xóa lúc: " + st.deletedDate + "</div>";
+                info.innerHTML = "<div style='color: #FFF; font-weight: bold; font-size: 14px;'>" + escapeHtml(st.name) + "</div>" +
+                                 "<div style='color: #A6ADCE; font-size: 12px; margin-top: 3px;'>SĐT: " + escapeHtml(st.phone) + "</div>" +
+                                 "<div style='color: #EF4444; font-size: 11px; margin-top: 3px;'>Đã xóa lúc: " + escapeHtml(st.deletedDate) + "</div>";
 
                 var btnRestore = document.createElement('button');
                 btnRestore.className = "modal-btn modal-btn-primary";
@@ -9504,8 +9505,8 @@ function renderAssignedHwList(list, showAll) {
     
     visibleList.forEach(function(item, idx) {
         var dueDateText = item.dueDate || (typeof computeDefaultDueDate === 'function' ? computeDefaultDueDate(item.releaseDate) : item.releaseDate);
-        var fileLinkHtml = item.fileUrl ? '<a href="' + item.fileUrl + '" target="_blank" style="color:#8E4DFF; font-weight:600; text-decoration:none; display:inline-flex; align-items:center; gap:6px;"><i class="fa-solid fa-file-pdf"></i> Xem file</a>' : '';
-        var extLinkHtml = item.externalLink ? '<a href="' + item.externalLink + '" target="_blank" style="color:#10B981; font-weight:600; text-decoration:none; display:inline-flex; align-items:center; gap:6px;"><i class="fa-solid fa-link"></i> Mở link</a>' : '';
+        var fileLinkHtml = item.fileUrl ? '<a href="' + safeUrlAttr(item.fileUrl) + '" target="_blank" rel="noopener noreferrer" style="color:#8E4DFF; font-weight:600; text-decoration:none; display:inline-flex; align-items:center; gap:6px;"><i class="fa-solid fa-file-pdf"></i> Xem file</a>' : '';
+        var extLinkHtml = item.externalLink ? '<a href="' + safeUrlAttr(item.externalLink) + '" target="_blank" rel="noopener noreferrer" style="color:#10B981; font-weight:600; text-decoration:none; display:inline-flex; align-items:center; gap:6px;"><i class="fa-solid fa-link"></i> Mở link</a>' : '';
         
         var attachments = [];
         if (fileLinkHtml) attachments.push(fileLinkHtml);
@@ -9519,16 +9520,16 @@ function renderAssignedHwList(list, showAll) {
 
         var actionsHtml = 
             '<div style="display:flex; gap:8px; justify-content:center; align-items:center;">' +
-                '<button onclick="startEditAssignedHw(\'' + item.rowIndex + '\', \'' + item.title.replace(/'/g, "\\'") + '\', \'' + item.releaseDate + '\', \'' + dueDateText.replace(/'/g, "\\'") + '\')" class="action-btn-hw-icon action-btn-hw-edit" title="Chỉnh sửa"><i class="fa-solid fa-pen-to-square"></i></button>' +
-                '<button onclick="deleteAssignedHomework(\'' + item.rowIndex + '\')" class="action-btn-hw-icon action-btn-hw-delete" title="Xóa tạm thời"><i class="fa-solid fa-trash-can"></i></button>' +
+                '<button onclick="startEditAssignedHw(\'' + jsStr(item.rowIndex) + '\', \'' + jsStr(item.title) + '\', \'' + jsStr(item.releaseDate) + '\', \'' + jsStr(dueDateText) + '\')" class="action-btn-hw-icon action-btn-hw-edit" title="Chỉnh sửa"><i class="fa-solid fa-pen-to-square"></i></button>' +
+                '<button onclick="deleteAssignedHomework(\'' + jsStr(item.rowIndex) + '\')" class="action-btn-hw-icon action-btn-hw-delete" title="Xóa tạm thời"><i class="fa-solid fa-trash-can"></i></button>' +
             '</div>';
             
         // Desktop Row
         tableBody.innerHTML += 
             '<tr>' +
-                '<td style="color:#A6ADCE;">' + item.releaseDate + '</td>' +
-                '<td style="color:#F59E0B; font-weight:600; font-size:13px;">' + dueDateText + '</td>' +
-                '<td style="color:#FFF; font-weight:500;">' + item.title + '</td>' +
+                '<td style="color:#A6ADCE;">' + escapeHtml(item.releaseDate) + '</td>' +
+                '<td style="color:#F59E0B; font-weight:600; font-size:13px;">' + escapeHtml(dueDateText) + '</td>' +
+                '<td style="color:#FFF; font-weight:500;">' + escapeHtml(item.title) + '</td>' +
                 '<td>' + attachmentsHtml + '</td>' +
                 '<td style="text-align: center; vertical-align: middle;">' + actionsHtml + '</td>' +
             '</tr>';
@@ -9537,21 +9538,21 @@ function renderAssignedHwList(list, showAll) {
         mobileHtml += "<div class='accordion-item' id='assign-hw-item-" + idx + "'>";
         mobileHtml += "  <div class='accordion-header' onclick='toggleTutorAssignedHwAccordion(" + idx + ")'>";
         mobileHtml += "    <div class='accordion-header-title'>";
-        mobileHtml += "      <span>" + item.title + "</span>";
-        mobileHtml += "      <span class='accordion-header-date'>" + item.releaseDate + "</span>";
+        mobileHtml += "      <span>" + escapeHtml(item.title) + "</span>";
+        mobileHtml += "      <span class='accordion-header-date'>" + escapeHtml(item.releaseDate) + "</span>";
         mobileHtml += "    </div>";
         mobileHtml += "    <div class='accordion-header-status'>";
         mobileHtml += "      <i class='fa-solid fa-chevron-down' id='assign-hw-chevron-" + idx + "'></i>";
         mobileHtml += "    </div>";
         mobileHtml += "  </div>";
         mobileHtml += "  <div class='accordion-body' id='assign-hw-body-" + idx + "' style='display: none;'>";
-        mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Ngày giao</span><span class='accordion-body-val'>" + item.releaseDate + "</span></div>";
-        mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Hạn nộp</span><span class='accordion-body-val' style='color:#F59E0B; font-weight:600;'>" + dueDateText + "</span></div>";
+        mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Ngày giao</span><span class='accordion-body-val'>" + escapeHtml(item.releaseDate) + "</span></div>";
+        mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Hạn nộp</span><span class='accordion-body-val' style='color:#F59E0B; font-weight:600;'>" + escapeHtml(dueDateText) + "</span></div>";
         mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Đính kèm</span><span class='accordion-body-val'>" + attachmentsMobileHtml + "</span></div>";
         mobileHtml += "    <div class='accordion-body-row' style='margin-top: 5px;'><span class='accordion-body-label'>Thao tác</span>";
         mobileHtml += "      <span class='accordion-body-val' style='display:inline-flex; gap:10px;'>";
-        mobileHtml += "        <button onclick=\"startEditAssignedHw('" + item.rowIndex + "', '" + item.title.replace(/'/g, "\\'") + "', '" + item.releaseDate + "', '" + dueDateText.replace(/'/g, "\\'") + "')\" class='action-btn-hw' style='border-color:#F59E0B; color:#F59E0B; cursor:pointer;'><i class='fa-solid fa-pen-to-square'></i> Sửa</button>";
-        mobileHtml += "        <button onclick=\"deleteAssignedHomework('" + item.rowIndex + "')\" class='action-btn-hw' style='border-color:#EF4444; color:#EF4444; cursor:pointer;'><i class='fa-solid fa-trash-can'></i> Xóa</button>";
+        mobileHtml += "        <button onclick=\"startEditAssignedHw('" + jsStr(item.rowIndex) + "', '" + jsStr(item.title) + "', '" + jsStr(item.releaseDate) + "', '" + jsStr(dueDateText) + "')\" class='action-btn-hw' style='border-color:#F59E0B; color:#F59E0B; cursor:pointer;'><i class='fa-solid fa-pen-to-square'></i> Sửa</button>";
+        mobileHtml += "        <button onclick=\"deleteAssignedHomework('" + jsStr(item.rowIndex) + "')\" class='action-btn-hw' style='border-color:#EF4444; color:#EF4444; cursor:pointer;'><i class='fa-solid fa-trash-can'></i> Xóa</button>";
         mobileHtml += "      </span>";
         mobileHtml += "    </div>";
         mobileHtml += "  </div>";
@@ -9797,12 +9798,12 @@ function renderTutorHwTrashList(list) {
     tableBody.innerHTML = "";
     list.forEach(function(item) {
         var actionsHtml = 
-            '<button onclick="restoreAssignedHomework(\'' + item.rowIndex + '\')" class="action-btn-hw" style="color:#10B981; border-color:rgba(16,185,129,0.3); background:rgba(16,185,129,0.1); padding: 4px 14px;"><i class="fa-solid fa-trash-arrow-up"></i> Khôi phục</button>';
+            '<button onclick="restoreAssignedHomework(\'' + jsStr(item.rowIndex) + '\')" class="action-btn-hw" style="color:#10B981; border-color:rgba(16,185,129,0.3); background:rgba(16,185,129,0.1); padding: 4px 14px;"><i class="fa-solid fa-trash-arrow-up"></i> Khôi phục</button>';
             
         tableBody.innerHTML += 
             '<tr>' +
-                '<td style="color:#FFF; font-weight:500;">' + item.title + '</td>' +
-                '<td style="color:#A6ADCE; font-size:12px;">' + item.deletedTime + '</td>' +
+                '<td style="color:#FFF; font-weight:500;">' + escapeHtml(item.title) + '</td>' +
+                '<td style="color:#A6ADCE; font-size:12px;">' + escapeHtml(item.deletedTime) + '</td>' +
                 '<td>' + actionsHtml + '</td>' +
             '</tr>';
     });
@@ -9976,7 +9977,7 @@ function downloadSubmissionFileByIndex(idx) {
         showToast("Đang tải file bài nộp về máy...", "success");
     } else {
         var finalUrl = typeof getGoogleDriveDownloadUrl === 'function' ? getGoogleDriveDownloadUrl(fileUrl) : fileUrl;
-        window.open(finalUrl, '_blank');
+        window.open(safeUrl(finalUrl), '_blank');
     }
 }
 
@@ -10001,7 +10002,7 @@ function openSubmissionPreviewModal(subId, studentName, fileUrl) {
     var gallery = document.getElementById('customGalleryContainer');
 
     if (titleEl) titleEl.textContent = studentName || (currentTutorStudent ? currentTutorStudent.name : '') || '';
-    if (extBtn) extBtn.href = fileUrl || '#';
+    if (extBtn) extBtn.href = safeUrl(fileUrl) || '#';
     if (spinner) spinner.style.display = 'block';
 
     var modal = document.getElementById('previewSubmissionModal');
@@ -10029,15 +10030,15 @@ function openSubmissionPreviewModal(subId, studentName, fileUrl) {
                             var isImg = (typeof f === 'object' && f.isImage !== undefined) ? f.isImage : (fUrl.startsWith('data:image/') || fUrl.match(/\.(jpg|jpeg|png|webp|gif)($|\?)/i));
                             
                             if (isImg) {
-                                html += '<div style="cursor:pointer; border-radius:8px; overflow:hidden; border:1px solid rgba(255,255,255,0.1); transition: transform 0.2s;" onclick="openLightbox(\'' + fUrl.replace(/'/g, "\\'") + '\')" onmouseover="this.style.transform=\'scale(1.02)\'" onmouseout="this.style.transform=\'scale(1)\'">' +
-                                    '<img src="' + fUrl + '" style="width:100%; height:200px; object-fit:cover; display:block;">' +
-                                    '<div style="padding:8px; background:rgba(0,0,0,0.6); color:#FFF; font-size:12px; text-align:center; text-overflow:ellipsis; overflow:hidden; white-space:nowrap;">' + fName + '</div>' +
+                                html += '<div style="cursor:pointer; border-radius:8px; overflow:hidden; border:1px solid rgba(255,255,255,0.1); transition: transform 0.2s;" onclick="openLightbox(\'' + jsStr(safeUrl(fUrl)) + '\')" onmouseover="this.style.transform=\'scale(1.02)\'" onmouseout="this.style.transform=\'scale(1)\'">' +
+                                    '<img src="' + safeUrlAttr(fUrl) + '" style="width:100%; height:200px; object-fit:cover; display:block;">' +
+                                    '<div style="padding:8px; background:rgba(0,0,0,0.6); color:#FFF; font-size:12px; text-align:center; text-overflow:ellipsis; overflow:hidden; white-space:nowrap;">' + escapeHtml(fName) + '</div>' +
                                     '</div>';
                             } else {
                                 html += '<div style="border-radius:8px; overflow:hidden; border:1px solid rgba(255,255,255,0.1); background:rgba(255,255,255,0.05); display:flex; flex-direction:column; align-items:center; justify-content:center; padding:15px;">' +
                                     '<i class="fa-solid fa-file-lines" style="font-size:40px; color:#A5B4FC; margin-bottom:10px;"></i>' +
-                                    '<div style="color:#FFF; font-size:12px; text-align:center; text-overflow:ellipsis; overflow:hidden; white-space:nowrap; width:100%; margin-bottom:10px;">' + fName + '</div>' +
-                                    '<a href="' + fUrl + '" target="_blank" style="background:#8E4DFF; color:#FFF; padding:5px 10px; border-radius:5px; text-decoration:none; font-size:11px;">Mở File</a>' +
+                                    '<div style="color:#FFF; font-size:12px; text-align:center; text-overflow:ellipsis; overflow:hidden; white-space:nowrap; width:100%; margin-bottom:10px;">' + escapeHtml(fName) + '</div>' +
+                                    '<a href="' + safeUrlAttr(fUrl) + '" target="_blank" rel="noopener noreferrer" style="background:#8E4DFF; color:#FFF; padding:5px 10px; border-radius:5px; text-decoration:none; font-size:11px;">Mở File</a>' +
                                     '</div>';
                             }
                         });
@@ -10056,8 +10057,8 @@ function openSubmissionPreviewModal(subId, studentName, fileUrl) {
             if (gallery) {
                 gallery.style.display = 'grid';
                 if (spinner) spinner.style.display = 'none';
-                gallery.innerHTML = '<div style="grid-column: 1 / -1; text-align:center; cursor:pointer; padding: 15px;" onclick="openLightbox(\'' + fileUrl.replace(/'/g, "\\'") + '\')">' +
-                    '<img src="' + fileUrl + '" style="max-width:100%; max-height:65vh; object-fit:contain; border-radius:8px; box-shadow:0 5px 20px rgba(0,0,0,0.5);">' +
+                gallery.innerHTML = '<div style="grid-column: 1 / -1; text-align:center; cursor:pointer; padding: 15px;" onclick="openLightbox(\'' + jsStr(safeUrl(fileUrl)) + '\')">' +
+                    '<img src="' + safeUrlAttr(fileUrl) + '" style="max-width:100%; max-height:65vh; object-fit:contain; border-radius:8px; box-shadow:0 5px 20px rgba(0,0,0,0.5);">' +
                     '<div style="color:#A6ADCE; font-size:12px; margin-top:8px;"><i class="fa-solid fa-magnifying-glass-plus"></i> Nhấp vào ảnh để phóng to toàn màn hình</div>' +
                     '</div>';
             }
@@ -10079,21 +10080,21 @@ function openSubmissionPreviewModal(subId, studentName, fileUrl) {
                     .withSuccessHandler(function(files) {
                         if (spinner) spinner.style.display = 'none';
                         if (!files || files.length === 0) {
-                            if (gallery) gallery.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; color: #A6ADCE; padding: 40px;">Không tìm thấy file ảnh trong bài nộp hoặc chưa cấp quyền. <br><a href="' + fileUrl + '" target="_blank" style="color:#FFD23F; text-decoration:none; margin-top:8px; display:inline-block;"><i class="fa-solid fa-arrow-up-right-from-square"></i> Mở trực tiếp trên Google Drive →</a></div>';
+                            if (gallery) gallery.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; color: #A6ADCE; padding: 40px;">Không tìm thấy file ảnh trong bài nộp hoặc chưa cấp quyền. <br><a href="' + safeUrlAttr(fileUrl) + '" target="_blank" rel="noopener noreferrer" style="color:#FFD23F; text-decoration:none; margin-top:8px; display:inline-block;"><i class="fa-solid fa-arrow-up-right-from-square"></i> Mở trực tiếp trên Google Drive →</a></div>';
                             return;
                         }
                         var html = '';
                         files.forEach(function(f) {
                             if (f.isImage) {
-                                html += '<div style="cursor:pointer; border-radius:8px; overflow:hidden; border:1px solid rgba(255,255,255,0.1); transition: transform 0.2s;" onclick="openLightbox(\'' + f.url.replace(/'/g, "\\'") + '\')" onmouseover="this.style.transform=\'scale(1.02)\'" onmouseout="this.style.transform=\'scale(1)\'">' +
-                                    '<img src="' + f.url + '" style="width:100%; height:200px; object-fit:cover; display:block;">' +
-                                    '<div style="padding:8px; background:rgba(0,0,0,0.6); color:#FFF; font-size:12px; text-align:center; text-overflow:ellipsis; overflow:hidden; white-space:nowrap;">' + f.name + '</div>' +
+                                html += '<div style="cursor:pointer; border-radius:8px; overflow:hidden; border:1px solid rgba(255,255,255,0.1); transition: transform 0.2s;" onclick="openLightbox(\'' + jsStr(safeUrl(f.url)) + '\')" onmouseover="this.style.transform=\'scale(1.02)\'" onmouseout="this.style.transform=\'scale(1)\'">' +
+                                    '<img src="' + safeUrlAttr(f.url) + '" style="width:100%; height:200px; object-fit:cover; display:block;">' +
+                                    '<div style="padding:8px; background:rgba(0,0,0,0.6); color:#FFF; font-size:12px; text-align:center; text-overflow:ellipsis; overflow:hidden; white-space:nowrap;">' + escapeHtml(f.name) + '</div>' +
                                     '</div>';
                             } else {
                                 html += '<div style="border-radius:8px; overflow:hidden; border:1px solid rgba(255,255,255,0.1); background:rgba(255,255,255,0.05); display:flex; flex-direction:column; align-items:center; justify-content:center; padding:15px;">' +
                                     '<i class="fa-solid fa-file-lines" style="font-size:40px; color:#A5B4FC; margin-bottom:10px;"></i>' +
-                                    '<div style="color:#FFF; font-size:12px; text-align:center; text-overflow:ellipsis; overflow:hidden; white-space:nowrap; width:100%; margin-bottom:10px;">' + f.name + '</div>' +
-                                    '<a href="' + f.url + '" target="_blank" style="background:#8E4DFF; color:#FFF; padding:5px 10px; border-radius:5px; text-decoration:none; font-size:11px;">Mở File</a>' +
+                                    '<div style="color:#FFF; font-size:12px; text-align:center; text-overflow:ellipsis; overflow:hidden; white-space:nowrap; width:100%; margin-bottom:10px;">' + escapeHtml(f.name) + '</div>' +
+                                    '<a href="' + safeUrlAttr(f.url) + '" target="_blank" rel="noopener noreferrer" style="background:#8E4DFF; color:#FFF; padding:5px 10px; border-radius:5px; text-decoration:none; font-size:11px;">Mở File</a>' +
                                     '</div>';
                             }
                         });
@@ -10101,12 +10102,12 @@ function openSubmissionPreviewModal(subId, studentName, fileUrl) {
                     })
                     .withFailureHandler(function(err) {
                         if (spinner) spinner.style.display = 'none';
-                        if (gallery) gallery.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; color: #EF4444; padding: 40px;">Lỗi tải ảnh bài nộp: ' + err.toString() + '</div>';
+                        if (gallery) gallery.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; color: #EF4444; padding: 40px;">Lỗi tải ảnh bài nộp: ' + escapeHtml(err.toString()) + '</div>';
                     })
                     .getDriveFolderImages(fileUrl);
             } else {
                 if (spinner) spinner.style.display = 'none';
-                if (gallery) gallery.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; color: #A6ADCE; padding: 40px;"><p>Bài nộp dạng thư mục / tệp nén của học sinh</p><a href="' + fileUrl + '" target="_blank" style="color:#FFD23F; font-weight:bold; text-decoration:none; display:inline-block; margin-top:10px; padding:8px 16px; background:rgba(255,210,63,0.15); border:1px solid #FFD23F; border-radius:8px;"><i class="fa-solid fa-arrow-up-right-from-square"></i> Mở trên Google Drive</a></div>';
+                if (gallery) gallery.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; color: #A6ADCE; padding: 40px;"><p>Bài nộp dạng thư mục / tệp nén của học sinh</p><a href="' + safeUrlAttr(fileUrl) + '" target="_blank" rel="noopener noreferrer" style="color:#FFD23F; font-weight:bold; text-decoration:none; display:inline-block; margin-top:10px; padding:8px 16px; background:rgba(255,210,63,0.15); border:1px solid #FFD23F; border-radius:8px;"><i class="fa-solid fa-arrow-up-right-from-square"></i> Mở trên Google Drive</a></div>';
             }
             return;
         }
@@ -10133,7 +10134,7 @@ function openSubmissionPreviewModal(subId, studentName, fileUrl) {
             if (iframe) {
                 iframe.style.display = 'block';
                 iframe.onload = function() { if (spinner) spinner.style.display = 'none'; };
-                iframe.src = previewUrl;
+                iframe.src = safeUrl(previewUrl);
             }
         }
     } else {
@@ -10233,11 +10234,11 @@ function saveTutorGrade() {
     var gradeWrap = document.getElementById('grade-wrapper-' + activeGradingSubId);
     var mobileGradeWrap = document.getElementById('mobile-grade-wrapper-' + activeGradingSubId);
     
-    var gradedHtml = '<span style="padding:5px 12px; background:rgba(37,99,235,0.1); border:1px solid rgba(37,99,235,0.3); border-radius:8px; color:#2563EB; font-size:12.5px; font-weight:700; display:inline-flex; align-items:center; gap:5px;"><i class="fa-solid fa-star" style="color:#3B82F6;"></i> Điểm: ' + score + '</span>'
-        + ' <button onclick="openGradeModal(\'' + activeGradingSubId + '\',\'' + (stName || '').replace(/'/g, "\\'") + '\',\'' + score + '\',\'' + (comment || '').replace(/'/g, "\\'") + '\')" style="background:none; border:none; color:var(--text-secondary, #64748B); cursor:pointer; font-size:12px; margin-left:6px; padding:2px 4px;" title="Sửa điểm"><i class="fa-solid fa-pen"></i></button>';
+    var gradedHtml = '<span style="padding:5px 12px; background:rgba(37,99,235,0.1); border:1px solid rgba(37,99,235,0.3); border-radius:8px; color:#2563EB; font-size:12.5px; font-weight:700; display:inline-flex; align-items:center; gap:5px;"><i class="fa-solid fa-star" style="color:#3B82F6;"></i> Điểm: ' + escapeHtml(score) + '</span>'
+        + ' <button onclick="openGradeModal(\'' + jsStr(activeGradingSubId) + '\',\'' + jsStr(stName || '') + '\',\'' + jsStr(score) + '\',\'' + jsStr(comment || '') + '\')" style="background:none; border:none; color:var(--text-secondary, #64748B); cursor:pointer; font-size:12px; margin-left:6px; padding:2px 4px;" title="Sửa điểm"><i class="fa-solid fa-pen"></i></button>';
 
-    var mobileGradedHtml = '<span style="padding:3px 9px; background:rgba(37,99,235,0.1); border:1px solid rgba(37,99,235,0.3); border-radius:6px; color:#2563EB; font-size:12px; font-weight:700;"><i class="fa-solid fa-star" style="color:#3B82F6;"></i> Điểm: ' + score + '</span>'
-        + ' <button onclick="openGradeModal(\'' + activeGradingSubId + '\',\'' + (stName || '').replace(/'/g, "\\'") + '\',\'' + score + '\',\'' + (comment || '').replace(/'/g, "\\'") + '\')" style="background:none; border:none; color:var(--text-secondary, #64748B); cursor:pointer; font-size:11px; margin-left:4px;" title="Sửa điểm"><i class="fa-solid fa-pen"></i></button>';
+    var mobileGradedHtml = '<span style="padding:3px 9px; background:rgba(37,99,235,0.1); border:1px solid rgba(37,99,235,0.3); border-radius:6px; color:#2563EB; font-size:12px; font-weight:700;"><i class="fa-solid fa-star" style="color:#3B82F6;"></i> Điểm: ' + escapeHtml(score) + '</span>'
+        + ' <button onclick="openGradeModal(\'' + jsStr(activeGradingSubId) + '\',\'' + jsStr(stName || '') + '\',\'' + jsStr(score) + '\',\'' + jsStr(comment || '') + '\')" style="background:none; border:none; color:var(--text-secondary, #64748B); cursor:pointer; font-size:11px; margin-left:4px;" title="Sửa điểm"><i class="fa-solid fa-pen"></i></button>';
 
     if (gradeWrap) gradeWrap.innerHTML = gradedHtml;
     if (mobileGradeWrap) mobileGradeWrap.innerHTML = mobileGradedHtml;
@@ -10306,7 +10307,7 @@ function renderStudentSubmissionsList() {
         var lessonName = item.lessonName || item.title || item.baiHoc || item.tenBaiHoc || item.homeworkTitle || "Bài tập";
         
         var viewBtn = item.fileUrl ? 
-            '<button onclick="openSubmissionPreviewModal(\'' + subId + '\',\'' + (studentName || item.studentName || '').replace(/'/g, "\\'") + '\',\'' + item.fileUrl.replace(/'/g, "\\'") + '\')" style="padding:6px 14px; background:rgba(99,102,241,0.1); border:1.5px solid rgba(99,102,241,0.4); border-radius:8px; color:#6366F1; font-size:13px; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; gap:6px; transition:all 0.2s; white-space:nowrap;"><i class="fa-solid fa-file-lines"></i> Xem bài</button>' 
+            '<button onclick="openSubmissionPreviewModal(\'' + jsStr(subId) + '\',\'' + jsStr(studentName || item.studentName || '') + '\',\'' + jsStr(item.fileUrl) + '\')" style="padding:6px 14px; background:rgba(99,102,241,0.1); border:1.5px solid rgba(99,102,241,0.4); border-radius:8px; color:#6366F1; font-size:13px; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; gap:6px; transition:all 0.2s; white-space:nowrap;"><i class="fa-solid fa-file-lines"></i> Xem bài</button>' 
             : '<span style="color:var(--text-secondary, #64748B); white-space:nowrap;">Không có file</span>';
         
         var dlText = isFolder ? '<i class="fa-solid fa-folder-arrow-down"></i> Tải thư mục' : (isZip ? '<i class="fa-solid fa-file-zipper"></i> Tải ZIP' : '<i class="fa-solid fa-download"></i> Tải');
@@ -10320,30 +10321,30 @@ function renderStudentSubmissionsList() {
         var scoreVal = isGraded ? rawScore : null;
         var commentVal = item.comment || "";
         
-        var gradeHtml = '<div id="grade-wrapper-' + subId + '" style="display:inline-flex; align-items:center; justify-content:center; white-space:nowrap;">';
+        var gradeHtml = '<div id="grade-wrapper-' + escapeHtml(subId) + '" style="display:inline-flex; align-items:center; justify-content:center; white-space:nowrap;">';
         if (scoreVal) {
-            gradeHtml += '<span style="padding:5px 12px; background:rgba(37,99,235,0.1); border:1px solid rgba(37,99,235,0.3); border-radius:8px; color:#2563EB; font-size:12.5px; font-weight:700; display:inline-flex; align-items:center; gap:5px; white-space:nowrap;"><i class="fa-solid fa-star" style="color:#3B82F6;"></i> Điểm: ' + scoreVal + '</span>'
-                + ' <button onclick="openGradeModal(\'' + subId + '\',\'' + (studentName || item.studentName || '').replace(/'/g, "\\'") + '\',\'' + scoreVal + '\',\'' + commentVal.replace(/'/g, "\\'") + '\')" style="background:none; border:none; color:var(--text-secondary, #64748B); cursor:pointer; font-size:12px; margin-left:6px; padding:2px 4px;" title="Sửa điểm"><i class="fa-solid fa-pen"></i></button>';
+            gradeHtml += '<span style="padding:5px 12px; background:rgba(37,99,235,0.1); border:1px solid rgba(37,99,235,0.3); border-radius:8px; color:#2563EB; font-size:12.5px; font-weight:700; display:inline-flex; align-items:center; gap:5px; white-space:nowrap;"><i class="fa-solid fa-star" style="color:#3B82F6;"></i> Điểm: ' + escapeHtml(scoreVal) + '</span>'
+                + ' <button onclick="openGradeModal(\'' + jsStr(subId) + '\',\'' + jsStr(studentName || item.studentName || '') + '\',\'' + jsStr(scoreVal) + '\',\'' + jsStr(commentVal) + '\')" style="background:none; border:none; color:var(--text-secondary, #64748B); cursor:pointer; font-size:12px; margin-left:6px; padding:2px 4px;" title="Sửa điểm"><i class="fa-solid fa-pen"></i></button>';
         } else {
-            gradeHtml += '<button onclick="openGradeModal(\'' + subId + '\',\'' + (studentName || item.studentName || '').replace(/'/g, "\\'") + '\')" style="padding:6px 14px; background:var(--bg-card, #FFFFFF); border:1px solid var(--border-card, #CBD5E1); border-radius:8px; color:var(--text-primary, #1E293B); font-size:13px; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; gap:6px; box-shadow:0 1px 2px rgba(0,0,0,0.05); transition:all 0.2s; white-space:nowrap;"><i class="fa-solid fa-pen"></i> Chấm điểm</button>';
+            gradeHtml += '<button onclick="openGradeModal(\'' + jsStr(subId) + '\',\'' + jsStr(studentName || item.studentName || '') + '\')" style="padding:6px 14px; background:var(--bg-card, #FFFFFF); border:1px solid var(--border-card, #CBD5E1); border-radius:8px; color:var(--text-primary, #1E293B); font-size:13px; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; gap:6px; box-shadow:0 1px 2px rgba(0,0,0,0.05); transition:all 0.2s; white-space:nowrap;"><i class="fa-solid fa-pen"></i> Chấm điểm</button>';
         }
         gradeHtml += '</div>';
 
         // Mobile Grade HTML
-        var mobileGradeHtml = '<div id="mobile-grade-wrapper-' + subId + '" style="display:inline-flex; align-items:center; white-space:nowrap;">';
+        var mobileGradeHtml = '<div id="mobile-grade-wrapper-' + escapeHtml(subId) + '" style="display:inline-flex; align-items:center; white-space:nowrap;">';
         if (scoreVal) {
-            mobileGradeHtml += '<span style="padding:3px 9px; background:rgba(37,99,235,0.1); border:1px solid rgba(37,99,235,0.3); border-radius:6px; color:#2563EB; font-size:12px; font-weight:700; white-space:nowrap;"><i class="fa-solid fa-star" style="color:#3B82F6;"></i> Điểm: ' + scoreVal + '</span>'
-                + ' <button onclick="openGradeModal(\'' + subId + '\',\'' + (studentName || item.studentName || '').replace(/'/g, "\\'") + '\',\'' + scoreVal + '\',\'' + commentVal.replace(/'/g, "\\'") + '\')" style="background:none; border:none; color:var(--text-secondary, #64748B); cursor:pointer; font-size:11px; margin-left:4px;" title="Sửa điểm"><i class="fa-solid fa-pen"></i></button>';
+            mobileGradeHtml += '<span style="padding:3px 9px; background:rgba(37,99,235,0.1); border:1px solid rgba(37,99,235,0.3); border-radius:6px; color:#2563EB; font-size:12px; font-weight:700; white-space:nowrap;"><i class="fa-solid fa-star" style="color:#3B82F6;"></i> Điểm: ' + escapeHtml(scoreVal) + '</span>'
+                + ' <button onclick="openGradeModal(\'' + jsStr(subId) + '\',\'' + jsStr(studentName || item.studentName || '') + '\',\'' + jsStr(scoreVal) + '\',\'' + jsStr(commentVal) + '\')" style="background:none; border:none; color:var(--text-secondary, #64748B); cursor:pointer; font-size:11px; margin-left:4px;" title="Sửa điểm"><i class="fa-solid fa-pen"></i></button>';
         } else {
-            mobileGradeHtml += '<button onclick="openGradeModal(\'' + subId + '\',\'' + (studentName || item.studentName || '').replace(/'/g, "\\'") + '\')" style="padding:4px 10px; background:var(--bg-card, #FFFFFF); border:1px solid var(--border-card, #CBD5E1); border-radius:6px; color:var(--text-primary, #1E293B); font-size:12px; font-weight:600; cursor:pointer; white-space:nowrap;"><i class="fa-solid fa-pen"></i> Chấm điểm</button>';
+            mobileGradeHtml += '<button onclick="openGradeModal(\'' + jsStr(subId) + '\',\'' + jsStr(studentName || item.studentName || '') + '\')" style="padding:4px 10px; background:var(--bg-card, #FFFFFF); border:1px solid var(--border-card, #CBD5E1); border-radius:6px; color:var(--text-primary, #1E293B); font-size:12px; font-weight:600; cursor:pointer; white-space:nowrap;"><i class="fa-solid fa-pen"></i> Chấm điểm</button>';
         }
         mobileGradeHtml += '</div>';
         
         // Desktop Row
         tableBody.innerHTML += 
             '<tr>' +
-                '<td style="color:var(--text-secondary, #475569); font-weight:500; font-size:13px; padding:12px 16px; border-bottom:1px solid var(--border-card, #E2E8F0); white-space:nowrap;">' + displayTime + '</td>' +
-                '<td style="color:var(--text-primary, #0F172A); font-weight:600; font-size:13px; padding:12px 16px; border-bottom:1px solid var(--border-card, #E2E8F0);">' + lessonName + '</td>' +
+                '<td style="color:var(--text-secondary, #475569); font-weight:500; font-size:13px; padding:12px 16px; border-bottom:1px solid var(--border-card, #E2E8F0); white-space:nowrap;">' + escapeHtml(displayTime) + '</td>' +
+                '<td style="color:var(--text-primary, #0F172A); font-weight:600; font-size:13px; padding:12px 16px; border-bottom:1px solid var(--border-card, #E2E8F0);">' + escapeHtml(lessonName) + '</td>' +
                 '<td style="padding:12px 16px; border-bottom:1px solid var(--border-card, #E2E8F0); white-space:nowrap;">' + viewBtn + '</td>' +
                 '<td style="text-align: center; padding:12px 16px; border-bottom:1px solid var(--border-card, #E2E8F0); white-space:nowrap;">' + gradeHtml + '</td>' +
                 '<td style="text-align: center; padding:12px 16px; border-bottom:1px solid var(--border-card, #E2E8F0); white-space:nowrap;">' + downloadBtn + '</td>' +
@@ -10353,22 +10354,22 @@ function renderStudentSubmissionsList() {
         mobileHtml += "<div class='accordion-item' id='submit-hw-item-" + idx + "'>";
         mobileHtml += "  <div class='accordion-header' onclick='toggleTutorSubmittedHwAccordion(" + idx + ")'>";
         mobileHtml += "    <div class='accordion-header-title'>";
-        mobileHtml += "      <span style='color:var(--text-primary, #1E293B); font-weight:600;'>" + lessonName + "</span>";
-        mobileHtml += "      <span class='accordion-header-date' style='color:var(--text-secondary, #64748B);'>" + displayTime + "</span>";
+        mobileHtml += "      <span style='color:var(--text-primary, #1E293B); font-weight:600;'>" + escapeHtml(lessonName) + "</span>";
+        mobileHtml += "      <span class='accordion-header-date' style='color:var(--text-secondary, #64748B);'>" + escapeHtml(displayTime) + "</span>";
         mobileHtml += "    </div>";
         mobileHtml += "    <div class='accordion-header-status' style='display:flex; align-items:center; gap:8px;'>";
         if (scoreVal) {
-            mobileHtml += "      <span style='color:#2563EB; font-size:12px; font-weight:700;'><i class='fa-solid fa-star' style='color:#3B82F6;'></i> " + scoreVal + "đ</span>";
+            mobileHtml += "      <span style='color:#2563EB; font-size:12px; font-weight:700;'><i class='fa-solid fa-star' style='color:#3B82F6;'></i> " + escapeHtml(scoreVal) + "đ</span>";
         }
         mobileHtml += "      <i class='fa-solid fa-chevron-down' id='submit-hw-chevron-" + idx + "'></i>";
         mobileHtml += "    </div>";
         mobileHtml += "  </div>";
         mobileHtml += "  <div class='accordion-body' id='submit-hw-body-" + idx + "' style='display: none;'>";
-        mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Thời gian nộp</span><span class='accordion-body-val' style='color:var(--text-primary, #1E293B); font-weight:600;'>" + displayTime + "</span></div>";
+        mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Thời gian nộp</span><span class='accordion-body-val' style='color:var(--text-primary, #1E293B); font-weight:600;'>" + escapeHtml(displayTime) + "</span></div>";
         mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Xem bài làm</span><span class='accordion-body-val'>" + viewBtn + "</span></div>";
         mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Chấm điểm</span><span class='accordion-body-val'>" + mobileGradeHtml + "</span></div>";
         if (commentVal) {
-            mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Nhận xét</span><span class='accordion-body-val' style='color:var(--text-secondary, #64748B); font-style:italic; font-size:12.5px;'>" + commentVal + "</span></div>";
+            mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Nhận xét</span><span class='accordion-body-val' style='color:var(--text-secondary, #64748B); font-style:italic; font-size:12.5px;'>" + escapeHtml(commentVal) + "</span></div>";
         }
         mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Tải về</span><span class='accordion-body-val'>" + downloadBtn + "</span></div>";
         mobileHtml += "  </div>";
@@ -10516,11 +10517,11 @@ function loadTutorFeedbacks() {
             feedbacks.forEach(function(fb) {
                 html += '<div class="agenda-event-card" style="border-left-color: var(--color-primary); background: var(--nav-active-bg); border: 1px solid var(--border-color); border-left-width: 4px; padding: 12px 15px; border-radius: 10px; flex-direction: column; align-items: stretch; cursor: default; gap: 6px;">' +
                     '  <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 5px;">' +
-                    '    <span style="font-weight: 800; color: var(--color-primary); font-size: 13.5px;"><i class="fa-solid fa-graduation-cap"></i> Phụ huynh em ' + fb.studentName + ' <span style="font-size: 11.5px; color: var(--text-muted); font-weight: normal;">(' + fb.studentPhone + ')</span></span>' +
-                    '    <span style="font-size: 11px; color: var(--text-muted); font-weight: 600;"><i class="fa-regular fa-clock"></i> ' + fb.timestamp + '</span>' +
+                    '    <span style="font-weight: 800; color: var(--color-primary); font-size: 13.5px;"><i class="fa-solid fa-graduation-cap"></i> Phụ huynh em ' + escapeHtml(fb.studentName) + ' <span style="font-size: 11.5px; color: var(--text-muted); font-weight: normal;">(' + escapeHtml(fb.studentPhone) + ')</span></span>' +
+                    '    <span style="font-size: 11px; color: var(--text-muted); font-weight: 600;"><i class="fa-regular fa-clock"></i> ' + escapeHtml(fb.timestamp) + '</span>' +
                     '  </div>' +
                     '  <div style="font-size: 13px; color: var(--text-secondary); line-height: 1.5; font-style: italic; background: var(--bg-input); padding: 8px 12px; border-radius: 8px; margin-top: 4px;">' +
-                    '    "' + fb.content + '"' +
+                    '    "' + escapeHtml(fb.content) + '"' +
                     '  </div>' +
                     '</div>';
             });
@@ -10698,11 +10699,11 @@ function syncThemeToCalendarIframe() {
   try {
     if (calFrame.contentWindow) {
       if (isCustom) {
-        calFrame.contentWindow.postMessage({ type: 'setCustomTheme', hex: customHex }, '*');
-        calFrame.contentWindow.postMessage('custom:' + customHex, '*');
+        calFrame.contentWindow.postMessage({ type: 'setCustomTheme', hex: customHex }, window.location.origin);
+        calFrame.contentWindow.postMessage('custom:' + customHex, window.location.origin);
       } else {
-        calFrame.contentWindow.postMessage({ type: 'setTheme', themeId: curTheme }, '*');
-        calFrame.contentWindow.postMessage(curTheme, '*');
+        calFrame.contentWindow.postMessage({ type: 'setTheme', themeId: curTheme }, window.location.origin);
+        calFrame.contentWindow.postMessage(curTheme, window.location.origin);
       }
     }
   } catch(e) {}
@@ -11019,6 +11020,10 @@ window.applyCustomTheme = applyCustomTheme;
 
 // Lắng nghe tín hiệu yêu cầu đồng bộ theme và cập nhật lịch từ iframe lịch
 window.addEventListener('message', function(e) {
+  // BẢO MẬT: chỉ nhận tin nhắn cùng origin, và (nếu có iframe lịch) chỉ từ chính iframe lịch
+  if (e.origin !== window.location.origin) return;
+  var calFrameEl = document.getElementById('tutorCalendarIframe');
+  if (calFrameEl && calFrameEl.contentWindow && e.source !== calFrameEl.contentWindow) return;
   if (e.data && (e.data.type === 'calendarReady' || e.data.type === 'requestTheme')) {
     syncThemeToCalendarIframe();
   }

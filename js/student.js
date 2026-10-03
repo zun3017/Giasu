@@ -249,11 +249,11 @@ function renderStudentView(ketQua) {
 
         loiChaoEl.innerHTML =
             '<div class="student-hero-card">' +
-                '<div class="hero-avatar">' + initials + '</div>' +
+                '<div class="hero-avatar">' + escapeHtml(initials) + '</div>' +
                 '<div class="hero-info">' +
-                    '<h2 class="hero-name">Xin chào, <strong>' + (ketQua.tenHocSinh || 'Học sinh') + '</strong> 👋</h2>' +
+                    '<h2 class="hero-name">Xin chào, <strong>' + escapeHtml(ketQua.tenHocSinh || 'Học sinh') + '</strong> 👋</h2>' +
                     '<div class="hero-meta">' +
-                        '<span class="hero-tag"><i class="fa-solid fa-book"></i> ' + lopHoc + '</span>' +
+                        '<span class="hero-tag"><i class="fa-solid fa-book"></i> ' + escapeHtml(lopHoc) + '</span>' +
                     '</div>' +
                 '</div>' +
                 '<div class="hero-month-badge"><i class="fa-solid fa-calendar-days"></i> ' + monthLabel + '</div>' +
@@ -279,7 +279,7 @@ function renderStudentView(ketQua) {
                     '<div class="announce-icon"><i class="fa-solid fa-bullhorn"></i></div>' +
                     '<div class="announce-body">' +
                         '<div class="announce-title">Thông báo từ gia sư</div>' +
-                        '<div class="announce-text">' + thongBaoText + '</div>' +
+                        '<div class="announce-text">' + escapeHtml(thongBaoText) + '</div>' +
                     '</div>' +
                 '</div>';
         } else {
@@ -555,7 +555,7 @@ function renderStudentView(ketQua) {
                 var label = (tt === "cả lớp nghỉ") ? "Cả lớp nghỉ" : (tt.indexOf("hủy") !== -1 ? "Hủy/Nghỉ" : "Vắng");
                 return '<span class="status-badge badge-nghi">' + label + '</span>';
             }
-            return '<span class="status-badge badge-dahoc">' + (trangThai || 'Có mặt') + '</span>';
+            return '<span class="status-badge badge-dahoc">' + escapeHtml(trangThai || 'Có mặt') + '</span>';
         };
 
         // Helper đánh giá bài tập về nhà (chuẩn theo tutor.js)
@@ -568,27 +568,27 @@ function renderStudentView(ketQua) {
             if (pctMatch) {
                 var pct = parseFloat(pctMatch[1]);
                 if (pct >= 90) {
-                    return '<span class="status-badge badge-hoanthanh">' + raw + '</span>';
+                    return '<span class="status-badge badge-hoanthanh">' + escapeHtml(raw) + '</span>';
                 } else if (pct >= 50) {
-                    return '<span class="status-badge badge-thieu">' + raw + '</span>';
+                    return '<span class="status-badge badge-thieu">' + escapeHtml(raw) + '</span>';
                 } else {
-                    return '<span class="status-badge badge-nghi">' + raw + '</span>';
+                    return '<span class="status-badge badge-nghi">' + escapeHtml(raw) + '</span>';
                 }
             }
 
             if (bt.indexOf("không làm") !== -1 || bt.indexOf("chưa làm") !== -1 || bt.indexOf("chưa nộp") !== -1 || bt.indexOf("chưa đạt") !== -1 || bt === "không") {
-                return '<span class="status-badge badge-nghi">' + raw + '</span>';
+                return '<span class="status-badge badge-nghi">' + escapeHtml(raw) + '</span>';
             }
             if (bt.indexOf("hoàn thành") !== -1 || bt === "đạt" || bt === "tốt" || bt === "xuất sắc" || bt === "có") {
-                return '<span class="status-badge badge-hoanthanh">' + raw + '</span>';
+                return '<span class="status-badge badge-hoanthanh">' + escapeHtml(raw) + '</span>';
             }
             if (bt.indexOf("thiếu") !== -1) {
-                return '<span class="status-badge badge-thieu">' + raw + '</span>';
+                return '<span class="status-badge badge-thieu">' + escapeHtml(raw) + '</span>';
             }
             if (bt.indexOf("phụ huynh") !== -1 || bt.indexOf("nhắc") !== -1) {
-                return '<span class="status-badge badge-hocbu" style="font-size:10.5px; padding:3px 8px;">' + raw + '</span>';
+                return '<span class="status-badge badge-hocbu" style="font-size:10.5px; padding:3px 8px;">' + escapeHtml(raw) + '</span>';
             }
-            return '<span class="status-badge badge-hoanthanh">' + raw + '</span>';
+            return '<span class="status-badge badge-hoanthanh">' + escapeHtml(raw) + '</span>';
         };
 
         // Helper định dạng ngày chỉ lấy ngày/tháng, bỏ thứ (Ví dụ: "22/09")
@@ -663,7 +663,7 @@ function renderStudentView(ketQua) {
             }
 
             var commentHtml = (parsedNhanXet && String(parsedNhanXet).trim() !== "")
-                ? '<span style="color: var(--text-primary); font-style: italic;"><i class="fa-solid fa-comment-dots" style="color: #3B82F6; font-size: 12px; margin-right: 5px;"></i>' + parsedNhanXet + '</span>'
+                ? '<span style="color: var(--text-primary); font-style: italic;"><i class="fa-solid fa-comment-dots" style="color: #3B82F6; font-size: 12px; margin-right: 5px;"></i>' + escapeHtml(parsedNhanXet) + '</span>'
                 : '<span style="color: var(--text-muted); font-style: italic;">—</span>';
 
             var ktDauGioText = (diemDau !== undefined && diemDau !== null && String(diemDau).trim() !== "" && String(diemDau).trim() !== "-")
@@ -677,17 +677,22 @@ function renderStudentView(ketQua) {
             var ktDauGioColor = (ktDauGioText === 'Không có' || ktDauGioText === '—' || ktDauGioText === '-') ? 'var(--text-secondary)' : scoreColor(diemDau);
             var ktDinhKiColor = hasDiemDinh ? scoreColor(rawDinhStr) : 'var(--text-secondary)';
 
+            var tuanValH = escapeHtml(tuanVal);
+            var rawDateOnlyH = escapeHtml(rawDateOnly);
+            var ktDauGioTextH = escapeHtml(ktDauGioText);
+            var ktDinhKiTextH = escapeHtml(ktDinhKiText);
+
             // --- Desktop Row ---
             htmlLichSu +=
                 '<tr' + hiddenAttr + '>' +
-                    '<td style="text-align: center; font-weight: 700; color: var(--text-primary);">' + tuanVal + '</td>' +
-                    '<td style="white-space: nowrap; text-align: center; color: var(--text-primary); font-weight: 500;">' + rawDateOnly + '</td>' +
-                    '<td>' + (item.mon || lopHoc ? ('<span class="subj-chip">' + (item.mon || lopHoc) + '</span>') : '') + '</td>' +
-                    '<td class="cell-noidung">' + (parsedContent || '-') + '</td>' +
+                    '<td style="text-align: center; font-weight: 700; color: var(--text-primary);">' + tuanValH + '</td>' +
+                    '<td style="white-space: nowrap; text-align: center; color: var(--text-primary); font-weight: 500;">' + rawDateOnlyH + '</td>' +
+                    '<td>' + (item.mon || lopHoc ? ('<span class="subj-chip">' + escapeHtml(item.mon || lopHoc) + '</span>') : '') + '</td>' +
+                    '<td class="cell-noidung">' + escapeHtml(parsedContent || '-') + '</td>' +
                     '<td class="cell-nhanxet">' + commentHtml + '</td>' +
                     '<td style="text-align: center;">' + getBtvnBadge(btvnValue) + '</td>' +
-                    '<td style="text-align: center; font-weight: 700; font-size: 14px; color:' + ktDauGioColor + ';">' + ktDauGioText + '</td>' +
-                    '<td style="text-align: center; font-weight: 700; font-size: 14px; color:' + ktDinhKiColor + ';">' + ktDinhKiText + '</td>' +
+                    '<td style="text-align: center; font-weight: 700; font-size: 14px; color:' + ktDauGioColor + ';">' + ktDauGioTextH + '</td>' +
+                    '<td style="text-align: center; font-weight: 700; font-size: 14px; color:' + ktDinhKiColor + ';">' + ktDinhKiTextH + '</td>' +
                     '<td style="text-align: center;">' + getStatusBadge(item.trangThai || item.chuyenCan, isAbsent) + '</td>' +
                 '</tr>';
 
@@ -697,8 +702,8 @@ function renderStudentView(ketQua) {
             htmlMobile += '  <div class="accordion-header" onclick="toggleStudentAccordion(' + idx + ')">';
             htmlMobile += '    <div style="display: flex; align-items: center;">';
             htmlMobile += '      <div class="accordion-header-title">';
-            htmlMobile += '        <span style="font-size: 15px; font-weight: 700; color: var(--text-primary);">' + tuanVal + '</span>';
-            htmlMobile += '        <span class="accordion-header-date">' + rawDateOnly + '</span>';
+            htmlMobile += '        <span style="font-size: 15px; font-weight: 700; color: var(--text-primary);">' + tuanValH + '</span>';
+            htmlMobile += '        <span class="accordion-header-date">' + rawDateOnlyH + '</span>';
             htmlMobile += '      </div>';
             htmlMobile += '    </div>';
             htmlMobile += '    <div class="accordion-header-status">';
@@ -707,12 +712,12 @@ function renderStudentView(ketQua) {
             htmlMobile += '    </div>';
             htmlMobile += '  </div>';
             htmlMobile += '  <div class="accordion-body" id="student-accordion-body-' + idx + '" style="display: none;">';
-            htmlMobile += '    <div class="accordion-body-row"><span class="accordion-body-label">Môn học</span><span class="accordion-body-val">' + (item.mon || lopHoc || '—') + '</span></div>';
-            htmlMobile += '    <div class="accordion-body-row"><span class="accordion-body-label">Nội dung dạy học</span><span class="accordion-body-val">' + (parsedContent || '—') + '</span></div>';
-            htmlMobile += '    <div class="accordion-body-row"><span class="accordion-body-label">Nhận xét của gia sư</span><span class="accordion-body-val" style="font-style: italic; color: #2563EB; font-weight: 500;">' + (parsedNhanXet ? ("<i class='fa-solid fa-comment-dots' style='margin-right: 4px;'></i>" + parsedNhanXet) : '—') + '</span></div>';
+            htmlMobile += '    <div class="accordion-body-row"><span class="accordion-body-label">Môn học</span><span class="accordion-body-val">' + escapeHtml(item.mon || lopHoc || '—') + '</span></div>';
+            htmlMobile += '    <div class="accordion-body-row"><span class="accordion-body-label">Nội dung dạy học</span><span class="accordion-body-val">' + escapeHtml(parsedContent || '—') + '</span></div>';
+            htmlMobile += '    <div class="accordion-body-row"><span class="accordion-body-label">Nhận xét của gia sư</span><span class="accordion-body-val" style="font-style: italic; color: #2563EB; font-weight: 500;">' + (parsedNhanXet ? ("<i class='fa-solid fa-comment-dots' style='margin-right: 4px;'></i>" + escapeHtml(parsedNhanXet)) : '—') + '</span></div>';
             htmlMobile += '    <div class="accordion-body-row"><span class="accordion-body-label">Đánh giá bài tập về nhà</span><span class="accordion-body-val">' + getBtvnBadge(btvnValue) + '</span></div>';
-            htmlMobile += '    <div class="accordion-body-row"><span class="accordion-body-label">Kiểm tra đầu giờ</span><span class="accordion-body-val" style="font-weight: 700; color:' + ktDauGioColor + ';">' + ktDauGioText + '</span></div>';
-            htmlMobile += '    <div class="accordion-body-row"><span class="accordion-body-label">Kiểm tra định kì</span><span class="accordion-body-val" style="font-weight: 700; color:' + ktDinhKiColor + ';">' + ktDinhKiText + '</span></div>';
+            htmlMobile += '    <div class="accordion-body-row"><span class="accordion-body-label">Kiểm tra đầu giờ</span><span class="accordion-body-val" style="font-weight: 700; color:' + ktDauGioColor + ';">' + ktDauGioTextH + '</span></div>';
+            htmlMobile += '    <div class="accordion-body-row"><span class="accordion-body-label">Kiểm tra định kì</span><span class="accordion-body-val" style="font-weight: 700; color:' + ktDinhKiColor + ';">' + ktDinhKiTextH + '</span></div>';
             htmlMobile += '  </div>';
             htmlMobile += '</div>';
         });
@@ -744,9 +749,9 @@ function renderStudentView(ketQua) {
         if (listBt.length > 0) {
             listBt.slice().reverse().forEach(function(bt) {
                 htmlBaiTap += "<div class='bt-item'>";
-                htmlBaiTap += "<div><strong style='color: var(--text-heading);'>[" + (bt.mon || "Gia sư") + "]</strong> <span style='color: var(--text-primary); font-weight: 500; font-size: 15px; margin-left: 8px;'>" + (bt.tenBai || bt.title || "Tài liệu học tập") + "</span></div>";
+                htmlBaiTap += "<div><strong style='color: var(--text-heading);'>[" + escapeHtml(bt.mon || "Gia sư") + "]</strong> <span style='color: var(--text-primary); font-weight: 500; font-size: 15px; margin-left: 8px;'>" + escapeHtml(bt.tenBai || bt.title || "Tài liệu học tập") + "</span></div>";
                 if (bt.link || bt.file) {
-                    htmlBaiTap += "<a href='" + (bt.link || bt.file) + "' target='_blank' class='btn-download'><i class='fa-solid fa-cloud-arrow-down'></i> Tải Xuống</a>";
+                    htmlBaiTap += "<a href=\"" + safeUrlAttr(bt.link || bt.file) + "\" target=\"_blank\" rel=\"noopener noreferrer\" class='btn-download'><i class='fa-solid fa-cloud-arrow-down'></i> Tải Xuống</a>";
                 }
                 htmlBaiTap += "</div>";
             });
@@ -1200,15 +1205,15 @@ function showToast(message, type) {
     if (type === 'success') {
         toast.style.background = '#059669';
         toast.style.borderColor = '#10B981';
-        toast.innerHTML = '<i class="fa-solid fa-circle-check"></i> ' + message;
+        toast.innerHTML = '<i class="fa-solid fa-circle-check"></i> ' + escapeHtml(message);
     } else if (type === 'error') {
         toast.style.background = '#DC2626';
         toast.style.borderColor = '#EF4444';
-        toast.innerHTML = '<i class="fa-solid fa-circle-xmark"></i> ' + message;
+        toast.innerHTML = '<i class="fa-solid fa-circle-xmark"></i> ' + escapeHtml(message);
     } else {
         toast.style.background = '#2563EB';
         toast.style.borderColor = '#60A5FA';
-        toast.innerHTML = '<i class="fa-solid fa-circle-info"></i> ' + message;
+        toast.innerHTML = '<i class="fa-solid fa-circle-info"></i> ' + escapeHtml(message);
     }
     container.appendChild(toast);
     setTimeout(function() {

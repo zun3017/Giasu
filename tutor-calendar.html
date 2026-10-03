@@ -24,7 +24,7 @@
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Google Apps Script API Client -->
-    <script src="js/api.js?v=2.0.5"></script>
+    <script src="js/api.js?v=20261003_sec1"></script>
     <!-- FullCalendar JS v6 -->
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
     
@@ -250,6 +250,7 @@
 
       // LẮNG NGHE POSTMESSAGE TỪ TRANG CHA (DASHBOARD) NGAY TỪ ĐẦU
       window.addEventListener('message', function(e) {
+        if (e.origin !== window.location.origin) return;
         if (!e.data) return;
         var data = e.data;
         if (data === 'updateCalendarSize' || (typeof data === 'object' && data.type === 'updateCalendarSize')) {
@@ -284,8 +285,8 @@
             document.body.classList.add('is-embedded-calendar');
           });
           try {
-            window.parent.postMessage({ type: 'calendarReady' }, '*');
-            window.parent.postMessage({ type: 'requestTheme' }, '*');
+            window.parent.postMessage({ type: 'calendarReady' }, window.location.origin);
+            window.parent.postMessage({ type: 'requestTheme' }, window.location.origin);
           } catch(e) {}
         }
 
@@ -3553,7 +3554,7 @@
                         window.parent.postMessage({
                             type: 'tutorScheduleUpdated',
                             schedule: tutorScheduleSheetData
-                        }, '*');
+                        }, window.location.origin);
                     } catch(e) {}
                 }
                 if (onSuccess) onSuccess();
@@ -3653,7 +3654,7 @@
                             window.parent.postMessage({
                                 type: 'tutorScheduleUpdated',
                                 schedule: tutorScheduleSheetData
-                            }, '*');
+                            }, window.location.origin);
                         } catch(e) {}
                     }
                     if (typeof calendar !== 'undefined' && calendar && typeof calendar.refetchEvents === 'function') {
@@ -3912,7 +3913,7 @@
                     window.parent.postMessage({
                         type: 'tutorScheduleUpdated',
                         schedule: tutorScheduleSheetData
-                    }, '*');
+                    }, window.location.origin);
                 } catch(e) {}
             }
             if (andThen) andThen();
@@ -4275,7 +4276,7 @@
                 let tr = document.createElement("tr");
                 
                 // Tên học sinh
-                let html = `<td class="cell-student">${row.studentName}</td>`;
+                let html = `<td class="cell-student">${escapeHtml(row.studentName)}</td>`;
                 
                 // 7 Thứ trong tuần
                 allDayKeys.forEach(dayKey => {
@@ -4283,9 +4284,9 @@
                     if (!val || val.trim() === "") {
                         html += `<td class="cell-empty">-</td>`;
                     } else if (val.includes("/")) {
-                        html += `<td class="cell-onetime" title="${val}">${val}</td>`;
+                        html += `<td class="cell-onetime" title="${escapeHtml(val)}">${escapeHtml(val)}</td>`;
                     } else {
-                        html += `<td class="cell-active" title="${val}">${val}</td>`;
+                        html += `<td class="cell-active" title="${escapeHtml(val)}">${escapeHtml(val)}</td>`;
                     }
                 });
                 
@@ -4606,8 +4607,8 @@
                 let studentColor = row.color || '#C05E8E';
                 let item = document.createElement('div');
                 item.className = 'cal-legend-item';
-                item.innerHTML = `<span class="cal-legend-dot" style="background: ${studentColor};"></span>
-                                  <span class="cal-legend-name">${row.studentName}</span>`;
+                item.innerHTML = `<span class="cal-legend-dot" style="background: ${escapeHtml(studentColor)};"></span>
+                                  <span class="cal-legend-name">${escapeHtml(row.studentName)}</span>`;
                 legendContainer.appendChild(item);
             });
         }
@@ -4850,11 +4851,11 @@
                             chipBorder = 'rgba(' + hexToRgbStr(color) + ', 0.42)';
                         }
                         let timeClr = isCancelled ? '#9CA3AF' : (isDark ? '#FFFFFF' : color);
-                        let fullTooltip = (titleStr + (timeStr ? ' (' + timeStr + ')' : '')).replace(/"/g, '&quot;');
+                        let fullTooltip = escapeHtml(titleStr + (timeStr ? ' (' + timeStr + ')' : ''));
                         
                         let html = '<div class="fc-month-chip-inner" title="' + fullTooltip + '" style="background: ' + chipBg + '; border: 1px solid ' + chipBorder + '; ' + textDecor + '">' +
-                                   (timeStr ? '<span class="fc-chip-time" style="color: ' + timeClr + ';">' + timeStr + '</span>' : '') +
-                                   '<span class="fc-chip-title" style="color: ' + textClr + ';">' + titleStr + '</span>' +
+                                   (timeStr ? '<span class="fc-chip-time" style="color: ' + escapeHtml(timeClr) + ';">' + escapeHtml(timeStr) + '</span>' : '') +
+                                   '<span class="fc-chip-title" style="color: ' + textClr + ';">' + escapeHtml(titleStr) + '</span>' +
                                    '</div>';
                         return { html: html };
                     }
@@ -4889,20 +4890,20 @@
                         let cardBg = isCancelled ? '#F3F4F6' : theme.bg;
                         let cardBorder = isCancelled ? '#D1D5DB' : theme.border;
                         let textColor = isCancelled ? '#9CA3AF' : (isDark ? '#FFFFFF' : 'var(--text-primary)');
-                        let iconColor = isCancelled ? '#9CA3AF' : (isDark ? '#FFFFFF' : color);
+                        let iconColor = escapeHtml(isCancelled ? '#9CA3AF' : (isDark ? '#FFFFFF' : color));
                         let textDecor = isCancelled ? 'text-decoration: line-through;' : '';
 
                         let repeatIconHtml = !props.isOneTime
                             ? '<span class="fc-week-card-icon" style="color: ' + iconColor + ';" title="Lịch lặp lại hàng tuần"><i class="fa-solid fa-repeat"></i></span>'
                             : '<span class="fc-week-card-icon" style="color: ' + iconColor + '; opacity: 0.65;" title="Buổi học 1 lần"><i class="fa-regular fa-clock"></i></span>';
 
-                        let html = '<div class="fc-week-card-inner" style="background: ' + cardBg + '; border: 1px solid ' + cardBorder + '; border-left: 3.5px solid ' + color + '; color: ' + textColor + '; ' + textDecor + '">' +
+                        let html = '<div class="fc-week-card-inner" style="background: ' + escapeHtml(cardBg) + '; border: 1px solid ' + escapeHtml(cardBorder) + '; border-left: 3.5px solid ' + escapeHtml(color) + '; color: ' + textColor + '; ' + textDecor + '">' +
                                    '<div class="fc-week-card-header">' +
-                                       '<span class="fc-week-card-time" style="color: ' + textColor + '; font-weight: 700;">' + timeStr + '</span>' +
+                                       '<span class="fc-week-card-time" style="color: ' + textColor + '; font-weight: 700;">' + escapeHtml(timeStr) + '</span>' +
                                        repeatIconHtml +
                                    '</div>' +
-                                   '<div class="fc-week-card-subject" style="color: ' + textColor + '; font-weight: 700;" title="' + titleStr + '">' + titleStr + '</div>' +
-                                   '<div class="fc-week-card-fee" style="color: ' + (isDark ? 'rgba(255,255,255,0.85)' : 'var(--text-secondary)') + '; font-weight: 600;">' + feeStr + '</div>' +
+                                   '<div class="fc-week-card-subject" style="color: ' + textColor + '; font-weight: 700;" title="' + escapeHtml(titleStr) + '">' + escapeHtml(titleStr) + '</div>' +
+                                   '<div class="fc-week-card-fee" style="color: ' + (isDark ? 'rgba(255,255,255,0.85)' : 'var(--text-secondary)') + '; font-weight: 600;">' + escapeHtml(feeStr) + '</div>' +
                                    '</div>';
                         return { html: html };
                     }
@@ -4932,12 +4933,12 @@
                         if (notes) {
                             subText = subText ? (subText + ' · ' + notes) : notes;
                         }
-                        let subHtml = subText ? '<div style="font-size: 12px; color: var(--text-secondary); margin-top: 2px; font-weight: 500;">' + subText + '</div>' : '';
+                        let subHtml = subText ? '<div style="font-size: 12px; color: var(--text-secondary); margin-top: 2px; font-weight: 500;">' + escapeHtml(subText) + '</div>' : '';
 
                         let html = '<div class="fc-list-item-content" style="display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%; ' + textDecor + '">' +
                                    '  <div style="display: flex; flex-direction: column; min-width: 0; flex: 1;">' +
                                    '    <div style="display: flex; align-items: center; gap: 4px; flex-wrap: wrap;">' +
-                                   '      <span style="font-size: 14px; font-weight: 700; color: ' + textClr + ';">' + studentName + '</span>' +
+                                   '      <span style="font-size: 14px; font-weight: 700; color: ' + textClr + ';">' + escapeHtml(studentName) + '</span>' +
                                    '      ' + badgeHtml +
                                    '    </div>' +
                                    '    ' + subHtml +
@@ -5098,7 +5099,7 @@
                             newEnd: newEnd,
                             start: start
                         };
-                        showRecurrenceDialog('Muốn di chuyển ca dạy của <b>' + props.studentName + '</b> sang ' + newDayKey.toUpperCase() + '?');
+                        showRecurrenceDialog('Muốn di chuyển ca dạy của <b>' + escapeHtml(props.studentName) + '</b> sang ' + newDayKey.toUpperCase() + '?');
                         return;
                     }
 
@@ -5118,7 +5119,7 @@
                             props: props,
                             newEnd: newEnd
                         };
-                        showRecurrenceDialog('Muốn đổi giờ kết thúc ca dạy của <b>' + props.studentName + '</b> thành ' + newEnd + '?');
+                        showRecurrenceDialog('Muốn đổi giờ kết thúc ca dạy của <b>' + escapeHtml(props.studentName) + '</b> thành ' + newEnd + '?');
                         return;
                     }
 
@@ -5149,6 +5150,7 @@
             });
 
             window.addEventListener('message', function(e) {
+                if (e.origin !== window.location.origin) return;
                 if (!e.data) return;
                 var data = e.data;
                 if (data === 'updateCalendarSize' || (typeof data === 'object' && data.type === 'updateCalendarSize')) {
@@ -5577,8 +5579,8 @@
             if (props.isOneTime || props.isReschedule) {
                 closeDetailModalForce();
                 let confirmMsg = props.isReschedule
-                    ? "Bạn có chắc chắn muốn xóa buổi học đã dời này của <b>" + (sName || "học sinh") + "</b> không? (Lịch cố định các tuần khác giữ nguyên)"
-                    : "Bạn có chắc chắn muốn xóa ca học một lần này của <b>" + (sName || "học sinh") + "</b> không?";
+                    ? "Bạn có chắc chắn muốn xóa buổi học đã dời này của <b>" + escapeHtml(sName || "học sinh") + "</b> không? (Lịch cố định các tuần khác giữ nguyên)"
+                    : "Bạn có chắc chắn muốn xóa ca học một lần này của <b>" + escapeHtml(sName || "học sinh") + "</b> không?";
                 showWebConfirm(confirmMsg, function() {
                     if (studentRow) {
                         // Chỉ khớp slot bắt đầu bằng đúng tiền tố ngày (tránh xóa nhầm ca lặp lại có SKIP chứa ngày đó)
@@ -5623,7 +5625,7 @@
                     props: props,
                     start: parseYMDLocal(props.date)
                 };
-                showRecurrenceDialog('Bạn muốn xóa ca dạy lặp lại của <b>' + (sName || "") + '</b> vào ' + (oldDayKey ? oldDayKey.toUpperCase() : "") + '?', true);
+                showRecurrenceDialog('Bạn muốn xóa ca dạy lặp lại của <b>' + escapeHtml(sName || "") + '</b> vào ' + escapeHtml(oldDayKey ? String(oldDayKey).toUpperCase() : "") + '?', true);
             }
         }
 
@@ -5940,7 +5942,7 @@
             if (!isNaN(studentIdx) && tutorScheduleSheetData && tutorScheduleSheetData[studentIdx]) {
                 let row = tutorScheduleSheetData[studentIdx];
                 let sName = row.studentName;
-                showWebConfirm("Bạn có chắc chắn muốn xóa ca học này của <b>" + sName + "</b> không?", function() {
+                showWebConfirm("Bạn có chắc chắn muốn xóa ca học này của <b>" + escapeHtml(sName) + "</b> không?", function() {
                     let deleted = false;
                     // Nếu là ca một lần (có ngày cụ thể)
                     if (repeatMode === "none" && specDate) {
@@ -6391,8 +6393,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
   if (isEmbedded) {
     try {
-      window.parent.postMessage({ type: 'calendarReady' }, '*');
-      window.parent.postMessage({ type: 'requestTheme' }, '*');
+      window.parent.postMessage({ type: 'calendarReady' }, window.location.origin);
+      window.parent.postMessage({ type: 'requestTheme' }, window.location.origin);
     } catch(e) {}
   }
 

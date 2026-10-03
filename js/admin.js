@@ -25,18 +25,19 @@ var pinVerifyAction = "deleteStudent";
             toast.style.borderWidth = '1px';
             toast.style.borderStyle = 'solid';
             
+            var safeMessage = escapeHtml(message);
             if (type === 'success') {
                 toast.style.background = '#00CC66';
                 toast.style.borderColor = '#00FF88';
-                toast.innerHTML = '<i class="fa-solid fa-circle-check"></i> ' + message;
+                toast.innerHTML = '<i class="fa-solid fa-circle-check"></i> ' + safeMessage;
             } else if (type === 'error') {
                 toast.style.background = '#FF4D4D';
                 toast.style.borderColor = '#FF8080';
-                toast.innerHTML = '<i class="fa-solid fa-circle-xmark"></i> ' + message;
+                toast.innerHTML = '<i class="fa-solid fa-circle-xmark"></i> ' + safeMessage;
             } else {
                 toast.style.background = '#8E4DFF';
                 toast.style.borderColor = '#A870FF';
-                toast.innerHTML = '<i class="fa-solid fa-circle-info"></i> ' + message;
+                toast.innerHTML = '<i class="fa-solid fa-circle-info"></i> ' + safeMessage;
             }
             
             container.appendChild(toast);
@@ -194,7 +195,7 @@ var pinVerifyAction = "deleteStudent";
                         
                         // Desktop
                         var tr = document.createElement('tr');
-                        tr.innerHTML = "<td><b>" + tReport.name + "</b></td>" +
+                        tr.innerHTML = "<td><b>" + escapeHtml(tReport.name) + "</b></td>" +
                                        "<td style='color:#8E4DFF; font-weight:bold;'>" + tReport.expected.toLocaleString('vi-VN') + "đ</td>" +
                                        "<td style='color:#10B981; font-weight:bold;'>" + tReport.paid.toLocaleString('vi-VN') + "đ</td>" +
                                        "<td style='color:#F59E0B; font-weight:bold;'>" + tReport.unpaid.toLocaleString('vi-VN') + "đ</td>" +
@@ -205,7 +206,7 @@ var pinVerifyAction = "deleteStudent";
                         mobileHtml += "<div class='accordion-item'>";
                         mobileHtml += "  <div class='accordion-header' onclick='toggleAdminTutorBreakdownAccordion(" + idx + ")'>";
                         mobileHtml += "    <div class='accordion-header-title'>";
-                        mobileHtml += "      <span>" + tReport.name + "</span>";
+                        mobileHtml += "      <span>" + escapeHtml(tReport.name) + "</span>";
                         mobileHtml += "      <span class='badge' style='background:rgba(142,77,255,0.15); color:#a78bfa; margin-bottom: 0; padding: 3px 8px; font-size: 10px;'>" + rate + "</span>";
                         mobileHtml += "    </div>";
                         mobileHtml += "    <div class='accordion-header-status'><i class='fa-solid fa-chevron-down' id='adm-tutor-bd-chevron-" + idx + "'></i></div>";
@@ -243,7 +244,7 @@ var pinVerifyAction = "deleteStudent";
                     
                     // Desktop
                     var tr = document.createElement('tr');
-                    tr.innerHTML = "<td><b>" + m + "</b></td>" +
+                    tr.innerHTML = "<td><b>" + escapeHtml(m) + "</b></td>" +
                                    "<td style='color:#8E4DFF; font-weight:bold;'>" + r.expected.toLocaleString('vi-VN') + "đ</td>" +
                                    "<td style='color:#10B981; font-weight:bold;'>" + r.paid.toLocaleString('vi-VN') + "đ</td>" +
                                    "<td style='color:#F59E0B; font-weight:bold;'>" + r.unpaid.toLocaleString('vi-VN') + "đ</td>";
@@ -253,7 +254,7 @@ var pinVerifyAction = "deleteStudent";
                     reportMobileHtml += "<div class='accordion-item'>";
                     reportMobileHtml += "  <div class='accordion-header' onclick='toggleAdminReportAccordion(" + idx + ")'>";
                     reportMobileHtml += "    <div class='accordion-header-title'>";
-                    reportMobileHtml += "      <span>Tháng " + m + "</span>";
+                    reportMobileHtml += "      <span>Tháng " + escapeHtml(m) + "</span>";
                     reportMobileHtml += "    </div>";
                     reportMobileHtml += "    <div class='accordion-header-status'><i class='fa-solid fa-chevron-down' id='adm-report-chevron-" + idx + "'></i></div>";
                     reportMobileHtml += "  </div>";
@@ -465,12 +466,12 @@ var pinVerifyAction = "deleteStudent";
                  if (isCurrentlyDeactivated) {
                      quickPayBtn = "<span style='color:#6c757d; font-size:11px;'>Tài khoản đang khóa</span>";
                  } else if (isDue) {
-                     quickPayBtn = "<button class='modal-btn modal-btn-primary' onclick='confirmQuickPaid(\"" + t.phone + "\", \"" + t.name + "\")' style='padding:4px 10px; font-size:11px; border-radius:15px; background:linear-gradient(135deg, #10B981, #059669); border:none; color:#FFF; font-weight:bold; cursor:pointer;'><i class='fa-solid fa-check'></i> Đã thu</button>";
+                     quickPayBtn = "<button class='modal-btn modal-btn-primary' onclick='confirmQuickPaid(\"" + jsStr(t.phone) + "\", \"" + jsStr(t.name) + "\")' style='padding:4px 10px; font-size:11px; border-radius:15px; background:linear-gradient(135deg, #10B981, #059669); border:none; color:#FFF; font-weight:bold; cursor:pointer;'><i class='fa-solid fa-check'></i> Đã thu</button>";
                  } else {
                      quickPayBtn = "<span style='color:#A6ADCE; font-size:11px;'>Chưa đến hạn</span>";
                  }
                  
-                 var lastActiveDisplay = t.lastActive ? t.lastActive : "<i style='color:#6c757d;'>Chưa hoạt động</i>";
+                 var lastActiveDisplay = t.lastActive ? escapeHtml(t.lastActive) : "<i style='color:#6c757d;'>Chưa hoạt động</i>";
                  
                  // Desktop row
                  var tr = document.createElement('tr');
@@ -480,48 +481,48 @@ var pinVerifyAction = "deleteStudent";
                  } else if (isDue) {
                      tr.style.background = "rgba(239, 68, 68, 0.04)";
                  }
-                 tr.innerHTML = "<td><b>" + t.name + "</b></td>" +
-                                "<td>" + t.phone + "</td>" +
-                                "<td><code style='letter-spacing:2px; font-weight:bold; color:#FFD23F;'>" + t.pin + "</code></td>" +
-                                "<td>" + (t.createdDate || "-") + "</td>" +
-                                "<td><b style='" + (isDue ? "color:#FF8080;" : "") + "'>" + (t.nextBillingDate || "-") + "</b></td>" +
+                 tr.innerHTML = "<td><b>" + escapeHtml(t.name) + "</b></td>" +
+                                "<td>" + escapeHtml(t.phone) + "</td>" +
+                                "<td><code style='letter-spacing:2px; font-weight:bold; color:#FFD23F;'>" + escapeHtml(t.pin) + "</code></td>" +
+                                "<td>" + escapeHtml(t.createdDate || "-") + "</td>" +
+                                "<td><b style='" + (isDue ? "color:#FF8080;" : "") + "'>" + escapeHtml(t.nextBillingDate || "-") + "</b></td>" +
                                 "<td style='text-align:center;'><b>" + sCount + "</b></td>" +
                                 "<td><b style='color:#A78BFA;'>" + webFee.toLocaleString('vi-VN') + "đ</b></td>" +
                                 "<td style='font-size:12px;'>" + lastActiveDisplay + "</td>" +
                                 "<td style='text-align:center;'>" + statusText + "</td>" +
                                 "<td style='text-align:center;'>" +
-                                  "<button class='btn-icon-edit' onclick='openAdminEditTutorModal(\"" + t.phone + "\")' title='Sửa thông tin gia sư' style='margin-right:4px;'><i class='fa-solid fa-pen-to-square'></i> Sửa</button>" +
+                                  "<button class='btn-icon-edit' onclick='openAdminEditTutorModal(\"" + jsStr(t.phone) + "\")' title='Sửa thông tin gia sư' style='margin-right:4px;'><i class='fa-solid fa-pen-to-square'></i> Sửa</button>" +
                                    (isCurrentlyDeactivated ? 
-                                     "<button class='btn-icon-edit' onclick='quickToggleTutorStatus(\"" + t.phone + "\", \"" + t.name + "\", true)' style='background:rgba(16, 185, 129, 0.15); border:1px solid #10B981; color:#10B981;' title='Kích hoạt lại tài khoản'><i class='fa-solid fa-user-check'></i> Mở</button>" : 
-                                     "<button class='btn-icon-edit' onclick='quickToggleTutorStatus(\"" + t.phone + "\", \"" + t.name + "\", false)' style='background:rgba(245, 158, 11, 0.15); border:1px solid #F59E0B; color:#F59E0B;' title='Vô hiệu hóa tài khoản'><i class='fa-solid fa-user-slash'></i> Khóa</button>"
+                                     "<button class='btn-icon-edit' onclick='quickToggleTutorStatus(\"" + jsStr(t.phone) + "\", \"" + jsStr(t.name) + "\", true)' style='background:rgba(16, 185, 129, 0.15); border:1px solid #10B981; color:#10B981;' title='Kích hoạt lại tài khoản'><i class='fa-solid fa-user-check'></i> Mở</button>" : 
+                                     "<button class='btn-icon-edit' onclick='quickToggleTutorStatus(\"" + jsStr(t.phone) + "\", \"" + jsStr(t.name) + "\", false)' style='background:rgba(245, 158, 11, 0.15); border:1px solid #F59E0B; color:#F59E0B;' title='Vô hiệu hóa tài khoản'><i class='fa-solid fa-user-slash'></i> Khóa</button>"
                                    ) +
                                 "</td>";
                  tbody.appendChild(tr);
                  
                  // Mobile accordion view
-                 var editBtn = "<button class='action-btn-hw' onclick='openAdminEditTutorModal(\"" + t.phone + "\")' style='color:#FFD23F; border-color:rgba(255,210,63,0.3); background:rgba(255,210,63,0.1); padding: 4px 14px; text-decoration: none; font-size:12px; border-radius: 20px;'><i class='fa-solid fa-pen-to-square'></i> Sửa</button>";
+                 var editBtn = "<button class='action-btn-hw' onclick='openAdminEditTutorModal(\"" + jsStr(t.phone) + "\")' style='color:#FFD23F; border-color:rgba(255,210,63,0.3); background:rgba(255,210,63,0.1); padding: 4px 14px; text-decoration: none; font-size:12px; border-radius: 20px;'><i class='fa-solid fa-pen-to-square'></i> Sửa</button>";
                   var lockBtn = isCurrentlyDeactivated ?
-                    "<button class='action-btn-hw' onclick='quickToggleTutorStatus(\"" + t.phone + "\", \"" + t.name + "\", true)' style='color:#10B981; border-color:rgba(16,185,129,0.3); background:rgba(16,185,129,0.1); padding: 4px 14px; text-decoration: none; font-size:12px; border-radius: 20px; margin-right: 6px;'><i class='fa-solid fa-user-check'></i> Mở</button>" :
-                    "<button class='action-btn-hw' onclick='quickToggleTutorStatus(\"" + t.phone + "\", \"" + t.name + "\", false)' style='color:#F59E0B; border-color:rgba(245,158,11,0.3); background:rgba(245,158,11,0.1); padding: 4px 14px; text-decoration: none; font-size:12px; border-radius: 20px; margin-right: 6px;'><i class='fa-solid fa-user-slash'></i> Khóa</button>";
+                    "<button class='action-btn-hw' onclick='quickToggleTutorStatus(\"" + jsStr(t.phone) + "\", \"" + jsStr(t.name) + "\", true)' style='color:#10B981; border-color:rgba(16,185,129,0.3); background:rgba(16,185,129,0.1); padding: 4px 14px; text-decoration: none; font-size:12px; border-radius: 20px; margin-right: 6px;'><i class='fa-solid fa-user-check'></i> Mở</button>" :
+                    "<button class='action-btn-hw' onclick='quickToggleTutorStatus(\"" + jsStr(t.phone) + "\", \"" + jsStr(t.name) + "\", false)' style='color:#F59E0B; border-color:rgba(245,158,11,0.3); background:rgba(245,158,11,0.1); padding: 4px 14px; text-decoration: none; font-size:12px; border-radius: 20px; margin-right: 6px;'><i class='fa-solid fa-user-slash'></i> Khóa</button>";
                  var mobilePayBtn = "";
                  if (isCurrentlyDeactivated) {
                      mobilePayBtn = "<span style='color:#6c757d; font-size:12px; margin-right: 8px;'>Đã khóa</span>";
                  } else if (isDue) {
-                     mobilePayBtn = "<button class='action-btn-hw' onclick='confirmQuickPaid(\"" + t.phone + "\", \"" + t.name + "\")' style='color:#10B981; border-color:rgba(16,185,129,0.3); background:rgba(16,185,129,0.1); padding: 4px 14px; text-decoration: none; font-size:12px; border-radius: 20px; margin-right: 8px;'><i class='fa-solid fa-check'></i> Xác nhận đã thu</button>";
+                     mobilePayBtn = "<button class='action-btn-hw' onclick='confirmQuickPaid(\"" + jsStr(t.phone) + "\", \"" + jsStr(t.name) + "\")' style='color:#10B981; border-color:rgba(16,185,129,0.3); background:rgba(16,185,129,0.1); padding: 4px 14px; text-decoration: none; font-size:12px; border-radius: 20px; margin-right: 8px;'><i class='fa-solid fa-check'></i> Xác nhận đã thu</button>";
                  }
                  
                  mobileHtml += "<div class='accordion-item' style='" + (isCurrentlyDeactivated ? "border: 1px solid rgba(245, 158, 11, 0.25); opacity: 0.85;" : (isDue ? "border: 1px solid rgba(239, 68, 68, 0.35);" : "")) + "'>";
                  mobileHtml += "  <div class='accordion-header' onclick='toggleAdminTutorAccordion(" + idx + ")'>";
                  mobileHtml += "    <div class='accordion-header-title'>";
-                 mobileHtml += "      <span>" + t.name + "</span>" + (isCurrentlyDeactivated ? " <span style='background:#F59E0B; color:#000; font-size:9px; padding:1px 5px; border-radius:10px; font-weight:bold; margin-left:5px;'>Vô hiệu hóa</span>" : (isDue ? " <span style='background:#EF4444; color:#FFF; font-size:9px; padding:1px 5px; border-radius:10px; font-weight:bold; margin-left:5px;'>Đến hạn</span>" : ""));
+                 mobileHtml += "      <span>" + escapeHtml(t.name) + "</span>" + (isCurrentlyDeactivated ? " <span style='background:#F59E0B; color:#000; font-size:9px; padding:1px 5px; border-radius:10px; font-weight:bold; margin-left:5px;'>Vô hiệu hóa</span>" : (isDue ? " <span style='background:#EF4444; color:#FFF; font-size:9px; padding:1px 5px; border-radius:10px; font-weight:bold; margin-left:5px;'>Đến hạn</span>" : ""));
                  mobileHtml += "    </div>";
                  mobileHtml += "    <div class='accordion-header-status'><i class='fa-solid fa-chevron-down' id='adm-tutor-chevron-" + idx + "'></i></div>";
                  mobileHtml += "  </div>";
                  mobileHtml += "  <div class='accordion-body' id='adm-tutor-body-" + idx + "' style='display: none;'>";
-                 mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Số điện thoại</span><span class='accordion-body-val'>" + t.phone + "</span></div>";
-                 mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Mã PIN</span><span class='accordion-body-val'><code style='letter-spacing:2px; font-weight:bold; color:#FFD23F;'>" + t.pin + "</code></span></div>";
-                 mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Ngày đăng ký</span><span class='accordion-body-val'>" + (t.createdDate || "-") + "</span></div>";
-                 mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Ngày hạn kế</span><span class='accordion-body-val' style='" + (isDue ? "color:#FF8080; font-weight:bold;" : "") + "'>" + (t.nextBillingDate || "-") + "</span></div>";
+                 mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Số điện thoại</span><span class='accordion-body-val'>" + escapeHtml(t.phone) + "</span></div>";
+                 mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Mã PIN</span><span class='accordion-body-val'><code style='letter-spacing:2px; font-weight:bold; color:#FFD23F;'>" + escapeHtml(t.pin) + "</code></span></div>";
+                 mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Ngày đăng ký</span><span class='accordion-body-val'>" + escapeHtml(t.createdDate || "-") + "</span></div>";
+                 mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Ngày hạn kế</span><span class='accordion-body-val' style='" + (isDue ? "color:#FF8080; font-weight:bold;" : "") + "'>" + escapeHtml(t.nextBillingDate || "-") + "</span></div>";
                  mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Số HS hoạt động</span><span class='accordion-body-val'><b>" + sCount + "</b></span></div>";
                  mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Phí thuê Web</span><span class='accordion-body-val'><b style='color:#A78BFA;'>" + webFee.toLocaleString('vi-VN') + "đ</b></span></div>";
                  mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Hoạt động cuối</span><span class='accordion-body-val'>" + lastActiveDisplay + "</span></div>";
@@ -544,9 +545,9 @@ var pinVerifyAction = "deleteStudent";
                             <div style="background: rgba(239, 68, 68, 0.12); border: 1px solid rgba(239, 68, 68, 0.35); border-radius: 12px; padding: 15px; color: #FF8080; font-size: 13.5px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; font-family: Inter;">
                                 <div style="display: flex; align-items: center; gap: 8px;">
                                     <i class="fa-solid fa-circle-exclamation" style="font-size: 16px; color: #EF4444;"></i>
-                                    <span>⚠️ Gia sư <b>${a.name}</b> (${a.students} HS) đến hạn đóng tiền thuê Web: <b style="color: #FFF; background: #EF4444; padding: 2px 8px; border-radius: 4px;">${a.fee.toLocaleString('vi-VN')}đ</b> (Hạn: ${a.nextBillingDate})</span>
+                                    <span>⚠️ Gia sư <b>${escapeHtml(a.name)}</b> (${a.students} HS) đến hạn đóng tiền thuê Web: <b style="color: #FFF; background: #EF4444; padding: 2px 8px; border-radius: 4px;">${a.fee.toLocaleString('vi-VN')}đ</b> (Hạn: ${escapeHtml(a.nextBillingDate)})</span>
                                 </div>
-                                <button onclick="confirmQuickPaid('${a.phone}', '${a.name}')" class="modal-btn modal-btn-primary" style="padding: 6px 14px; font-size: 12px; border-radius: 20px; background: linear-gradient(135deg, #10B981, #059669); border: none; box-shadow: 0 4px 10px rgba(16,185,129,0.2); color:#FFF; font-weight:bold; cursor:pointer;"><i class="fa-solid fa-check"></i> Xác nhận đã thu</button>
+                                <button onclick="confirmQuickPaid('${jsStr(a.phone)}', '${jsStr(a.name)}')" class="modal-btn modal-btn-primary" style="padding: 6px 14px; font-size: 12px; border-radius: 20px; background: linear-gradient(135deg, #10B981, #059669); border: none; box-shadow: 0 4px 10px rgba(16,185,129,0.2); color:#FFF; font-weight:bold; cursor:pointer;"><i class="fa-solid fa-check"></i> Xác nhận đã thu</button>
                             </div>
                         `;
                     });
@@ -577,37 +578,40 @@ var pinVerifyAction = "deleteStudent";
             
             var mobileHtml = "";
             adminDataGlobal.students.forEach((st, idx) => {
-                var statusText = st.deletedDate ? "<span class='badge' style='background:rgba(239,68,68,0.1); color:#EF4444; margin-bottom:0;'>Đã xóa (" + st.deletedDate.split(" ")[0] + ")</span>" : "<span class='badge' style='background:rgba(16,185,129,0.1); color:#10B981; margin-bottom:0;'>Hoạt động</span>";
-                var tName = adminDataGlobal.tutors.find(t => normalizePhone(t.phone) === normalizePhone(st.tutorPhone))?.name || "Chưa gán";
+                var statusText = st.deletedDate ? "<span class='badge' style='background:rgba(239,68,68,0.1); color:#EF4444; margin-bottom:0;'>Đã xóa (" + escapeHtml(st.deletedDate.split(" ")[0]) + ")</span>" : "<span class='badge' style='background:rgba(16,185,129,0.1); color:#10B981; margin-bottom:0;'>Hoạt động</span>";
+                var tName = escapeHtml(adminDataGlobal.tutors.find(t => normalizePhone(t.phone) === normalizePhone(st.tutorPhone))?.name || "Chưa gán");
+                var stTuitionNum = Number(st.tuition) || 0;
+                var tuitionDisplay = escapeHtml(st.tuition != null && st.tuition.toLocaleString ? st.tuition.toLocaleString('vi-VN') : st.tuition);
+                var editStudentArgs = "\"" + jsStr(st.phone) + "\", \"" + jsStr(st.parentName) + "\", \"" + jsStr(st.name) + "\", " + stTuitionNum + ", \"" + jsStr(st.tutorPhone) + "\"";
                 
                 // Desktop
                 var tr = document.createElement('tr');
-                tr.innerHTML = "<td><b>" + st.name + "</b></td>" +
-                               "<td>" + st.parentName + "</td>" +
-                               "<td>" + st.phone + "</td>" +
-                               "<td>" + st.tuition.toLocaleString('vi-VN') + "đ</td>" +
+                tr.innerHTML = "<td><b>" + escapeHtml(st.name) + "</b></td>" +
+                               "<td>" + escapeHtml(st.parentName) + "</td>" +
+                               "<td>" + escapeHtml(st.phone) + "</td>" +
+                               "<td>" + tuitionDisplay + "đ</td>" +
                                "<td>" + tName + "</td>" +
                                "<td>" + statusText + "</td>" +
                                "<td style='text-align:center;'>" +
-                                 "<button class='btn-icon-edit' onclick='openAdminEditStudentModal(\"" + st.phone + "\", \"" + st.parentName.replace(/'/g, "\\'") + "\", \"" + st.name.replace(/'/g, "\\'") + "\", " + st.tuition + ", \"" + st.tutorPhone + "\")' title='Sửa học sinh'><i class='fa-solid fa-pen-to-square'></i></button>" +
+                                 "<button class='btn-icon-edit' onclick='openAdminEditStudentModal(" + editStudentArgs + ")' title='Sửa học sinh'><i class='fa-solid fa-pen-to-square'></i></button>" +
                                "</td>";
                 tbody.appendChild(tr);
                 
                 // Mobile
-                var editBtn = "<button class='action-btn-hw' onclick='openAdminEditStudentModal(\"" + st.phone + "\", \"" + st.parentName.replace(/'/g, "\\'") + "\", \"" + st.name.replace(/'/g, "\\'") + "\", " + st.tuition + ", \"" + st.tutorPhone + "\")' style='color:#FFD23F; border-color:rgba(255,210,63,0.3); background:rgba(255,210,63,0.1); padding: 4px 14px; text-decoration: none; font-size:12px; border-radius:20px;'><i class='fa-solid fa-pen-to-square'></i> Chỉnh sửa</button>";
+                var editBtn = "<button class='action-btn-hw' onclick='openAdminEditStudentModal(" + editStudentArgs + ")' style='color:#FFD23F; border-color:rgba(255,210,63,0.3); background:rgba(255,210,63,0.1); padding: 4px 14px; text-decoration: none; font-size:12px; border-radius:20px;'><i class='fa-solid fa-pen-to-square'></i> Chỉnh sửa</button>";
                 
                 mobileHtml += "<div class='accordion-item'>";
                 mobileHtml += "  <div class='accordion-header' onclick='toggleAdminStudentAccordion(" + idx + ")'>";
                 mobileHtml += "    <div class='accordion-header-title'>";
-                mobileHtml += "      <span>" + st.name + "</span>";
+                mobileHtml += "      <span>" + escapeHtml(st.name) + "</span>";
                 mobileHtml += "      " + statusText;
                 mobileHtml += "    </div>";
                 mobileHtml += "    <div class='accordion-header-status'><i class='fa-solid fa-chevron-down' id='adm-student-chevron-" + idx + "'></i></div>";
                 mobileHtml += "  </div>";
                 mobileHtml += "  <div class='accordion-body' id='adm-student-body-" + idx + "' style='display: none;'>";
-                mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Tên phụ huynh</span><span class='accordion-body-val'>" + st.parentName + "</span></div>";
-                mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>SĐT Phụ Huynh</span><span class='accordion-body-val'>" + st.phone + "</span></div>";
-                mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Học phí/buổi</span><span class='accordion-body-val' style='font-weight:bold; color:#FFD23F;'>" + st.tuition.toLocaleString('vi-VN') + "đ</span></div>";
+                mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Tên phụ huynh</span><span class='accordion-body-val'>" + escapeHtml(st.parentName) + "</span></div>";
+                mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>SĐT Phụ Huynh</span><span class='accordion-body-val'>" + escapeHtml(st.phone) + "</span></div>";
+                mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Học phí/buổi</span><span class='accordion-body-val' style='font-weight:bold; color:#FFD23F;'>" + tuitionDisplay + "đ</span></div>";
                 mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Gia sư</span><span class='accordion-body-val'>" + tName + "</span></div>";
                 mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Thao tác</span><span class='accordion-body-val'>" + editBtn + "</span></div>";
                 mobileHtml += "  </div>";
@@ -623,7 +627,7 @@ var pinVerifyAction = "deleteStudent";
         function openAdminAccountModal() {
             var adminInfo = (adminDataGlobal && adminDataGlobal.adminInfo) ? adminDataGlobal.adminInfo : {};
             document.getElementById('adminAccName').value = adminInfo.name || "Quản trị viên";
-            document.getElementById('adminAccPhone').value = adminInfo.phone || currentAdminPhone || "302001";
+            document.getElementById('adminAccPhone').value = adminInfo.phone || currentAdminPhone || "";
             document.getElementById('adminAccPin').value = adminInfo.pin || sessionStorage.getItem('userPin') || "";
             document.getElementById('adminAccountModal').style.display = "flex";
         }
@@ -869,8 +873,8 @@ var pinVerifyAction = "deleteStudent";
                 card.style.border = "1px solid rgba(255, 255, 255, 0.05)";
                 
                 var info = document.createElement('div');
-                info.innerHTML = "<p style='margin:0; color:#FFF; font-weight:bold;'>" + t.name + "</p>" +
-                                 "<p style='margin:3px 0 0; color:#A6ADCE; font-size:12px;'>SĐT: " + t.phone + " | Đã xóa: " + t.deletedDate.split(" ")[0] + "</p>";
+                info.innerHTML = "<p style='margin:0; color:#FFF; font-weight:bold;'>" + escapeHtml(t.name) + "</p>" +
+                                 "<p style='margin:3px 0 0; color:#A6ADCE; font-size:12px;'>SĐT: " + escapeHtml(t.phone) + " | Đã xóa: " + escapeHtml(t.deletedDate.split(" ")[0]) + "</p>";
                 
                 var btnRestore = document.createElement('button');
                 btnRestore.className = "modal-btn modal-btn-primary";
