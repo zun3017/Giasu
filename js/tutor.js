@@ -3458,8 +3458,7 @@ function renderTuitionLivePreview() {
         html += '<div id="tuitionInvoiceCard" class="inv-aio-editorial" data-tmpl="3">';
 
         html += '<div class="ed-header">';
-        html += '<div class="ed-super">Bản tin học tập & Học phí gia sư</div>';
-        html += '<div class="ed-title">Thư Báo Học Phí</div>';
+        html += '<div class="ed-title">Phiếu Báo Học Phí</div>';
         html += '<div class="ed-pills">';
         html += '<span class="ed-pill">' + escapeHtml(classSubjectStr) + '</span>';
         html += '<span class="ed-pill">' + escapeHtml(periodTitle) + '</span>';
@@ -3521,8 +3520,7 @@ function renderTuitionLivePreview() {
         html += '<div id="tuitionInvoiceCard" class="inv-diploma" data-tmpl="6">';
 
         html += '<div class="dip-head">';
-        html += '<div class="dip-badge">BÁO CÁO HỌC TẬP</div>';
-        html += '<div class="dip-title">THƯ BÁO HỌC PHÍ</div>';
+        html += '<div class="dip-title">PHIẾU BÁO HỌC PHÍ</div>';
         html += '<div class="dip-subtitle">' + escapeHtml(periodTitle) + '</div>';
         html += '</div>';
 
