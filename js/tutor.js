@@ -2515,12 +2515,85 @@ function initVietnameseDatePicker(textInputId, pickerInputId, onChangeCallback) 
 }
 window.initVietnameseDatePicker = initVietnameseDatePicker;
 
+// ===== THEME RIÊNG CHO PHIẾU HỌC PHÍ (không ảnh hưởng theme hệ thống) =====
+var INVOICE_THEMES = [
+    { id: 'purple', name: 'Tím',        p: '#7C3AED', pd: '#5B21B6', mid: '#6D28D9', deep: '#4C1D95', soft: '#FAF5FF', soft2: '#F5F3FF', border: '#E9D5FF', line: '#F3E8FF', strong: '#D8B4FE', rgb: '124, 58, 237', bar: '#8E4DFF 0%, #3B82F6 50%, #10B981 100%' },
+    { id: 'blue',   name: 'Xanh dương', p: '#2563EB', pd: '#1E40AF', mid: '#1D4ED8', deep: '#1E3A8A', soft: '#EFF6FF', soft2: '#E0EDFF', border: '#BFDBFE', line: '#DBEAFE', strong: '#93C5FD', rgb: '37, 99, 235',  bar: '#3B82F6 0%, #06B6D4 50%, #10B981 100%' },
+    { id: 'teal',   name: 'Xanh ngọc',  p: '#0D9488', pd: '#115E59', mid: '#0F766E', deep: '#134E4A', soft: '#F0FDFA', soft2: '#E6FBF6', border: '#99F6E4', line: '#CCFBF1', strong: '#5EEAD4', rgb: '13, 148, 136', bar: '#14B8A6 0%, #06B6D4 50%, #3B82F6 100%' },
+    { id: 'green',  name: 'Xanh lá',    p: '#059669', pd: '#065F46', mid: '#047857', deep: '#064E3B', soft: '#ECFDF5', soft2: '#E3FAEF', border: '#A7F3D0', line: '#D1FAE5', strong: '#6EE7B7', rgb: '5, 150, 105',  bar: '#10B981 0%, #84CC16 50%, #F59E0B 100%' },
+    { id: 'pink',   name: 'Hồng',       p: '#DB2777', pd: '#9D174D', mid: '#BE185D', deep: '#831843', soft: '#FDF2F8', soft2: '#FCEAF4', border: '#FBCFE8', line: '#FCE7F3', strong: '#F9A8D4', rgb: '219, 39, 119', bar: '#EC4899 0%, #F472B6 50%, #A855F7 100%' },
+    { id: 'red',    name: 'Đỏ',         p: '#DC2626', pd: '#991B1B', mid: '#B91C1C', deep: '#7F1D1D', soft: '#FEF2F2', soft2: '#FDEAEA', border: '#FECACA', line: '#FEE2E2', strong: '#FCA5A5', rgb: '220, 38, 38',  bar: '#EF4444 0%, #F97316 50%, #F59E0B 100%' },
+    { id: 'orange', name: 'Cam',        p: '#EA580C', pd: '#9A3412', mid: '#C2410C', deep: '#7C2D12', soft: '#FFF7ED', soft2: '#FFF1E2', border: '#FED7AA', line: '#FFEDD5', strong: '#FDBA74', rgb: '234, 88, 12',  bar: '#F97316 0%, #F59E0B 50%, #EF4444 100%' },
+    { id: 'gold',   name: 'Vàng đồng',  p: '#B45309', pd: '#78350F', mid: '#92400E', deep: '#78350F', soft: '#FFFBEB', soft2: '#FEF6DA', border: '#FDE68A', line: '#FEF3C7', strong: '#FCD34D', rgb: '180, 83, 9',   bar: '#F59E0B 0%, #EAB308 50%, #D97706 100%' },
+    { id: 'slate',  name: 'Đen thanh lịch', p: '#334155', pd: '#0F172A', mid: '#1E293B', deep: '#0F172A', soft: '#F8FAFC', soft2: '#F1F5F9', border: '#CBD5E1', line: '#E2E8F0', strong: '#94A3B8', rgb: '51, 65, 85', bar: '#0F172A 0%, #475569 50%, #94A3B8 100%' }
+];
+window.INVOICE_THEMES = INVOICE_THEMES;
+
+function invoiceThemeStorageKey() {
+    var base = (typeof window.__tutorThemeKey === 'function') ? window.__tutorThemeKey() : 'tutorTheme::guest';
+    return base.replace(/^tutorTheme/, 'invoiceTheme');
+}
+
+function getInvoiceThemeId() {
+    var st = window.tuitionInvoiceModalState;
+    if (st && st.invoiceTheme) return st.invoiceTheme;
+    try { return localStorage.getItem(invoiceThemeStorageKey()) || 'purple'; } catch (e) { return 'purple'; }
+}
+
+function getInvoiceTheme() {
+    var id = getInvoiceThemeId();
+    for (var i = 0; i < INVOICE_THEMES.length; i++) if (INVOICE_THEMES[i].id === id) return INVOICE_THEMES[i];
+    return INVOICE_THEMES[0];
+}
+
+// Đổi bảng màu tím mặc định trong HTML phiếu sang bảng màu đã chọn
+function applyInvoiceThemeToHtml(html) {
+    var t = getInvoiceTheme();
+    if (t.id === 'purple') return html;
+    var base = INVOICE_THEMES[0];
+    var map = [
+        [base.bar, t.bar], ['rgba(124, 58, 237', 'rgba(' + t.rgb], ['rgba(109, 40, 217', 'rgba(' + t.rgb],
+        [base.p, t.p], [base.pd, t.pd], [base.mid, t.mid], [base.deep, t.deep], [base.soft, t.soft], [base.soft2, t.soft2],
+        [base.border, t.border], [base.line, t.line], [base.strong, t.strong]
+    ];
+    map.forEach(function (m) { html = html.split(m[0]).join(m[1]).split(m[0].toLowerCase()).join(m[1]); });
+    return html;
+}
+
+function invoiceThemeCssVars() {
+    var t = getInvoiceTheme();
+    return '--inv-p:' + t.p + ';--inv-pd:' + t.pd + ';--inv-mid:' + t.mid + ';--inv-deep:' + t.deep + ';--inv-soft:' + t.soft + ';--inv-soft2:' + t.soft2 + ';--inv-border:' + t.border + ';--inv-line:' + t.line + ';--inv-strong:' + t.strong + ';--inv-rgb:' + t.rgb + ';--inv-bar:linear-gradient(90deg, ' + t.bar + ');';
+}
+
+function renderInvoiceThemeSwatches() {
+    var wrap = document.getElementById('tuitionInvoiceThemeSwatches');
+    if (!wrap) return;
+    var cur = getInvoiceThemeId();
+    var html = '';
+    INVOICE_THEMES.forEach(function (t) {
+        html += '<button type="button" class="inv-theme-swatch' + (t.id === cur ? ' active' : '') + '" title="' + t.name + '" aria-label="Màu phiếu ' + t.name + '" onclick="setInvoiceTheme(\'' + t.id + '\')" style="--sw:' + t.p + ';--sw2:' + t.strong + ';"></button>';
+    });
+    wrap.innerHTML = html;
+}
+window.renderInvoiceThemeSwatches = renderInvoiceThemeSwatches;
+
+function setInvoiceTheme(id) {
+    if (!window.tuitionInvoiceModalState) window.tuitionInvoiceModalState = {};
+    window.tuitionInvoiceModalState.invoiceTheme = id;
+    try { localStorage.setItem(invoiceThemeStorageKey(), id); } catch (e) {}
+    renderInvoiceThemeSwatches();
+    renderTuitionLivePreview();
+    if (typeof autoSaveTuitionDraft === 'function') autoSaveTuitionDraft();
+}
+window.setInvoiceTheme = setInvoiceTheme;
+
 function getActiveThemeInvoiceColors() {
+    var t = getInvoiceTheme();
     return {
-        primary: '#7C3AED',
-        rgb: '124, 58, 237',
-        softBg: '#FAF5FF',
-        softBorder: '#E9D5FF'
+        primary: t.p,
+        rgb: t.rgb,
+        softBg: t.soft,
+        softBorder: t.border
     };
 }
 window.getActiveThemeInvoiceColors = getActiveThemeInvoiceColors;
@@ -3613,7 +3686,13 @@ function renderTuitionLivePreview() {
         html += '</div>'; // End Mẫu 1 #tuitionInvoiceCard
     }
 
+    // Áp dụng màu riêng của phiếu (chỉ phiếu, không đụng theme hệ thống)
+    html = applyInvoiceThemeToHtml(html);
+    html = html.replace('id="tuitionInvoiceCard" class="invoice-container', 'id="tuitionInvoiceCard" data-inv-theme="' + getInvoiceThemeId() + '" class="invoice-container inv-themed');
     modalBody.innerHTML = html;
+    var invCardEl = document.getElementById('tuitionInvoiceCard');
+    if (invCardEl) invCardEl.style.cssText += ';' + invoiceThemeCssVars();
+    renderInvoiceThemeSwatches();
 }
 window.renderTuitionLivePreview = renderTuitionLivePreview;
 

@@ -2825,6 +2825,30 @@
             }
         }
     </style>
+    <style>
+        /* ===== MÀU RIÊNG CỦA PHIẾU HỌC PHÍ ===== */
+        .inv-theme-bar { display: flex; align-items: center; gap: 8px; width: 100%; max-width: 480px; margin-bottom: 12px; flex-wrap: wrap; }
+        .inv-theme-bar-label { font-size: 12px; font-weight: 700; color: #64748B; margin-right: 2px; display: inline-flex; align-items: center; gap: 6px; }
+        .inv-theme-swatches { display: inline-flex; gap: 7px; flex-wrap: wrap; }
+        .inv-theme-swatch { position: relative; width: 24px; height: 24px; border-radius: 50%; padding: 0; cursor: pointer; border: 2px solid #FFFFFF; background: linear-gradient(135deg, var(--sw2) 0%, var(--sw) 70%); box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.15), 0 2px 6px rgba(15, 23, 42, 0.12); transition: transform 0.15s ease, box-shadow 0.15s ease; }
+        .inv-theme-swatch:hover { transform: scale(1.12); }
+        .inv-theme-swatch.active { transform: scale(1.12); box-shadow: 0 0 0 2px var(--sw), 0 3px 10px rgba(15, 23, 42, 0.2); }
+        .inv-theme-swatch.active::after { content: '\2713'; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: #FFFFFF; font-size: 12px; font-weight: 900; }
+        [data-theme="dark"] .inv-theme-bar-label { color: var(--text-secondary, #CBD5E1); }
+
+        #tuitionInvoiceCard.inv-themed::before { background: var(--inv-bar) !important; }
+        #tuitionInvoiceCard.inv-themed .inv-avatar { background: linear-gradient(135deg, var(--inv-p) 0%, var(--inv-pd) 100%) !important; box-shadow: 0 4px 12px rgba(var(--inv-rgb), 0.25) !important; }
+        #tuitionInvoiceCard.inv-themed .inv-pill-status { background: var(--inv-line) !important; color: var(--inv-mid) !important; border-color: rgba(var(--inv-rgb), 0.15) !important; }
+        #tuitionInvoiceCard.inv-themed .inv-section-title i,
+        #tuitionInvoiceCard.inv-themed .msg-header i,
+        #tuitionInvoiceCard.inv-themed .text-purple { color: var(--inv-p) !important; }
+        #tuitionInvoiceCard.inv-themed .fee-card { background: linear-gradient(135deg, var(--inv-soft) 0%, var(--inv-soft2) 100%) !important; border-color: var(--inv-border) !important; }
+        #tuitionInvoiceCard.inv-themed .fee-row.grand-total { border-top-color: var(--inv-strong) !important; }
+        #tuitionInvoiceCard.inv-themed .fee-row.grand-total .total-label { color: var(--inv-deep) !important; }
+        #tuitionInvoiceCard.inv-themed .fee-row.grand-total .total-val { color: var(--inv-mid) !important; }
+        #tuitionInvoiceCard.inv-themed .qr-card { border-color: var(--inv-border) !important; background: linear-gradient(180deg, #FFFFFF 0%, var(--inv-soft) 100%) !important; box-shadow: 0 4px 15px rgba(var(--inv-rgb), 0.08) !important; }
+        #tuitionInvoiceCard.inv-themed .qr-label { color: var(--inv-mid) !important; }
+    </style>
     <div id="tutorTuitionInvoiceModal" class="modal-overlay" style="z-index: 1080; display: none;" onclick="if(event.target === this) closeStudentInvoiceModal(true);">
         <div class="modal-content tuition-modal-dialog">
             <!-- Header: Title + Subtitle | "Chọn mẫu" + Pills Mẫu 1 / Mẫu 2 + Close X -->
@@ -2880,6 +2904,11 @@
                             <span style="width: 7px; height: 7px; border-radius: 50%; background: #10B981; display: inline-block;"></span>
                             TRỰC TIẾP
                         </div>
+                    </div>
+
+                    <div class="inv-theme-bar">
+                        <span class="inv-theme-bar-label"><i class="fa-solid fa-palette"></i> Màu phiếu</span>
+                        <div id="tuitionInvoiceThemeSwatches" class="inv-theme-swatches"></div>
                     </div>
 
                     <div id="tuitionInvoiceModalBody" style="width: 100%; max-width: 480px;">
