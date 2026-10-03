@@ -3151,7 +3151,9 @@ function renderTuitionLivePreview() {
 
     var state = window.tuitionInvoiceModalState || {};
     var sName = state.studentName || "";
-    var tmpl = state.template || window.currentTuitionTemplate || 1;
+    var rawTmpl = state.template !== undefined ? state.template : (window.currentTuitionTemplate !== undefined ? window.currentTuitionTemplate : 'default');
+    var tmpl = (rawTmpl === 0 || rawTmpl === '0' || rawTmpl === 'default' || rawTmpl === 'classic' || !rawTmpl) ? 'default' : Number(rawTmpl);
+    if (['default', 1, 3, 6].indexOf(tmpl) === -1) tmpl = 'default';
     var toggles = state.toggles || {};
     var discount = (state.discountAmount !== undefined) ? state.discountAmount : (toggles.discount ? (state.discountAmount || 0) : 0);
     var surcharge = (state.surchargeAmount !== undefined) ? state.surchargeAmount : (toggles.surcharge ? (state.surchargeAmount || 0) : 0);
@@ -3343,10 +3345,6 @@ function renderTuitionLivePreview() {
     }
 
     // ==================== BỘ 4 MẪU PHIẾU HỌC PHÍ (MẪU ĐẶC TRƯNG + MẪU 1, 3, 6) ====================
-    var rawTmpl = state.template !== undefined ? state.template : (window.currentTuitionTemplate !== undefined ? window.currentTuitionTemplate : 'default');
-    var tmpl = (rawTmpl === 0 || rawTmpl === '0' || rawTmpl === 'default' || rawTmpl === 'classic' || !rawTmpl) ? 'default' : Number(rawTmpl);
-    if (['default', 1, 3, 6].indexOf(tmpl) === -1) tmpl = 'default';
-
     if (tmpl === 1) {
         // ==========================================
         // MẪU 1: AIOENGLISH WARM NEOBRUTALISM
@@ -3850,7 +3848,12 @@ function openStudentInvoiceModal(studentName) {
     var lastD = new Date(yr, mo + 1, 0);
     var defaultStartStr = formatToDmy(firstD);
     var defaultEndStr = formatToDmy(lastD);
-    var defaultTmpl = window.currentTuitionTemplate || 'default';
+    var defaultTmpl = 'default';
+    if (window.currentTuitionTemplate && ['default', 1, 3, 6].indexOf(window.currentTuitionTemplate) !== -1) {
+        defaultTmpl = window.currentTuitionTemplate;
+    } else {
+        window.currentTuitionTemplate = 'default';
+    }
     var defaultTitle = generateTuitionPeriodTitle(defaultStartStr, defaultEndStr, defaultTmpl);
 
     // Check for existing draft in localStorage
@@ -3894,9 +3897,16 @@ function openStudentInvoiceModal(studentName) {
             }
         }
 
+        var draftTmpl = draftObj.template;
+        if (draftTmpl === 1 || draftTmpl === '1') {
+            if (window.currentTuitionTemplate !== 1) draftTmpl = 'default';
+        } else if (['default', 3, 6].indexOf(draftTmpl) === -1) {
+            draftTmpl = 'default';
+        }
+
         window.tuitionInvoiceModalState = {
             studentName: st.name,
-            template: (['default', 1, 3, 6].indexOf(draftObj.template) !== -1 ? draftObj.template : ([1, 3, 6].indexOf(Number(draftObj.template)) !== -1 ? Number(draftObj.template) : 'default')),
+            template: draftTmpl || 'default',
             toggles: draftObj.toggles || {
                 student: true,
                 class: true,
