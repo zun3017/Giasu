@@ -2720,6 +2720,76 @@ function onTuitionPeriodTitleChange() {
 }
 window.onTuitionPeriodTitleChange = onTuitionPeriodTitleChange;
 
+function formatFeedbackToHtml(text) {
+    if (!text) return "";
+    var safe = escapeHtml(text);
+    safe = safe.replace(/\*\*(.*?)\*\*/g, '<b style="color: #0F172A; font-weight: 700;">$1</b>');
+    safe = safe.replace(/^\+\s*(.*)$/gm, '&bull; $1');
+    safe = safe.replace(/\n/g, '<br>');
+    return safe;
+}
+window.formatFeedbackToHtml = formatFeedbackToHtml;
+
+function generateDefaultStudentFeedback(st, presentCount, billableCount, hwDone, hwMiss) {
+    var name = (st && st.name) ? st.name : "Con";
+    var lines = [];
+    lines.push("**Tổng quan:** " + name + " tham gia đầy đủ " + (presentCount || billableCount || 8) + " buổi học, đi học đúng giờ và có thái độ học tập nghiêm túc, tập trung nghe giảng.");
+    lines.push("**Kiến thức & Kỹ năng:** Nắm chắc các kiến thức trọng tâm đã học trong kỳ, có tư duy tiếp thu nhanh và hoàn thành tốt bài tập được giao.");
+    lines.push("**Điểm cần cải thiện:** Cần rèn luyện thêm tính cẩn thận khi tính toán, chú ý cách trình bày bài giải chi tiết và tiếp tục duy trì phong độ ở kỳ tới.");
+    return lines.join("\n\n");
+}
+window.generateDefaultStudentFeedback = generateDefaultStudentFeedback;
+
+function getPresetFeedback(type, studentName) {
+    var name = studentName || "Con";
+    if (type === 2) {
+        return "**Tổng quan:** " + name + " học tập rất chăm chỉ, ý thức tự giác cao và có tinh thần cầu tiến rõ rệt trong từng buổi học.\n\n**Kiến thức & Kỹ năng:** Nắm vững lý thuyết trọng tâm, giải bài nhanh và chính xác, đạt kết quả kiểm tra rất tốt.\n\n**Định hướng kỳ tới:** Tiếp tục phát huy thế mạnh và tăng cường luyện các bài tập nâng cao để bứt phá điểm số.";
+    } else if (type === 3) {
+        return "**Tổng quan:** " + name + " ngoan, lễ phép, tuy nhiên đôi lúc còn mất tập trung và cần rèn thêm tính kiên nhẫn khi làm bài khó.\n\n**Kiến thức & Kỹ năng:** Đã nắm được phương pháp giải cơ bản nhưng cần luyện tập nhiều hơn để tránh quên công thức.\n\n**Điểm cần cải thiện:** Cần hoàn thành BTVN đầy đủ đúng hạn và chủ động hỏi bài gia sư khi gặp phần chưa hiểu.";
+    } else if (type === 4) {
+        return "**Tổng quan:** " + name + " duy trì phong độ ổn định, bám sát lộ trình ôn thi và làm bài tập nghiêm túc.\n\n**Kiến thức & Kỹ năng:** Kỹ năng phân tích đề thi tiến bộ rõ rệt, xử lý tốt các câu hỏi vận dụng và phân loại.\n\n**Định hướng kỳ tới:** Tăng tốc giải đề thi thử bấm giờ để làm quen áp lực phòng thi và tối ưu hóa thời gian làm bài.";
+    } else {
+        return "**Tổng quan:** " + name + " đi học chuyên cần, tập trung nghe giảng và có thái độ học tập rất tích cực.\n\n**Kiến thức & Kỹ năng:** Nắm chắc các dạng bài trọng tâm trong kỳ, hoàn thành tốt các bài tập trên lớp.\n\n**Điểm cần cải thiện:** Cần rèn luyện tính cẩn thận khi tính toán để tránh mất điểm sơ suất và duy trì thói quen tự ôn bài.";
+    }
+}
+window.getPresetFeedback = getPresetFeedback;
+
+function onTuitionFeedbackTextChange() {
+    window.tuitionInvoiceHasUnsavedChanges = true;
+    var inp = document.getElementById('tuitionFeedbackTextInput');
+    if (!window.tuitionInvoiceModalState) window.tuitionInvoiceModalState = {};
+    window.tuitionInvoiceModalState.feedbackText = inp ? inp.value : "";
+    renderTuitionLivePreview();
+    autoSaveTuitionDraft();
+}
+window.onTuitionFeedbackTextChange = onTuitionFeedbackTextChange;
+
+function applyTuitionFeedbackPreset(presetText) {
+    window.tuitionInvoiceHasUnsavedChanges = true;
+    var inp = document.getElementById('tuitionFeedbackTextInput');
+    if (inp) {
+        inp.value = presetText;
+        inp.focus();
+    }
+    if (!window.tuitionInvoiceModalState) window.tuitionInvoiceModalState = {};
+    window.tuitionInvoiceModalState.feedbackText = presetText;
+    renderTuitionLivePreview();
+    autoSaveTuitionDraft();
+}
+window.applyTuitionFeedbackPreset = applyTuitionFeedbackPreset;
+
+function onTuitionInlineFeedbackInput(text) {
+    window.tuitionInvoiceHasUnsavedChanges = true;
+    if (!window.tuitionInvoiceModalState) window.tuitionInvoiceModalState = {};
+    window.tuitionInvoiceModalState.feedbackText = text || "";
+    var inp = document.getElementById('tuitionFeedbackTextInput');
+    if (inp && inp.value !== text) {
+        inp.value = text || "";
+    }
+    autoSaveTuitionDraft();
+}
+window.onTuitionInlineFeedbackInput = onTuitionInlineFeedbackInput;
+
 function onTuitionTeacherNoteChange() {
     window.tuitionInvoiceHasUnsavedChanges = true;
     var inp = document.getElementById('tuitionTeacherNoteInput');
@@ -2972,24 +3042,36 @@ function buildTuitionModalForm(st, studentLogs) {
     html += '</div>'; // End Box 3
 
     // ==========================================
-    // BOX 4: Lời nhắn gửi phụ huynh
+    // BOX 4: Nhận xét học tập & Đánh giá
     // ==========================================
     html += '<div id="tuitionBoxTeacherNote" class="tuition-card-box">';
-    html += '<div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">';
-    html += '<span style="background: #D97706; color: #FFFFFF; font-size: 11px; font-weight: 800; padding: 2px 7px; border-radius: 6px;">04</span>';
+    html += '<div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">';
+    html += '<div style="display: flex; align-items: center; gap: 8px;">';
+    html += '<span style="background: #7C3AED; color: #FFFFFF; font-size: 11px; font-weight: 800; padding: 2px 7px; border-radius: 6px;">04</span>';
     html += '<div>';
-    html += '<div style="font-size: 15px; font-weight: 700; color: #0F172A;">Lời nhắn gửi phụ huynh</div>';
-    html += '<div style="font-size: 12px; color: #64748B; margin-top: 1px;">Đính kèm lời động viên, dặn dò trực tiếp vào phiếu</div>';
+    html += '<div style="font-size: 15px; font-weight: 700; color: #0F172A;">Nhận xét học tập & Đánh giá</div>';
+    html += '<div style="font-size: 12px; color: #64748B; margin-top: 1px;">Hiển thị trực tiếp vào phần nhận xét của phiếu học tập</div>';
     html += '</div></div>';
+    html += '<button type="button" onclick="copyTuitionAIPrompt()" style="border: 1px solid #C4B5FD; background: #F5F3FF; color: #7C3AED; border-radius: 8px; padding: 4px 10px; font-size: 11px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 5px;" title="Tạo & copy Prompt AI nhận xét chuẩn 3 phần"><i class="fa-solid fa-wand-magic-sparkles"></i> Prompt AI</button>';
+    html += '</div>';
 
-    var currentNote = (state.teacherNote !== undefined) ? state.teacherNote : '';
-    html += '<textarea id="tuitionTeacherNoteInput" placeholder="Nhập lời dặn dò, nhận xét sự tiến bộ của con để gửi phụ huynh..." oninput="onTuitionTeacherNoteChange()" style="width: 100%; min-height: 72px; background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 10px; padding: 8px 12px; font-size: 12.5px; line-height: 1.5; color: #0F172A; resize: vertical; box-sizing: border-box; font-family: inherit; outline: none; margin-bottom: 8px;">' + escapeHtml(currentNote) + '</textarea>';
+    var currentFeedback = (state.feedbackText !== undefined) ? state.feedbackText : generateDefaultStudentFeedback(st, invPresent, invBillableCount, invDoneHw, invMissingHw);
+    html += '<textarea id="tuitionFeedbackTextInput" placeholder="Nhập nhận xét học tập theo bố cục 3 phần: Tổng quan, Kiến thức, Điểm cần cải thiện..." oninput="onTuitionFeedbackTextChange()" style="width: 100%; min-height: 86px; background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 10px; padding: 8px 12px; font-size: 12px; line-height: 1.55; color: #0F172A; resize: vertical; box-sizing: border-box; font-family: inherit; outline: none; margin-bottom: 8px;">' + escapeHtml(currentFeedback) + '</textarea>';
 
     // Quick template pills
-    html += '<div style="display: flex; gap: 6px; flex-wrap: wrap;">';
-    html += '<button type="button" onclick="applyTuitionQuickNote(\'🌟 Tháng này con học rất chăm chỉ, tiếp thu bài tốt và hoàn thành BTVN đầy đủ. Rất tuyên dương con!\')" style="border: 1px solid #CBD5E1; background: #FFF; border-radius: 6px; padding: 3px 8px; font-size: 11px; font-weight: 600; color: #334155; cursor: pointer;">🌟 Khen ngợi</button>';
-    html += '<button type="button" onclick="applyTuitionQuickNote(\'📚 Con cần chú ý ôn lại bài và làm BTVN đầy đủ hơn ở kỳ tới để vững vàng kiến thức nhé!\')" style="border: 1px solid #CBD5E1; background: #FFF; border-radius: 6px; padding: 3px 8px; font-size: 11px; font-weight: 600; color: #334155; cursor: pointer;">📚 Nhắc BTVN</button>';
-    html += '<button type="button" onclick="applyTuitionQuickNote(\'🎯 Kỳ này lớp sẽ tăng cường luyện đề ôn thi, gia đình tiếp tục đồng hành và nhắc nhở con nhé ạ!\')" style="border: 1px solid #CBD5E1; background: #FFF; border-radius: 6px; padding: 3px 8px; font-size: 11px; font-weight: 600; color: #334155; cursor: pointer;">🎯 Ôn luyện thi</button>';
+    var safeStName = escapeHtml(st.name).replace(/'/g, "\\'");
+    html += '<div style="display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px;">';
+    html += '<button type="button" onclick="applyTuitionFeedbackPreset(getPresetFeedback(1, \'' + safeStName + '\'))" style="border: 1px solid #CBD5E1; background: #FFF; border-radius: 6px; padding: 3px 8px; font-size: 11px; font-weight: 600; color: #334155; cursor: pointer;">✨ Chuẩn 3 phần</button>';
+    html += '<button type="button" onclick="applyTuitionFeedbackPreset(getPresetFeedback(2, \'' + safeStName + '\'))" style="border: 1px solid #CBD5E1; background: #FFF; border-radius: 6px; padding: 3px 8px; font-size: 11px; font-weight: 600; color: #334155; cursor: pointer;">🌟 Khen ngợi</button>';
+    html += '<button type="button" onclick="applyTuitionFeedbackPreset(getPresetFeedback(3, \'' + safeStName + '\'))" style="border: 1px solid #CBD5E1; background: #FFF; border-radius: 6px; padding: 3px 8px; font-size: 11px; font-weight: 600; color: #334155; cursor: pointer;">📚 Cần cố gắng</button>';
+    html += '<button type="button" onclick="applyTuitionFeedbackPreset(getPresetFeedback(4, \'' + safeStName + '\'))" style="border: 1px solid #CBD5E1; background: #FFF; border-radius: 6px; padding: 3px 8px; font-size: 11px; font-weight: 600; color: #334155; cursor: pointer;">🎯 Luyện thi</button>';
+    html += '</div>';
+
+    // Lời nhắn ngắn gửi kèm (payment memo)
+    var currentNote = (state.teacherNote !== undefined) ? state.teacherNote : '';
+    html += '<div style="border-top: 1px dashed #E2E8F0; padding-top: 10px; margin-top: 4px;">';
+    html += '<label style="display: block; font-size: 11.5px; color: #64748B; margin-bottom: 4px; font-weight: 600;"><i class="fa-regular fa-comment-dots" style="color: #D97706;"></i> Lời nhắn ngắn gửi kèm:</label>';
+    html += '<input type="text" id="tuitionTeacherNoteInput" value="' + escapeHtml(currentNote) + '" placeholder="Ví dụ: Dạ em gửi anh/chị phiếu học phí tháng này của con ạ..." oninput="onTuitionTeacherNoteChange()" style="width: 100%; background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 8px; padding: 7px 10px; font-size: 12px; color: #0F172A; outline: none; box-sizing: border-box;">';
     html += '</div>';
 
     html += '</div>'; // End Box 4
@@ -3332,6 +3414,23 @@ function renderTuitionLivePreview() {
         }
         html += '</div>';
     }
+
+    // Section: NHẬN XÉT HỌC TẬP & TIẾN BỘ
+    var feedbackRaw = (state.feedbackText && state.feedbackText.trim()) 
+        ? state.feedbackText.trim() 
+        : generateDefaultStudentFeedback(st, invPresent, invBillableCount, invDoneHw, invMissingHw);
+
+    html += '<div class="inv-feedback-card" style="margin-top: 12px; background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 12px; padding: 12px 14px; box-shadow: 0 2px 6px rgba(15,23,42,0.03);">';
+    html += '<div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; border-bottom: 1px solid #F1F5F9; padding-bottom: 6px;">';
+    html += '<div style="font-size: 11.5px; font-weight: 800; color: #7C3AED; text-transform: uppercase; letter-spacing: 0.5px; display: flex; align-items: center; gap: 6px;">';
+    html += '<i class="fa-solid fa-graduation-cap"></i> NHẬN XÉT HỌC TẬP & TIẾN BỘ';
+    html += '</div>';
+    html += '<span style="font-size: 10px; color: #64748B; font-weight: 600;"><i class="fa-solid fa-pen" style="font-size: 9px;"></i> Nhấp để sửa</span>';
+    html += '</div>';
+    html += '<div id="invFeedbackContent" contenteditable="true" style="font-size: 12px; line-height: 1.6; color: #1E293B; outline: none;" oninput="onTuitionInlineFeedbackInput(this.innerText)">';
+    html += formatFeedbackToHtml(feedbackRaw);
+    html += '</div>';
+    html += '</div>';
 
     // 3. Section 2: Tuition Breakdown
     html += '<div class="fee-card">';
