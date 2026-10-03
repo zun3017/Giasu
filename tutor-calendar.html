@@ -2846,6 +2846,111 @@
             .cal-view-indicator { transition: none; }
             .cal-title-anim .calendar-month-title, .cal-title-anim .cal-title-sub { animation: none; }
         }
+    
+        /* === DARK THEME: POPUP, FORM & BẢNG TÓM TẮT === */
+        [data-theme="dark"] {
+            --cal-popup-bg: linear-gradient(var(--bg-card-alt), var(--bg-card-alt)), var(--bg-page);
+            --cal-popup-border: var(--border-color);
+            --cal-soft-bg: rgba(255, 255, 255, 0.05);
+            --cal-soft-bg-hover: rgba(255, 255, 255, 0.10);
+        }
+        [data-theme="dark"] #eventDetailPopover,
+        [data-theme="dark"] .calendar-modal,
+        [data-theme="dark"] .recurrence-dialog,
+        [data-theme="dark"] .sheet-panel,
+        [data-theme="dark"] .fc .fc-popover {
+            background: var(--cal-popup-bg) !important;
+            border-color: var(--cal-popup-border) !important;
+            color: var(--text-primary) !important;
+            box-shadow: 0 18px 50px rgba(0, 0, 0, 0.55) !important;
+        }
+        [data-theme="dark"] .sheet-panel { border-top-color: var(--color-primary) !important; }
+        [data-theme="dark"] .modal-overlay,
+        [data-theme="dark"] .recurrence-dialog-overlay { background: rgba(0, 0, 0, 0.6) !important; }
+
+        /* Popup chi tiết ca học */
+        [data-theme="dark"] #detailTitle,
+        [data-theme="dark"] .modal-header h3,
+        [data-theme="dark"] .recurrence-dialog h4,
+        [data-theme="dark"] .recurrence-option-text strong,
+        [data-theme="dark"] .sheet-title { color: var(--text-primary) !important; }
+        [data-theme="dark"] .detail-info-item,
+        [data-theme="dark"] .detail-info-item i,
+        [data-theme="dark"] .detail-recurrence-info,
+        [data-theme="dark"] .recurrence-dialog p,
+        [data-theme="dark"] .recurrence-option-text span,
+        [data-theme="dark"] .form-group label { color: var(--text-secondary) !important; }
+        [data-theme="dark"] #detailFee { color: #34D399 !important; }
+        [data-theme="dark"] .detail-header-actions { border-color: var(--border-card) !important; }
+        [data-theme="dark"] .btn-detail-action,
+        [data-theme="dark"] .btn-close,
+        [data-theme="dark"] .btn-close-panel,
+        [data-theme="dark"] .fc .fc-popover-close { color: var(--text-secondary) !important; background: transparent !important; }
+        [data-theme="dark"] .btn-detail-action:hover,
+        [data-theme="dark"] .btn-close:hover,
+        [data-theme="dark"] .btn-close-panel:hover { background: var(--cal-soft-bg-hover) !important; color: var(--text-primary) !important; }
+        [data-theme="dark"] .bottom-sheet-handle { background: rgba(255, 255, 255, 0.25) !important; }
+
+        /* Form thêm / sửa ca dạy */
+        [data-theme="dark"] .modal-header,
+        [data-theme="dark"] .modal-footer { border-color: var(--border-card) !important; background: transparent !important; }
+        [data-theme="dark"] .form-control {
+            background: var(--bg-input) !important;
+            border-color: var(--border-color) !important;
+            color: var(--text-primary) !important;
+            color-scheme: dark;
+        }
+        [data-theme="dark"] .form-control::placeholder { color: var(--text-muted) !important; }
+        [data-theme="dark"] .form-control:focus { border-color: var(--color-primary) !important; box-shadow: 0 0 0 3px rgba(var(--color-primary-rgb), 0.25) !important; }
+        [data-theme="dark"] select.form-control option { background: var(--bg-page); color: var(--text-primary); }
+        [data-theme="dark"] .day-checkbox-label,
+        [data-theme="dark"] .color-scope-btn,
+        [data-theme="dark"] .color-preview-badge,
+        [data-theme="dark"] .recurrence-option {
+            background: var(--cal-soft-bg) !important;
+            border-color: var(--border-card) !important;
+            color: var(--text-secondary) !important;
+        }
+        [data-theme="dark"] .color-scope-btn.active,
+        [data-theme="dark"] .recurrence-option.selected,
+        [data-theme="dark"] .day-checkbox-item input:checked + .day-checkbox-label {
+            background: rgba(var(--color-primary-rgb), 0.22) !important;
+            border-color: var(--color-primary) !important;
+            color: var(--text-primary) !important;
+        }
+        [data-theme="dark"] .recurrence-radio-dot { border-color: var(--text-muted) !important; background: transparent !important; }
+        [data-theme="dark"] .btn-cancel,
+        [data-theme="dark"] .btn-rec-cancel {
+            background: var(--cal-soft-bg) !important;
+            border-color: var(--border-color) !important;
+            color: var(--text-primary) !important;
+        }
+        [data-theme="dark"] .btn-cancel:hover,
+        [data-theme="dark"] .btn-rec-cancel:hover { background: var(--cal-soft-bg-hover) !important; }
+        [data-theme="dark"] .btn-save,
+        [data-theme="dark"] .btn-rec-ok { background: var(--btn-bg) !important; color: var(--btn-text, #FFFFFF) !important; border: none !important; }
+
+        /* Bảng "Lịch tóm tắt" */
+        [data-theme="dark"] .btn-sheet-toggle-header {
+            background: var(--cal-soft-bg) !important;
+            border-color: var(--border-color) !important;
+            color: var(--text-primary) !important;
+        }
+        [data-theme="dark"] .btn-sheet-toggle-header:hover { background: var(--cal-soft-bg-hover) !important; }
+        [data-theme="dark"] .sheet-wrapper,
+        [data-theme="dark"] .sheet-table { background: transparent !important; border-color: var(--border-card) !important; box-shadow: none !important; }
+        [data-theme="dark"] .sheet-table th,
+        [data-theme="dark"] .sheet-table td { border-color: var(--border-card) !important; color: var(--text-secondary) !important; background: transparent !important; }
+        [data-theme="dark"] .sheet-table th { background: rgba(var(--color-primary-rgb), 0.16) !important; color: var(--text-primary) !important; }
+        [data-theme="dark"] .sheet-table td.cell-student { background: var(--cal-soft-bg) !important; color: var(--text-primary) !important; }
+        [data-theme="dark"] .sheet-table td.cell-active { color: var(--text-primary) !important; }
+        [data-theme="dark"] .sheet-table td.cell-empty { color: var(--text-muted) !important; }
+        [data-theme="dark"] .sheet-table td.cell-onetime { color: #F0A6CA !important; background: rgba(192, 94, 142, 0.16) !important; }
+        [data-theme="dark"] .sheet-table tbody tr:hover td { background: var(--cal-soft-bg-hover) !important; }
+
+        /* Popover "+N buổi" của FullCalendar */
+        [data-theme="dark"] .fc .fc-popover-header { background: rgba(var(--color-primary-rgb), 0.16) !important; color: var(--text-primary) !important; }
+        [data-theme="dark"] .fc .fc-popover-body { background: transparent !important; }
     </style>
 </head>
 <body>
@@ -3182,6 +3287,25 @@
     <script>
         let calendar = null;
         window.calendar = null;
+
+        // Helper định dạng tiền (200.000). tutor.js có hàm này nhưng trang lịch KHÔNG nạp tutor.js,
+        // thiếu hàm khiến bấm vào ngày để thêm ca dạy bị lỗi "formatNumberWithDots is not defined".
+        if (typeof window.formatNumberWithDots !== 'function') {
+            window.formatNumberWithDots = function(val) {
+                if (val === undefined || val === null || val === '') return '';
+                var rawVal = String(val).replace(/\D/g, '');
+                if (!rawVal) return '';
+                if (rawVal.length > 1) rawVal = rawVal.replace(/^0+/, '') || '0';
+                return rawVal.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+            };
+        }
+        var formatNumberWithDots = window.formatNumberWithDots;
+        if (typeof window.formatCurrencyInput !== 'function') {
+            window.formatCurrencyInput = function(input) {
+                if (!input) return;
+                input.value = window.formatNumberWithDots(input.value);
+            };
+        }
 
         const userPhone = sessionStorage.getItem('userPhone');
         const dashDataStr = sessionStorage.getItem('dashboardData');
