@@ -3324,6 +3324,10 @@ function renderTuitionLivePreview() {
         });
     }
 
+    var feedbackRaw = (state.feedbackText !== undefined && state.feedbackText !== null) 
+        ? state.feedbackText 
+        : generateDefaultStudentFeedback(st, invPresent, invBillableCount, invDoneHw, invMissingHw);
+
     var html = '';
 
     // Prepare message content for parent note
@@ -3609,9 +3613,6 @@ function switchTuitionTemplate(tmpl, isInitial) {
         var names = { 1: "Mẫu 1 · Aio Neobrutalism", 3: "Mẫu 3 · Aio Editorial Paper", 6: "Mẫu 6 · Academic Diploma" };
         previewTitleEl.textContent = "Phiếu trực tiếp (" + (names[tmpl] || ("Mẫu " + tmpl)) + ")";
     }
-    if (window.currentTuitionInvoiceStudent && typeof buildTuitionModalForm === 'function') {
-        buildTuitionModalForm(window.currentTuitionInvoiceStudent, window.currentTuitionInvoiceLogs);
-    }
     renderTuitionLivePreview();
     autoSaveTuitionDraft();
 }
@@ -3818,10 +3819,6 @@ function openStudentInvoiceModal(studentName) {
         draftTxt.parentElement.style.display = restoredDraft ? 'flex' : 'none';
     }
 
-    if (typeof switchTuitionTemplate === 'function') {
-        switchTuitionTemplate(window.tuitionInvoiceModalState.template, true);
-    }
-
     // Filter logs for this student using startDate and endDate
     var sDate = parseInputDate(window.tuitionInvoiceModalState.startDate);
     var eDate = parseInputDate(window.tuitionInvoiceModalState.endDate);
@@ -3843,8 +3840,15 @@ function openStudentInvoiceModal(studentName) {
         });
     }
 
+    window.currentTuitionInvoiceStudent = st;
+    window.currentTuitionInvoiceLogs = studentLogs;
     buildTuitionModalForm(st, studentLogs);
-    renderTuitionLivePreview();
+
+    if (typeof switchTuitionTemplate === 'function') {
+        switchTuitionTemplate(window.tuitionInvoiceModalState.template, true);
+    } else {
+        renderTuitionLivePreview();
+    }
 
     window.tuitionInvoiceHasUnsavedChanges = false;
     modal.style.display = "flex";
