@@ -2602,7 +2602,7 @@ function autoSaveTuitionDraft() {
         var key = 'tuitionDraft_' + state.studentName.trim();
         var draftData = {
             studentName: state.studentName,
-            template: state.template || 1,
+            template: state.template || 'default',
             toggles: state.toggles || {},
             discountAmount: state.discountAmount || 0,
             surchargeAmount: state.surchargeAmount || 0,
@@ -2651,7 +2651,7 @@ function saveTuitionDraftModal() {
         try {
             var draftData = {
                 studentName: state.studentName,
-                template: state.template || 1,
+                template: state.template || 'default',
                 toggles: state.toggles || {},
                 discountAmount: state.discountAmount || 0,
                 surchargeAmount: state.surchargeAmount || 0,
@@ -3342,9 +3342,10 @@ function renderTuitionLivePreview() {
         msgContent = "Dạ em chào anh/chị, em gửi anh/chị phiếu học tập tổng kết của bé <b>" + sDisplayName + "</b> ạ. Học phí kỳ này là <b>" + feeWord + "</b> (" + invBillableCount + " buổi). Anh/chị xem qua và quét mã QR chuyển khoản giúp em nhé ạ. Em cảm ơn anh/chị nhiều ạ!";
     }
 
-    // ==================== BỘ 3 MẪU PHIẾU HỌC PHÍ (MẪU 1, 3, 6) ====================
-    var tmpl = Number(state.template || window.currentTuitionTemplate || 1);
-    if ([1, 3, 6].indexOf(tmpl) === -1) tmpl = 1;
+    // ==================== BỘ 4 MẪU PHIẾU HỌC PHÍ (MẪU ĐẶC TRƯNG + MẪU 1, 3, 6) ====================
+    var rawTmpl = state.template !== undefined ? state.template : (window.currentTuitionTemplate !== undefined ? window.currentTuitionTemplate : 'default');
+    var tmpl = (rawTmpl === 0 || rawTmpl === '0' || rawTmpl === 'default' || rawTmpl === 'classic' || !rawTmpl) ? 'default' : Number(rawTmpl);
+    if (['default', 1, 3, 6].indexOf(tmpl) === -1) tmpl = 'default';
 
     if (tmpl === 1) {
         // ==========================================
@@ -3352,13 +3353,10 @@ function renderTuitionLivePreview() {
         // ==========================================
         html += '<div id="tuitionInvoiceCard" class="inv-aio-neobrutal" data-tmpl="1">';
 
-        // Paid watermark stamp
-        html += '<div class="paid-stamp-watermark" id="stamp-paid">ĐÃ THU<small>' + escapeHtml(formatToDmy(new Date())) + ' · ' + escapeHtml(bankName || 'MB BANK') + '</small></div>';
-
         // Top Badge Head
         html += '<div class="aio-badge-head">';
         html += '<div class="sticker-title"><i class="fa-solid fa-receipt"></i> PHIẾU BÁO HỌC PHÍ</div>';
-        html += '<div class="brand-pill">ZunTutor · ' + escapeHtml(periodTitle) + '</div>';
+        html += '<div class="brand-pill">' + escapeHtml(periodTitle) + '</div>';
         html += '</div>';
 
         // Student Hero Box
@@ -3441,7 +3439,9 @@ function renderTuitionLivePreview() {
             html += '<img src="' + safeUrlAttr(qrImgSrc) + '" alt="VietQR" crossorigin="anonymous" style="width: 100% !important; height: 100% !important; max-width: 100% !important; max-height: 100% !important; object-fit: contain !important; display: block !important;">';
             html += '</div>';
             html += '<div class="pay-details">';
-            html += '<div>Ngân hàng: <b>' + escapeHtml(bankName || 'MB Bank') + '</b></div>';
+            if (bankName) {
+                html += '<div>Ngân hàng: <b>' + escapeHtml(bankName) + '</b></div>';
+            }
             html += '<div>Số tài khoản: <b>' + escapeHtml(bankAcc || tutorPhone || '0987654321') + '</b></div>';
             html += '<div>Chủ TK: <b>' + escapeHtml(tutorName || 'Gia sư') + '</b></div>';
             html += '<div style="color: #B45309; font-weight: 700; margin-top: 2px;">Cú pháp: HOC PHI ' + escapeHtml(st.name.toUpperCase()) + '</div>';
@@ -3462,9 +3462,6 @@ function renderTuitionLivePreview() {
         // MẪU 3: AIOENGLISH EDITORIAL CLEAN PAPER
         // ==========================================
         html += '<div id="tuitionInvoiceCard" class="inv-aio-editorial" data-tmpl="3">';
-
-        // Paid watermark stamp
-        html += '<div class="paid-stamp-watermark" id="stamp-paid">PAID IN FULL<small>CẢM ƠN QUÝ PHỤ HUYNH</small></div>';
 
         html += '<div class="ed-header">';
         html += '<div class="ed-super">Bản tin học tập & Học phí gia sư</div>';
@@ -3517,24 +3514,21 @@ function renderTuitionLivePreview() {
             html += '<img src="' + safeUrlAttr(qrImgSrc) + '" alt="VietQR" crossorigin="anonymous" style="width: 100% !important; height: 100% !important; max-width: 100% !important; max-height: 100% !important; object-fit: contain !important; display: block !important;">';
             html += '</div>';
             html += '<div style="font-size: 12px; line-height: 1.5;">';
-            html += '<div>Tài khoản: <strong>' + escapeHtml(bankAcc || tutorPhone || '0987654321') + '</strong> (' + escapeHtml(bankName || 'MB Bank') + ')</div>';
+            html += '<div>Tài khoản: <strong>' + escapeHtml(bankAcc || tutorPhone || '0987654321') + '</strong>' + (bankName ? (' (' + escapeHtml(bankName) + ')') : '') + '</div>';
             html += '<div>Người thụ hưởng: <strong>' + escapeHtml(tutorName || 'Gia sư') + '</strong></div>';
             html += '<div style="color: #71717A; font-style: italic; margin-top: 2px;">' + (state.teacherNote && state.teacherNote.trim() ? escapeHtml(state.teacherNote.trim()) : 'Chân thành cảm ơn sự đồng hành của quý phụ huynh!') + '</div>';
             html += '</div></div>';
         }
 
         html += '</div>'; // End Mẫu 3
-    } else {
+    } else if (tmpl === 6) {
         // ==========================================
         // MẪU 6: ACADEMIC DIPLOMA & CERTIFICATE
         // ==========================================
         html += '<div id="tuitionInvoiceCard" class="inv-diploma" data-tmpl="6">';
 
-        // Paid watermark stamp
-        html += '<div class="paid-stamp-watermark" id="stamp-paid">ĐÃ XÁC NHẬN<small>HỌC PHÍ ĐÃ HOÀN TẤT</small></div>';
-
         html += '<div class="dip-head">';
-        html += '<div class="dip-badge">ZUNTUTOR ACADEMIA</div>';
+        html += '<div class="dip-badge">BÁO CÁO HỌC TẬP</div>';
         html += '<div class="dip-title">THƯ BÁO HỌC PHÍ</div>';
         html += '<div class="dip-subtitle">' + escapeHtml(periodTitle) + '</div>';
         html += '</div>';
@@ -3572,19 +3566,168 @@ function renderTuitionLivePreview() {
         html += '<div class="sign-box">';
         html += '<div>Gia sư phụ trách</div>';
         html += '<div class="sig-font">' + escapeHtml(tutorName || 'Nguyễn Văn A') + '</div>';
-        html += '<div style="color: #78716C;">STK: ' + escapeHtml(bankAcc || tutorPhone || '0987654321') + ' · ' + escapeHtml(bankName || 'MB Bank') + '</div>';
+        html += '<div style="color: #78716C;">STK: ' + escapeHtml(bankAcc || tutorPhone || '0987654321') + (bankName ? (' · ' + escapeHtml(bankName)) : '') + '</div>';
         html += '</div></div></div>';
 
         html += '</div>'; // End Mẫu 6
+    } else {
+        // ==========================================
+        // MẪU ĐẶC TRƯNG: ZUNTUTOR E-RECEIPT (MẪU GỐC)
+        // ==========================================
+        html += '<div id="tuitionInvoiceCard" class="invoice-container" data-tmpl="default" style="box-sizing: border-box; overflow: hidden;">';
+        
+        // 1. Header
+        html += '<div class="inv-head">';
+        html += '<div class="inv-head-left">';
+        html += '<div class="inv-avatar"><i class="fa-solid fa-graduation-cap"></i></div>';
+        html += '<div class="inv-user-meta">';
+        html += '<span class="inv-tag-mini">HỌC SINH</span>';
+        html += '<h2 id="invStudentName">' + escapeHtml(toggles.student !== false ? st.name : 'Học sinh') + '</h2>';
+        if (toggles.class === true) {
+            html += '<div style="font-size: 11.5px; color: #64748B; font-weight: 600; margin-top: 2px;">' + escapeHtml(classSubjectStr) + '</div>';
+        }
+        html += '</div></div>';
+        html += '<div class="inv-head-right">';
+        html += '<span class="inv-pill-status" id="invMonthDisplay"><i class="fa-solid fa-calendar-days"></i> ' + escapeHtml(periodTitle) + '</span>';
+        html += '</div></div>';
+
+        // 2. Section 1: Study Metrics
+        if (toggles.sessions !== false) {
+            html += '<div class="inv-section-title"><i class="fa-solid fa-chart-pie"></i> TỔNG KẾT KẾT QUẢ KỲ NÀY</div>';
+            html += '<div class="metrics-grid">';
+            
+            // Box Chuyên cần
+            html += '<div class="metric-card">';
+            html += '<div class="metric-card-header">';
+            html += '<span><i class="fa-solid fa-calendar-check text-green"></i> Chuyên cần</span>';
+            html += '<span class="text-green font-bold" id="invAttTotalBadge">' + invBillableCount + ' Buổi</span>';
+            html += '</div>';
+            html += '<div class="metric-badges">';
+            html += '<div class="m-badge"><div class="m-num text-green" id="invAttP">' + invPresent + '</div><div class="m-lbl">Buổi học</div></div>';
+            html += '<div class="m-badge"><div class="m-num text-amber" id="invAttA">' + invAbsent + '</div><div class="m-lbl">Nghỉ phép</div></div>';
+            html += '<div class="m-badge"><div class="m-num text-purple" id="invAttB">' + invMakeup + '</div><div class="m-lbl">Đã bù</div></div>';
+            html += '</div>';
+            html += '<div class="metric-notes" id="invAbsentDates">';
+            html += '<div><span>Nghỉ phép:</span> ' + escapeHtml(invAbsentDates.length > 0 ? invAbsentDates.join(", ") : "Không có") + '</div>';
+            html += '</div>';
+            html += '</div>';
+
+            // Box Bài tập về nhà
+            html += '<div class="metric-card">';
+            html += '<div class="metric-card-header">';
+            html += '<span><i class="fa-solid fa-book-open text-purple"></i> Bài tập về nhà</span>';
+            html += '<span class="text-purple font-bold" id="invHwTotalBadge">' + invBillableCount + ' Buổi</span>';
+            html += '</div>';
+            html += '<div class="metric-badges">';
+            html += '<div class="m-badge"><div class="m-num text-green" id="invHwDone">' + invDoneHw + '</div><div class="m-lbl">Đủ bài</div></div>';
+            html += '<div class="m-badge"><div class="m-num text-red" id="invHwMiss">' + invMissingHw + '</div><div class="m-lbl">Thiếu bài</div></div>';
+            html += '<div class="m-badge"><div class="m-num" id="invHwLate">' + invLateHw + '</div><div class="m-lbl">Nộp trễ</div></div>';
+            html += '</div>';
+            html += '<div class="metric-notes" id="invHwMissDates">';
+            html += '<div><span>Thiếu bài:</span> ' + escapeHtml(invMissingHwDates.length > 0 ? invMissingHwDates.join(", ") : "Không thiếu bài") + '</div>';
+            html += '</div>';
+            html += '</div>';
+
+            html += '</div>';
+        }
+
+        // Chi tiết ngày học (nếu toggle bật)
+        if (toggles.dates === true) {
+            html += '<div style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 12px; padding: 10px 12px; margin-top: 10px;">';
+            if (attendedLogs.length > 0) {
+                html += '<div style="font-size: 11px; font-weight: 700; color: #475569; margin-bottom: 6px;"><i class="fa-solid fa-calendar-days" style="color: #7C3AED;"></i> Chi tiết các ngày học (' + attendedLogs.length + ' buổi):</div>';
+                html += '<div style="display: flex; flex-wrap: wrap; gap: 5px;">';
+                attendedLogs.forEach(function(l) {
+                    var lDateText = l.studyDate || l.ngay || "";
+                    var dObj = parseInputDate(lDateText);
+                    var chipLabel = dObj ? (String(dObj.getDate()).padStart(2, '0') + '/' + String(dObj.getMonth() + 1).padStart(2, '0')) : lDateText;
+                    html += '<span style="background: #FFFFFF; border: 1px solid #CBD5E1; color: #334155; font-size: 11px; padding: 2px 7px; border-radius: 6px; font-weight: 600;">' + escapeHtml(chipLabel) + '</span>';
+                });
+                html += '</div>';
+            } else {
+                html += '<div style="font-size: 11.5px; color: #94A3B8; font-style: italic;"><i class="fa-solid fa-calendar-days" style="color: #94A3B8; margin-right: 4px;"></i> Chưa có buổi học nào trong kỳ</div>';
+            }
+            html += '</div>';
+        }
+
+        // Section: NHẬN XÉT HỌC TẬP & TIẾN BỘ
+        html += '<div class="inv-feedback-card" style="margin-top: 12px; background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 12px; padding: 12px 14px; box-shadow: 0 2px 6px rgba(15,23,42,0.03);">';
+        html += '<div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; border-bottom: 1px solid #F1F5F9; padding-bottom: 6px;">';
+        html += '<div style="font-size: 11.5px; font-weight: 800; color: #7C3AED; text-transform: uppercase; letter-spacing: 0.5px; display: flex; align-items: center; gap: 6px;">';
+        html += '<i class="fa-solid fa-graduation-cap"></i> NHẬN XÉT HỌC TẬP & TIẾN BỘ';
+        html += '</div>';
+        html += '<span style="font-size: 10px; color: #64748B; font-weight: 600;"><i class="fa-solid fa-pen" style="font-size: 9px;"></i> Nhấp để sửa</span>';
+        html += '</div>';
+        html += '<div id="invFeedbackContent" contenteditable="true" style="font-size: 12px; line-height: 1.6; color: #1E293B; outline: none;" oninput="onTuitionInlineFeedbackInput(this.innerText)">';
+        html += formatFeedbackToHtml(feedbackRaw);
+        html += '</div>';
+        html += '</div>';
+
+        // 3. Section 2: Tuition Breakdown
+        html += '<div class="fee-card">';
+        if (toggles.fee !== false) {
+            var feeUnitLabel = isMonthly ? "Hình thức thu học phí:" : "Đơn giá mỗi buổi học:";
+            var feeUnitValue = isMonthly ? ("Trọn gói theo tháng (" + Number(unitFee).toLocaleString('vi-VN') + " VNĐ)") : (Number(unitFee).toLocaleString('vi-VN') + " VNĐ");
+            html += '<div class="fee-row"><span id="invFeeUnitLabel">' + feeUnitLabel + '</span><b id="invFeeUnitValue">' + feeUnitValue + '</b></div>';
+        }
+        if (toggles.sessions !== false) {
+            var feeCalcText = isMonthly ? "Kỳ học phí:" : "Thời lượng học kỳ này:";
+            var feeCalcTotal = isMonthly ? periodTitle : (invBillableCount + " buổi");
+            html += '<div class="fee-row"><span id="invFeeCalcText">' + feeCalcText + '</span><b id="invFeeCalcTotal">' + escapeHtml(feeCalcTotal) + '</b></div>';
+        }
+        if (discount > 0) {
+            html += '<div class="fee-row" style="color: #EA580C;"><span>Giảm trừ học phí:</span><b>-' + Number(discount).toLocaleString('vi-VN') + ' đ</b></div>';
+        }
+        if (surcharge > 0) {
+            html += '<div class="fee-row" style="color: #16A34A;"><span>Phụ thu thêm:</span><b>+' + Number(surcharge).toLocaleString('vi-VN') + ' đ</b></div>';
+        }
+        html += '<div class="fee-row grand-total">';
+        html += '<span class="total-label">TỔNG HỌC PHÍ KỲ NÀY</span>';
+        html += '<span class="total-val" id="invGrandTotal">' + grandTotalStr + '</span>';
+        html += '</div></div>';
+
+        // 4. Section 3: Bottom Action (Note & QR)
+        var bottomGridCols = (toggles.qr !== false) ? 'grid-template-columns: 1fr 190px;' : 'grid-template-columns: 1fr;';
+        html += '<div class="bottom-action-container" style="' + bottomGridCols + '">';
+        html += '<div class="msg-box">';
+        html += '<div>';
+        html += '<div class="msg-header"><i class="fa-regular fa-comment-dots"></i> Lời nhắn gửi phụ huynh</div>';
+        html += '<div class="msg-text" id="invTextarea" contenteditable="true">' + msgContent + '</div>';
+        html += '</div>';
+        html += '<div class="msg-footer">Đồng hành cùng sự tiến bộ của học sinh!</div>';
+        html += '</div>';
+
+        if (toggles.qr !== false) {
+            html += '<div class="qr-card" style="overflow: hidden; box-sizing: border-box; display: flex; flex-direction: column; align-items: center; justify-content: center;">';
+            html += '<img src="' + safeUrlAttr(qrImgSrc) + '" id="invQrImg" class="qr-img" alt="QR Code" crossorigin="anonymous" style="width: 100% !important; height: auto !important; max-height: 120px !important; max-width: 120px !important; object-fit: contain !important; display: block !important;">';
+            html += '<div class="qr-label" id="invQrText"><i class="fa-solid fa-qrcode"></i> Quét VietQR</div>';
+            html += '</div>';
+        }
+        html += '</div>';
+
+        html += '</div>'; // End Mẫu Đặc Trưng
     }
 
+    if (tmpl === 'default') {
+        html = applyInvoiceThemeToHtml(html);
+        html = html.replace('id="tuitionInvoiceCard" class="invoice-container', 'id="tuitionInvoiceCard" data-inv-theme="' + getInvoiceThemeId() + '" class="invoice-container inv-themed');
+    }
     modalBody.innerHTML = html;
+    if (tmpl === 'default') {
+        var invCardEl = document.getElementById('tuitionInvoiceCard');
+        if (invCardEl) invCardEl.style.cssText += ';' + invoiceThemeCssVars();
+        if (typeof renderInvoiceThemeSwatches === 'function') renderInvoiceThemeSwatches();
+    }
 }
 window.renderTuitionLivePreview = renderTuitionLivePreview;
 
 function switchTuitionTemplate(tmpl, isInitial) {
-    tmpl = Number(tmpl) || 1;
-    if ([1, 3, 6].indexOf(tmpl) === -1) tmpl = 1;
+    if (tmpl === 0 || tmpl === '0' || tmpl === 'default' || tmpl === 'classic' || !tmpl) {
+        tmpl = 'default';
+    } else {
+        tmpl = Number(tmpl);
+        if ([1, 3, 6].indexOf(tmpl) === -1) tmpl = 'default';
+    }
     window.currentTuitionTemplate = tmpl;
     if (window.tuitionInvoiceModalState) {
         window.tuitionInvoiceModalState.template = tmpl;
@@ -3601,17 +3744,29 @@ function switchTuitionTemplate(tmpl, isInitial) {
     if (!isInitial) {
         window.tuitionInvoiceHasUnsavedChanges = true;
     }
+    var b0 = document.getElementById('btnTemplate0');
     var b1 = document.getElementById('btnTemplate1');
     var b3 = document.getElementById('btnTemplate3');
     var b6 = document.getElementById('btnTemplate6');
+    if (b0) b0.classList.toggle('active', tmpl === 'default');
     if (b1) b1.classList.toggle('active', tmpl === 1);
     if (b3) b3.classList.toggle('active', tmpl === 3);
     if (b6) b6.classList.toggle('active', tmpl === 6);
+
+    var themeBar = document.getElementById('tuitionInvoiceThemeBar');
+    if (themeBar) {
+        themeBar.style.display = (tmpl === 'default') ? 'flex' : 'none';
+    }
     
     var previewTitleEl = document.getElementById('tuitionPreviewTitle');
     if (previewTitleEl) {
-        var names = { 1: "Mẫu 1 · Aio Neobrutalism", 3: "Mẫu 3 · Aio Editorial Paper", 6: "Mẫu 6 · Academic Diploma" };
-        previewTitleEl.textContent = "Phiếu trực tiếp (" + (names[tmpl] || ("Mẫu " + tmpl)) + ")";
+        var names = {
+            'default': "Mẫu Đặc Trưng",
+            1: "Mẫu 1 · Aio Neobrutalism",
+            3: "Mẫu 3 · Aio Editorial Paper",
+            6: "Mẫu 6 · Academic Diploma"
+        };
+        previewTitleEl.textContent = "Phiếu trực tiếp (" + (names[tmpl] || "Mẫu Đặc Trưng") + ")";
     }
     renderTuitionLivePreview();
     autoSaveTuitionDraft();
@@ -3700,7 +3855,7 @@ function openStudentInvoiceModal(studentName) {
     var lastD = new Date(yr, mo + 1, 0);
     var defaultStartStr = formatToDmy(firstD);
     var defaultEndStr = formatToDmy(lastD);
-    var defaultTmpl = window.currentTuitionTemplate || 1;
+    var defaultTmpl = window.currentTuitionTemplate || 'default';
     var defaultTitle = generateTuitionPeriodTitle(defaultStartStr, defaultEndStr, defaultTmpl);
 
     // Check for existing draft in localStorage
@@ -3746,7 +3901,7 @@ function openStudentInvoiceModal(studentName) {
 
         window.tuitionInvoiceModalState = {
             studentName: st.name,
-            template: ([1, 3, 6].indexOf(Number(draftObj.template)) !== -1 ? Number(draftObj.template) : 1),
+            template: (['default', 1, 3, 6].indexOf(draftObj.template) !== -1 ? draftObj.template : ([1, 3, 6].indexOf(Number(draftObj.template)) !== -1 ? Number(draftObj.template) : 'default')),
             toggles: draftObj.toggles || {
                 student: true,
                 class: true,

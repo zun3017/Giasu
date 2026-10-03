@@ -3375,10 +3375,11 @@
                 </div>
 
                 <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
-                    <!-- Bộ 3 Mẫu Phiếu Được Chọn (Mẫu 1, Mẫu 3, Mẫu 6) -->
+                    <!-- Bộ 4 Mẫu Phiếu: Mẫu Đặc Trưng (ZunTutor) + Mẫu 1, 3, 6 -->
                     <div style="display: inline-flex; align-items: center; gap: 4px; background: #F1F5F9; padding: 3px 6px; border-radius: 999px; border: 1px solid #CBD5E1;">
                         <span style="font-size: 11px; font-weight: 700; color: #475569; padding-left: 6px;"><i class="fa-solid fa-palette" style="color: #7C3AED;"></i> Mẫu:</span>
-                        <button type="button" class="btn-template-pill active" id="btnTemplate1" onclick="switchTuitionTemplate(1)">Mẫu 1 (Aio Brutal)</button>
+                        <button type="button" class="btn-template-pill active" id="btnTemplate0" onclick="switchTuitionTemplate('default')">Mẫu Đặc Trưng</button>
+                        <button type="button" class="btn-template-pill" id="btnTemplate1" onclick="switchTuitionTemplate(1)">Mẫu 1 (Aio Brutal)</button>
                         <button type="button" class="btn-template-pill" id="btnTemplate3" onclick="switchTuitionTemplate(3)">Mẫu 3 (Editorial)</button>
                         <button type="button" class="btn-template-pill" id="btnTemplate6" onclick="switchTuitionTemplate(6)">Mẫu 6 (Diploma)</button>
                     </div>
@@ -3416,7 +3417,7 @@
                         </div>
                     </div>
 
-                    <div class="inv-theme-bar">
+                    <div class="inv-theme-bar" id="tuitionInvoiceThemeBar">
                         <span class="inv-theme-bar-label"><i class="fa-solid fa-palette"></i> Màu phiếu</span>
                         <div id="tuitionInvoiceThemeSwatches" class="inv-theme-swatches"></div>
                     </div>
