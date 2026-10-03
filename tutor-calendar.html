@@ -1014,10 +1014,10 @@
         }
 
         .fc-day-other .fc-daygrid-day-frame {
-            background: var(--bg-card-alt) !important;
+            background: var(--bg-card, #FFFFFF) !important;
             border-color: var(--border-card) !important;
             box-shadow: none !important;
-            opacity: 0.88 !important;
+            opacity: 0.45 !important;
         }
 
         .fc-day-other .fc-daygrid-day-number {
@@ -1235,8 +1235,8 @@
         /* EVENT CHIPS Ở MONTH VIEW: DẠNG VIÊN THUỐC CAPSULE CÓ CHẤM TRÒN MÀU */
         .fc-daygrid-event {
             border: none !important;
-            border-radius: 6px !important;
-            margin: 1.5px 3.5px !important;
+            border-radius: 999px !important;
+            margin: 2px 6px !important;
             padding: 0 !important;
             box-shadow: none !important;
             background: transparent !important;
@@ -1249,8 +1249,8 @@
             display: flex !important;
             align-items: center !important;
             gap: 6px !important;
-            padding: 3px 7px !important;
-            border-radius: 6px !important;
+            padding: 2.5px 9px !important;
+            border-radius: 999px !important;
             font-size: 11.5px !important;
             line-height: 1.35 !important;
             white-space: nowrap !important;
@@ -1263,16 +1263,15 @@
 
         .fc-month-chip-inner:hover {
             transform: translateY(-1px) !important;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.12) !important;
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.10) !important;
         }
 
         .fc-chip-dot {
-            width: 7px !important;
-            height: 7px !important;
+            width: 6px !important;
+            height: 6px !important;
             border-radius: 50% !important;
             flex-shrink: 0 !important;
             display: inline-block !important;
-            box-shadow: 0 0 2px rgba(0, 0, 0, 0.25) !important;
         }
 
         .fc-chip-time {
@@ -2311,6 +2310,18 @@
             .calendar-month-title { font-size: 14px !important; }
             .cal-header-right { flex-wrap: wrap; gap: 6px; }
         }
+
+        /* Month view trên điện thoại: chip viên thuốc gọn, chỉ hiện giờ */
+        @media (max-width: 600px) {
+            .fc .fc-daygrid-day { padding: 2px !important; }
+            .fc .fc-daygrid-day-frame { border-radius: 10px !important; min-height: 92px !important; }
+            .fc .fc-daygrid-day-top { padding: 5px 5px 2px 5px !important; }
+            .fc .fc-daygrid-event { margin: 1.5px 3px !important; padding: 0 !important; }
+            .fc .fc-month-chip-inner { padding: 2px 3px !important; gap: 0 !important; justify-content: center !important; }
+            .fc .fc-month-chip-inner .fc-chip-dot,
+            .fc .fc-month-chip-inner .fc-chip-title { display: none !important; }
+            .fc .fc-month-chip-inner .fc-chip-time { font-size: 9.5px !important; letter-spacing: -0.3px !important; }
+        }
     
         /* === THEME OVERRIDES FOR CALENDAR === */
         body {
@@ -2476,10 +2487,12 @@
         .fc-daygrid-day-frame {
             background: var(--bg-card) !important;
             border: 1px solid var(--border-card) !important;
-            box-shadow: var(--shadow-card) !important;
+            border-radius: 14px !important;
+            box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03) !important;
         }
         .fc-daygrid-day-frame:hover {
             border-color: var(--color-primary) !important;
+            box-shadow: 0 4px 12px rgba(15, 23, 42, 0.07) !important;
         }
         .fc-daygrid-day-number {
             color: var(--text-primary) !important;
@@ -2487,9 +2500,10 @@
             font-weight: 700 !important;
         }
         .fc-day-other .fc-daygrid-day-frame {
-            background: var(--bg-page) !important;
+            background: var(--bg-card) !important;
             border-color: var(--border-card) !important;
-            opacity: 0.88 !important;
+            box-shadow: none !important;
+            opacity: 0.45 !important;
         }
         .fc-day-other .fc-daygrid-day-number {
             color: var(--text-muted) !important;
@@ -4356,17 +4370,18 @@
                             chipBg = isDark ? 'rgba(255, 255, 255, 0.06)' : '#F1F5F9';
                             chipBorder = isDark ? 'rgba(255, 255, 255, 0.15)' : '#CBD5E1';
                         } else if (isDark) {
-                            chipBg = 'rgba(' + hexToRgbStr(color) + ', 0.32)';
-                            chipBorder = color;
+                            chipBg = 'rgba(' + hexToRgbStr(color) + ', 0.28)';
+                            chipBorder = 'rgba(' + hexToRgbStr(color) + ', 0.65)';
                         } else {
-                            chipBg = 'rgba(' + hexToRgbStr(color) + ', 0.22)';
-                            chipBorder = 'rgba(' + hexToRgbStr(color) + ', 0.80)';
+                            chipBg = 'rgba(' + hexToRgbStr(color) + ', 0.16)';
+                            chipBorder = 'rgba(' + hexToRgbStr(color) + ', 0.55)';
                         }
+                        let timeClr = isCancelled ? '#9CA3AF' : (isDark ? '#FFFFFF' : 'color-mix(in srgb, ' + color + ' 70%, #000)');
                         
-                        let html = '<div class="fc-month-chip-inner" style="background: ' + chipBg + '; border: 1px solid ' + chipBorder + '; border-left: 3.5px solid ' + dotColor + '; box-shadow: 0 1px 3px rgba(0,0,0,0.06); ' + textDecor + '">' +
+                        let html = '<div class="fc-month-chip-inner" style="background: ' + chipBg + '; border: 1px solid ' + chipBorder + '; ' + textDecor + '">' +
                                    '<span class="fc-chip-dot" style="background-color: ' + dotColor + ';"></span>' +
-                                   (timeStr ? '<span class="fc-chip-time" style="color: ' + textClr + '; font-weight: 700;">' + timeStr + '</span>' : '') +
-                                   '<span class="fc-chip-title" style="color: ' + textClr + '; font-weight: 600;">' + titleStr + '</span>' +
+                                   (timeStr ? '<span class="fc-chip-time" style="color: ' + timeClr + ';">' + timeStr + '</span>' : '') +
+                                   '<span class="fc-chip-title" style="color: ' + textClr + ';">' + titleStr + '</span>' +
                                    '</div>';
                         return { html: html };
                     }
