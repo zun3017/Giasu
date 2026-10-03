@@ -4514,7 +4514,12 @@
                     }
                 },
                 events: function(info, successCallback, failureCallback) {
-                    let vType = this.view ? this.view.type : (calendar && calendar.view ? calendar.view.type : initialViewType);
+                    // Khi chuyển sang chế độ Tháng, calendar.view có thể vẫn trả về view cũ (Tuần)
+                    // => chỉ sinh sự kiện cho 1 tuần. Dựa vào độ dài khoảng ngày được yêu cầu để xác định chính xác.
+                    let rangeDays = (new Date(info.end) - new Date(info.start)) / 86400000;
+                    let vType = rangeDays > 8
+                        ? 'dayGridMonth'
+                        : ((calendar && calendar.view) ? calendar.view.type : initialViewType);
                     let events = getEventsForCalendarRange(info, vType);
                     successCallback(events);
                 },
