@@ -2662,6 +2662,124 @@
           .fc-toolbar-title { font-size: 14px !important; }
           .fc-button { font-size: 11px !important; padding: 6px 8px !important; }
         }
+
+        /* ===== HEADER LỊCH NÂNG CẤP: Tiêu đề Tháng/Tuần + Bộ chuyển chế độ ===== */
+        .cal-title-block {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 3px;
+            min-width: 0;
+        }
+        .calendar-month-title {
+            display: inline-flex !important;
+            align-items: center !important;
+            gap: 9px !important;
+            font-size: 22px !important;
+            line-height: 1.1 !important;
+            white-space: nowrap;
+        }
+        .cal-title-icon {
+            width: 30px; height: 30px;
+            border-radius: 10px;
+            display: inline-flex; align-items: center; justify-content: center;
+            font-size: 14px;
+            color: var(--btn-text, #fff);
+            background: linear-gradient(135deg, var(--color-primary, #8E4DFF), color-mix(in srgb, var(--color-primary, #8E4DFF) 55%, #EC4899));
+            box-shadow: 0 4px 12px color-mix(in srgb, var(--color-primary, #8E4DFF) 35%, transparent);
+            flex-shrink: 0;
+        }
+        .cal-title-main {
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            background: linear-gradient(90deg, var(--color-primary, #8E4DFF), color-mix(in srgb, var(--color-primary, #8E4DFF) 50%, #EC4899));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .cal-title-year {
+            font-size: 12px;
+            font-weight: 700;
+            padding: 3px 9px;
+            border-radius: 999px;
+            color: var(--color-primary, #8E4DFF);
+            background: color-mix(in srgb, var(--color-primary, #8E4DFF) 12%, transparent);
+            border: 1px solid color-mix(in srgb, var(--color-primary, #8E4DFF) 25%, transparent);
+            -webkit-text-fill-color: currentColor;
+        }
+        .cal-title-sub {
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--text-muted, #8A8F98);
+            padding-left: 39px;
+            white-space: nowrap;
+        }
+        .cal-title-sub:empty { display: none; }
+        .cal-title-sub b { color: var(--text-primary); font-weight: 700; }
+        .cal-title-dot { margin: 0 7px; opacity: 0.5; }
+        .cal-title-anim .calendar-month-title,
+        .cal-title-anim .cal-title-sub {
+            animation: calTitleIn 0.38s cubic-bezier(.2,.8,.2,1) both;
+        }
+        .cal-title-anim .cal-title-sub { animation-delay: 0.06s; }
+        @keyframes calTitleIn {
+            from { opacity: 0; transform: translateY(6px); filter: blur(2px); }
+            to   { opacity: 1; transform: none; filter: none; }
+        }
+
+        /* Bộ chuyển Tháng / Tuần / Ngày với thanh trượt */
+        .cal-view-pills.has-indicator {
+            position: relative !important;
+            padding: 4px !important;
+            border-radius: 999px !important;
+            gap: 2px;
+            box-shadow: inset 0 1px 2px rgba(0,0,0,0.06);
+        }
+        .cal-view-indicator {
+            position: absolute;
+            top: 4px; bottom: 4px; left: 0;
+            width: 0;
+            border-radius: 999px;
+            background: linear-gradient(135deg, var(--color-primary, #8E4DFF), color-mix(in srgb, var(--color-primary, #8E4DFF) 60%, #EC4899));
+            box-shadow: 0 4px 12px color-mix(in srgb, var(--color-primary, #8E4DFF) 40%, transparent);
+            transition: transform 0.35s cubic-bezier(.3,1.3,.5,1), width 0.35s cubic-bezier(.3,1.3,.5,1), opacity 0.2s;
+            z-index: 0;
+            pointer-events: none;
+        }
+        .cal-view-pills.has-indicator .cal-view-pill {
+            position: relative;
+            z-index: 1;
+            display: inline-flex !important;
+            align-items: center;
+            gap: 6px;
+            height: 30px !important;
+            padding: 0 14px !important;
+            border-radius: 999px !important;
+            transition: color 0.25s ease, background 0.2s ease !important;
+        }
+        .cal-view-pills.has-indicator .cal-view-pill i { font-size: 11px; opacity: 0.75; transition: transform 0.25s ease; }
+        .cal-view-pills.has-indicator .cal-view-pill.active {
+            background: transparent !important;
+            box-shadow: none !important;
+            color: var(--btn-text, #fff) !important;
+        }
+        .cal-view-pills.has-indicator .cal-view-pill.active i { opacity: 1; transform: scale(1.1); }
+        .cal-view-pills.has-indicator .cal-view-pill:hover:not(.active) i { transform: translateY(-1px); }
+
+        @media (max-width: 768px) {
+            .calendar-month-title { font-size: 17px !important; gap: 7px !important; }
+            .cal-title-icon { width: 26px; height: 26px; font-size: 12px; border-radius: 8px; }
+            .cal-title-year { font-size: 11px; padding: 2px 7px; }
+            .cal-title-sub { font-size: 11px; padding-left: 33px; }
+            .cal-view-pills.has-indicator .cal-view-pill { height: 28px !important; padding: 0 11px !important; gap: 5px; }
+        }
+        @media (max-width: 400px) {
+            .cal-view-pills.has-indicator .cal-view-pill i { display: none; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .cal-view-indicator { transition: none; }
+            .cal-title-anim .calendar-month-title, .cal-title-anim .cal-title-sub { animation: none; }
+        }
     </style>
 </head>
 <body>
@@ -2688,16 +2806,20 @@
                     </button>
                 </div>
 
-                <h2 id="calendarHeaderTitle" class="calendar-month-title">Tháng 9 2026</h2>
+                <div class="cal-title-block">
+                    <h2 id="calendarHeaderTitle" class="calendar-month-title"><span class="cal-title-main">Tháng 9</span><span class="cal-title-year">2026</span></h2>
+                    <div id="calendarHeaderSub" class="cal-title-sub"></div>
+                </div>
             </div>
 
-            <!-- NHÓM BÊN PHẢI: Toggle Filter "Ẩn đã hủy" + Toggle Pills "Tháng / Tuần / Ngày" + Lịch tóm tắt -->
+            <!-- NHÓM BÊN PHẢI: Toggle Pills "Tháng / Tuần / Ngày" + Lịch tóm tắt -->
             <div class="cal-header-right">
-                <!-- Toggle Pills: Tháng / Tuần / Ngày -->
-                <div class="cal-view-pills">
-                    <button type="button" class="cal-view-pill active" id="viewPillMonth" onclick="switchCalendarView('dayGridMonth')">Tháng</button>
-                    <button type="button" class="cal-view-pill" id="viewPillWeek" onclick="switchCalendarView('timeGridWeek')">Tuần</button>
-                    <button type="button" class="cal-view-pill" id="viewPillDay" onclick="switchCalendarView('timeGridDay')">Ngày</button>
+                <!-- Toggle Pills: Tháng / Tuần / Ngày (có thanh trượt nổi) -->
+                <div class="cal-view-pills has-indicator">
+                    <span class="cal-view-indicator" id="calViewIndicator"></span>
+                    <button type="button" class="cal-view-pill active" id="viewPillMonth" onclick="switchCalendarView('dayGridMonth')"><i class="fa-solid fa-calendar"></i><span>Tháng</span></button>
+                    <button type="button" class="cal-view-pill" id="viewPillWeek" onclick="switchCalendarView('timeGridWeek')"><i class="fa-solid fa-calendar-week"></i><span>Tuần</span></button>
+                    <button type="button" class="cal-view-pill" id="viewPillDay" onclick="switchCalendarView('timeGridDay')"><i class="fa-solid fa-calendar-day"></i><span>Ngày</span></button>
                 </div>
 
                 <!-- Nút bật/mở bảng lịch tóm tắt -->
@@ -4033,15 +4155,76 @@
             }
         }
 
+        function getISOWeekNum(d) {
+            let t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+            let dayNum = t.getUTCDay() || 7;
+            t.setUTCDate(t.getUTCDate() + 4 - dayNum);
+            let yearStart = new Date(Date.UTC(t.getUTCFullYear(), 0, 1));
+            return Math.ceil((((t - yearStart) / 86400000) + 1) / 7);
+        }
+
+        // Đếm số buổi (không tính đã hủy) + số học sinh trong khoảng đang xem
+        function countSessionsInView(view) {
+            try {
+                let evs = getEventsForCalendarRange({ start: view.currentStart, end: view.currentEnd }, view.type);
+                let s = view.currentStart, e = view.currentEnd;
+                let names = new Set(), n = 0;
+                evs.forEach(ev => {
+                    let p = ev.extendedProps || {};
+                    if (p.status === 'cancelled') return;
+                    let d = parseYMDLocal(p.date || String(ev.start).slice(0, 10));
+                    if (d < s || d >= e) return;
+                    n++;
+                    names.add(p.studentName);
+                });
+                return { sessions: n, students: names.size };
+            } catch (err) { return { sessions: 0, students: 0 }; }
+        }
+
+        let _lastHeaderKey = '';
         function updateCalendarHeaderTitle(view) {
             let titleEl = document.getElementById('calendarHeaderTitle');
             if (!titleEl || !view) return;
+            let subEl = document.getElementById('calendarHeaderSub');
+            let pad = n => String(n).padStart(2, '0');
+            let s = view.currentStart;
+            let eIncl = new Date(view.currentEnd); eIncl.setDate(eIncl.getDate() - 1);
+            let daysVi = ['Chủ Nhật', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy'];
+            let main, year, icon;
             if (view.type === 'dayGridMonth') {
-                let d = view.currentStart;
-                titleEl.innerText = 'Tháng ' + (d.getMonth() + 1) + ' ' + d.getFullYear();
+                main = 'Tháng ' + (s.getMonth() + 1);
+                year = s.getFullYear();
+                icon = 'fa-calendar';
+            } else if (/Day$/.test(view.type)) {
+                main = daysVi[s.getDay()] + ', ' + pad(s.getDate()) + '/' + pad(s.getMonth() + 1);
+                year = s.getFullYear();
+                icon = 'fa-calendar-day';
             } else {
-                titleEl.innerText = view.title;
+                main = pad(s.getDate()) + '/' + pad(s.getMonth() + 1) + ' – ' + pad(eIncl.getDate()) + '/' + pad(eIncl.getMonth() + 1);
+                year = eIncl.getFullYear();
+                icon = 'fa-calendar-week';
             }
+            let st = countSessionsInView(view);
+            let parts = [];
+            if (!/Day$/.test(view.type) && view.type !== 'dayGridMonth') parts.push('Tuần ' + getISOWeekNum(s));
+            parts.push('<b>' + st.sessions + '</b> buổi học');
+            if (st.students) parts.push('<b>' + st.students + '</b> học sinh');
+
+            let key = view.type + '|' + s.getTime();
+            titleEl.innerHTML = '<i class="fa-solid ' + icon + ' cal-title-icon"></i>' +
+                '<span class="cal-title-main">' + main + '</span>' +
+                '<span class="cal-title-year">' + year + '</span>';
+            if (subEl) subEl.innerHTML = parts.join('<span class="cal-title-dot">•</span>');
+            if (key !== _lastHeaderKey) {
+                let block = titleEl.parentElement;
+                if (block) {
+                    block.classList.remove('cal-title-anim');
+                    void block.offsetWidth;
+                    block.classList.add('cal-title-anim');
+                }
+                _lastHeaderKey = key;
+            }
+
             // Tooltip nút trước/sau theo đúng chế độ xem
             let unit = view.type === 'dayGridMonth' ? 'Tháng' : (/Day$/.test(view.type) ? 'Ngày' : 'Tuần');
             let bPrev = document.getElementById('btnCalPrev');
@@ -4049,6 +4232,21 @@
             if (bPrev) bPrev.title = unit + ' trước';
             if (bNext) bNext.title = unit + ' sau';
         }
+
+        // Thanh trượt nổi dưới nút Tháng/Tuần/Ngày đang chọn
+        function moveViewPillIndicator() {
+            let wrap = document.querySelector('.cal-view-pills');
+            let ind = document.getElementById('calViewIndicator');
+            let active = wrap ? wrap.querySelector('.cal-view-pill.active') : null;
+            if (!wrap || !ind) return;
+            if (!active) { ind.style.opacity = '0'; return; }
+            ind.style.opacity = '1';
+            ind.style.width = active.offsetWidth + 'px';
+            ind.style.transform = 'translateX(' + active.offsetLeft + 'px)';
+        }
+        window.addEventListener('resize', moveViewPillIndicator);
+        window.addEventListener('load', moveViewPillIndicator);
+        if (document.fonts && document.fonts.ready) document.fonts.ready.then(moveViewPillIndicator);
 
         function updateActiveViewPills(viewType) {
             let pillMap = {
@@ -4069,6 +4267,7 @@
                     }
                 }
             });
+            requestAnimationFrame(moveViewPillIndicator);
         }
 
         function switchCalendarView(viewName) {
@@ -4535,6 +4734,9 @@
                     updateCalendarHeaderTitle(dateInfo.view);
                     updateActiveViewPills(dateInfo.view.type);
                     updateMonthBottomBar(dateInfo.view);
+                },
+                eventsSet: function() {
+                    if (calendar && calendar.view) updateCalendarHeaderTitle(calendar.view);
                 },
                 dayCellDidMount: function(arg) {
                     if (arg.view.type !== 'dayGridMonth') return;
