@@ -4,6 +4,55 @@ var currentTutorStudent = null;
 var currentTutorPhone = "";
 var pinVerifyAction = "deleteStudent";
 
+// =====================================
+// UTILITIES: ĐỊNH DẠNG SỐ & TIỀN TỆ (200.000)
+// =====================================
+function formatNumberWithDots(val) {
+    if (val === undefined || val === null || val === '') return '';
+    var rawVal = String(val).replace(/\D/g, '');
+    if (!rawVal) return '';
+    if (rawVal.length > 1) {
+        rawVal = rawVal.replace(/^0+/, '') || '0';
+    }
+    return rawVal.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+}
+window.formatNumberWithDots = formatNumberWithDots;
+
+function formatCurrencyInput(el) {
+    if (!el) return;
+    var cursorPosition = el.selectionStart;
+    var originalLength = el.value.length;
+    var rawVal = el.value.replace(/\D/g, '');
+    if (!rawVal) {
+        el.value = '';
+        return;
+    }
+    if (rawVal.length > 1) {
+        rawVal = rawVal.replace(/^0+/, '') || '0';
+    }
+    var formatted = rawVal.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    el.value = formatted;
+    var newLength = formatted.length;
+    cursorPosition = cursorPosition + (newLength - originalLength);
+    if (cursorPosition < 0) cursorPosition = 0;
+    try {
+        el.setSelectionRange(cursorPosition, cursorPosition);
+    } catch (e) {}
+}
+window.formatCurrencyInput = formatCurrencyInput;
+
+// Lắng nghe sự kiện input tự động format tiền tệ
+document.addEventListener('input', function(e) {
+    var target = e.target;
+    if (!target) return;
+    if (target.classList && target.classList.contains('currency-input')) {
+        formatCurrencyInput(target);
+    } else if (target.getAttribute && target.getAttribute('data-currency') === 'true') {
+        formatCurrencyInput(target);
+    } else if (['addStudentTuition', 'editStudentTuition', 'adminStudentTuition', 'eventFee', 'inputDiscountFee', 'inputSurchargeFee'].indexOf(target.id) !== -1) {
+        formatCurrencyInput(target);
+    }
+}, true);
 
 // =====================================
 // BLOCK A: NEW CORE DASHBOARD & UTILITIES (MERGED FROM DEMO)
@@ -1814,7 +1863,9 @@ function openEditStudentModalByIndex(idx, event) {
         if (targetCard) targetCard.classList.add('active');
         
         if (typeof openEditStudentModal === 'function') {
-            openEditStudentModal();
+            openEditStudentModal(allResolved[idx]);
+        } else if (typeof window.openEditStudentModal === 'function') {
+            window.openEditStudentModal(allResolved[idx]);
         }
     }
 }
@@ -7022,10 +7073,15 @@ window.initTutorSidebarState = initTutorSidebarState;
             if (stParam) currentTutorStudent = stParam;
             if(!currentTutorStudent) return;
             var sName = (currentTutorStudent.name || "").trim();
-            document.getElementById('editOldStudentPhone').value = currentTutorStudent.phone;
-            document.getElementById('editStudentName').value = sName;
-            document.getElementById('editStudentTuition').value = currentTutorStudent.tuition ? formatNumberWithDots(currentTutorStudent.tuition) : "";
-            document.getElementById('editStudentMaBaiTap').value = currentTutorStudent.maBaiTap || "";
+            
+            var oldPhoneInp = document.getElementById('editOldStudentPhone');
+            if (oldPhoneInp) oldPhoneInp.value = currentTutorStudent.phone || "";
+            var nameInp = document.getElementById('editStudentName');
+            if (nameInp) nameInp.value = sName;
+            var tuitionInp = document.getElementById('editStudentTuition');
+            if (tuitionInp) tuitionInp.value = currentTutorStudent.tuition ? formatNumberWithDots(currentTutorStudent.tuition) : "";
+            var maBtInp = document.getElementById('editStudentMaBaiTap');
+            if (maBtInp) maBtInp.value = currentTutorStudent.maBaiTap || "";
             
             var bType = currentTutorStudent.billing_type || currentTutorStudent.billingType || currentTutorStudent.billing_cycle || 'session';
             if (bType === 'month' || bType === 'monthly') {
@@ -7035,7 +7091,9 @@ window.initTutorSidebarState = initTutorSidebarState;
                 var radS = document.getElementById('editBillingSession');
                 if (radS) radS.checked = true;
             }
-            toggleBillingTypeLabel('edit');
+            if (typeof toggleBillingTypeLabel === 'function') {
+                toggleBillingTypeLabel('edit');
+            }
 
             // Nạp lịch học của học sinh vào form chỉnh sửa
             var studentSched = null;
@@ -7058,18 +7116,20 @@ window.initTutorSidebarState = initTutorSidebarState;
                 studentSched = currentTutorStudent.schedule;
             }
 
-            initScheduleForm('edit', studentSched);
+            if (typeof initScheduleForm === 'function') {
+                initScheduleForm('edit', studentSched);
+            }
 
             if (!studentSched) {
                 var tPhone = (tutorDataGlobal && tutorDataGlobal.tutorPhone) ? tutorDataGlobal.tutorPhone : (sessionStorage.getItem('userPhone') || (typeof currentTutorPhone !== 'undefined' ? currentTutorPhone : ""));
-                if (typeof google !== 'undefined' && google.script && google.script.run && tPhone) {
+                if (typeof google !== 'undefined' && google.script && google.script.run && tPhone && typeof google.script.run.getTutorSchedule === 'function') {
                     google.script.run.withSuccessHandler(function(schedList) {
                         if (schedList && Array.isArray(schedList)) {
                             lastLoadedTutorSchedule = schedList;
                             var sFound = schedList.find(function(s) {
                                 return s && s.studentName && s.studentName.trim().toLowerCase() === sName.toLowerCase();
                             });
-                            if (sFound) {
+                            if (sFound && typeof initScheduleForm === 'function') {
                                 initScheduleForm('edit', sFound);
                             }
                         }
@@ -7077,18 +7137,33 @@ window.initTutorSidebarState = initTutorSidebarState;
                 }
             }
             
-            document.getElementById('editParentName').value = ""; 
-            document.getElementById('editParentName').placeholder = "Đang tải tên phụ huynh...";
-            google.script.run.withSuccessHandler(function(pName) {
-                document.getElementById('editParentName').value = pName || "";
-                document.getElementById('editParentName').placeholder = "";
-            }).getStudentParentName(currentTutorStudent.phone);
+            var parentInp = document.getElementById('editParentName');
+            if (parentInp) {
+                parentInp.value = currentTutorStudent.parentName || ("Phụ huynh em " + sName);
+                parentInp.placeholder = "";
+            }
+            try {
+                if (typeof google !== 'undefined' && google.script && google.script.run && typeof google.script.run.getStudentParentName === 'function') {
+                    google.script.run.withSuccessHandler(function(pName) {
+                        if (pName && parentInp) {
+                            parentInp.value = pName;
+                        }
+                    }).getStudentParentName(currentTutorStudent.phone);
+                }
+            } catch (errP) {}
             
-            document.getElementById('editStudentPhone').value = currentTutorStudent.phone;
-            document.getElementById('editStudentModal').style.display = "flex";
+            var phoneInp = document.getElementById('editStudentPhone');
+            if (phoneInp) {
+                phoneInp.value = currentTutorStudent.phone || "";
+            }
+            var modalEl = document.getElementById('editStudentModal');
+            if (modalEl) {
+                modalEl.style.display = "flex";
+            }
         }
         function closeEditStudentModal() {
-            document.getElementById('editStudentModal').style.display = "none";
+            var modalEl = document.getElementById('editStudentModal');
+            if (modalEl) modalEl.style.display = "none";
         }
         function saveEditStudent() {
             var oldPhone = document.getElementById('editOldStudentPhone').value;
