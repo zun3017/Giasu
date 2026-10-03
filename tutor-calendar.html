@@ -3702,6 +3702,48 @@
             return new Date(date.setDate(diff));
         }
 
+        // === HELPER NGÀY & CA HỌC (an toàn múi giờ, hỗ trợ ô nhiều ca) ===
+        // "YYYY-MM-DD" -> Date theo giờ địa phương (tránh lệch ngày do new Date("YYYY-MM-DD") hiểu là UTC)
+        function parseYMDLocal(str) {
+            if (str instanceof Date) return new Date(str.getFullYear(), str.getMonth(), str.getDate());
+            let m = String(str || '').match(/^(\d{4})-(\d{2})-(\d{2})/);
+            if (!m) return new Date(NaN);
+            return new Date(parseInt(m[1]), parseInt(m[2]) - 1, parseInt(m[3]));
+        }
+        // Date -> "DD/MM/YYYY"
+        function fmtDMY(d) {
+            return d.getDate().toString().padStart(2, '0') + '/' + (d.getMonth() + 1).toString().padStart(2, '0') + '/' + d.getFullYear();
+        }
+        // Tách 1 ca: { color: '[C:#xxx] ' | '', body, skips: [] }
+        function splitSlotParts(slot) {
+            let s = String(slot || '').trim();
+            let color = '';
+            let cm = s.match(/^\[C:#[0-9A-Fa-f]{6}\]\s*/);
+            if (cm) { color = cm[0].trim() + ' '; s = s.slice(cm[0].length); }
+            let skips = [];
+            if (s.includes(' SKIP ')) {
+                let p = s.split(' SKIP ');
+                s = p[0];
+                skips = p[1].split(',').map(x => x.trim()).filter(Boolean);
+            }
+            return { color: color, body: s.trim(), skips: skips };
+        }
+        function joinSlotParts(parts) {
+            return parts.color + parts.body + (parts.skips.length ? ' SKIP ' + parts.skips.join(',') : '');
+        }
+        function cellToSlots(cell) {
+            return String(cell || '').split('|').map(s => s.trim()).filter(s => s !== '');
+        }
+        // Tìm ca lặp lại trong ô có SKIP chứa ngày dateDMY -> trả về index hoặc -1
+        function findSlotWithSkip(cell, dateDMY) {
+            let slots = cellToSlots(cell);
+            for (let i = 0; i < slots.length; i++) {
+                if (/^(\[C:#[0-9A-Fa-f]{6}\]\s*)?(\d{2}\/|RESCHEDULE)/.test(slots[i])) continue;
+                if (splitSlotParts(slots[i]).skips.includes(dateDMY)) return i;
+            }
+            return -1;
+        }
+
         // Tạo sự kiện đưa vào FullCalendar
         function generateEventsForCurrentWeek(viewStart) {
             let startOfWeek = getStartOfWeek(viewStart);
@@ -3781,6 +3823,7 @@
                             let weekEnd = new Date(startOfWeek);
                             weekEnd.setDate(startOfWeek.getDate() + 7);
                             if (evDate < startOfWeek || evDate >= weekEnd) return;
+                            if (skipDates.includes(oneTimeDateStr)) return;
                         } else {
                             // Lịch lặp lại: tính ngày trong tuần
                             let dayOffset = dayMap[dayKey] - 1;
@@ -3802,14 +3845,9 @@
                         let originalRecurringKey = null;
                         if (isReschedule) {
                             for (let dk of allDayKeys) {
-                                if (dk === dayKey) continue;
-                                let dkVal = row[dk] || '';
-                                if (!dkVal.match(/^(\d{2}\/|RESCHEDULE)/) && dkVal.includes(' SKIP ')) {
-                                    let skipPart = dkVal.split(' SKIP ')[1];
-                                    if (skipPart.split(',').map(s => s.trim()).includes(oneTimeDateStr)) {
-                                        originalRecurringKey = dk;
-                                        break;
-                                    }
+                                if (findSlotWithSkip(row[dk], oneTimeDateStr) !== -1) {
+                                    originalRecurringKey = dk;
+                                    break;
                                 }
                             }
                         }  // end if (isReschedule)
@@ -3996,6 +4034,12 @@
             } else {
                 titleEl.innerText = view.title;
             }
+            // Tooltip nút trước/sau theo đúng chế độ xem
+            let unit = view.type === 'dayGridMonth' ? 'Tháng' : (/Day$/.test(view.type) ? 'Ngày' : 'Tuần');
+            let bPrev = document.getElementById('btnCalPrev');
+            let bNext = document.getElementById('btnCalNext');
+            if (bPrev) bPrev.title = unit + ' trước';
+            if (bNext) bNext.title = unit + ' sau';
         }
 
         function updateActiveViewPills(viewType) {
@@ -4580,7 +4624,7 @@
                     let newEnd = end.getHours().toString().padStart(2,'0') + ':' + end.getMinutes().toString().padStart(2,'0');
                     const props = info.event.extendedProps;
 
-                    if (!props.isOneTime) {
+                    if (!props.isOneTime && !props.isReschedule) {
                         info.revert();
                         pendingChange = {
                             type: 'resize',
@@ -4698,142 +4742,129 @@
             pendingChange = null;
         }
 
-        // Áp dụng di chuyển (drop) - hỗ trợ multi-slot
-        function applyDrop(props, newDayKey, newStart, newEnd, start, isThisOnly) {
-            let row = (props.studentIndex !== undefined && tutorScheduleSheetData && tutorScheduleSheetData[props.studentIndex])
+        // --- Helper cho drop/resize ---
+        function getRowForProps(props) {
+            return (props.studentIndex !== undefined && tutorScheduleSheetData && tutorScheduleSheetData[props.studentIndex])
                 ? tutorScheduleSheetData[props.studentIndex]
                 : (Array.isArray(tutorScheduleSheetData) ? tutorScheduleSheetData.find(s => s && s.studentName && s.studentName.trim().toLowerCase() === (props.studentName || '').trim().toLowerCase()) : null);
+        }
+        const SLOT_TIME_RE = /(\d{1,2}):(\d{2})\s*-\s*(\d{1,2}):(\d{2})/;
+        function replaceTimeInBody(body, newStart, newEnd) {
+            return SLOT_TIME_RE.test(body) ? body.replace(SLOT_TIME_RE, newStart + ' - ' + newEnd) : (newStart + ' - ' + newEnd + ' ' + body).trim();
+        }
+        // Bỏ tiền tố ngày "DD/MM/YYYY: " hoặc "RESCHEDULE DD/MM/YYYY: " khỏi body
+        function stripDatePrefix(body) {
+            return body.replace(/^RESCHEDULE \d{2}\/\d{2}\/\d{4}:\s*/, '').replace(/^\d{2}\/\d{2}\/\d{4}:\s*/, '');
+        }
+        function appendSlot(row, dk, val) {
+            let slots = cellToSlots(row[dk]);
+            slots.push(val);
+            row[dk] = slots.join(' | ');
+        }
+        function removeSlotAt(row, dk, idx) {
+            let slots = cellToSlots(row[dk]);
+            if (idx >= 0 && idx < slots.length) slots.splice(idx, 1);
+            row[dk] = slots.join(' | ');
+        }
+        // Tìm ca lặp lại gốc của 1 buổi RESCHEDULE: ưu tiên SKIP trùng đúng ngày, sau đó SKIP cùng tuần
+        function findOrigForReschedule(row, rescDMY) {
+            let p = rescDMY.split('/');
+            let rescDate = new Date(parseInt(p[2]), parseInt(p[1]) - 1, parseInt(p[0]));
+            let wkStart = getStartOfWeek(rescDate);
+            let wkEnd = new Date(wkStart); wkEnd.setDate(wkStart.getDate() + 7);
+            let sameWeek = null;
+            for (let dk of allDayKeys) {
+                let slots = cellToSlots(row[dk]);
+                for (let i = 0; i < slots.length; i++) {
+                    if (/^(\[C:#[0-9A-Fa-f]{6}\]\s*)?(\d{2}\/|RESCHEDULE)/.test(slots[i])) continue;
+                    let skips = splitSlotParts(slots[i]).skips;
+                    if (skips.includes(rescDMY)) return { dk: dk, idx: i, skipDate: rescDMY };
+                    if (!sameWeek) {
+                        for (let sd of skips) {
+                            let q = sd.split('/');
+                            let d = new Date(parseInt(q[2]), parseInt(q[1]) - 1, parseInt(q[0]));
+                            if (d >= wkStart && d < wkEnd) { sameWeek = { dk: dk, idx: i, skipDate: sd }; break; }
+                        }
+                    }
+                }
+            }
+            return sameWeek;
+        }
+
+        // Áp dụng di chuyển (drop) - hỗ trợ multi-slot
+        function applyDrop(props, newDayKey, newStart, newEnd, start, isThisOnly) {
+            let row = getRowForProps(props);
             if (!row) {
                 console.warn('Không tìm thấy dữ liệu học sinh:', props.studentName);
                 return;
             }
             let oldDayKey = props.dayKey;
+            let newDateStr = fmtDMY(start);
+            let oldSlots = cellToSlots(row[oldDayKey]);
+            let parts = splitSlotParts(oldSlots[props.subIndex] || '');
+            let colorPrefix = parts.color || (props.sessionColor ? ('[C:' + props.sessionColor + '] ') : '');
+            let coreBody = stripDatePrefix(parts.body || (props.startTime + ' - ' + props.endTime + (props.notes ? ' (' + props.notes + ')' : '')));
+            let movedBody = replaceTimeInBody(coreBody, newStart, newEnd);
 
-            // === Xử LÝ SỰ KIỆN "ĐỜI DỜI" (RESCHEDULE) ===
+            // === SỰ KIỆN ĐÃ DỜI (RESCHEDULE) ===
             if (props.isReschedule) {
-                let rescDate = props.oneTimeDateStr;
-                let origKey  = props.originalRecurringKey;
-
-                // 1. Xóa entry RESCHEDULE cũ (slot này trong ô)
-                let oldSlots = (row[oldDayKey] || '').split('|').map(s => s.trim());
-                oldSlots.splice(props.subIndex, 1);
-                row[oldDayKey] = oldSlots.filter(s => s !== '').join(' | ');
-
-                // 2. Gỡ SKIP khỏi cột lịch gốc
-                function removeSkip(dk, date) {
-                    if (!dk || !row[dk]) return;
-                    let raw = row[dk];
-                    if (!raw.includes(' SKIP ')) return;
-                    let [base, skipsPart] = raw.split(' SKIP ');
-                    let newSkips = skipsPart.split(',').map(s => s.trim()).filter(s => s !== date);
-                    row[dk] = newSkips.length > 0 ? base + ' SKIP ' + newSkips.join(',') : base;
-                }
-                removeSkip(origKey, rescDate);
+                // 1. Xóa entry RESCHEDULE cũ
+                removeSlotAt(row, oldDayKey, props.subIndex);
+                // 2. Tìm ca lặp lại gốc (sau khi xóa để index chính xác)
+                let orig = findOrigForReschedule(row, props.oneTimeDateStr);
 
                 if (isThisOnly) {
-                    if (newDayKey === origKey) {
-                        // Dời về đúng ngày gốc → SKIP đã gỡ, lịch gốc tự hiển lại bình thường ✓
-                    } else {
-                        // Dời sang ngày khác tuần này:
-                        // Re-add SKIP vào cột gốc
-                        if (origKey && row[origKey]) {
-                            let raw = row[origKey];
-                            let base_r = raw.includes(' SKIP ') ? raw.split(' SKIP ')[0] : raw;
-                            let existSkips_r = raw.includes(' SKIP ') ? raw.split(' SKIP ')[1] : '';
-                            let skipList_r = existSkips_r ? existSkips_r.split(',').map(s => s.trim()) : [];
-                            if (!skipList_r.includes(rescDate)) skipList_r.push(rescDate);
-                            row[origKey] = base_r + ' SKIP ' + skipList_r.join(',');
+                    let restored = false;
+                    if (orig && orig.dk === newDayKey && orig.skipDate === newDateStr) {
+                        let oSlots = cellToSlots(row[orig.dk]);
+                        let oParts = splitSlotParts(oSlots[orig.idx]);
+                        let m = oParts.body.match(SLOT_TIME_RE);
+                        let oStart = m ? m[1].padStart(2, '0') + ':' + m[2] : '';
+                        let oEnd   = m ? m[3].padStart(2, '0') + ':' + m[4] : '';
+                        if (oStart === newStart && oEnd === newEnd) {
+                            // Kéo về đúng ngày + giờ gốc → gỡ SKIP, lịch gốc hiển thị lại
+                            oParts.skips = oParts.skips.filter(s => s !== orig.skipDate);
+                            oSlots[orig.idx] = joinSlotParts(oParts);
+                            row[orig.dk] = oSlots.join(' | ');
+                            restored = true;
                         }
-                        // Tính ngày của newDayKey trong cùng tuần với rescDate
-                        let [resDd, resMm, resYyyy] = rescDate.split('/');
-                        let rescDateObj = new Date(resYyyy + '-' + resMm + '-' + resDd);
-                        let origDayNumJS = rescDateObj.getDay();
-                        let newDayNumJS  = dayMap[newDayKey];
-                        let newDateObj_rs = new Date(rescDateObj);
-                        newDateObj_rs.setDate(rescDateObj.getDate() + (newDayNumJS - origDayNumJS));
-                        let nDd   = newDateObj_rs.getDate().toString().padStart(2,'0');
-                        let nMm   = (newDateObj_rs.getMonth()+1).toString().padStart(2,'0');
-                        let nYyyy = newDateObj_rs.getFullYear();
-                        let newDateStr_rs = nDd + '/' + nMm + '/' + nYyyy;
-                        let timeVal_rs = 'RESCHEDULE ' + newDateStr_rs + ': ' + newStart + ' - ' + newEnd;
-                        if (props.notes) timeVal_rs += ' (' + props.notes + ')';
-                        let existNew_rs = row[newDayKey] || '';
-                        row[newDayKey] = existNew_rs.trim() === '' ? timeVal_rs : existNew_rs + ' | ' + timeVal_rs;
+                    }
+                    if (!restored) {
+                        appendSlot(row, newDayKey, colorPrefix + 'RESCHEDULE ' + newDateStr + ': ' + movedBody);
                     }
                 } else {
-                    // 'Tất cả các tuần': cập nhật lịch cố định
-                    let timeVal_all = newStart + ' - ' + newEnd;
-                    if (props.notes) timeVal_all += ' (' + props.notes + ')';
-                    let existNew_all = row[newDayKey] || '';
-                    row[newDayKey] = existNew_all.trim() === '' ? timeVal_all : existNew_all + ' | ' + timeVal_all;
+                    // 'Tất cả các tuần': thay lịch cố định gốc bằng lịch mới
+                    if (orig) removeSlotAt(row, orig.dk, orig.idx);
+                    appendSlot(row, newDayKey, colorPrefix + movedBody);
                 }
                 saveAndRefetch(row.studentName);
                 return;
             }
 
-            // === Xử LÝ SỰ KIỆN THƯỜNG (lặp lại hoặc 1 lần thực sự) ===
-            let newDd   = start.getDate().toString().padStart(2, '0');
-            let newMm   = (start.getMonth() + 1).toString().padStart(2, '0');
-            let newYyyy = start.getFullYear();
-            let newDateStr = newDd + '/' + newMm + '/' + newYyyy;
-
-            let oldDayNum = dayMap[oldDayKey];
-            let newDayNum = start.getDay();
-            let oldDate = new Date(start);
-            oldDate.setDate(start.getDate() + (oldDayNum - newDayNum));
-            let skipDd   = oldDate.getDate().toString().padStart(2, '0');
-            let skipMm   = (oldDate.getMonth() + 1).toString().padStart(2, '0');
-            let skipYyyy = oldDate.getFullYear();
-            let skipDate = skipDd + '/' + skipMm + '/' + skipYyyy;
-
-            let colorPrefix = props.sessionColor ? ('[C:' + props.sessionColor + '] ') : '';
-
-            let timeVal;
+            // === SỰ KIỆN 1 LẦN ===
             if (props.isOneTime) {
-                timeVal = colorPrefix + newDateStr + ': ' + newStart + ' - ' + newEnd;
-                if (props.notes) timeVal += ' (' + props.notes + ')';
-                // Xóa slot cũ khỏi ô cũ
-                let oldSlots = (row[oldDayKey] || '').split('|').map(s => s.trim());
-                oldSlots.splice(props.subIndex, 1);
-                row[oldDayKey] = oldSlots.filter(s => s !== '').join(' | ');
-                // Append slot mới vào ô mới
-                let existing = row[newDayKey] || '';
-                row[newDayKey] = existing.trim() === '' ? timeVal : existing + ' | ' + timeVal;
+                removeSlotAt(row, oldDayKey, props.subIndex);
+                appendSlot(row, newDayKey, colorPrefix + newDateStr + ': ' + movedBody);
 
             } else if (isThisOnly) {
-                // "'Chỉ tuần này"
-                //   1) Thêm SKIP vào slot cũ trong ô cũ
-                let oldSlots = (row[oldDayKey] || '').split('|').map(s => s.trim());
-                let slotRaw  = oldSlots[props.subIndex] || '';
-                let baseSlot = slotRaw.includes(' SKIP ') ? slotRaw.split(' SKIP ')[0] : slotRaw;
-                let existSkips = slotRaw.includes(' SKIP ') ? slotRaw.split(' SKIP ')[1] : '';
-                let skipList = existSkips ? existSkips.split(',').map(s => s.trim()) : [];
-                if (!skipList.includes(skipDate)) skipList.push(skipDate);
-                oldSlots[props.subIndex] = baseSlot + ' SKIP ' + skipList.join(',');
+                // "Chỉ tuần này": SKIP đúng ngày gốc của buổi này + thêm RESCHEDULE vào ngày mới
+                let skipDate = fmtDMY(parseYMDLocal(props.date));
+                if (!parts.skips.includes(skipDate)) parts.skips.push(skipDate);
+                oldSlots[props.subIndex] = joinSlotParts(parts);
                 row[oldDayKey] = oldSlots.join(' | ');
-
-                //   2) Ghi entry RESCHEDULE vào ngày mới
-                timeVal = colorPrefix + 'RESCHEDULE ' + newDateStr + ': ' + newStart + ' - ' + newEnd;
-                if (props.notes) timeVal += ' (' + props.notes + ')';
-                let existNew = row[newDayKey] || '';
-                row[newDayKey] = existNew.trim() === '' ? timeVal : existNew + ' | ' + timeVal;
+                appendSlot(row, newDayKey, colorPrefix + 'RESCHEDULE ' + newDateStr + ': ' + movedBody);
 
             } else {
-                // "Tất cả các tuần": cập nhật slot trong ô cũ
-                timeVal = newStart + ' - ' + newEnd;
-                if (props.notes) timeVal += ' (' + props.notes + ')';
+                // "Tất cả các tuần"
                 if (oldDayKey === newDayKey) {
-                    // Cùng ô: chỉ cập nhật slot đó
-                    let slots = (row[oldDayKey] || '').split('|').map(s => s.trim());
-                    slots[props.subIndex] = timeVal;
-                    row[oldDayKey] = slots.join(' | ');
+                    // Cùng thứ: chỉ đổi giờ, giữ màu + danh sách SKIP
+                    parts.body = movedBody;
+                    oldSlots[props.subIndex] = joinSlotParts(parts);
+                    row[oldDayKey] = oldSlots.join(' | ');
                 } else {
-                    // Khác ô: xóa slot cũ, append vào ô mới
-                    let oldSlots = (row[oldDayKey] || '').split('|').map(s => s.trim());
-                    oldSlots.splice(props.subIndex, 1);
-                    row[oldDayKey] = oldSlots.filter(s => s !== '').join(' | ');
-                    let existNew = row[newDayKey] || '';
-                    row[newDayKey] = existNew.trim() === '' ? timeVal : existNew + ' | ' + timeVal;
+                    // Khác thứ: xóa ca cũ, thêm ca mới (SKIP cũ không còn ý nghĩa)
+                    removeSlotAt(row, oldDayKey, props.subIndex);
+                    appendSlot(row, newDayKey, colorPrefix + movedBody);
                 }
             }
             saveAndRefetch(row.studentName);
@@ -4841,29 +4872,31 @@
 
         // Áp dụng đổi giờ kết thúc (resize)
         function applyResize(props, newEnd, isThisOnly) {
-            let row = (props.studentIndex !== undefined && tutorScheduleSheetData && tutorScheduleSheetData[props.studentIndex])
-                ? tutorScheduleSheetData[props.studentIndex]
-                : (Array.isArray(tutorScheduleSheetData) ? tutorScheduleSheetData.find(s => s && s.studentName && s.studentName.trim().toLowerCase() === (props.studentName || '').trim().toLowerCase()) : null);
+            let row = getRowForProps(props);
             if (!row) {
                 console.warn('Không tìm thấy dữ liệu học sinh:', props.studentName);
                 return;
             }
             let dayKey = props.dayKey;
-            let timeVal;
-            if (isThisOnly) {
-                showWebAlert('Lưu ý: Thay đổi giờ kết thúc cho "Chỉ tuần này" chưa được hỗ trợ. Sẽ được cập nhật tất cả các tuần.');
-                isThisOnly = false;
-            }
-            if (props.isOneTime) {
-                timeVal = props.oneTimeDateStr + ': ' + props.startTime + ' - ' + newEnd;
+            let slots = cellToSlots(row[dayKey]);
+            let raw = slots[props.subIndex];
+            if (raw === undefined) return;
+            let parts = splitSlotParts(raw);
+
+            if (!props.isOneTime && !props.isReschedule && isThisOnly) {
+                // "Chỉ tuần này": SKIP buổi này + tạo RESCHEDULE cùng ngày với giờ kết thúc mới
+                let dateDMY = fmtDMY(parseYMDLocal(props.date));
+                if (!parts.skips.includes(dateDMY)) parts.skips.push(dateDMY);
+                slots[props.subIndex] = joinSlotParts(parts);
+                slots.push(parts.color + 'RESCHEDULE ' + dateDMY + ': ' + replaceTimeInBody(parts.body, props.startTime, newEnd));
             } else {
-                timeVal = props.startTime + ' - ' + newEnd;
+                // Ca 1 lần / ca đã dời / "tất cả các tuần": đổi giờ trong chính slot, giữ màu, tiền tố ngày và SKIP
+                let prefixMatch = parts.body.match(/^(RESCHEDULE \d{2}\/\d{2}\/\d{4}:\s*|\d{2}\/\d{2}\/\d{4}:\s*)/);
+                let prefix = prefixMatch ? prefixMatch[0] : '';
+                parts.body = prefix + replaceTimeInBody(parts.body.slice(prefix.length), props.startTime, newEnd);
+                slots[props.subIndex] = joinSlotParts(parts);
             }
-            if (props.notes) timeVal += ' (' + props.notes + ')';
-            // Cập nhật đúng slot theo subIndex trong ô multi-slot
-            let slots = (row[dayKey] || '').split('|').map(s => s.trim());
-            slots[props.subIndex] = timeVal;
-            row[dayKey] = slots.filter(s => s !== '').join(' | ');
+            row[dayKey] = slots.join(' | ');
             saveAndRefetch(row.studentName);
         }
 
@@ -4921,7 +4954,7 @@
                 colorDot.style.boxShadow = "0 0 7px " + dotColor + "aa";
             }
 
-            let dateObj = new Date(props.date);
+            let dateObj = parseYMDLocal(props.date);
             let daysOfWeekVi = ["Chủ Nhật","Thứ Hai","Thứ Ba","Thứ Tư","Thứ Năm","Thứ Sáu","Thứ Bảy"];
             let dayName  = isNaN(dateObj.getTime()) ? "" : daysOfWeekVi[dateObj.getDay()];
             let dayNum   = isNaN(dateObj.getTime()) ? "" : dateObj.getDate();
@@ -4937,12 +4970,15 @@
                 : (Array.isArray(tutorScheduleSheetData) ? tutorScheduleSheetData.find(s => s && s.studentName && s.studentName.trim().toLowerCase() === (props.studentName || '').trim().toLowerCase()) : null);
 
             let cellVal = (studentRow && props.dayKey && studentRow[props.dayKey]) ? studentRow[props.dayKey] : "";
+            let slotRawForDetail = cellToSlots(cellVal)[props.subIndex] || "";
             let recurrenceText;
-            if (props.isOneTime) {
-                recurrenceText = (cellVal && cellVal.startsWith("RESCHEDULE")) ? "Được dời sang tuần này" : "Diễn ra một lần";
+            if (props.isReschedule) {
+                recurrenceText = "Buổi học được dời (chỉ tuần này)";
+            } else if (props.isOneTime) {
+                recurrenceText = "Diễn ra một lần";
             } else {
                 recurrenceText = "Hàng tuần vào " + (dayName ? dayName.toLowerCase() : (props.dayKey || ""));
-                if (cellVal && cellVal.includes(" SKIP ")) recurrenceText += " (Có tuần được dời)";
+                if (slotRawForDetail.includes(" SKIP ")) recurrenceText += " (Có tuần được dời)";
             }
             let recEl = document.getElementById("detailRecurrence");
             if (recEl) recEl.innerText = recurrenceText;
@@ -5042,38 +5078,40 @@
             let oldDayKey  = props.dayKey;
             let sName = (studentRow && studentRow.studentName) || props.studentName || "";
 
-            if (props.isOneTime) {
+            if (props.isOneTime || props.isReschedule) {
                 closeDetailModalForce();
-                showWebConfirm("Bạn có chắc chắn muốn xóa ca học một lần này của <b>" + (sName || "học sinh") + "</b> không?", function() {
+                let confirmMsg = props.isReschedule
+                    ? "Bạn có chắc chắn muốn xóa buổi học đã dời này của <b>" + (sName || "học sinh") + "</b> không? (Lịch cố định các tuần khác giữ nguyên)"
+                    : "Bạn có chắc chắn muốn xóa ca học một lần này của <b>" + (sName || "học sinh") + "</b> không?";
+                showWebConfirm(confirmMsg, function() {
                     if (studentRow) {
+                        // Chỉ khớp slot bắt đầu bằng đúng tiền tố ngày (tránh xóa nhầm ca lặp lại có SKIP chứa ngày đó)
+                        let dateEsc = String(props.oneTimeDateStr || '').replace(/\//g, '\\/');
+                        let prefRe = new RegExp('^(\\[C:#[0-9A-Fa-f]{6}\\]\\s*)?' + (props.isReschedule ? 'RESCHEDULE ' : '') + dateEsc + ':');
                         let deleted = false;
-                        // 1. Tìm chính xác theo ngày DD/MM/YYYY trong ô oldDayKey
-                        if (oldDayKey && props.oneTimeDateStr && studentRow[oldDayKey]) {
-                            let slots = studentRow[oldDayKey].split("|").map(s => s.trim());
-                            let idx = slots.findIndex(s => s.includes(props.oneTimeDateStr));
+                        // 1. Ưu tiên đúng subIndex trong ô oldDayKey
+                        if (oldDayKey && studentRow[oldDayKey]) {
+                            let slots = cellToSlots(studentRow[oldDayKey]);
+                            let idx = (props.subIndex >= 0 && props.subIndex < slots.length && prefRe.test(slots[props.subIndex]))
+                                ? props.subIndex
+                                : slots.findIndex(s => prefRe.test(s));
                             if (idx !== -1) {
                                 slots.splice(idx, 1);
-                                studentRow[oldDayKey] = slots.filter(s => s !== "").join(" | ");
+                                studentRow[oldDayKey] = slots.join(" | ");
                                 deleted = true;
                             }
                         }
-                        // 2. Quét qua tất cả các thứ trong tuần để tìm slot chứa ngày đó
+                        // 2. Quét các thứ khác
                         if (!deleted && props.oneTimeDateStr) {
-                            allDayKeys.forEach(dk => {
-                                let val = studentRow[dk] || "";
-                                if (val.includes(props.oneTimeDateStr)) {
-                                    let slots = val.split("|").map(s => s.trim()).filter(s => !s.includes(props.oneTimeDateStr));
+                            for (let dk of allDayKeys) {
+                                let slots = cellToSlots(studentRow[dk]);
+                                let idx = slots.findIndex(s => prefRe.test(s));
+                                if (idx !== -1) {
+                                    slots.splice(idx, 1);
                                     studentRow[dk] = slots.join(" | ");
                                     deleted = true;
+                                    break;
                                 }
-                            });
-                        }
-                        // 3. Fallback: dùng subIndex trên oldDayKey
-                        if (!deleted && oldDayKey && props.subIndex !== undefined && studentRow[oldDayKey]) {
-                            let slots = studentRow[oldDayKey].split("|").map(s => s.trim());
-                            if (props.subIndex >= 0 && props.subIndex < slots.length) {
-                                slots.splice(props.subIndex, 1);
-                                studentRow[oldDayKey] = slots.filter(s => s !== "").join(" | ");
                             }
                         }
 
@@ -5087,7 +5125,7 @@
                 pendingChange = {
                     type: 'delete',
                     props: props,
-                    start: new Date(props.date)
+                    start: parseYMDLocal(props.date)
                 };
                 showRecurrenceDialog('Bạn muốn xóa ca dạy lặp lại của <b>' + (sName || "") + '</b> vào ' + (oldDayKey ? oldDayKey.toUpperCase() : "") + '?', true);
             }
@@ -5215,6 +5253,16 @@
             document.getElementById("eventModalOverlay").classList.remove("active");
         }
 
+        // Phím Esc: đóng hộp thoại đang mở (ưu tiên lớp trên cùng)
+        document.addEventListener('keydown', function(e) {
+            if (e.key !== 'Escape') return;
+            let rec = document.getElementById('recurrenceDialogOverlay');
+            let modal = document.getElementById('eventModalOverlay');
+            if (rec && rec.classList.contains('active')) { cancelRecurrenceChange(); return; }
+            if (modal && modal.classList.contains('active')) { closeModalForce(); return; }
+            if (activeFcEvent) closeDetailModalForce();
+        });
+
         // Lưu dữ liệu vào thời khóa biểu (Đẩy về cấu trúc Google Sheets)
         function saveEvent(e) {
             e.preventDefault();
@@ -5283,21 +5331,36 @@
             let colorPrefix = (scope === "session" && selectedColor) ? ("[C:" + selectedColor + "] ") : "";
 
             // === Hàm helper: cập nhật 1 slot cụ thể trong ô multi-slot ===
-            function updateSlotInCell(dayKey, newSlotVal) {
-                let existing = row[dayKey] || "";
-                if (subIdxStr === "" || studentIdx === "") {
-                    // TẠO MỚI: append vào cuối (cách bởi ' | ')
-                    if (existing.trim() === "") {
-                        row[dayKey] = newSlotVal;
-                    } else {
-                        row[dayKey] = existing + " | " + newSlotVal;
+            // Khi SỬA: chỉ thay tại chỗ nếu cùng ô với slot cũ; khác ô thì append (slot cũ được xóa riêng)
+            let isEditing = (studentIdx !== "" && subIdxStr !== "");
+            let editIdx = isEditing ? parseInt(subIdxStr) : -1;
+            let oldSlotConsumed = false;
+            let replacedInPlace = false;
+            function updateSlotInCell(dayKey, newSlotVal, keepSkips) {
+                let slots = cellToSlots(row[dayKey]);
+                if (isEditing && !oldSlotConsumed && dayKey === oldDayKey && editIdx >= 0 && editIdx < slots.length) {
+                    if (keepSkips) {
+                        let oldParts = splitSlotParts(slots[editIdx]);
+                        if (!/^(\d{2}\/|RESCHEDULE)/.test(oldParts.body) && oldParts.skips.length) {
+                            let newParts = splitSlotParts(newSlotVal);
+                            newParts.skips = oldParts.skips;
+                            newSlotVal = joinSlotParts(newParts);
+                        }
                     }
+                    slots[editIdx] = newSlotVal;
+                    oldSlotConsumed = true;
+                    replacedInPlace = true;
                 } else {
-                    // SỬA: thay đúng slot theo subIndex
-                    let subIdx = parseInt(subIdxStr);
-                    let slots = existing.split("|").map(s => s.trim());
-                    slots[subIdx] = newSlotVal;
-                    row[dayKey] = slots.filter(s => s !== "").join(" | ");
+                    slots.push(newSlotVal);
+                }
+                row[dayKey] = slots.join(" | ");
+            }
+            function removeOldSlot() {
+                if (isEditing && !oldSlotConsumed && oldDayKey) {
+                    let slots = cellToSlots(row[oldDayKey]);
+                    if (editIdx >= 0 && editIdx < slots.length) slots.splice(editIdx, 1);
+                    row[oldDayKey] = slots.join(" | ");
+                    oldSlotConsumed = true;
                 }
             }
 
@@ -5310,15 +5373,11 @@
                     let finalVal = colorPrefix + datePrefix + timeVal;
                     if (notes !== "") finalVal += " (" + notes + ")";
 
-                    let tempDate = new Date(specDate);
+                    let tempDate = parseYMDLocal(specDate);
                     let targetDayKey = revDayMap[tempDate.getDay()];
 
                     // Nếu đổi ngày (khác ô), xóa slot cũ khỏi ô cũ
-                    if (studentIdx !== "" && oldDayKey !== "" && oldDayKey !== targetDayKey) {
-                        let oldSlots = (row[oldDayKey] || "").split("|").map(s => s.trim());
-                        if (subIdxStr !== "") oldSlots.splice(parseInt(subIdxStr), 1);
-                        row[oldDayKey] = oldSlots.filter(s => s !== "").join(" | ");
-                    }
+                    if (oldDayKey !== targetDayKey) removeOldSlot();
                     updateSlotInCell(targetDayKey, finalVal);
                 }
             }
@@ -5328,18 +5387,15 @@
                 if (notes !== "") finalVal += " (" + notes + ")";
                 let dayKey = document.getElementById("eventDayOfWeek").value;
                 // Nếu đổi sang ngày khác, xóa slot cũ khỏi ô cũ
-                if (studentIdx !== "" && oldDayKey !== "" && oldDayKey !== dayKey) {
-                    let oldSlots = (row[oldDayKey] || "").split("|").map(s => s.trim());
-                    if (subIdxStr !== "") oldSlots.splice(parseInt(subIdxStr), 1);
-                    row[oldDayKey] = oldSlots.filter(s => s !== "").join(" | ");
-                }
-                updateSlotInCell(dayKey, finalVal);
+                if (oldDayKey !== dayKey) removeOldSlot();
+                updateSlotInCell(dayKey, finalVal, true);
             } 
             else if (repeatMode === "daily") {
-                // Lặp hàng ngày: ghi đè toàn bộ các ngày
+                // Lặp hàng ngày: thêm ca vào tất cả các ngày (giữ nguyên các ca khác)
                 let finalVal = colorPrefix + timeVal;
                 if (notes !== "") finalVal += " (" + notes + ")";
-                allDayKeys.forEach(key => { row[key] = finalVal; });
+                allDayKeys.forEach(key => updateSlotInCell(key, finalVal, true));
+                removeOldSlot();
             } 
             else if (repeatMode === "custom") {
                 // Tùy chỉnh
@@ -5347,15 +5403,10 @@
                 if (notes !== "") finalVal += " (" + notes + ")";
                 allDayKeys.forEach(key => {
                     let isChecked = document.getElementById("check" + key.charAt(0).toUpperCase() + key.slice(1)).checked;
-                    if (isChecked) {
-                        updateSlotInCell(key, finalVal);
-                    } else if (key === oldDayKey && subIdxStr !== "") {
-                        // Xóa slot cũ khỏi ngày không được chọn
-                        let oldSlots = (row[key] || "").split("|").map(s => s.trim());
-                        oldSlots.splice(parseInt(subIdxStr), 1);
-                        row[key] = oldSlots.filter(s => s !== "").join(" | ");
-                    }
+                    if (isChecked) updateSlotInCell(key, finalVal, true);
                 });
+                // Ngày cũ không được chọn → xóa slot cũ
+                removeOldSlot();
             }
 
             // Xác định mode và target day key sau khi cập nhật data
@@ -5363,14 +5414,15 @@
             let finalTargetKey = oldDayKey; // fallback
             if (repeatMode === "none") {
                 let specDate2 = document.getElementById("eventSpecificDate").value;
-                if (specDate2) finalTargetKey = revDayMap[new Date(specDate2).getDay()];
+                if (specDate2) finalTargetKey = revDayMap[parseYMDLocal(specDate2).getDay()];
             } else if (repeatMode === "weekly") {
                 finalTargetKey = document.getElementById("eventDayOfWeek").value;
             }
 
-            // Đếm số slot mới (subIdx sẽ là index cuối sau khi append)
-            let newSubIdx = subIdxStr === "" ? (row[finalTargetKey] || "").split("|").filter(s => s.trim() !== "").length - 1
-                                             : parseInt(subIdxStr);
+            // subIdx: giữ nguyên nếu thay tại chỗ, ngược lại là index cuối sau khi append
+            let newSubIdx = (replacedInPlace && finalTargetKey === oldDayKey)
+                ? editIdx
+                : cellToSlots(row[finalTargetKey]).length - 1;
 
             let _oldFcEvent = isNewEvent ? null : activeFcEvent;
             let _mode = isNewEvent ? 'add' : 'replace';
