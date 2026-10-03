@@ -1300,8 +1300,8 @@
         .fc-month-chip-inner {
             display: flex !important;
             align-items: center !important;
-            gap: 4.5px !important;
-            padding: 2.5px 7px !important;
+            gap: 5px !important;
+            padding: 2.5px 8px !important;
             border-radius: 999px !important;
             font-size: 11px !important;
             line-height: 1.3 !important;
@@ -1321,12 +1321,7 @@
         }
 
         .fc-chip-dot {
-            width: 5.5px !important;
-            height: 5.5px !important;
-            border-radius: 50% !important;
-            flex-shrink: 0 !important;
-            display: inline-block !important;
-            box-shadow: 0 0 0 1.5px #FFFFFF, 0 1px 2px rgba(0,0,0,0.18) !important;
+            display: none !important;
         }
 
         .fc-chip-time {
@@ -4638,7 +4633,6 @@
                         let fullTooltip = (titleStr + (timeStr ? ' (' + timeStr + ')' : '')).replace(/"/g, '&quot;');
                         
                         let html = '<div class="fc-month-chip-inner" title="' + fullTooltip + '" style="background: ' + chipBg + '; border: 1px solid ' + chipBorder + '; ' + textDecor + '">' +
-                                   '<span class="fc-chip-dot" style="background-color: ' + dotColor + '; box-shadow: 0 0 0 1.5px ' + (isDark ? 'rgba(0,0,0,0.6)' : '#FFFFFF') + ', 0 1px 3px ' + color + '55;"></span>' +
                                    (timeStr ? '<span class="fc-chip-time" style="color: ' + timeClr + ';">' + timeStr + '</span>' : '') +
                                    '<span class="fc-chip-title" style="color: ' + textClr + ';">' + titleStr + '</span>' +
                                    '</div>';
