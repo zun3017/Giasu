@@ -4239,8 +4239,7 @@
                         calendar.changeView('timeGridWeek');
                     }
                 },
-                initialDate: isDemoMode ? '2026-09-01' : undefined,
-                now: isDemoMode ? '2026-09-26T08:00:00' : undefined,
+                // Luôn dùng ngày thực tế (kể cả bản demo)
                 locale: 'vi',
                 firstDay: 1, // Bắt đầu tuần từ Thứ Hai
                 height: '100%', // Chiếm 100% .calendar-wrapper - chỉ 1 thanh cuộn bên trong
