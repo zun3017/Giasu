@@ -68,6 +68,68 @@ var pinVerifyAction = "deleteStudent";
             };
         }
 
+        function getInitials(name) {
+            if (!name) return "?";
+            var parts = name.trim().split(/\s+/);
+            if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
+            return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+        }
+
+        function copyPhoneToClipboard(text) {
+            if (!text) return;
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text).then(function() {
+                    showToast("Đã sao chép: " + text, "success");
+                }).catch(function() {
+                    fallbackCopyText(text);
+                });
+            } else {
+                fallbackCopyText(text);
+            }
+        }
+        function fallbackCopyText(text) {
+            var el = document.createElement('textarea');
+            el.value = text;
+            el.style.position = 'fixed';
+            el.style.left = '-9999px';
+            document.body.appendChild(el);
+            el.select();
+            try {
+                document.execCommand('copy');
+                showToast("Đã sao chép: " + text, "success");
+            } catch(e) {
+                showToast("Không thể sao chép tự động: " + text, "error");
+            }
+            document.body.removeChild(el);
+        }
+        window.copyPhoneToClipboard = copyPhoneToClipboard;
+
+        function populateStudentTutorFilterDropdown() {
+            var filterSelect = document.getElementById('adminStudentTutorFilter');
+            if (!filterSelect) return;
+            var currentVal = filterSelect.value || "all";
+            filterSelect.innerHTML = '<option value="all">Tất cả gia sư</option>';
+            if (adminDataGlobal && adminDataGlobal.tutors) {
+                adminDataGlobal.tutors.forEach(function(t) {
+                    var opt = document.createElement('option');
+                    opt.value = t.phone;
+                    opt.innerText = t.name + " (" + t.phone + ")";
+                    if (t.phone === currentVal) opt.selected = true;
+                    filterSelect.appendChild(opt);
+                });
+            }
+        }
+
+        function onAdminTutorFilterChange() {
+            renderAdminTutorsList();
+        }
+        window.onAdminTutorFilterChange = onAdminTutorFilterChange;
+
+        function onAdminStudentFilterChange() {
+            renderAdminStudentsList();
+        }
+        window.onAdminStudentFilterChange = onAdminStudentFilterChange;
+
         function renderAdminView(data) {
             adminDataGlobal = data;
             
@@ -97,7 +159,21 @@ var pinVerifyAction = "deleteStudent";
             document.getElementById('adminDashboardBox').style.display = 'block';
             
             // Cập nhật tên hiển thị
-            document.getElementById('adminNameDisplay').innerText = "Xin chào, Admin " + (data.tutors.find(t => t.phone === currentAdminPhone)?.name || "Hệ Thống");
+            var adminNameEl = document.getElementById('adminNameDisplay');
+            if (adminNameEl) {
+                adminNameEl.innerText = "Xin chào, Admin " + (data.tutors.find(t => t.phone === currentAdminPhone)?.name || "Hệ Thống");
+            }
+            
+            // Cập nhật badge số lượng trên các tab
+            var totalTutors = (data.tutors || []).length;
+            var totalStudents = (data.students || []).length;
+            var tBadge = document.getElementById('tutorTabCountBadge');
+            if (tBadge) tBadge.innerText = totalTutors;
+            var sBadge = document.getElementById('studentTabCountBadge');
+            if (sBadge) sBadge.innerText = totalStudents;
+            
+            // Nạp dropdown lọc gia sư cho học sinh
+            populateStudentTutorFilterDropdown();
             
             // Nạp thông báo chạy chữ vào ô input
             var marqueeInput = document.getElementById('adminMarqueeInput');
@@ -191,30 +267,44 @@ var pinVerifyAction = "deleteStudent";
                     var mobileHtml = "";
                     tutorKeys.forEach((tKey, idx) => {
                         var tReport = tutorsData[tKey];
-                        var rate = tReport.expected > 0 ? ((tReport.paid / tReport.expected) * 100).toFixed(1) + "%" : "0%";
+                        var pct = tReport.expected > 0 ? Math.min(100, Math.round((tReport.paid / tReport.expected) * 100)) : 0;
+                        var rate = pct + "%";
+                        var barColor = pct >= 80 ? '#10B981' : (pct >= 50 ? '#8E4DFF' : '#F59E0B');
+                        var initials = getInitials(tReport.name);
                         
                         // Desktop
                         var tr = document.createElement('tr');
-                        tr.innerHTML = "<td><b>" + escapeHtml(tReport.name) + "</b></td>" +
-                                       "<td style='color:#8E4DFF; font-weight:bold;'>" + tReport.expected.toLocaleString('vi-VN') + "đ</td>" +
-                                       "<td style='color:#10B981; font-weight:bold;'>" + tReport.paid.toLocaleString('vi-VN') + "đ</td>" +
-                                       "<td style='color:#F59E0B; font-weight:bold;'>" + tReport.unpaid.toLocaleString('vi-VN') + "đ</td>" +
-                                       "<td style='text-align:center;'><span class='badge' style='background:rgba(142,77,255,0.15); color:#a78bfa;'>" + rate + "</span></td>";
+                        tr.innerHTML = "<td>" +
+                                         "<div class='adm-user-cell'>" +
+                                           "<span class='adm-avatar-circle' style='width:32px; height:32px; font-size:12px;'>" + escapeHtml(initials) + "</span>" +
+                                           "<b style='color:#FFF; font-size:13.5px;'>" + escapeHtml(tReport.name) + "</b>" +
+                                         "</div>" +
+                                       "</td>" +
+                                       "<td style='color:#C084FC; font-weight:700;'>" + tReport.expected.toLocaleString('vi-VN') + "đ</td>" +
+                                       "<td style='color:#34D399; font-weight:700;'>" + tReport.paid.toLocaleString('vi-VN') + "đ</td>" +
+                                       "<td style='color:#FBBF24; font-weight:700;'>" + tReport.unpaid.toLocaleString('vi-VN') + "đ</td>" +
+                                       "<td>" +
+                                         "<div style='display:flex; flex-direction:column; gap:4px; min-width:90px;'>" +
+                                           "<div style='display:flex; justify-content:space-between; font-size:11px;'><span style='color:#A6ADCE;'>Thu hồi</span><b style='color:#FFF;'>" + rate + "</b></div>" +
+                                           "<div class='adm-progress-bar'><div class='adm-progress-fill' style='width:" + pct + "%; background:" + barColor + ";'></div></div>" +
+                                         "</div>" +
+                                       "</td>";
                         breakdownBody.appendChild(tr);
                         
                         // Mobile
                         mobileHtml += "<div class='accordion-item'>";
                         mobileHtml += "  <div class='accordion-header' onclick='toggleAdminTutorBreakdownAccordion(" + idx + ")'>";
                         mobileHtml += "    <div class='accordion-header-title'>";
+                        mobileHtml += "      <span class='adm-avatar-circle' style='width:26px; height:26px; font-size:10px;'>" + escapeHtml(initials) + "</span>";
                         mobileHtml += "      <span>" + escapeHtml(tReport.name) + "</span>";
                         mobileHtml += "      <span class='badge' style='background:rgba(142,77,255,0.15); color:#a78bfa; margin-bottom: 0; padding: 3px 8px; font-size: 10px;'>" + rate + "</span>";
                         mobileHtml += "    </div>";
                         mobileHtml += "    <div class='accordion-header-status'><i class='fa-solid fa-chevron-down' id='adm-tutor-bd-chevron-" + idx + "'></i></div>";
                         mobileHtml += "  </div>";
                         mobileHtml += "  <div class='accordion-body' id='adm-tutor-bd-body-" + idx + "' style='display: none;'>";
-                        mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Lương dự kiến</span><span class='accordion-body-val' style='color:#8E4DFF; font-weight:bold;'>" + tReport.expected.toLocaleString('vi-VN') + "đ</span></div>";
-                        mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Lương thực tế</span><span class='accordion-body-val' style='color:#10B981; font-weight:bold;'>" + tReport.paid.toLocaleString('vi-VN') + "đ</span></div>";
-                        mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Còn nợ</span><span class='accordion-body-val' style='color:#F59E0B; font-weight:bold;'>" + tReport.unpaid.toLocaleString('vi-VN') + "đ</span></div>";
+                        mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Lương dự kiến</span><span class='accordion-body-val' style='color:#C084FC; font-weight:bold;'>" + tReport.expected.toLocaleString('vi-VN') + "đ</span></div>";
+                        mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Lương thực tế</span><span class='accordion-body-val' style='color:#34D399; font-weight:bold;'>" + tReport.paid.toLocaleString('vi-VN') + "đ</span></div>";
+                        mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Còn nợ</span><span class='accordion-body-val' style='color:#FBBF24; font-weight:bold;'>" + tReport.unpaid.toLocaleString('vi-VN') + "đ</span></div>";
                         mobileHtml += "  </div>";
                         mobileHtml += "</div>";
                     });
@@ -244,10 +334,10 @@ var pinVerifyAction = "deleteStudent";
                     
                     // Desktop
                     var tr = document.createElement('tr');
-                    tr.innerHTML = "<td><b>" + escapeHtml(m) + "</b></td>" +
-                                   "<td style='color:#8E4DFF; font-weight:bold;'>" + r.expected.toLocaleString('vi-VN') + "đ</td>" +
-                                   "<td style='color:#10B981; font-weight:bold;'>" + r.paid.toLocaleString('vi-VN') + "đ</td>" +
-                                   "<td style='color:#F59E0B; font-weight:bold;'>" + r.unpaid.toLocaleString('vi-VN') + "đ</td>";
+                    tr.innerHTML = "<td><b style='color:#FFF;'>" + escapeHtml(m) + "</b></td>" +
+                                   "<td style='color:#C084FC; font-weight:700;'>" + r.expected.toLocaleString('vi-VN') + "đ</td>" +
+                                   "<td style='color:#34D399; font-weight:700;'>" + r.paid.toLocaleString('vi-VN') + "đ</td>" +
+                                   "<td style='color:#FBBF24; font-weight:700;'>" + r.unpaid.toLocaleString('vi-VN') + "đ</td>";
                     tableBody.appendChild(tr);
                     
                     // Mobile
@@ -425,9 +515,9 @@ var pinVerifyAction = "deleteStudent";
             var alertContainer = document.getElementById('adminBillingAlerts');
             
             if (!adminDataGlobal.tutors || adminDataGlobal.tutors.length === 0) {
-                tbody.innerHTML = "<tr><td colspan='10' style='text-align:center; color:#A6ADCE;'>Không có gia sư nào trên hệ thống.</td></tr>";
+                tbody.innerHTML = "<tr><td colspan='10' style='text-align:center; color:#A6ADCE; padding:30px;'>Không có gia sư nào trên hệ thống.</td></tr>";
                 if (mobileContainer) {
-                    mobileContainer.innerHTML = "<div style='text-align:center; color:#A6ADCE; padding: 20px; font-size: 13px;'><i class='fa-solid fa-circle-info'></i> Không có gia sư nào trên hệ thống.</div>";
+                    mobileContainer.innerHTML = "<div style='text-align:center; color:#A6ADCE; padding: 25px; font-size: 13px;'><i class='fa-solid fa-circle-info'></i> Không có gia sư nào trên hệ thống.</div>";
                 }
                 if (alertContainer) {
                     alertContainer.style.display = "none";
@@ -436,118 +526,35 @@ var pinVerifyAction = "deleteStudent";
                 return;
             }
             
-            var mobileHtml = "";
-            adminDataGlobal.tutors.forEach((t, idx) => {
-                 var sCount = getActiveStudentsForTutor(t.phone);
-                 var webFee = Math.ceil(sCount / 2) * 30000;
-                 
-                 var isCurrentlyDeactivated = (t.status === "Vô hiệu hóa");
-                 var isDue = isBillingDue(t.nextBillingDate) && !isCurrentlyDeactivated;
-                 if (isDue) {
-                     dueAlerts.push({
-                         name: t.name,
-                         phone: t.phone,
-                         nextBillingDate: t.nextBillingDate,
-                         students: sCount,
-                         fee: webFee
-                     });
-                 }
-                 
-                 var statusText = "";
-                 if (isCurrentlyDeactivated) {
-                     statusText = "<span style='color:#F59E0B; font-weight:bold;'><i class='fa-solid fa-ban'></i> Bị vô hiệu hóa</span>";
-                 } else if (isDue) {
-                     statusText = "<span style='color:#FF4D4D; font-weight:bold;'><i class='fa-solid fa-triangle-exclamation'></i> Đến hạn</span>";
-                 } else {
-                     statusText = "<span style='color:#00CC66;'><i class='fa-solid fa-circle-check'></i> Hoạt động</span>";
-                 }
-                 
-                 var quickPayBtn = "";
-                 if (isCurrentlyDeactivated) {
-                     quickPayBtn = "<span style='color:#6c757d; font-size:11px;'>Tài khoản đang khóa</span>";
-                 } else if (isDue) {
-                     quickPayBtn = "<button class='modal-btn modal-btn-primary' onclick='confirmQuickPaid(\"" + jsStr(t.phone) + "\", \"" + jsStr(t.name) + "\")' style='padding:4px 10px; font-size:11px; border-radius:15px; background:linear-gradient(135deg, #10B981, #059669); border:none; color:#FFF; font-weight:bold; cursor:pointer;'><i class='fa-solid fa-check'></i> Đã thu</button>";
-                 } else {
-                     quickPayBtn = "<span style='color:#A6ADCE; font-size:11px;'>Chưa đến hạn</span>";
-                 }
-                 
-                 var lastActiveDisplay = t.lastActive ? escapeHtml(t.lastActive) : "<i style='color:#6c757d;'>Chưa hoạt động</i>";
-                 
-                 // Desktop row
-                 var tr = document.createElement('tr');
-                 if (isCurrentlyDeactivated) {
-                     tr.style.background = "rgba(245, 158, 11, 0.02)";
-                     tr.style.opacity = "0.8";
-                 } else if (isDue) {
-                     tr.style.background = "rgba(239, 68, 68, 0.04)";
-                 }
-                 tr.innerHTML = "<td><b>" + escapeHtml(t.name) + "</b></td>" +
-                                "<td>" + escapeHtml(t.phone) + "</td>" +
-                                "<td><code style='letter-spacing:2px; font-weight:bold; color:#FFD23F;'>" + escapeHtml(t.pin) + "</code></td>" +
-                                "<td>" + escapeHtml(t.createdDate || "-") + "</td>" +
-                                "<td><b style='" + (isDue ? "color:#FF8080;" : "") + "'>" + escapeHtml(t.nextBillingDate || "-") + "</b></td>" +
-                                "<td style='text-align:center;'><b>" + sCount + "</b></td>" +
-                                "<td><b style='color:#A78BFA;'>" + webFee.toLocaleString('vi-VN') + "đ</b></td>" +
-                                "<td style='font-size:12px;'>" + lastActiveDisplay + "</td>" +
-                                "<td style='text-align:center;'>" + statusText + "</td>" +
-                                "<td style='text-align:center;'>" +
-                                  "<button class='btn-icon-edit' onclick='openAdminEditTutorModal(\"" + jsStr(t.phone) + "\")' title='Sửa thông tin gia sư' style='margin-right:4px;'><i class='fa-solid fa-pen-to-square'></i> Sửa</button>" +
-                                   (isCurrentlyDeactivated ? 
-                                     "<button class='btn-icon-edit' onclick='quickToggleTutorStatus(\"" + jsStr(t.phone) + "\", \"" + jsStr(t.name) + "\", true)' style='background:rgba(16, 185, 129, 0.15); border:1px solid #10B981; color:#10B981;' title='Kích hoạt lại tài khoản'><i class='fa-solid fa-user-check'></i> Mở</button>" : 
-                                     "<button class='btn-icon-edit' onclick='quickToggleTutorStatus(\"" + jsStr(t.phone) + "\", \"" + jsStr(t.name) + "\", false)' style='background:rgba(245, 158, 11, 0.15); border:1px solid #F59E0B; color:#F59E0B;' title='Vô hiệu hóa tài khoản'><i class='fa-solid fa-user-slash'></i> Khóa</button>"
-                                   ) +
-                                "</td>";
-                 tbody.appendChild(tr);
-                 
-                 // Mobile accordion view
-                 var editBtn = "<button class='action-btn-hw' onclick='openAdminEditTutorModal(\"" + jsStr(t.phone) + "\")' style='color:#FFD23F; border-color:rgba(255,210,63,0.3); background:rgba(255,210,63,0.1); padding: 4px 14px; text-decoration: none; font-size:12px; border-radius: 20px;'><i class='fa-solid fa-pen-to-square'></i> Sửa</button>";
-                  var lockBtn = isCurrentlyDeactivated ?
-                    "<button class='action-btn-hw' onclick='quickToggleTutorStatus(\"" + jsStr(t.phone) + "\", \"" + jsStr(t.name) + "\", true)' style='color:#10B981; border-color:rgba(16,185,129,0.3); background:rgba(16,185,129,0.1); padding: 4px 14px; text-decoration: none; font-size:12px; border-radius: 20px; margin-right: 6px;'><i class='fa-solid fa-user-check'></i> Mở</button>" :
-                    "<button class='action-btn-hw' onclick='quickToggleTutorStatus(\"" + jsStr(t.phone) + "\", \"" + jsStr(t.name) + "\", false)' style='color:#F59E0B; border-color:rgba(245,158,11,0.3); background:rgba(245,158,11,0.1); padding: 4px 14px; text-decoration: none; font-size:12px; border-radius: 20px; margin-right: 6px;'><i class='fa-solid fa-user-slash'></i> Khóa</button>";
-                 var mobilePayBtn = "";
-                 if (isCurrentlyDeactivated) {
-                     mobilePayBtn = "<span style='color:#6c757d; font-size:12px; margin-right: 8px;'>Đã khóa</span>";
-                 } else if (isDue) {
-                     mobilePayBtn = "<button class='action-btn-hw' onclick='confirmQuickPaid(\"" + jsStr(t.phone) + "\", \"" + jsStr(t.name) + "\")' style='color:#10B981; border-color:rgba(16,185,129,0.3); background:rgba(16,185,129,0.1); padding: 4px 14px; text-decoration: none; font-size:12px; border-radius: 20px; margin-right: 8px;'><i class='fa-solid fa-check'></i> Xác nhận đã thu</button>";
-                 }
-                 
-                 mobileHtml += "<div class='accordion-item' style='" + (isCurrentlyDeactivated ? "border: 1px solid rgba(245, 158, 11, 0.25); opacity: 0.85;" : (isDue ? "border: 1px solid rgba(239, 68, 68, 0.35);" : "")) + "'>";
-                 mobileHtml += "  <div class='accordion-header' onclick='toggleAdminTutorAccordion(" + idx + ")'>";
-                 mobileHtml += "    <div class='accordion-header-title'>";
-                 mobileHtml += "      <span>" + escapeHtml(t.name) + "</span>" + (isCurrentlyDeactivated ? " <span style='background:#F59E0B; color:#000; font-size:9px; padding:1px 5px; border-radius:10px; font-weight:bold; margin-left:5px;'>Vô hiệu hóa</span>" : (isDue ? " <span style='background:#EF4444; color:#FFF; font-size:9px; padding:1px 5px; border-radius:10px; font-weight:bold; margin-left:5px;'>Đến hạn</span>" : ""));
-                 mobileHtml += "    </div>";
-                 mobileHtml += "    <div class='accordion-header-status'><i class='fa-solid fa-chevron-down' id='adm-tutor-chevron-" + idx + "'></i></div>";
-                 mobileHtml += "  </div>";
-                 mobileHtml += "  <div class='accordion-body' id='adm-tutor-body-" + idx + "' style='display: none;'>";
-                 mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Số điện thoại</span><span class='accordion-body-val'>" + escapeHtml(t.phone) + "</span></div>";
-                 mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Mã PIN</span><span class='accordion-body-val'><code style='letter-spacing:2px; font-weight:bold; color:#FFD23F;'>" + escapeHtml(t.pin) + "</code></span></div>";
-                 mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Ngày đăng ký</span><span class='accordion-body-val'>" + escapeHtml(t.createdDate || "-") + "</span></div>";
-                 mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Ngày hạn kế</span><span class='accordion-body-val' style='" + (isDue ? "color:#FF8080; font-weight:bold;" : "") + "'>" + escapeHtml(t.nextBillingDate || "-") + "</span></div>";
-                 mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Số HS hoạt động</span><span class='accordion-body-val'><b>" + sCount + "</b></span></div>";
-                 mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Phí thuê Web</span><span class='accordion-body-val'><b style='color:#A78BFA;'>" + webFee.toLocaleString('vi-VN') + "đ</b></span></div>";
-                 mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Hoạt động cuối</span><span class='accordion-body-val'>" + lastActiveDisplay + "</span></div>";
-                 mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Trạng thái</span><span class='accordion-body-val'>" + statusText + "</span></div>";
-                 mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Thao tác</span><span class='accordion-body-val'>" + mobilePayBtn + lockBtn + editBtn + "</span></div>";
-                 mobileHtml += "  </div>";
-                 mobileHtml += "</div>";
+            // Tính toán danh sách cảnh báo đến hạn phí web cho toàn bộ gia sư
+            adminDataGlobal.tutors.forEach(t => {
+                var sCount = getActiveStudentsForTutor(t.phone);
+                var webFee = Math.ceil(sCount / 2) * 30000;
+                var isCurrentlyDeactivated = (t.status === "Vô hiệu hóa");
+                var isDue = isBillingDue(t.nextBillingDate) && !isCurrentlyDeactivated;
+                if (isDue) {
+                    dueAlerts.push({
+                        name: t.name,
+                        phone: t.phone,
+                        nextBillingDate: t.nextBillingDate,
+                        students: sCount,
+                        fee: webFee
+                    });
+                }
             });
-            
-            if (mobileContainer) {
-                mobileContainer.innerHTML = mobileHtml;
-            }
-            
+
             // Vẽ hộp cảnh báo đỏ lên đầu trang Admin
             if (alertContainer) {
                 if (dueAlerts.length > 0) {
                     var alertHtml = "";
                     dueAlerts.forEach(a => {
                         alertHtml += `
-                            <div style="background: rgba(239, 68, 68, 0.12); border: 1px solid rgba(239, 68, 68, 0.35); border-radius: 12px; padding: 15px; color: #FF8080; font-size: 13.5px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; font-family: Inter;">
-                                <div style="display: flex; align-items: center; gap: 8px;">
-                                    <i class="fa-solid fa-circle-exclamation" style="font-size: 16px; color: #EF4444;"></i>
-                                    <span>⚠️ Gia sư <b>${escapeHtml(a.name)}</b> (${a.students} HS) đến hạn đóng tiền thuê Web: <b style="color: #FFF; background: #EF4444; padding: 2px 8px; border-radius: 4px;">${a.fee.toLocaleString('vi-VN')}đ</b> (Hạn: ${escapeHtml(a.nextBillingDate)})</span>
+                            <div class="adm-alert-card">
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <i class="fa-solid fa-triangle-exclamation" style="font-size: 18px; color: #EF4444;"></i>
+                                    <span style="color:#FECACA; font-size:13.5px;">Gia sư <b style="color:#FFF;">${escapeHtml(a.name)}</b> (${a.students} HS) đến hạn đóng tiền thuê Web: <b style="color: #FFF; background: #DC2626; padding: 2px 8px; border-radius: 6px;">${a.fee.toLocaleString('vi-VN')}đ</b> (Hạn: ${escapeHtml(a.nextBillingDate)})</span>
                                 </div>
-                                <button onclick="confirmQuickPaid('${jsStr(a.phone)}', '${jsStr(a.name)}')" class="modal-btn modal-btn-primary" style="padding: 6px 14px; font-size: 12px; border-radius: 20px; background: linear-gradient(135deg, #10B981, #059669); border: none; box-shadow: 0 4px 10px rgba(16,185,129,0.2); color:#FFF; font-weight:bold; cursor:pointer;"><i class="fa-solid fa-check"></i> Xác nhận đã thu</button>
+                                <button onclick="confirmQuickPaid('${jsStr(a.phone)}', '${jsStr(a.name)}')" class="adm-btn-action btn-pay" style="padding: 7px 16px; font-size: 13px; border-radius: 10px;"><i class="fa-solid fa-check"></i> Xác nhận đã thu</button>
                             </div>
                         `;
                     });
@@ -557,6 +564,143 @@ var pinVerifyAction = "deleteStudent";
                     alertContainer.innerHTML = "";
                     alertContainer.style.display = "none";
                 }
+            }
+
+            // Lọc dữ liệu theo Search và Trạng thái
+            var searchInput = document.getElementById('adminTutorSearchInput');
+            var searchVal = searchInput ? searchInput.value.trim().toLowerCase() : "";
+            var statusFilterEl = document.getElementById('adminTutorStatusFilter');
+            var statusFilter = statusFilterEl ? statusFilterEl.value : "all";
+
+            var filteredTutors = adminDataGlobal.tutors.filter(t => {
+                var isCurrentlyDeactivated = (t.status === "Vô hiệu hóa");
+                var isDue = isBillingDue(t.nextBillingDate) && !isCurrentlyDeactivated;
+
+                if (statusFilter === "active" && (isCurrentlyDeactivated || isDue)) return false;
+                if (statusFilter === "due" && !isDue) return false;
+                if (statusFilter === "deactivated" && !isCurrentlyDeactivated) return false;
+
+                if (searchVal) {
+                    var matchName = (t.name || "").toLowerCase().includes(searchVal);
+                    var matchPhone = (t.phone || "").toLowerCase().includes(searchVal);
+                    var matchPin = (t.pin || "").toLowerCase().includes(searchVal);
+                    if (!matchName && !matchPhone && !matchPin) return false;
+                }
+                return true;
+            });
+
+            if (filteredTutors.length === 0) {
+                tbody.innerHTML = "<tr><td colspan='10' style='text-align:center; color:#A6ADCE; padding:30px;'><i class='fa-solid fa-magnifying-glass'></i> Không tìm thấy gia sư nào phù hợp với bộ lọc.</td></tr>";
+                if (mobileContainer) {
+                    mobileContainer.innerHTML = "<div style='text-align:center; color:#A6ADCE; padding: 25px; font-size: 13px;'><i class='fa-solid fa-magnifying-glass'></i> Không tìm thấy gia sư nào phù hợp với bộ lọc.</div>";
+                }
+                return;
+            }
+
+            var mobileHtml = "";
+            filteredTutors.forEach((t, idx) => {
+                 var sCount = getActiveStudentsForTutor(t.phone);
+                 var webFee = Math.ceil(sCount / 2) * 30000;
+                 var isCurrentlyDeactivated = (t.status === "Vô hiệu hóa");
+                 var isDue = isBillingDue(t.nextBillingDate) && !isCurrentlyDeactivated;
+                 var initials = getInitials(t.name);
+                 
+                 var statusPill = "";
+                 if (isCurrentlyDeactivated) {
+                     statusPill = "<span class='adm-status-pill status-locked'><i class='fa-solid fa-ban'></i> Đã khóa</span>";
+                 } else if (isDue) {
+                     statusPill = "<span class='adm-status-pill status-due'><i class='fa-solid fa-triangle-exclamation'></i> Đến hạn</span>";
+                 } else {
+                     statusPill = "<span class='adm-status-pill status-active'><i class='fa-solid fa-circle-check'></i> Hoạt động</span>";
+                 }
+                 
+                 var quickPayBtn = "";
+                 if (isDue && !isCurrentlyDeactivated) {
+                     quickPayBtn = "<button class='adm-btn-action btn-pay' onclick='confirmQuickPaid(\"" + jsStr(t.phone) + "\", \"" + jsStr(t.name) + "\")' title='Xác nhận đã thu'><i class='fa-solid fa-check'></i> Thu</button>";
+                 }
+                 
+                 var lockBtn = isCurrentlyDeactivated ?
+                     "<button class='adm-btn-action btn-unlock' onclick='quickToggleTutorStatus(\"" + jsStr(t.phone) + "\", \"" + jsStr(t.name) + "\", true)' title='Kích hoạt lại tài khoản'><i class='fa-solid fa-unlock'></i> Mở</button>" :
+                     "<button class='adm-btn-action btn-lock' onclick='quickToggleTutorStatus(\"" + jsStr(t.phone) + "\", \"" + jsStr(t.name) + "\", false)' title='Vô hiệu hóa tài khoản'><i class='fa-solid fa-lock'></i> Khóa</button>";
+
+                 var lastActiveDisplay = t.lastActive ? escapeHtml(t.lastActive) : "<i style='color:#6c757d;'>Chưa vào</i>";
+                 
+                 // Desktop row
+                 var tr = document.createElement('tr');
+                 if (isCurrentlyDeactivated) {
+                     tr.style.opacity = "0.75";
+                 }
+                 
+                 tr.innerHTML = "<td>" +
+                                  "<div class='adm-user-cell'>" +
+                                    "<span class='adm-avatar-circle'>" + escapeHtml(initials) + "</span>" +
+                                    "<div>" +
+                                      "<div style='font-weight:700; color:#FFFFFF; font-size:13.5px;'>" + escapeHtml(t.name) + "</div>" +
+                                      "<div style='font-size:11px; color:#94A3B8;'>" + sCount + " học sinh</div>" +
+                                    "</div>" +
+                                  "</div>" +
+                                "</td>" +
+                                "<td>" +
+                                  "<div class='adm-phone-tag'>" +
+                                    "<span>" + escapeHtml(t.phone) + "</span>" +
+                                    "<button type='button' class='adm-copy-btn' onclick='copyPhoneToClipboard(\"" + jsStr(t.phone) + "\")' title='Sao chép SĐT'><i class='fa-regular fa-copy'></i></button>" +
+                                  "</div>" +
+                                "</td>" +
+                                "<td><span class='adm-pin-badge'>" + escapeHtml(t.pin) + "</span></td>" +
+                                "<td><span style='font-size:12px; color:#A6ADCE;'>" + escapeHtml(t.createdDate || "-") + "</span></td>" +
+                                "<td>" +
+                                  "<span class='adm-due-badge" + (isDue ? " is-due" : "") + "'>" +
+                                    "<i class='" + (isDue ? "fa-solid fa-triangle-exclamation" : "fa-regular fa-calendar-check") + "'></i> " +
+                                    escapeHtml(t.nextBillingDate || "-") +
+                                  "</span>" +
+                                "</td>" +
+                                "<td style='text-align:center;'><span style='font-weight:700; color:#FFFFFF; background:rgba(255,255,255,0.06); padding:4px 10px; border-radius:8px;'>" + sCount + "</span></td>" +
+                                "<td><b style='color:#C084FC; font-size:13.5px;'>" + webFee.toLocaleString('vi-VN') + "đ</b></td>" +
+                                "<td style='font-size:11.5px; color:#94A3B8;'>" + lastActiveDisplay + "</td>" +
+                                "<td style='text-align:center;'>" + statusPill + "</td>" +
+                                "<td style='text-align:center;'>" +
+                                  "<div style='display:inline-flex; align-items:center; gap:6px;'>" +
+                                    "<button class='adm-btn-action btn-edit' onclick='openAdminEditTutorModal(\"" + jsStr(t.phone) + "\")' title='Sửa thông tin'><i class='fa-solid fa-pen-to-square'></i> Sửa</button>" +
+                                    quickPayBtn +
+                                    lockBtn +
+                                  "</div>" +
+                                "</td>";
+                 tbody.appendChild(tr);
+                 
+                 // Mobile accordion view
+                 var mobilePayBtn = "";
+                 if (isDue && !isCurrentlyDeactivated) {
+                     mobilePayBtn = "<button class='adm-btn-action btn-pay' onclick='confirmQuickPaid(\"" + jsStr(t.phone) + "\", \"" + jsStr(t.name) + "\")' style='font-size:12px; padding:5px 12px;'><i class='fa-solid fa-check'></i> Xác nhận thu</button>";
+                 }
+                 var mobileLockBtn = isCurrentlyDeactivated ?
+                     "<button class='adm-btn-action btn-unlock' onclick='quickToggleTutorStatus(\"" + jsStr(t.phone) + "\", \"" + jsStr(t.name) + "\", true)' style='font-size:12px; padding:5px 12px;'><i class='fa-solid fa-unlock'></i> Mở</button>" :
+                     "<button class='adm-btn-action btn-lock' onclick='quickToggleTutorStatus(\"" + jsStr(t.phone) + "\", \"" + jsStr(t.name) + "\", false)' style='font-size:12px; padding:5px 12px;'><i class='fa-solid fa-lock'></i> Khóa</button>";
+                 var mobileEditBtn = "<button class='adm-btn-action btn-edit' onclick='openAdminEditTutorModal(\"" + jsStr(t.phone) + "\")' style='font-size:12px; padding:5px 12px;'><i class='fa-solid fa-pen-to-square'></i> Sửa</button>";
+                 
+                 mobileHtml += "<div class='accordion-item' style='" + (isCurrentlyDeactivated ? "border: 1px solid rgba(245, 158, 11, 0.25); opacity: 0.85;" : (isDue ? "border: 1px solid rgba(239, 68, 68, 0.35);" : "")) + "'>";
+                 mobileHtml += "  <div class='accordion-header' onclick='toggleAdminTutorAccordion(" + idx + ")'>";
+                 mobileHtml += "    <div class='accordion-header-title'>";
+                 mobileHtml += "      <span class='adm-avatar-circle' style='width:28px; height:28px; font-size:11px;'>" + escapeHtml(initials) + "</span>";
+                 mobileHtml += "      <span style='font-weight:700; color:#FFF;'>" + escapeHtml(t.name) + "</span>";
+                 mobileHtml += "      " + statusPill;
+                 mobileHtml += "    </div>";
+                 mobileHtml += "    <div class='accordion-header-status'><i class='fa-solid fa-chevron-down' id='adm-tutor-chevron-" + idx + "'></i></div>";
+                 mobileHtml += "  </div>";
+                 mobileHtml += "  <div class='accordion-body' id='adm-tutor-body-" + idx + "' style='display: none;'>";
+                 mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Số điện thoại</span><span class='accordion-body-val'><div class='adm-phone-tag'><span>" + escapeHtml(t.phone) + "</span><button type='button' class='adm-copy-btn' onclick='copyPhoneToClipboard(\"" + jsStr(t.phone) + "\")'><i class='fa-regular fa-copy'></i></button></div></span></div>";
+                 mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Mã PIN</span><span class='accordion-body-val'><span class='adm-pin-badge'>" + escapeHtml(t.pin) + "</span></span></div>";
+                 mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Ngày đăng ký</span><span class='accordion-body-val'>" + escapeHtml(t.createdDate || "-") + "</span></div>";
+                 mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Ngày hạn kế</span><span class='accordion-body-val' style='" + (isDue ? "color:#F87171; font-weight:bold;" : "") + "'>" + escapeHtml(t.nextBillingDate || "-") + "</span></div>";
+                 mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Số HS hoạt động</span><span class='accordion-body-val'><b>" + sCount + "</b></span></div>";
+                 mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Phí thuê Web</span><span class='accordion-body-val'><b style='color:#C084FC;'>" + webFee.toLocaleString('vi-VN') + "đ</b></span></div>";
+                 mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Hoạt động cuối</span><span class='accordion-body-val'>" + lastActiveDisplay + "</span></div>";
+                 mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Thao tác</span><span class='accordion-body-val' style='display:flex; gap:6px; flex-wrap:wrap;'>" + mobilePayBtn + mobileLockBtn + mobileEditBtn + "</span></div>";
+                 mobileHtml += "  </div>";
+                 mobileHtml += "</div>";
+            });
+            
+            if (mobileContainer) {
+                mobileContainer.innerHTML = mobileHtml;
             }
         }
 
@@ -569,50 +713,97 @@ var pinVerifyAction = "deleteStudent";
             tbody.innerHTML = "";
             
             if (!adminDataGlobal.students || adminDataGlobal.students.length === 0) {
-                tbody.innerHTML = "<tr><td colspan='7' style='text-align:center; color:#A6ADCE;'>Không có học sinh nào trên hệ thống.</td></tr>";
+                tbody.innerHTML = "<tr><td colspan='7' style='text-align:center; color:#A6ADCE; padding:30px;'>Không có học sinh nào trên hệ thống.</td></tr>";
                 if (mobileContainer) {
-                    mobileContainer.innerHTML = "<div style='text-align:center; color:#A6ADCE; padding: 20px; font-size: 13px;'><i class='fa-solid fa-circle-info'></i> Không có học sinh nào trên hệ thống.</div>";
+                    mobileContainer.innerHTML = "<div style='text-align:center; color:#A6ADCE; padding: 25px; font-size: 13px;'><i class='fa-solid fa-circle-info'></i> Không có học sinh nào trên hệ thống.</div>";
+                }
+                return;
+            }
+
+            // Lọc dữ liệu theo Search và Gia sư phụ trách
+            var searchInput = document.getElementById('adminStudentSearchInput');
+            var searchVal = searchInput ? searchInput.value.trim().toLowerCase() : "";
+            var tutorFilterEl = document.getElementById('adminStudentTutorFilter');
+            var tutorFilter = tutorFilterEl ? tutorFilterEl.value : "all";
+
+            var filteredStudents = adminDataGlobal.students.filter(st => {
+                if (tutorFilter !== "all" && normalizePhone(st.tutorPhone) !== normalizePhone(tutorFilter)) {
+                    return false;
+                }
+                if (searchVal) {
+                    var matchName = (st.name || "").toLowerCase().includes(searchVal);
+                    var matchParent = (st.parentName || "").toLowerCase().includes(searchVal);
+                    var matchPhone = (st.phone || "").toLowerCase().includes(searchVal);
+                    if (!matchName && !matchParent && !matchPhone) return false;
+                }
+                return true;
+            });
+
+            if (filteredStudents.length === 0) {
+                tbody.innerHTML = "<tr><td colspan='7' style='text-align:center; color:#A6ADCE; padding:30px;'><i class='fa-solid fa-magnifying-glass'></i> Không tìm thấy học sinh nào phù hợp với bộ lọc.</td></tr>";
+                if (mobileContainer) {
+                    mobileContainer.innerHTML = "<div style='text-align:center; color:#A6ADCE; padding: 25px; font-size: 13px;'><i class='fa-solid fa-magnifying-glass'></i> Không tìm thấy học sinh nào phù hợp với bộ lọc.</div>";
                 }
                 return;
             }
             
             var mobileHtml = "";
-            adminDataGlobal.students.forEach((st, idx) => {
-                var statusText = st.deletedDate ? "<span class='badge' style='background:rgba(239,68,68,0.1); color:#EF4444; margin-bottom:0;'>Đã xóa (" + escapeHtml(st.deletedDate.split(" ")[0]) + ")</span>" : "<span class='badge' style='background:rgba(16,185,129,0.1); color:#10B981; margin-bottom:0;'>Hoạt động</span>";
-                var tName = escapeHtml(adminDataGlobal.tutors.find(t => normalizePhone(t.phone) === normalizePhone(st.tutorPhone))?.name || "Chưa gán");
+            filteredStudents.forEach((st, idx) => {
+                var isDeleted = !!st.deletedDate && st.deletedDate.trim() !== "";
+                var statusPill = isDeleted ?
+                    "<span class='adm-status-pill status-locked'><i class='fa-solid fa-trash-can'></i> Đã xóa (" + escapeHtml(st.deletedDate.split(" ")[0]) + ")</span>" :
+                    "<span class='adm-status-pill status-active'><i class='fa-solid fa-circle-check'></i> Hoạt động</span>";
+                
+                var tObj = adminDataGlobal.tutors ? adminDataGlobal.tutors.find(t => normalizePhone(t.phone) === normalizePhone(st.tutorPhone)) : null;
+                var tName = escapeHtml(tObj ? tObj.name : (st.tutorPhone || "Chưa gán"));
                 var stTuitionNum = Number(st.tuition) || 0;
                 var tuitionDisplay = escapeHtml(st.tuition != null && st.tuition.toLocaleString ? st.tuition.toLocaleString('vi-VN') : st.tuition);
                 var editStudentArgs = "\"" + jsStr(st.phone) + "\", \"" + jsStr(st.parentName) + "\", \"" + jsStr(st.name) + "\", " + stTuitionNum + ", \"" + jsStr(st.tutorPhone) + "\"";
+                var initials = getInitials(st.name);
                 
                 // Desktop
                 var tr = document.createElement('tr');
-                tr.innerHTML = "<td><b>" + escapeHtml(st.name) + "</b></td>" +
-                               "<td>" + escapeHtml(st.parentName) + "</td>" +
-                               "<td>" + escapeHtml(st.phone) + "</td>" +
-                               "<td>" + tuitionDisplay + "đ</td>" +
-                               "<td>" + tName + "</td>" +
-                               "<td>" + statusText + "</td>" +
+                if (isDeleted) {
+                    tr.style.opacity = "0.7";
+                }
+                tr.innerHTML = "<td>" +
+                                 "<div class='adm-user-cell'>" +
+                                   "<span class='adm-avatar-circle' style='background:linear-gradient(135deg, #10B981, #059669);'>" + escapeHtml(initials) + "</span>" +
+                                   "<div style='font-weight:700; color:#FFFFFF; font-size:13.5px;'>" + escapeHtml(st.name) + "</div>" +
+                                 "</div>" +
+                               "</td>" +
+                               "<td><span style='color:#CBD5E1;'>" + escapeHtml(st.parentName || "-") + "</span></td>" +
+                               "<td>" +
+                                 "<div class='adm-phone-tag'>" +
+                                   "<span>" + escapeHtml(st.phone) + "</span>" +
+                                   "<button type='button' class='adm-copy-btn' onclick='copyPhoneToClipboard(\"" + jsStr(st.phone) + "\")' title='Sao chép SĐT'><i class='fa-regular fa-copy'></i></button>" +
+                                 "</div>" +
+                               "</td>" +
+                               "<td><b style='color:#FFD23F; font-size:13px;'>" + tuitionDisplay + "đ</b></td>" +
+                               "<td><span class='adm-tag-tutor'><i class='fa-solid fa-chalkboard-user'></i> " + tName + "</span></td>" +
+                               "<td>" + statusPill + "</td>" +
                                "<td style='text-align:center;'>" +
-                                 "<button class='btn-icon-edit' onclick='openAdminEditStudentModal(" + editStudentArgs + ")' title='Sửa học sinh'><i class='fa-solid fa-pen-to-square'></i></button>" +
+                                 "<button class='adm-btn-action btn-edit' onclick='openAdminEditStudentModal(" + editStudentArgs + ")' title='Sửa học sinh'><i class='fa-solid fa-pen-to-square'></i> Sửa</button>" +
                                "</td>";
                 tbody.appendChild(tr);
                 
                 // Mobile
-                var editBtn = "<button class='action-btn-hw' onclick='openAdminEditStudentModal(" + editStudentArgs + ")' style='color:#FFD23F; border-color:rgba(255,210,63,0.3); background:rgba(255,210,63,0.1); padding: 4px 14px; text-decoration: none; font-size:12px; border-radius:20px;'><i class='fa-solid fa-pen-to-square'></i> Chỉnh sửa</button>";
+                var editBtn = "<button class='adm-btn-action btn-edit' onclick='openAdminEditStudentModal(" + editStudentArgs + ")' style='font-size:12px; padding:5px 12px;'><i class='fa-solid fa-pen-to-square'></i> Chỉnh sửa</button>";
                 
-                mobileHtml += "<div class='accordion-item'>";
+                mobileHtml += "<div class='accordion-item' style='" + (isDeleted ? "opacity: 0.75; border-color: rgba(245,158,11,0.2);" : "") + "'>";
                 mobileHtml += "  <div class='accordion-header' onclick='toggleAdminStudentAccordion(" + idx + ")'>";
                 mobileHtml += "    <div class='accordion-header-title'>";
-                mobileHtml += "      <span>" + escapeHtml(st.name) + "</span>";
-                mobileHtml += "      " + statusText;
+                mobileHtml += "      <span class='adm-avatar-circle' style='width:28px; height:28px; font-size:11px; background:linear-gradient(135deg, #10B981, #059669);'>" + escapeHtml(initials) + "</span>";
+                mobileHtml += "      <span style='font-weight:700; color:#FFF;'>" + escapeHtml(st.name) + "</span>";
+                mobileHtml += "      " + statusPill;
                 mobileHtml += "    </div>";
                 mobileHtml += "    <div class='accordion-header-status'><i class='fa-solid fa-chevron-down' id='adm-student-chevron-" + idx + "'></i></div>";
                 mobileHtml += "  </div>";
                 mobileHtml += "  <div class='accordion-body' id='adm-student-body-" + idx + "' style='display: none;'>";
-                mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Tên phụ huynh</span><span class='accordion-body-val'>" + escapeHtml(st.parentName) + "</span></div>";
-                mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>SĐT Phụ Huynh</span><span class='accordion-body-val'>" + escapeHtml(st.phone) + "</span></div>";
+                mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Tên phụ huynh</span><span class='accordion-body-val'>" + escapeHtml(st.parentName || "-") + "</span></div>";
+                mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>SĐT Phụ Huynh</span><span class='accordion-body-val'><div class='adm-phone-tag'><span>" + escapeHtml(st.phone) + "</span><button type='button' class='adm-copy-btn' onclick='copyPhoneToClipboard(\"" + jsStr(st.phone) + "\")'><i class='fa-regular fa-copy'></i></button></div></span></div>";
                 mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Học phí/buổi</span><span class='accordion-body-val' style='font-weight:bold; color:#FFD23F;'>" + tuitionDisplay + "đ</span></div>";
-                mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Gia sư</span><span class='accordion-body-val'>" + tName + "</span></div>";
+                mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Gia sư</span><span class='accordion-body-val'><span class='adm-tag-tutor'><i class='fa-solid fa-chalkboard-user'></i> " + tName + "</span></span></div>";
                 mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Thao tác</span><span class='accordion-body-val'>" + editBtn + "</span></div>";
                 mobileHtml += "  </div>";
                 mobileHtml += "</div>";
