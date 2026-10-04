@@ -10,34 +10,33 @@ var pinVerifyAction = "deleteStudent";
             if (!container) return;
             
             var toast = document.createElement('div');
-            toast.style.padding = '15px 25px';
-            toast.style.borderRadius = '12px';
-            toast.style.color = '#FFF';
-            toast.style.fontSize = '14px';
-            toast.style.fontWeight = 'bold';
-            toast.style.boxShadow = '0 10px 25px rgba(0,0,0,0.3)';
+            toast.style.padding = '14px 22px';
+            toast.style.borderRadius = '14px';
+            toast.style.color = '#1E293B';
+            toast.style.background = '#FFFFFF';
+            toast.style.fontSize = '13.5px';
+            toast.style.fontWeight = '600';
+            toast.style.boxShadow = '0 10px 30px rgba(0,0,0,0.12)';
             toast.style.pointerEvents = 'auto';
             toast.style.animation = 'slideIn 0.3s ease forwards';
-            toast.style.fontFamily = 'Inter, sans-serif';
+            toast.style.fontFamily = 'Plus Jakarta Sans, Inter, sans-serif';
             toast.style.display = 'flex';
             toast.style.alignItems = 'center';
             toast.style.gap = '10px';
             toast.style.borderWidth = '1px';
             toast.style.borderStyle = 'solid';
+            toast.style.borderColor = '#E2E8F0';
             
             var safeMessage = escapeHtml(message);
             if (type === 'success') {
-                toast.style.background = '#00CC66';
-                toast.style.borderColor = '#00FF88';
-                toast.innerHTML = '<i class="fa-solid fa-circle-check"></i> ' + safeMessage;
+                toast.style.borderLeft = '4px solid #10B981';
+                toast.innerHTML = '<i class="fa-solid fa-circle-check" style="color:#10B981; font-size:16px;"></i> ' + safeMessage;
             } else if (type === 'error') {
-                toast.style.background = '#FF4D4D';
-                toast.style.borderColor = '#FF8080';
-                toast.innerHTML = '<i class="fa-solid fa-circle-xmark"></i> ' + safeMessage;
+                toast.style.borderLeft = '4px solid #EF4444';
+                toast.innerHTML = '<i class="fa-solid fa-circle-xmark" style="color:#EF4444; font-size:16px;"></i> ' + safeMessage;
             } else {
-                toast.style.background = '#8E4DFF';
-                toast.style.borderColor = '#A870FF';
-                toast.innerHTML = '<i class="fa-solid fa-circle-info"></i> ' + safeMessage;
+                toast.style.borderLeft = '4px solid #2563EB';
+                toast.innerHTML = '<i class="fa-solid fa-circle-info" style="color:#2563EB; font-size:16px;"></i> ' + safeMessage;
             }
             
             container.appendChild(toast);
@@ -156,8 +155,7 @@ var pinVerifyAction = "deleteStudent";
             var tutorDash = document.getElementById('tutorDashboardBox');
             if (tutorDash) tutorDash.style.display = 'none';
             
-            var headerEl = document.querySelector('.header');
-            if (headerEl) headerEl.style.display = 'none';
+            // Giữ nguyên header ngoài hệ thống (.header) hiển thị đồng nhất
             
             // Hiển thị Admin Dashboard
             document.getElementById('adminDashboardBox').style.display = 'block';
@@ -264,9 +262,9 @@ var pinVerifyAction = "deleteStudent";
                 var tutorKeys = Object.keys(tutorsData);
                 
                 if (tutorKeys.length === 0) {
-                    breakdownBody.innerHTML = "<tr><td colspan='5' style='text-align:center; color:#A6ADCE;'>Không có dữ liệu buổi học nào trong tháng này.</td></tr>";
+                    breakdownBody.innerHTML = "<tr><td colspan='5' style='text-align:center; color:#64748B;'>Không có dữ liệu buổi học nào trong tháng này.</td></tr>";
                     if (breakdownMobile) {
-                        breakdownMobile.innerHTML = "<div style='text-align:center; color:#A6ADCE; padding: 20px; font-size: 13px;'><i class='fa-solid fa-circle-info'></i> Không có dữ liệu buổi học nào trong tháng này.</div>";
+                        breakdownMobile.innerHTML = "<div style='text-align:center; color:#64748B; padding: 20px; font-size: 13px;'><i class='fa-solid fa-circle-info'></i> Không có dữ liệu buổi học nào trong tháng này.</div>";
                     }
                 } else {
                     var mobileHtml = "";
@@ -274,7 +272,7 @@ var pinVerifyAction = "deleteStudent";
                         var tReport = tutorsData[tKey];
                         var pct = tReport.expected > 0 ? Math.min(100, Math.round((tReport.paid / tReport.expected) * 100)) : 0;
                         var rate = pct + "%";
-                        var barColor = pct >= 80 ? '#10B981' : (pct >= 50 ? '#8E4DFF' : '#F59E0B');
+                        var barColor = pct >= 80 ? '#10B981' : (pct >= 50 ? '#2563EB' : '#F59E0B');
                         var initials = getInitials(tReport.name);
                         
                         // Desktop
@@ -282,15 +280,15 @@ var pinVerifyAction = "deleteStudent";
                         tr.innerHTML = "<td>" +
                                          "<div class='adm-user-cell'>" +
                                            "<span class='adm-avatar-circle' style='width:32px; height:32px; font-size:12px;'>" + escapeHtml(initials) + "</span>" +
-                                           "<b style='color:#FFF; font-size:13.5px;'>" + escapeHtml(tReport.name) + "</b>" +
+                                           "<b style='color:#0F172A; font-size:13.5px;'>" + escapeHtml(tReport.name) + "</b>" +
                                          "</div>" +
                                        "</td>" +
-                                       "<td style='color:#C084FC; font-weight:700;'>" + tReport.expected.toLocaleString('vi-VN') + "đ</td>" +
-                                       "<td style='color:#34D399; font-weight:700;'>" + tReport.paid.toLocaleString('vi-VN') + "đ</td>" +
-                                       "<td style='color:#FBBF24; font-weight:700;'>" + tReport.unpaid.toLocaleString('vi-VN') + "đ</td>" +
+                                       "<td style='color:#2563EB; font-weight:700;'>" + tReport.expected.toLocaleString('vi-VN') + "đ</td>" +
+                                       "<td style='color:#059669; font-weight:700;'>" + tReport.paid.toLocaleString('vi-VN') + "đ</td>" +
+                                       "<td style='color:#D97706; font-weight:700;'>" + tReport.unpaid.toLocaleString('vi-VN') + "đ</td>" +
                                        "<td>" +
                                          "<div style='display:flex; flex-direction:column; gap:4px; min-width:90px;'>" +
-                                           "<div style='display:flex; justify-content:space-between; font-size:11px;'><span style='color:#A6ADCE;'>Thu hồi</span><b style='color:#FFF;'>" + rate + "</b></div>" +
+                                           "<div style='display:flex; justify-content:space-between; font-size:11px;'><span style='color:#64748B;'>Thu hồi</span><b style='color:#0F172A;'>" + rate + "</b></div>" +
                                            "<div class='adm-progress-bar'><div class='adm-progress-fill' style='width:" + pct + "%; background:" + barColor + ";'></div></div>" +
                                          "</div>" +
                                        "</td>";
@@ -302,14 +300,14 @@ var pinVerifyAction = "deleteStudent";
                         mobileHtml += "    <div class='accordion-header-title'>";
                         mobileHtml += "      <span class='adm-avatar-circle' style='width:26px; height:26px; font-size:10px;'>" + escapeHtml(initials) + "</span>";
                         mobileHtml += "      <span>" + escapeHtml(tReport.name) + "</span>";
-                        mobileHtml += "      <span class='badge' style='background:rgba(142,77,255,0.15); color:#a78bfa; margin-bottom: 0; padding: 3px 8px; font-size: 10px;'>" + rate + "</span>";
+                        mobileHtml += "      <span class='badge' style='background:#EFF6FF; color:#2563EB; margin-bottom: 0; padding: 3px 8px; font-size: 11px; font-weight:700; border-radius:999px;'></span>";
                         mobileHtml += "    </div>";
                         mobileHtml += "    <div class='accordion-header-status'><i class='fa-solid fa-chevron-down' id='adm-tutor-bd-chevron-" + idx + "'></i></div>";
                         mobileHtml += "  </div>";
                         mobileHtml += "  <div class='accordion-body' id='adm-tutor-bd-body-" + idx + "' style='display: none;'>";
-                        mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Lương dự kiến</span><span class='accordion-body-val' style='color:#C084FC; font-weight:bold;'>" + tReport.expected.toLocaleString('vi-VN') + "đ</span></div>";
-                        mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Lương thực tế</span><span class='accordion-body-val' style='color:#34D399; font-weight:bold;'>" + tReport.paid.toLocaleString('vi-VN') + "đ</span></div>";
-                        mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Còn nợ</span><span class='accordion-body-val' style='color:#FBBF24; font-weight:bold;'>" + tReport.unpaid.toLocaleString('vi-VN') + "đ</span></div>";
+                        mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Lương dự kiến</span><span class='accordion-body-val' style='color:#2563EB; font-weight:bold;'>" + tReport.expected.toLocaleString('vi-VN') + "đ</span></div>";
+                        mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Lương thực tế</span><span class='accordion-body-val' style='color:#059669; font-weight:bold;'>" + tReport.paid.toLocaleString('vi-VN') + "đ</span></div>";
+                        mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Còn nợ</span><span class='accordion-body-val' style='color:#D97706; font-weight:bold;'>" + tReport.unpaid.toLocaleString('vi-VN') + "đ</span></div>";
                         mobileHtml += "  </div>";
                         mobileHtml += "</div>";
                     });
@@ -339,24 +337,24 @@ var pinVerifyAction = "deleteStudent";
                     
                     // Desktop
                     var tr = document.createElement('tr');
-                    tr.innerHTML = "<td><b style='color:#FFF;'>" + escapeHtml(m) + "</b></td>" +
-                                   "<td style='color:#C084FC; font-weight:700;'>" + r.expected.toLocaleString('vi-VN') + "đ</td>" +
-                                   "<td style='color:#34D399; font-weight:700;'>" + r.paid.toLocaleString('vi-VN') + "đ</td>" +
-                                   "<td style='color:#FBBF24; font-weight:700;'>" + r.unpaid.toLocaleString('vi-VN') + "đ</td>";
+                    tr.innerHTML = "<td><b style='color:#0F172A;'>" + escapeHtml(m) + "</b></td>" +
+                                   "<td style='color:#2563EB; font-weight:700;'>" + r.expected.toLocaleString('vi-VN') + "đ</td>" +
+                                   "<td style='color:#059669; font-weight:700;'>" + r.paid.toLocaleString('vi-VN') + "đ</td>" +
+                                   "<td style='color:#D97706; font-weight:700;'>" + r.unpaid.toLocaleString('vi-VN') + "đ</td>";
                     tableBody.appendChild(tr);
                     
                     // Mobile
                     reportMobileHtml += "<div class='accordion-item'>";
                     reportMobileHtml += "  <div class='accordion-header' onclick='toggleAdminReportAccordion(" + idx + ")'>";
                     reportMobileHtml += "    <div class='accordion-header-title'>";
-                    reportMobileHtml += "      <span>Tháng " + escapeHtml(m) + "</span>";
+                    reportMobileHtml += "      <span>" + escapeHtml(m) + "</span>";
                     reportMobileHtml += "    </div>";
                     reportMobileHtml += "    <div class='accordion-header-status'><i class='fa-solid fa-chevron-down' id='adm-report-chevron-" + idx + "'></i></div>";
                     reportMobileHtml += "  </div>";
                     reportMobileHtml += "  <div class='accordion-body' id='adm-report-body-" + idx + "' style='display: none;'>";
-                    reportMobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Dự kiến thu</span><span class='accordion-body-val' style='color:#8E4DFF; font-weight:bold;'>" + r.expected.toLocaleString('vi-VN') + "đ</span></div>";
-                    reportMobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Thực tế đã thu</span><span class='accordion-body-val' style='color:#10B981; font-weight:bold;'>" + r.paid.toLocaleString('vi-VN') + "đ</span></div>";
-                    reportMobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Còn nợ</span><span class='accordion-body-val' style='color:#F59E0B; font-weight:bold;'>" + r.unpaid.toLocaleString('vi-VN') + "đ</span></div>";
+                    reportMobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Dự kiến thu</span><span class='accordion-body-val' style='color:#2563EB; font-weight:bold;'>" + r.expected.toLocaleString('vi-VN') + "đ</span></div>";
+                    reportMobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Thực tế đã thu</span><span class='accordion-body-val' style='color:#059669; font-weight:bold;'>" + r.paid.toLocaleString('vi-VN') + "đ</span></div>";
+                    reportMobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Còn nợ</span><span class='accordion-body-val' style='color:#D97706; font-weight:bold;'>" + r.unpaid.toLocaleString('vi-VN') + "đ</span></div>";
                     reportMobileHtml += "  </div>";
                     reportMobileHtml += "</div>";
                 });
@@ -406,32 +404,32 @@ var pinVerifyAction = "deleteStudent";
                         {
                             label: 'Lương dự kiến (Tổng học phí)',
                             data: expectedData,
-                            borderColor: '#8E4DFF',
-                            backgroundColor: 'rgba(142, 77, 255, 0.05)',
+                            borderColor: '#2563EB',
+                            backgroundColor: 'rgba(37, 99, 235, 0.08)',
                             fill: true,
                             tension: 0.35,
                             borderWidth: 3,
-                            pointBackgroundColor: '#8E4DFF',
+                            pointBackgroundColor: '#2563EB',
                             pointBorderColor: '#FFFFFF',
                             pointRadius: 6,
-                            pointBorderWidth: 3,
+                            pointBorderWidth: 2,
                             pointHoverRadius: 8,
-                            pointHoverBorderWidth: 4
+                            pointHoverBorderWidth: 3
                         },
                         {
                             label: 'Lương thực thu (Thực tế đã đóng)',
                             data: paidData,
                             borderColor: '#10B981',
-                            backgroundColor: 'rgba(16, 185, 129, 0.05)',
+                            backgroundColor: 'rgba(16, 185, 129, 0.08)',
                             fill: true,
                             tension: 0.35,
                             borderWidth: 3,
                             pointBackgroundColor: '#10B981',
                             pointBorderColor: '#FFFFFF',
                             pointRadius: 6,
-                            pointBorderWidth: 3,
+                            pointBorderWidth: 2,
                             pointHoverRadius: 8,
-                            pointHoverBorderWidth: 4
+                            pointHoverBorderWidth: 3
                         }
                     ]
                 },
@@ -441,18 +439,20 @@ var pinVerifyAction = "deleteStudent";
                     plugins: {
                         legend: {
                             labels: {
-                                color: '#A6ADCE',
-                                font: { family: 'Inter', size: 11 }
+                                color: '#475569',
+                                font: { family: 'Plus Jakarta Sans, Inter', size: 12, weight: '600' }
                             }
                         },
                         tooltip: {
-                            backgroundColor: 'rgba(11, 8, 38, 0.95)',
-                            titleColor: '#FFF',
-                            bodyColor: '#A6ADCE',
-                            titleFont: { family: 'Inter', weight: 'bold', size: 11 },
-                            bodyFont: { family: 'Inter', size: 10 },
-                            borderColor: '#8E4DFF',
+                            backgroundColor: '#0F172A',
+                            titleColor: '#FFFFFF',
+                            bodyColor: '#E2E8F0',
+                            titleFont: { family: 'Plus Jakarta Sans, Inter', weight: 'bold', size: 12 },
+                            bodyFont: { family: 'Plus Jakarta Sans, Inter', size: 11 },
+                            borderColor: '#3B82F6',
                             borderWidth: 1,
+                            padding: 10,
+                            boxPadding: 4,
                             callbacks: {
                                 label: function(context) {
                                     return context.dataset.label + ': ' + context.raw.toLocaleString('vi-VN') + 'đ';
@@ -462,15 +462,15 @@ var pinVerifyAction = "deleteStudent";
                     },
                     scales: {
                         x: {
-                            grid: { color: 'rgba(255, 255, 255, 0.03)' },
-                            ticks: { color: '#A6ADCE', font: { family: 'Inter', size: 9.5 } }
+                            grid: { color: 'rgba(226, 232, 240, 0.8)' },
+                            ticks: { color: '#64748B', font: { family: 'Plus Jakarta Sans, Inter', size: 11 } }
                         },
                         y: {
                             min: 0,
-                            grid: { color: 'rgba(255, 255, 255, 0.03)' },
+                            grid: { color: 'rgba(226, 232, 240, 0.8)' },
                             ticks: {
-                                color: '#A6ADCE',
-                                font: { family: 'Inter' },
+                                color: '#64748B',
+                                font: { family: 'Plus Jakarta Sans, Inter', size: 11 },
                                 callback: function(value) {
                                     if (value >= 1000000) {
                                         return (value / 1000000) + 'M';
@@ -533,9 +533,9 @@ var pinVerifyAction = "deleteStudent";
             var alertContainer = document.getElementById('adminBillingAlerts');
             
             if (!adminDataGlobal.tutors || adminDataGlobal.tutors.length === 0) {
-                tbody.innerHTML = "<tr><td colspan='10' style='text-align:center; color:#A6ADCE; padding:30px;'>Không có gia sư nào trên hệ thống.</td></tr>";
+                tbody.innerHTML = "<tr><td colspan='10' style='text-align:center; color:#64748B; padding:30px;'>Không có gia sư nào trên hệ thống.</td></tr>";
                 if (mobileContainer) {
-                    mobileContainer.innerHTML = "<div style='text-align:center; color:#A6ADCE; padding: 25px; font-size: 13px;'><i class='fa-solid fa-circle-info'></i> Không có gia sư nào trên hệ thống.</div>";
+                    mobileContainer.innerHTML = "<div style='text-align:center; color:#64748B; padding: 25px; font-size: 13px;'><i class='fa-solid fa-circle-info'></i> Không có gia sư nào trên hệ thống.</div>";
                 }
                 if (alertContainer) {
                     alertContainer.style.display = "none";
@@ -570,7 +570,7 @@ var pinVerifyAction = "deleteStudent";
                             <div class="adm-alert-card">
                                 <div style="display: flex; align-items: center; gap: 10px;">
                                     <i class="fa-solid fa-triangle-exclamation" style="font-size: 18px; color: #EF4444;"></i>
-                                    <span style="color:#FECACA; font-size:13.5px;">Gia sư <b style="color:#FFF;">${escapeHtml(a.name)}</b> (${a.students} HS) đến hạn đóng tiền thuê Web: <b style="color: #FFF; background: #DC2626; padding: 2px 8px; border-radius: 6px;">${a.fee.toLocaleString('vi-VN')}đ</b> (Hạn: ${escapeHtml(a.nextBillingDate)})</span>
+                                    <span style="color:#991B1B; font-size:13.5px;">Gia sư <b style="color:#0F172A;">${escapeHtml(a.name)}</b> (${a.students} HS) đến hạn đóng tiền thuê Web: <b style="color: #FFF; background: #DC2626; padding: 2px 8px; border-radius: 6px;">${a.fee.toLocaleString('vi-VN')}đ</b> (Hạn: ${escapeHtml(a.nextBillingDate)})</span>
                                 </div>
                                 <button onclick="confirmQuickPaid('${jsStr(a.phone)}', '${jsStr(a.name)}')" class="adm-btn-action btn-pay" style="padding: 7px 16px; font-size: 13px; border-radius: 10px;"><i class="fa-solid fa-check"></i> Xác nhận đã thu</button>
                             </div>
@@ -608,9 +608,9 @@ var pinVerifyAction = "deleteStudent";
             });
 
             if (filteredTutors.length === 0) {
-                tbody.innerHTML = "<tr><td colspan='10' style='text-align:center; color:#A6ADCE; padding:30px;'><i class='fa-solid fa-magnifying-glass'></i> Không tìm thấy gia sư nào phù hợp với bộ lọc.</td></tr>";
+                tbody.innerHTML = "<tr><td colspan='10' style='text-align:center; color:#64748B; padding:30px;'><i class='fa-solid fa-magnifying-glass'></i> Không tìm thấy gia sư nào phù hợp với bộ lọc.</td></tr>";
                 if (mobileContainer) {
-                    mobileContainer.innerHTML = "<div style='text-align:center; color:#A6ADCE; padding: 25px; font-size: 13px;'><i class='fa-solid fa-magnifying-glass'></i> Không tìm thấy gia sư nào phù hợp với bộ lọc.</div>";
+                    mobileContainer.innerHTML = "<div style='text-align:center; color:#64748B; padding: 25px; font-size: 13px;'><i class='fa-solid fa-magnifying-glass'></i> Không tìm thấy gia sư nào phù hợp với bộ lọc.</div>";
                 }
                 return;
             }
@@ -641,7 +641,7 @@ var pinVerifyAction = "deleteStudent";
                      "<button class='adm-btn-action btn-unlock' onclick='quickToggleTutorStatus(\"" + jsStr(t.phone) + "\", \"" + jsStr(t.name) + "\", true)' title='Kích hoạt lại tài khoản'><i class='fa-solid fa-unlock'></i> Mở</button>" :
                      "<button class='adm-btn-action btn-lock' onclick='quickToggleTutorStatus(\"" + jsStr(t.phone) + "\", \"" + jsStr(t.name) + "\", false)' title='Vô hiệu hóa tài khoản'><i class='fa-solid fa-lock'></i> Khóa</button>";
 
-                 var lastActiveDisplay = t.lastActive ? escapeHtml(t.lastActive) : "<i style='color:#6c757d;'>Chưa vào</i>";
+                 var lastActiveDisplay = t.lastActive ? escapeHtml(t.lastActive) : "<i style='color:#94A3B8;'>Chưa vào</i>";
                  
                  // Desktop row
                  var tr = document.createElement('tr');
@@ -653,8 +653,8 @@ var pinVerifyAction = "deleteStudent";
                                   "<div class='adm-user-cell'>" +
                                     "<span class='adm-avatar-circle'>" + escapeHtml(initials) + "</span>" +
                                     "<div>" +
-                                      "<div style='font-weight:700; color:#FFFFFF; font-size:13.5px;'>" + escapeHtml(t.name) + "</div>" +
-                                      "<div style='font-size:11px; color:#94A3B8;'>" + sCount + " học sinh</div>" +
+                                      "<div style='font-weight:700; color:#0F172A; font-size:13.5px;'>" + escapeHtml(t.name) + "</div>" +
+                                      "<div style='font-size:11px; color:#64748B;'>" + sCount + " học sinh</div>" +
                                     "</div>" +
                                   "</div>" +
                                 "</td>" +
@@ -665,16 +665,16 @@ var pinVerifyAction = "deleteStudent";
                                   "</div>" +
                                 "</td>" +
                                 "<td><span class='adm-pin-badge'>" + escapeHtml(t.pin) + "</span></td>" +
-                                "<td><span style='font-size:12px; color:#A6ADCE;'>" + escapeHtml(t.createdDate || "-") + "</span></td>" +
+                                "<td><span style='font-size:12px; color:#64748B;'>" + escapeHtml(t.createdDate || "-") + "</span></td>" +
                                 "<td>" +
                                   "<span class='adm-due-badge" + (isDue ? " is-due" : "") + "'>" +
                                     "<i class='" + (isDue ? "fa-solid fa-triangle-exclamation" : "fa-regular fa-calendar-check") + "'></i> " +
                                     escapeHtml(t.nextBillingDate || "-") +
                                   "</span>" +
                                 "</td>" +
-                                "<td style='text-align:center;'><span style='font-weight:700; color:#FFFFFF; background:rgba(255,255,255,0.06); padding:4px 10px; border-radius:8px;'>" + sCount + "</span></td>" +
-                                "<td><b style='color:#C084FC; font-size:13.5px;'>" + webFee.toLocaleString('vi-VN') + "đ</b></td>" +
-                                "<td style='font-size:11.5px; color:#94A3B8;'>" + lastActiveDisplay + "</td>" +
+                                "<td style='text-align:center;'><span style='font-weight:700; color:#0F172A; background:#F1F5F9; border:1px solid #E2E8F0; padding:4px 10px; border-radius:8px;'>" + sCount + "</span></td>" +
+                                "<td><b style='color:#2563EB; font-size:13.5px;'>" + webFee.toLocaleString('vi-VN') + "đ</b></td>" +
+                                "<td style='font-size:11.5px; color:#64748B;'>" + lastActiveDisplay + "</td>" +
                                 "<td style='text-align:center;'>" + statusPill + "</td>" +
                                 "<td style='text-align:center;'>" +
                                   "<div style='display:inline-flex; align-items:center; gap:6px;'>" +
@@ -695,11 +695,11 @@ var pinVerifyAction = "deleteStudent";
                      "<button class='adm-btn-action btn-lock' onclick='quickToggleTutorStatus(\"" + jsStr(t.phone) + "\", \"" + jsStr(t.name) + "\", false)' style='font-size:12px; padding:5px 12px;'><i class='fa-solid fa-lock'></i> Khóa</button>";
                  var mobileEditBtn = "<button class='adm-btn-action btn-edit' onclick='openAdminEditTutorModal(\"" + jsStr(t.phone) + "\")' style='font-size:12px; padding:5px 12px;'><i class='fa-solid fa-pen-to-square'></i> Sửa</button>";
                  
-                 mobileHtml += "<div class='accordion-item' style='" + (isCurrentlyDeactivated ? "border: 1px solid rgba(245, 158, 11, 0.25); opacity: 0.85;" : (isDue ? "border: 1px solid rgba(239, 68, 68, 0.35);" : "")) + "'>";
+                 mobileHtml += "<div class='accordion-item' style='" + (isCurrentlyDeactivated ? "border: 1px solid #FDE68A;" : (isDue ? "border: 1px solid #FECACA;" : "")) + "'>";
                  mobileHtml += "  <div class='accordion-header' onclick='toggleAdminTutorAccordion(" + idx + ")'>";
                  mobileHtml += "    <div class='accordion-header-title'>";
                  mobileHtml += "      <span class='adm-avatar-circle' style='width:28px; height:28px; font-size:11px;'>" + escapeHtml(initials) + "</span>";
-                 mobileHtml += "      <span style='font-weight:700; color:#FFF;'>" + escapeHtml(t.name) + "</span>";
+                 mobileHtml += "      <span style='font-weight:700; color:#0F172A;'>" + escapeHtml(t.name) + "</span>";
                  mobileHtml += "      " + statusPill;
                  mobileHtml += "    </div>";
                  mobileHtml += "    <div class='accordion-header-status'><i class='fa-solid fa-chevron-down' id='adm-tutor-chevron-" + idx + "'></i></div>";
@@ -708,9 +708,9 @@ var pinVerifyAction = "deleteStudent";
                  mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Số điện thoại</span><span class='accordion-body-val'><div class='adm-phone-tag'><span>" + escapeHtml(t.phone) + "</span><button type='button' class='adm-copy-btn' onclick='copyPhoneToClipboard(\"" + jsStr(t.phone) + "\")'><i class='fa-regular fa-copy'></i></button></div></span></div>";
                  mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Mã PIN</span><span class='accordion-body-val'><span class='adm-pin-badge'>" + escapeHtml(t.pin) + "</span></span></div>";
                  mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Ngày đăng ký</span><span class='accordion-body-val'>" + escapeHtml(t.createdDate || "-") + "</span></div>";
-                 mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Ngày hạn kế</span><span class='accordion-body-val' style='" + (isDue ? "color:#F87171; font-weight:bold;" : "") + "'>" + escapeHtml(t.nextBillingDate || "-") + "</span></div>";
+                 mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Ngày hạn kế</span><span class='accordion-body-val' style='" + (isDue ? "color:#DC2626; font-weight:bold;" : "color:#1E293B;") + "'>" + escapeHtml(t.nextBillingDate || "-") + "</span></div>";
                  mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Số HS hoạt động</span><span class='accordion-body-val'><b>" + sCount + "</b></span></div>";
-                 mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Phí thuê Web</span><span class='accordion-body-val'><b style='color:#C084FC;'>" + webFee.toLocaleString('vi-VN') + "đ</b></span></div>";
+                 mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Phí thuê Web</span><span class='accordion-body-val'><b style='color:#2563EB;'>" + webFee.toLocaleString('vi-VN') + "đ</b></span></div>";
                  mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Hoạt động cuối</span><span class='accordion-body-val'>" + lastActiveDisplay + "</span></div>";
                  mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Thao tác</span><span class='accordion-body-val' style='display:flex; gap:6px; flex-wrap:wrap;'>" + mobilePayBtn + mobileLockBtn + mobileEditBtn + "</span></div>";
                  mobileHtml += "  </div>";
@@ -731,9 +731,9 @@ var pinVerifyAction = "deleteStudent";
             tbody.innerHTML = "";
             
             if (!adminDataGlobal.students || adminDataGlobal.students.length === 0) {
-                tbody.innerHTML = "<tr><td colspan='7' style='text-align:center; color:#A6ADCE; padding:30px;'>Không có học sinh nào trên hệ thống.</td></tr>";
+                tbody.innerHTML = "<tr><td colspan='7' style='text-align:center; color:#64748B; padding:30px;'>Không có học sinh nào trên hệ thống.</td></tr>";
                 if (mobileContainer) {
-                    mobileContainer.innerHTML = "<div style='text-align:center; color:#A6ADCE; padding: 25px; font-size: 13px;'><i class='fa-solid fa-circle-info'></i> Không có học sinh nào trên hệ thống.</div>";
+                    mobileContainer.innerHTML = "<div style='text-align:center; color:#64748B; padding: 25px; font-size: 13px;'><i class='fa-solid fa-circle-info'></i> Không có học sinh nào trên hệ thống.</div>";
                 }
                 return;
             }
@@ -758,9 +758,9 @@ var pinVerifyAction = "deleteStudent";
             });
 
             if (filteredStudents.length === 0) {
-                tbody.innerHTML = "<tr><td colspan='7' style='text-align:center; color:#A6ADCE; padding:30px;'><i class='fa-solid fa-magnifying-glass'></i> Không tìm thấy học sinh nào phù hợp với bộ lọc.</td></tr>";
+                tbody.innerHTML = "<tr><td colspan='7' style='text-align:center; color:#64748B; padding:30px;'><i class='fa-solid fa-magnifying-glass'></i> Không tìm thấy học sinh nào phù hợp với bộ lọc.</td></tr>";
                 if (mobileContainer) {
-                    mobileContainer.innerHTML = "<div style='text-align:center; color:#A6ADCE; padding: 25px; font-size: 13px;'><i class='fa-solid fa-magnifying-glass'></i> Không tìm thấy học sinh nào phù hợp với bộ lọc.</div>";
+                    mobileContainer.innerHTML = "<div style='text-align:center; color:#64748B; padding: 25px; font-size: 13px;'><i class='fa-solid fa-magnifying-glass'></i> Không tìm thấy học sinh nào phù hợp với bộ lọc.</div>";
                 }
                 return;
             }
@@ -787,17 +787,17 @@ var pinVerifyAction = "deleteStudent";
                 tr.innerHTML = "<td>" +
                                  "<div class='adm-user-cell'>" +
                                    "<span class='adm-avatar-circle' style='background:linear-gradient(135deg, #10B981, #059669);'>" + escapeHtml(initials) + "</span>" +
-                                   "<div style='font-weight:700; color:#FFFFFF; font-size:13.5px;'>" + escapeHtml(st.name) + "</div>" +
+                                   "<div style='font-weight:700; color:#0F172A; font-size:13.5px;'>" + escapeHtml(st.name) + "</div>" +
                                  "</div>" +
                                "</td>" +
-                               "<td><span style='color:#CBD5E1;'>" + escapeHtml(st.parentName || "-") + "</span></td>" +
+                               "<td><span style='color:#475569;'>" + escapeHtml(st.parentName || "-") + "</span></td>" +
                                "<td>" +
                                  "<div class='adm-phone-tag'>" +
                                    "<span>" + escapeHtml(st.phone) + "</span>" +
                                    "<button type='button' class='adm-copy-btn' onclick='copyPhoneToClipboard(\"" + jsStr(st.phone) + "\")' title='Sao chép SĐT'><i class='fa-regular fa-copy'></i></button>" +
                                  "</div>" +
                                "</td>" +
-                               "<td><b style='color:#FFD23F; font-size:13px;'>" + tuitionDisplay + "đ</b></td>" +
+                               "<td><b style='color:#2563EB; font-size:13px; font-weight:800;'>" + tuitionDisplay + "đ</b></td>" +
                                "<td><span class='adm-tag-tutor'><i class='fa-solid fa-chalkboard-user'></i> " + tName + "</span></td>" +
                                "<td>" + statusPill + "</td>" +
                                "<td style='text-align:center;'>" +
@@ -808,11 +808,11 @@ var pinVerifyAction = "deleteStudent";
                 // Mobile
                 var editBtn = "<button class='adm-btn-action btn-edit' onclick='openAdminEditStudentModal(" + editStudentArgs + ")' style='font-size:12px; padding:5px 12px;'><i class='fa-solid fa-pen-to-square'></i> Chỉnh sửa</button>";
                 
-                mobileHtml += "<div class='accordion-item' style='" + (isDeleted ? "opacity: 0.75; border-color: rgba(245,158,11,0.2);" : "") + "'>";
+                mobileHtml += "<div class='accordion-item' style='" + (isDeleted ? "opacity: 0.75; border-color: #FDE68A;" : "") + "'>";
                 mobileHtml += "  <div class='accordion-header' onclick='toggleAdminStudentAccordion(" + idx + ")'>";
                 mobileHtml += "    <div class='accordion-header-title'>";
                 mobileHtml += "      <span class='adm-avatar-circle' style='width:28px; height:28px; font-size:11px; background:linear-gradient(135deg, #10B981, #059669);'>" + escapeHtml(initials) + "</span>";
-                mobileHtml += "      <span style='font-weight:700; color:#FFF;'>" + escapeHtml(st.name) + "</span>";
+                mobileHtml += "      <span style='font-weight:700; color:#0F172A;'>" + escapeHtml(st.name) + "</span>";
                 mobileHtml += "      " + statusPill;
                 mobileHtml += "    </div>";
                 mobileHtml += "    <div class='accordion-header-status'><i class='fa-solid fa-chevron-down' id='adm-student-chevron-" + idx + "'></i></div>";
@@ -820,7 +820,7 @@ var pinVerifyAction = "deleteStudent";
                 mobileHtml += "  <div class='accordion-body' id='adm-student-body-" + idx + "' style='display: none;'>";
                 mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Tên phụ huynh</span><span class='accordion-body-val'>" + escapeHtml(st.parentName || "-") + "</span></div>";
                 mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>SĐT Phụ Huynh</span><span class='accordion-body-val'><div class='adm-phone-tag'><span>" + escapeHtml(st.phone) + "</span><button type='button' class='adm-copy-btn' onclick='copyPhoneToClipboard(\"" + jsStr(st.phone) + "\")'><i class='fa-regular fa-copy'></i></button></div></span></div>";
-                mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Học phí/buổi</span><span class='accordion-body-val' style='font-weight:bold; color:#FFD23F;'>" + tuitionDisplay + "đ</span></div>";
+                mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Học phí/buổi</span><span class='accordion-body-val' style='font-weight:800; color:#2563EB;'>" + tuitionDisplay + "đ</span></div>";
                 mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Gia sư</span><span class='accordion-body-val'><span class='adm-tag-tutor'><i class='fa-solid fa-chalkboard-user'></i> " + tName + "</span></span></div>";
                 mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Thao tác</span><span class='accordion-body-val'>" + editBtn + "</span></div>";
                 mobileHtml += "  </div>";
@@ -923,14 +923,14 @@ var pinVerifyAction = "deleteStudent";
                 btnDeact.style.display = "flex";
                 if (tutor.status === "Vô hiệu hóa") {
                     btnDeact.innerHTML = '<i class="fa-solid fa-user-check"></i> Kích hoạt lại';
-                    btnDeact.style.background = "rgba(16, 185, 129, 0.1)";
-                    btnDeact.style.border = "1px solid #10B981";
-                    btnDeact.style.color = "#10B981";
+                    btnDeact.style.background = "#ECFDF5";
+                    btnDeact.style.border = "1px solid #A7F3D0";
+                    btnDeact.style.color = "#059669";
                 } else {
                     btnDeact.innerHTML = '<i class="fa-solid fa-user-slash"></i> Vô hiệu hóa';
-                    btnDeact.style.background = "rgba(245, 158, 11, 0.1)";
-                    btnDeact.style.border = "1px solid #F59E0B";
-                    btnDeact.style.color = "#F59E0B";
+                    btnDeact.style.background = "#FFFBEB";
+                    btnDeact.style.border = "1px solid #FDE68A";
+                    btnDeact.style.color = "#D97706";
                 }
             }
             
@@ -1066,7 +1066,7 @@ var pinVerifyAction = "deleteStudent";
             
             var deletedTutors = adminDataGlobal.deletedTutors || [];
             if (deletedTutors.length === 0) {
-                container.innerHTML = "<p style='text-align:center; color:#A6ADCE; padding: 20px 0;'>Thùng rác trống.</p>";
+                container.innerHTML = "<p style='text-align:center; color:#64748B; padding: 20px 0;'>Thùng rác trống.</p>";
                 return;
             }
             
@@ -1076,20 +1076,20 @@ var pinVerifyAction = "deleteStudent";
                 card.style.display = "flex";
                 card.style.justify = "space-between";
                 card.style.alignItems = "center";
-                card.style.background = "rgba(255, 255, 255, 0.02)";
-                card.style.padding = "10px 15px";
+                card.style.background = "#F8FAFC";
+                card.style.padding = "12px 16px";
                 card.style.borderRadius = "12px";
-                card.style.border = "1px solid rgba(255, 255, 255, 0.05)";
+                card.style.border = "1px solid #E2E8F0";
                 
                 var info = document.createElement('div');
-                info.innerHTML = "<p style='margin:0; color:#FFF; font-weight:bold;'>" + escapeHtml(t.name) + "</p>" +
-                                 "<p style='margin:3px 0 0; color:#A6ADCE; font-size:12px;'>SĐT: " + escapeHtml(t.phone) + " | Đã xóa: " + escapeHtml(t.deletedDate.split(" ")[0]) + "</p>";
+                info.innerHTML = "<p style='margin:0; color:#0F172A; font-weight:bold;'>" + escapeHtml(t.name) + "</p>" +
+                                 "<p style='margin:3px 0 0; color:#64748B; font-size:12px;'>SĐT: " + escapeHtml(t.phone) + " | Đã xóa: " + escapeHtml(t.deletedDate.split(" ")[0]) + "</p>";
                 
                 var btnRestore = document.createElement('button');
-                btnRestore.className = "modal-btn modal-btn-primary";
+                btnRestore.className = "btn-primary-gradient";
                 btnRestore.style.padding = "6px 14px";
                 btnRestore.style.fontSize = "12px";
-                btnRestore.style.borderRadius = "20px";
+                btnRestore.style.borderRadius = "10px";
                 btnRestore.innerHTML = "<i class='fa-solid fa-trash-arrow-up'></i> Khôi phục";
                 btnRestore.onclick = function() {
                     restoreTutor(t.phone);
