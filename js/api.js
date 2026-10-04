@@ -1,4 +1,4 @@
-﻿/**
+/**
  * ============================================================================
  * SUPABASE API GATEWAY - PHÃ‚N VÃ™NG: Há»† THá»NG GIA SÆ¯ 1-1 (SCOPE: GIASU)
  * ============================================================================
@@ -38,8 +38,23 @@ function getHeaders() {
         'Prefer': 'return=representation',
         'x-giasu-phone': sessionStorage.getItem('userPhone') || (window.tempAuth ? window.tempAuth.phone : ''),
         'x-giasu-pin': sessionStorage.getItem('userPin') || (window.tempAuth ? window.tempAuth.pin : ''),
-        'x-giasu-role': sessionStorage.getItem('userRole') || ''
+        'x-giasu-role': sessionStorage.getItem('userRole') || '',
+        'x-giasu-code': getStudentAccessCode()
     };
+}
+
+// RLS: access code for parent/student portal and homework portal (sent as x-giasu-code)
+function getStudentAccessCode() {
+    var c = window.tempCode || sessionStorage.getItem('studentCode') ||
+            (sessionStorage.getItem('userRole') === 'student' ? sessionStorage.getItem('userPhone') : '') || '';
+    // HTTP headers only accept ASCII
+    return String(c).replace(/[^\x20-\x7E]/g, '').trim();
+}
+
+function setStudentAccessCode(code) {
+    var c = String(code || '').trim();
+    window.tempCode = c;
+    try { if (c) sessionStorage.setItem('studentCode', c); } catch (e) {}
 }
 
 function normalizePhone(p) {
@@ -448,6 +463,7 @@ class GoogleScriptRunInstance {
                         }
                     }
                 } else {
+                    setStudentAccessCode(phone);
                     let studentsRaw = await supaGet(APP_CONFIG.TABLES.STUDENTS, `select=*`);
                     let activeStudents = studentsRaw.filter(s => !s.deleted_date);
                     // Báº¢O Máº¬T: chá»‰ khá»›p theo SÄT phá»¥ huynh / mÃ£ há»c sinh / mÃ£ bÃ i táº­p. KHÃ”NG cho Ä‘Äƒng nháº­p báº±ng tÃªn há»c sinh.
@@ -1259,6 +1275,7 @@ class GoogleScriptRunInstance {
             
             else if (functionName === 'xacThucMaBaiTap') {
                 const rawCode = String(args[0] || "").trim();
+                setStudentAccessCode(rawCode);
                 const norm = normalizePhone(rawCode);
                 
                 let studentsRaw = await supaGet(APP_CONFIG.TABLES.STUDENTS, `select=*`);
@@ -1355,6 +1372,7 @@ class GoogleScriptRunInstance {
             
             else if (functionName === 'uploadHomeworkFiles') {
                 const [ma, studentName, lessonName, filesList] = args;
+                if (ma) setStudentAccessCode(ma);
                 const subId = `SUB_GS_${Date.now()}`;
                 const nowStr = new Date().toLocaleString('vi-VN');
                 const todayStr = new Date().toLocaleDateString('vi-VN');
@@ -1522,6 +1540,7 @@ class GoogleScriptRunInstance {
             
             else if (functionName === 'guiPhanHoi') {
                 const [maHS, tenHocSinh, noiDung] = args;
+                if (maHS) setStudentAccessCode(maHS);
                 const fbId = `FB_GS_${Date.now()}`;
                 await supaPost(APP_CONFIG.TABLES.FEEDBACKS, [{
                     feedback_id: fbId,
