@@ -465,10 +465,10 @@
 
                     <form id="formGiaSu" onsubmit="event.preventDefault(); doTutorLogin();">
                         <div class="zt-field">
-                            <label>Số điện thoại hoặc Mã Admin</label>
+                            <label>Số điện thoại</label>
                             <div class="zt-input-wrap">
                                 <i class="fa-solid fa-phone"></i>
-                                <input type="text" id="tutorPhone" name="tutorPhone" placeholder="09xx xxx xxx hoặc 302001" maxlength="12" required>
+                                <input type="text" id="tutorPhone" name="tutorPhone" placeholder="09xx xxx xxx" maxlength="12" required>
                             </div>
                         </div>
 
@@ -1162,7 +1162,6 @@ const SUBJECTS_LIST = ['Toán', 'Vật lý', 'Hóa học', 'Sinh học', 'Ngữ 
 const LEVELS_LIST = ['Tiểu học', 'THCS', 'THPT', 'Luyện thi ĐH', 'Người đi làm'];
 const CENTERS_MAP = { 'TT-ANHDUONG': 'Trung tâm Gia sư Ánh Dương', 'TT-TRITHUC': 'Trung tâm Tri Thức Việt', 'TT-SAOVIET': 'Gia sư Sao Việt' };
 const DEMO_GOOGLE_ACCOUNTS = [
-    { name: 'Admin Quản Trị Hệ Thống', email: 'admin.zuntutor@gmail.com', color: '#1E40AF', phone: '302001' },
     { name: 'Trần Thị Bích', email: 'bich.tran.demo@gmail.com', color: '#4F46E5', phone: '0972364766' },
     { name: 'Lê Thu Lan', email: 'lan.le.demo@gmail.com', color: '#EA580C', phone: '0912345678' },
     { name: 'Thầy Nguyễn Hoàng Nam', email: 'nam.nguyen.demo@gmail.com', color: '#DC2626', phone: '0987654321' },
@@ -1195,9 +1194,9 @@ function normPhone(p) {
 }
 
 function checkPhoneError(p) {
-    if (!p) return 'Vui lòng nhập số điện thoại hoặc mã Admin.';
+    if (!p) return 'Vui lòng nhập số điện thoại.';
     if (p === '302001') return '';
-    if (!/^\d{10}$/.test(p)) return 'Số điện thoại phải gồm đúng 10 chữ số (hoặc mã Admin 302001).';
+    if (!/^\d{10}$/.test(p)) return 'Số điện thoại phải gồm đúng 10 chữ số.';
     if (!/^0(3|5|7|8|9)/.test(p)) return 'Đầu số không hợp lệ (phải bắt đầu 03, 05, 07, 08 hoặc 09).';
     if (/^0(\d)\1{8}$/.test(p) || /^0123456789$|^0987654321$/.test(p) || /^0934567890$/.test(p)) {
         // Cho phép các số demo test trong môi trường test
