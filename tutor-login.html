@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-    <link rel="icon" type="image/png" href="https://i.postimg.cc/66rKbPmb/trinh-duyet.png">
+    <link rel="icon" type="image/png" href="img/zuntutor_avatar_blue.png">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Cổng Thông Tin Gia Sư | Đăng Nhập</title>
@@ -86,6 +86,533 @@
           .text-5xl, .text-6xl { font-size: 22px !important; }
         }
     </style>
+<style>
+    /* === ZUNTUTOR LOGIN CARD & MODALS (V2) === */
+    :root {
+        --zt-p: #2E7EC4;
+        --zt-pd: #1F6BB0;
+        --zt-pl: #E8F2FA;
+        --zt-text: #1E293B;
+        --zt-muted: #64748B;
+        --zt-border: #CBD5E1;
+        --zt-err: #EF4444;
+        --zt-ok: #10B981;
+    }
+    .zt-login-card {
+        background: #fff;
+        border-radius: 24px;
+        padding: 32px 28px;
+        box-shadow: 0 20px 50px -12px rgba(15, 23, 42, 0.12), 0 0 0 1px rgba(226, 232, 240, 0.8);
+        width: 100%;
+        position: relative;
+        text-align: left;
+    }
+    .zt-login-card h1 {
+        font-size: 24px;
+        font-weight: 800;
+        color: #0f172a;
+        margin: 0 0 6px;
+        letter-spacing: -0.02em;
+    }
+    .zt-login-card p.sub {
+        font-size: 13.5px;
+        color: var(--zt-muted);
+        margin: 0 0 22px;
+        line-height: 1.5;
+    }
+    .zt-field {
+        margin-bottom: 14px;
+    }
+    .zt-field label {
+        display: block;
+        font-size: 12.5px;
+        font-weight: 700;
+        color: #334155;
+        margin-bottom: 6px;
+    }
+    .zt-field label .req { color: var(--zt-err); }
+    .zt-input-wrap {
+        position: relative;
+    }
+    .zt-input-wrap > i {
+        position: absolute;
+        left: 14px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #94A3B8;
+        font-size: 14px;
+        pointer-events: none;
+    }
+    .zt-input-wrap input {
+        width: 100%;
+        height: 46px;
+        border: 1.5px solid var(--zt-border);
+        border-radius: 12px;
+        background: #F8FBFF;
+        padding: 0 42px 0 40px;
+        font: 600 14.5px 'Inter', system-ui, sans-serif;
+        color: var(--zt-text);
+        outline: none;
+        transition: all .2s;
+        box-sizing: border-box;
+    }
+    .zt-input-wrap input:focus {
+        border-color: var(--zt-p);
+        background: #fff;
+        box-shadow: 0 0 0 4px rgba(46, 126, 196, .12);
+    }
+    .zt-toggle-eye {
+        position: absolute;
+        right: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #94A3B8;
+        cursor: pointer;
+        background: none;
+        border: 0;
+        font-size: 15px;
+        padding: 4px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .zt-toggle-eye:hover { color: var(--zt-p); }
+    .zt-between {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin: 6px 0 18px;
+        font-size: 13px;
+    }
+    .zt-check {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        cursor: pointer;
+        color: #334155;
+        font-weight: 500;
+    }
+    .zt-check input {
+        width: 16px;
+        height: 16px;
+        padding: 0;
+        margin: 0;
+        accent-color: var(--zt-p);
+        cursor: pointer;
+    }
+    .zt-link {
+        color: var(--zt-p);
+        font-weight: 700;
+        cursor: pointer;
+        text-decoration: none;
+        background: none;
+        border: 0;
+        font-size: 13px;
+        padding: 0;
+    }
+    .zt-link:hover { text-decoration: underline; }
+    .zt-btn-primary {
+        width: 100%;
+        height: 48px;
+        border: 0;
+        border-radius: 12px;
+        cursor: pointer;
+        font: 800 15px 'Inter', system-ui, sans-serif;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        background: linear-gradient(135deg, var(--zt-p), var(--zt-pd));
+        color: #fff;
+        box-shadow: 0 8px 20px -6px rgba(46, 126, 196, .55);
+        transition: all .2s;
+    }
+    .zt-btn-primary:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 12px 24px -6px rgba(46, 126, 196, .65);
+    }
+    .zt-btn-primary:active { transform: translateY(0); }
+    .zt-divider {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        color: #94A3B8;
+        font-size: 12px;
+        font-weight: 600;
+        margin: 20px 0;
+    }
+    .zt-divider::before, .zt-divider::after {
+        content: '';
+        flex: 1;
+        height: 1px;
+        background: #E2E8F0;
+    }
+    .zt-btn-google {
+        width: 100%;
+        height: 48px;
+        border: 1.5px solid var(--zt-border);
+        border-radius: 12px;
+        background: #fff;
+        color: #1F2937;
+        font: 700 14.5px 'Inter', system-ui, sans-serif;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        cursor: pointer;
+        transition: all .2s;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+    }
+    .zt-btn-google:hover {
+        border-color: var(--zt-p);
+        background: #F8FBFF;
+    }
+    .zt-alert {
+        display: none;
+        gap: 10px;
+        align-items: flex-start;
+        border-radius: 12px;
+        padding: 11px 13px;
+        font-size: 13px;
+        line-height: 1.45;
+        margin-bottom: 14px;
+        text-align: left;
+    }
+    .zt-alert.show { display: flex; }
+    .zt-alert.err { background: #FEF2F2; border: 1px solid #FECACA; color: #991B1B; }
+
+    /* Modal overlays */
+    .zt-modal-ov {
+        position: fixed; inset: 0; background: rgba(15,23,42,.6); backdrop-filter: blur(4px);
+        display: none; align-items: center; justify-content: center; z-index: 10000; padding: 16px; overflow-y: auto;
+    }
+    .zt-modal-ov.show { display: flex; }
+    .zt-modal-box {
+        background: #fff; border-radius: 24px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        max-height: 92vh; overflow-y: auto; width: 100%; max-width: 520px; padding: 28px; position: relative; text-align: left;
+    }
+    .zt-modal-box.wide { max-width: 620px; }
+    .zt-modal-close {
+        position: absolute; right: 20px; top: 20px; width: 32px; height: 32px; border-radius: 50%;
+        background: #F1F5F9; border: 0; font-size: 18px; color: #64748B; cursor: pointer; display: flex; align-items: center; justify-content: center;
+    }
+    .zt-modal-close:hover { background: #E2E8F0; color: #0F172A; }
+
+    /* Google Chooser */
+    .zt-g-head { text-align: center; margin-bottom: 20px; }
+    .zt-g-head svg { display: block; margin: 0 auto 10px; }
+    .zt-g-head h3 { font-size: 18px; font-weight: 800; color: #0F172A; margin: 0 0 4px; }
+    .zt-g-head p { font-size: 13px; color: #64748B; margin: 0; }
+    .zt-g-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
+    .zt-g-item {
+        display: flex; align-items: center; gap: 12px; padding: 10px 14px; border: 1.5px solid #E2E8F0;
+        border-radius: 14px; cursor: pointer; transition: all .15s; background: #fff;
+    }
+    .zt-g-item:hover { border-color: var(--zt-p); background: #F8FBFF; transform: translateY(-1px); }
+    .zt-g-avatar { width: 40px; height: 40px; border-radius: 50%; color: #fff; font-weight: 800; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 16px; }
+    .zt-g-info b { display: block; font-size: 14px; color: #0F172A; }
+    .zt-g-info span { font-size: 12px; color: #64748B; }
+    .zt-g-tag { margin-left: auto; font-size: 11px; font-weight: 700; color: var(--zt-p); background: var(--zt-pl); padding: 3px 8px; border-radius: 12px; }
+
+    /* Stepper */
+    .zt-stepper {
+        display: flex;
+        align-items: center;
+        margin-bottom: 22px;
+        padding-right: 48px; /* Chừa khoảng trống an toàn cho nút đóng (x), không bị đè lên bước 3 */
+    }
+    .zt-step { display: flex; align-items: center; gap: 8px; font-size: 12.5px; font-weight: 700; color: #94A3B8; white-space: nowrap; }
+    .zt-step .dot { width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: #E2E8F0; color: #64748B; font-size: 12px; font-weight: 800; flex-shrink: 0; }
+    .zt-step.done .dot { background: var(--zt-ok); color: #fff; }
+    .zt-step.done { color: var(--zt-ok); }
+    .zt-step.cur .dot { background: var(--zt-p); color: #fff; box-shadow: 0 0 0 4px rgba(46, 126, 196, .18); }
+    .zt-step.cur { color: var(--zt-p); }
+    .zt-step-line { flex: 1; height: 2px; background: #E2E8F0; margin: 0 10px; }
+    .zt-step-line.done { background: var(--zt-ok); }
+
+    @media (max-width: 540px) {
+        .zt-modal-box { padding: 22px 18px; border-radius: 20px; }
+        .zt-modal-close { right: 14px; top: 14px; width: 30px; height: 30px; }
+        .zt-stepper { padding-right: 38px; margin-bottom: 18px; }
+        .zt-step { font-size: 11.5px; gap: 6px; }
+        .zt-step .dot { width: 22px; height: 22px; font-size: 11px; }
+        .zt-step-line { margin: 0 6px; }
+    }
+    @media (max-width: 420px) {
+        .zt-step:not(.cur) span { display: none; }
+    }
+
+    .zt-g-chip { display: flex; align-items: center; gap: 12px; background: #F8FBFF; border: 1px solid var(--zt-border); border-radius: 14px; padding: 10px 12px; margin-bottom: 18px; }
+    .zt-g-chip .badge { margin-left: auto; font-size: 11px; font-weight: 800; color: var(--zt-ok); background: #ECFDF5; border: 1px solid #BBF7D0; padding: 4px 9px; border-radius: 20px; }
+
+    .zt-chips { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 4px; }
+    .zt-chip { border: 1.5px solid var(--zt-border); background: #fff; border-radius: 20px; padding: 7px 13px; font-size: 12.5px; font-weight: 700; color: #475569; cursor: pointer; transition: .15s; }
+    .zt-chip.on { border-color: var(--zt-p); background: var(--zt-pl); color: var(--zt-pd); }
+
+    .zt-terms { font-size: 12.5px; color: #475569; margin: 16px 0; display: flex; gap: 8px; align-items: flex-start; line-height: 1.5; }
+    .zt-terms input { width: 16px; height: 16px; margin-top: 2px; padding: 0; accent-color: var(--zt-p); flex-shrink: 0; }
+
+    /* Success Modal */
+    .zt-success-icon { width: 72px; height: 72px; border-radius: 50%; margin: 0 auto 16px; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #34D399, #10B981); color: #fff; font-size: 34px; box-shadow: 0 12px 30px -8px rgba(16, 185, 129, .6); }
+    .zt-summary { background: #F8FBFF; border: 1px solid var(--zt-border); border-radius: 14px; padding: 6px 14px; margin: 18px 0; text-align: left; }
+    .zt-summary div { display: flex; justify-content: space-between; gap: 12px; padding: 9px 0; border-bottom: 1px dashed #DCE6F2; font-size: 13px; }
+    .zt-summary div:last-child { border-bottom: 0; }
+    .zt-summary span { color: var(--zt-muted); }
+    .zt-summary b { text-align: right; }
+
+    /* Terms Modal */
+    .tm-ov { position: fixed; inset: 0; background: rgba(15,23,42,.65); display: none; align-items: center; justify-content: center; z-index: 11000; padding: 16px; }
+    .tm-ov.show { display: flex; }
+    .tm-box { background: #fff; border-radius: 18px; max-width: 520px; width: 100%; max-height: 85vh; display: flex; flex-direction: column; box-shadow: 0 20px 60px rgba(0,0,0,.25); }
+    .tm-head { padding: 16px 20px; border-bottom: 1px solid #e2e8f0; font-weight: 700; font-size: 16px; display: flex; justify-content: space-between; align-items: center; }
+    .tm-head button { border: 0; background: none; font-size: 22px; cursor: pointer; color: #64748b; padding: 0 4px; }
+    .tm-body { padding: 16px 20px; overflow-y: auto; font-size: 13.5px; line-height: 1.6; color: #334155; }
+    .tm-body h4 { margin: 14px 0 4px; font-size: 14px; color: #0f172a; }
+    .tm-body h4:first-child { margin-top: 0; }
+    .tm-body ul { margin: 0; padding-left: 18px; }
+    .tm-foot { padding: 12px 20px; border-top: 1px solid #e2e8f0; }
+
+    /* Quick Test Panel */
+    .zt-test-panel {
+        margin-top: 24px;
+        background: #ffffff;
+        border: 1.5px solid #E2E8F0;
+        border-radius: 20px;
+        padding: 20px;
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+        text-align: left;
+    }
+    .zt-test-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 14px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid #F1F5F9;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    .zt-test-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 11px;
+        font-weight: 800;
+        color: #4F46E5;
+        background: #EEF2FF;
+        border: 1px solid #C7D2FE;
+        padding: 3px 9px;
+        border-radius: 20px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    .zt-test-title h3 {
+        margin: 4px 0 0;
+        font-size: 14px;
+        font-weight: 800;
+        color: #0F172A;
+    }
+    .zt-test-hint {
+        font-size: 11.5px;
+        color: #64748B;
+        font-weight: 600;
+    }
+    .zt-test-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+    .zt-test-card {
+        border: 1.5px solid #E2E8F0;
+        border-radius: 14px;
+        padding: 13px;
+        background: #F8FAFC;
+        transition: all 0.2s ease;
+        cursor: pointer;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+    .zt-test-card:hover {
+        border-color: #3B82F6;
+        background: #FFFFFF;
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.08);
+        transform: translateY(-1px);
+    }
+    .zt-test-card.active-state {
+        border-left: 4px solid #10B981;
+    }
+    .zt-test-card.trial-state {
+        border-left: 4px solid #F59E0B;
+    }
+    .zt-test-card.sub-state {
+        border-left: 4px solid #EF4444;
+    }
+    .zt-test-card.expiring-state {
+        border-left: 4px solid #F59E0B;
+    }
+    .zt-test-card.admin-state {
+        border-left: 4px solid #2563EB;
+        background: linear-gradient(135deg, #F8FAFC 0%, #EFF6FF 100%);
+    }
+    .zt-test-card-top {
+        display: flex;
+        align-items: center;
+        gap: 11px;
+    }
+    .zt-test-avatar {
+        width: 38px;
+        height: 38px;
+        border-radius: 10px;
+        color: #fff;
+        font-weight: 800;
+        font-size: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+    .zt-test-meta {
+        flex: 1;
+        min-width: 0;
+    }
+    .zt-test-name-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 6px;
+        flex-wrap: wrap;
+    }
+    .zt-test-name {
+        font-size: 13.5px;
+        font-weight: 800;
+        color: #1E293B;
+    }
+    .zt-status-pill {
+        font-size: 11px;
+        font-weight: 700;
+        padding: 2px 8px;
+        border-radius: 12px;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        white-space: nowrap;
+    }
+    .zt-status-pill.success {
+        background: #ECFDF5;
+        color: #059669;
+        border: 1px solid #A7F3D0;
+    }
+    .zt-status-pill.warning {
+        background: #FFFBEB;
+        color: #D97706;
+        border: 1px solid #FDE68A;
+    }
+    .zt-status-pill.danger {
+        background: #FEF2F2;
+        color: #DC2626;
+        border: 1px solid #FECACA;
+    }
+    .zt-status-pill.expiring {
+        background: #FFFBEB;
+        color: #B45309;
+        border: 1px solid #FCD34D;
+    }
+    .zt-status-pill.admin {
+        background: #EFF6FF;
+        color: #1D4ED8;
+        border: 1px solid #BFDBFE;
+    }
+    .zt-test-creds {
+        font-size: 11.5px;
+        color: #64748B;
+        margin-top: 2px;
+    }
+    .zt-test-creds code {
+        background: #E2E8F0;
+        padding: 1px 5px;
+        border-radius: 4px;
+        font-weight: 700;
+        color: #0F172A;
+        font-family: monospace;
+    }
+    .zt-test-stats {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        font-size: 11.5px;
+        color: #475569;
+        background: #FFFFFF;
+        padding: 7px 11px;
+        border-radius: 8px;
+        border: 1px solid #EDF2F7;
+    }
+    .zt-test-stats span {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+    }
+    .zt-btn-quick-login {
+        width: 100%;
+        height: 36px;
+        border-radius: 9px;
+        font-size: 12px;
+        font-weight: 700;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        cursor: pointer;
+        transition: all 0.15s ease;
+        border: none;
+    }
+    .zt-btn-quick-login.primary {
+        background: #EFF6FF;
+        color: #1D4ED8;
+        border: 1px solid #BFDBFE;
+    }
+    .zt-btn-quick-login.primary:hover {
+        background: #2563EB;
+        color: #FFFFFF;
+    }
+    .zt-btn-quick-login.warning {
+        background: #FFFBEB;
+        color: #B45309;
+        border: 1px solid #FDE68A;
+    }
+    .zt-btn-quick-login.warning:hover {
+        background: #D97706;
+        color: #FFFFFF;
+    }
+    .zt-btn-quick-login.danger {
+        background: #FEF2F2;
+        color: #B91C1C;
+        border: 1px solid #FECACA;
+    }
+    .zt-btn-quick-login.danger:hover {
+        background: #DC2626;
+        color: #FFFFFF;
+    }
+    .zt-btn-quick-login.expiring {
+        background: #FFFBEB;
+        color: #B45309;
+        border: 1px solid #FDE68A;
+    }
+    .zt-btn-quick-login.expiring:hover {
+        background: #D97706;
+        color: #FFFFFF;
+    }
+    .zt-btn-quick-login.admin {
+        background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%);
+        color: #FFFFFF;
+        box-shadow: 0 2px 6px rgba(37, 99, 235, 0.25);
+    }
+    .zt-btn-quick-login.admin:hover {
+        background: linear-gradient(135deg, #1D4ED8 0%, #1E40AF 100%);
+        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35);
+        color: #FFFFFF;
+    }
+</style>
 </head>
 
 <body class="relative min-h-screen bg-gradient-to-b from-primary-50 via-white to-primary-50 text-slate-800 antialiased overflow-x-hidden selection:bg-primary-200 selection:text-primary-900">
@@ -99,9 +626,9 @@
     <div class="header">
         <div class="nav-container">
             <a href="index.html" class="nav-left" style="text-decoration: none; cursor: pointer;">
-                <img src="https://i.postimg.cc/66rKbPmb/trinh-duyet.png" alt="Logo" class="nav-logo">
+                <img src="img/zuntutor_avatar_blue.png" alt="ZunTutor Logo" class="nav-logo">
                 <div class="header-text">
-                    <h1>Tra cứu học tập</h1>
+                    <h1>ZunTutor</h1>
                     <p>Quản lý Gia sư 4.0</p>
                 </div>
             </a>
@@ -166,57 +693,182 @@
                 </p>
             </div>
 
-            <!-- Form Đăng nhập Gia sư (Dạng Card lớn) -->
+            <!-- Form Đăng nhập Gia sư (Giao diện ZunTutor mới) -->
             <div class="w-full max-w-md mx-auto px-1 sm:px-0 reveal" style="transition-delay: 0.15s;">
-                <div class="bg-white/90 backdrop-blur-xl p-5 sm:p-8 rounded-2xl sm:rounded-3xl shadow-glass border border-white">
-                    
-                    <div class="flex items-center gap-3 mb-8 pb-4 border-b border-gray-100">
-                        <div class="bg-indigo-100 p-2 rounded-lg text-indigo-600">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
-                        </div>
-                        <h3 class="text-xl font-bold text-slate-800">Đăng nhập hệ thống</h3>
+                <div class="zt-login-card">
+                    <h1>Đăng nhập</h1>
+                    <p class="sub">Dùng số điện thoại và mã PIN bạn đã tạo khi đăng ký.</p>
+
+                    <div class="zt-alert err" id="tutorAlertBox">
+                        <i class="fa-solid fa-circle-exclamation" style="margin-top:2px"></i>
+                        <div id="tutorThongBaoLoi"></div>
                     </div>
 
-                    <form id="formGiaSu" onsubmit="event.preventDefault(); xuLyTraCuu('tutor');" class="space-y-6">
-                        <!-- Input Số điện thoại -->
-                        <div>
-                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Số điện thoại đăng nhập</label>
-                            <div class="relative">
-                                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>
-                                </div>
-                                <input type="tel" id="tutorPhone" name="tutorPhone" class="block w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 font-medium focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors placeholder-slate-400" placeholder="Nhập số điện thoại gia sư..." required>
+                    <form id="formGiaSu" onsubmit="event.preventDefault(); doTutorLogin();">
+                        <div class="zt-field">
+                            <label>Số điện thoại hoặc Mã Admin</label>
+                            <div class="zt-input-wrap">
+                                <i class="fa-solid fa-phone"></i>
+                                <input type="text" id="tutorPhone" name="tutorPhone" placeholder="09xx xxx xxx hoặc 302001" maxlength="12" required>
                             </div>
                         </div>
 
-                        <!-- Input Mã PIN -->
-                        <div>
-                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Mã PIN bảo mật</label>
-                            <div class="relative">
-                                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" /></svg>
-                                </div>
-                                <input type="password" id="tutorPin" name="tutorPin" maxlength="6" pattern="[0-9]{4,6}" class="block w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 font-medium focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors placeholder-slate-400 tracking-[0.2em]" placeholder="Nhập mã PIN gồm 4-6 số..." required>
+                        <div class="zt-field">
+                            <label>Mã PIN</label>
+                            <div class="zt-input-wrap">
+                                <i class="fa-solid fa-lock"></i>
+                                <input type="password" id="tutorPin" name="tutorPin" placeholder="••••" maxlength="6" inputmode="numeric" required>
+                                <button class="zt-toggle-eye" type="button" onclick="toggleEye('tutorPin', this)"><i class="fa-regular fa-eye"></i></button>
                             </div>
                         </div>
 
-                        <!-- Submit -->
-                        <button type="submit" id="btnSubmitGiaSu" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 px-6 rounded-xl flex items-center justify-center gap-2 transition-all duration-200 shadow-lg shadow-indigo-500/30 active:scale-[0.98] mt-4">
-                            <span class="btn-text">Đăng nhập hệ thống</span>
-                            <svg class="btn-icon h-5 w-5 transition-transform group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
-                            </svg>
-                            <svg class="loading-icon hidden h-5 w-5 text-white spinner-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                            </svg>
+                        <div class="zt-between">
+                            <label class="zt-check"><input type="checkbox" id="rememberPhone" checked> Ghi nhớ đăng nhập</label>
+                            <button class="zt-link" type="button" onclick="startForgot()">Quên mật khẩu?</button>
+                        </div>
+
+                        <button type="submit" id="btnSubmitGiaSu" class="zt-btn-primary">
+                            <i class="fa-solid fa-right-to-bracket"></i> <span class="btn-text">Đăng nhập</span>
                         </button>
                     </form>
 
-                    <p id="tutorThongBaoLoi" class="text-red-500 text-sm mt-3 text-center font-medium" style="display: none;"></p>
                     <p id="tutorLoadingText" class="text-indigo-600 text-sm mt-3 text-center italic" style="display: none;">
                         <i class="fa-solid fa-circle-notch fa-spin"></i> Đang xác thực thông tin tài khoản...
                     </p>
+
+                    <div class="zt-divider">Chưa có tài khoản?</div>
+
+                    <button class="zt-btn-google" type="button" onclick="openGoogle('signup')">
+                        <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-8l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z"/></svg>
+                        Đăng ký dùng thử bằng Google
+                    </button>
+                </div>
+
+                <!-- BẢNG ĐĂNG NHẬP NHANH TÀI KHOẢN TEST -->
+                <div class="zt-test-panel">
+                    <div class="zt-test-header">
+                        <div class="zt-test-title">
+                            <span class="zt-test-badge"><i class="fa-solid fa-bolt"></i> TRẢI NGHIỆM NHANH (1 CHẠM)</span>
+                            <h3>Chọn tài khoản test để duyệt giao diện:</h3>
+                        </div>
+                        <span class="zt-test-hint">4 Gia sư + 1 Quản trị viên (Admin)</span>
+                    </div>
+
+                    <div class="zt-test-grid">
+                        <!-- Nick Admin -->
+                        <div class="zt-test-card admin-state" onclick="quickLogin('302001', '1234')">
+                            <div class="zt-test-card-top">
+                                <div class="zt-test-avatar" style="background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%);">
+                                    <i class="fa-solid fa-shield-halved"></i>
+                                </div>
+                                <div class="zt-test-meta">
+                                    <div class="zt-test-name-row">
+                                        <b class="zt-test-name">Tài khoản Quản trị: Admin Hệ Thống</b>
+                                        <span class="zt-status-pill admin"><i class="fa-solid fa-crown"></i> Toàn quyền Admin</span>
+                                    </div>
+                                    <div class="zt-test-creds">Mã Admin: <code>302001</code> · PIN: <code>1234</code></div>
+                                </div>
+                            </div>
+                            <div class="zt-test-stats">
+                                <span><i class="fa-solid fa-users-gear"></i> Quản lý toàn bộ <b>Gia sư</b></span>
+                                <span><i class="fa-solid fa-wallet"></i> Thống kê <b>Doanh thu SaaS</b></span>
+                                <span><i class="fa-solid fa-building-columns"></i> Đối tác <b>Trung tâm</b></span>
+                                <span><i class="fa-solid fa-bullhorn"></i> Đổi <b>Chữ chạy</b></span>
+                            </div>
+                            <button type="button" class="zt-btn-quick-login admin" onclick="event.stopPropagation(); quickLogin('302001', '1234');">
+                                <i class="fa-solid fa-shield-halved"></i> Đăng nhập Quản trị viên (Admin Portal)
+                            </button>
+                        </div>
+
+                        <!-- Nick 1 -->
+                        <div class="zt-test-card active-state" onclick="quickLogin('0972364766', '1234')">
+                            <div class="zt-test-card-top">
+                                <div class="zt-test-avatar" style="background:#4F46E5">TB</div>
+                                <div class="zt-test-meta">
+                                    <div class="zt-test-name-row">
+                                        <b class="zt-test-name">Nick 1: Trần Thị Bích</b>
+                                        <span class="zt-status-pill success"><i class="fa-solid fa-circle-check"></i> Hoạt động</span>
+                                    </div>
+                                    <div class="zt-test-creds">SĐT: <code>0972364766</code> · PIN: <code>1234</code></div>
+                                </div>
+                            </div>
+                            <div class="zt-test-stats">
+                                <span><i class="fa-solid fa-user-graduate"></i> <b>3</b> học sinh</span>
+                                <span><i class="fa-solid fa-calendar-check"></i> <b>8</b> buổi/HS (24 buổi)</span>
+                                <span><i class="fa-solid fa-tag"></i> <b>180k</b>/buổi</span>
+                            </div>
+                            <button type="button" class="zt-btn-quick-login primary" onclick="event.stopPropagation(); quickLogin('0972364766', '1234');">
+                                <i class="fa-solid fa-arrow-right-to-bracket"></i> Đăng nhập Nick 1 (Active)
+                            </button>
+                        </div>
+
+                        <!-- Nick 2 -->
+                        <div class="zt-test-card trial-state" onclick="quickLogin('0912345678', '1234')">
+                            <div class="zt-test-card-top">
+                                <div class="zt-test-avatar" style="background:#EA580C">TL</div>
+                                <div class="zt-test-meta">
+                                    <div class="zt-test-name-row">
+                                        <b class="zt-test-name">Nick 2: Lê Thu Lan</b>
+                                        <span class="zt-status-pill warning"><i class="fa-solid fa-lock"></i> Hết hạn dùng thử</span>
+                                    </div>
+                                    <div class="zt-test-creds">SĐT: <code>0912345678</code> · PIN: <code>1234</code></div>
+                                </div>
+                            </div>
+                            <div class="zt-test-stats">
+                                <span><i class="fa-solid fa-user-graduate"></i> <b>2</b> học sinh</span>
+                                <span><i class="fa-solid fa-calendar-check"></i> <b>6</b> buổi/HS (12 buổi)</span>
+                                <span><i class="fa-solid fa-tag"></i> <b>180k</b>/buổi</span>
+                            </div>
+                            <button type="button" class="zt-btn-quick-login warning" onclick="event.stopPropagation(); quickLogin('0912345678', '1234');">
+                                <i class="fa-solid fa-lock"></i> Đăng nhập Nick 2 (Khóa dùng thử)
+                            </button>
+                        </div>
+
+                        <!-- Nick 3 -->
+                        <div class="zt-test-card sub-state" onclick="quickLogin('0987654321', '1234')">
+                            <div class="zt-test-card-top">
+                                <div class="zt-test-avatar" style="background:#DC2626">HN</div>
+                                <div class="zt-test-meta">
+                                    <div class="zt-test-name-row">
+                                        <b class="zt-test-name">Nick 3: Thầy Nguyễn Hoàng Nam</b>
+                                        <span class="zt-status-pill danger"><i class="fa-solid fa-clock-rotate-left"></i> Hết hạn 30 ngày</span>
+                                    </div>
+                                    <div class="zt-test-creds">SĐT: <code>0987654321</code> · PIN: <code>1234</code></div>
+                                </div>
+                            </div>
+                            <div class="zt-test-stats">
+                                <span><i class="fa-solid fa-user-graduate"></i> <b>2</b> học sinh</span>
+                                <span><i class="fa-solid fa-calendar-check"></i> <b>6</b> buổi/HS (12 buổi)</span>
+                                <span><i class="fa-solid fa-tag"></i> <b>180k</b>/buổi</span>
+                            </div>
+                            <button type="button" class="zt-btn-quick-login danger" onclick="event.stopPropagation(); quickLogin('0987654321', '1234');">
+                                <i class="fa-solid fa-clock-rotate-left"></i> Đăng nhập Nick 3 (Khóa gói 30 ngày)
+                            </button>
+                        </div>
+
+                        <!-- Nick 4 -->
+                        <div class="zt-test-card expiring-state" onclick="quickLogin('0934567890', '1234')">
+                            <div class="zt-test-card-top">
+                                <div class="zt-test-avatar" style="background:#D97706">HĐ</div>
+                                <div class="zt-test-meta">
+                                    <div class="zt-test-name-row">
+                                        <b class="zt-test-name">Nick 4: Thầy Hoàng Văn Đạt</b>
+                                        <span class="zt-status-pill expiring"><i class="fa-solid fa-clock"></i> Sắp hết hạn (còn 2 ngày)</span>
+                                    </div>
+                                    <div class="zt-test-creds">SĐT: <code>0934567890</code> · PIN: <code>1234</code></div>
+                                </div>
+                            </div>
+                            <div class="zt-test-stats">
+                                <span><i class="fa-solid fa-user-graduate"></i> <b>2</b> học sinh</span>
+                                <span><i class="fa-solid fa-calendar-check"></i> <b>6</b> buổi/HS (12 buổi)</span>
+                                <span><i class="fa-solid fa-tag"></i> <b>180k</b>/buổi</span>
+                                <span><i class="fa-solid fa-hourglass-half"></i> Hạn: <b>06/10/2026</b></span>
+                            </div>
+                            <button type="button" class="zt-btn-quick-login expiring" onclick="event.stopPropagation(); quickLogin('0934567890', '1234');">
+                                <i class="fa-solid fa-triangle-exclamation"></i> Đăng nhập Nick 4 (Sắp hết hạn - 2 ngày)
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -653,5 +1305,690 @@
 
     <!-- Phase 19: Scroll Animation Engine -->
     <script src="js/scroll-animations.js?v=20261002_scroll"></script>
+
+<!-- ================= MODALS CHO ĐĂNG KÝ / QUÊN PIN ================= -->
+
+<!-- Modal 1: Chọn tài khoản Google (Giả lập) -->
+<div class="zt-modal-ov" id="gOverlay" onclick="if(event.target===this)closeGoogle()">
+    <div class="zt-modal-box">
+        <button class="zt-modal-close" type="button" onclick="closeGoogle()">×</button>
+        <div class="zt-g-head">
+            <svg width="36" height="36" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-8l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z"/></svg>
+            <h3>Đăng nhập bằng Google</h3>
+            <p id="gPurpose">để đăng ký dùng thử ZunTutor</p>
+        </div>
+
+        <div class="zt-g-list" id="gList"></div>
+
+        <div style="font-size:12px;color:#64748B;font-weight:700;margin:14px 0 6px">HOẶC DÙNG GMAIL KHÁC (GIẢ LẬP)</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+            <input type="text" id="gNewName" placeholder="Họ và tên" style="height:40px;padding:0 12px;border:1.5px solid #CBD5E1;border-radius:10px;font-size:13px">
+            <input type="email" id="gNewEmail" placeholder="email@gmail.com" style="height:40px;padding:0 12px;border:1.5px solid #CBD5E1;border-radius:10px;font-size:13px">
+        </div>
+        <button class="zt-btn-google" style="height:40px;font-size:13.5px" type="button" onclick="pickCustomGoogle()">Tiếp tục với tài khoản này</button>
+    </div>
+</div>
+
+<!-- Modal 2: Hoàn tất hồ sơ gia sư -->
+<div class="zt-modal-ov" id="modalProfile" onclick="if(event.target===this)closeProfileModal()">
+    <div class="zt-modal-box wide">
+        <button class="zt-modal-close" type="button" onclick="closeProfileModal()">×</button>
+        <div class="zt-stepper">
+            <div class="zt-step done"><div class="dot"><i class="fa-solid fa-check"></i></div><span>Google</span></div>
+            <div class="zt-step-line done"></div>
+            <div class="zt-step cur"><div class="dot">2</div><span>Hồ sơ gia sư</span></div>
+            <div class="zt-step-line"></div>
+            <div class="zt-step"><div class="dot">3</div><span>Kích hoạt</span></div>
+        </div>
+
+        <h2 style="font-size:20px;font-weight:800;color:#0F172A;margin:0 0 4px">Hoàn tất hồ sơ gia sư</h2>
+        <p style="font-size:13px;color:#64748B;margin:0 0 16px">Điền một lần duy nhất. Từ lần sau bạn đăng nhập bằng <b>Số điện thoại + mã PIN</b>.</p>
+
+        <div class="zt-g-chip">
+            <div class="zt-g-avatar" id="pfAvatar">A</div>
+            <div><b id="pfGName" style="font-size:14px;color:#0F172A;display:block">—</b><span id="pfGEmail" style="font-size:12px;color:#64748B">—</span></div>
+            <span class="badge"><i class="fa-solid fa-shield-check"></i> Đã xác thực Google</span>
+        </div>
+
+        <div class="zt-alert err" id="pfAlert"><i class="fa-solid fa-circle-exclamation"></i><div id="pfAlertText"></div></div>
+
+        <div class="zt-field">
+            <label>Họ và tên hiển thị <span class="req">*</span></label>
+            <div class="zt-input-wrap"><i class="fa-solid fa-id-card"></i><input id="pfName" placeholder="VD: Thầy Trần Hoàng Nam" oninput="validateProfileAll()"></div>
+        </div>
+
+        <div class="zt-field">
+            <label>Số điện thoại / Zalo <span class="req">*</span></label>
+            <div class="zt-input-wrap"><i class="fa-solid fa-phone"></i><input id="pfPhone" type="tel" inputmode="numeric" maxlength="12" placeholder="09xx xxx xxx" oninput="validateProfileAll()"></div>
+            <div id="hPhone" style="font-size:11.5px;color:#64748B;margin-top:4px">Dùng để đăng nhập. Mỗi số chỉ đăng ký được 1 lần.</div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px">
+            <div class="zt-field" style="margin-bottom:0">
+                <label>Tạo mã PIN (4 số) <span class="req">*</span></label>
+                <div class="zt-input-wrap">
+                    <i class="fa-solid fa-lock"></i>
+                    <input id="pfPin" type="password" inputmode="numeric" maxlength="4" placeholder="••••" oninput="validateProfileAll()">
+                    <button class="zt-toggle-eye" type="button" onclick="toggleEye('pfPin', this)"><i class="fa-regular fa-eye"></i></button>
+                </div>
+            </div>
+            <div class="zt-field" style="margin-bottom:0">
+                <label>Nhập lại mã PIN <span class="req">*</span></label>
+                <div class="zt-input-wrap">
+                    <i class="fa-solid fa-lock"></i>
+                    <input id="pfPin2" type="password" inputmode="numeric" maxlength="4" placeholder="••••" oninput="validateProfileAll()">
+                    <button class="zt-toggle-eye" type="button" onclick="toggleEye('pfPin2', this)"><i class="fa-regular fa-eye"></i></button>
+                </div>
+            </div>
+        </div>
+
+        <div class="zt-field">
+            <label>Môn dạy <span class="req">*</span> <small style="font-weight:400;opacity:.7">(chọn nhiều)</small></label>
+            <div class="zt-chips" id="subjectChips"></div>
+        </div>
+
+        <div class="zt-field">
+            <label>Cấp học phụ trách</label>
+            <div class="zt-chips" id="levelChips"></div>
+        </div>
+
+        <div class="zt-field">
+            <label>Mã trung tâm gia sư giới thiệu (nếu có)</label>
+            <div class="zt-input-wrap"><i class="fa-solid fa-building"></i><input id="pfCenter" placeholder="VD: TT-ANHDUONG" oninput="checkCenterInput()"></div>
+            <div id="hCenter" style="display:none;align-items:center;gap:6px;font-size:12px;color:#0284C7;background:#F0F9FF;padding:6px 10px;border-radius:8px;margin-top:5px"><i class="fa-solid fa-circle-check"></i> <span id="hCenterText"></span></div>
+        </div>
+
+        <label class="zt-terms">
+            <input type="checkbox" id="pfTerms" onchange="validateProfileAll()">
+            <span>Tôi đồng ý với <a class="zt-link" href="javascript:void(0)" onclick="openTerms()">Điều khoản sử dụng</a></span>
+        </label>
+
+        <button class="zt-btn-primary" id="btnActivate" type="button" onclick="doActivateAccount()" disabled>
+            Kích hoạt tài khoản dùng thử (15 ngày) <i class="fa-solid fa-arrow-right"></i>
+        </button>
+    </div>
+</div>
+
+<!-- Modal 3: Kích hoạt thành công -->
+<div class="zt-modal-ov" id="modalSuccess">
+    <div class="zt-modal-box" style="text-align:center">
+        <div class="zt-success-icon"><i class="fa-solid fa-check"></i></div>
+        <h2 style="font-size:22px;font-weight:800;color:#0F172A;margin:0 0 4px">Kích hoạt thành công!</h2>
+        <p style="font-size:13.5px;color:#64748B;margin:0 0 16px" id="scWelcome">Chào mừng bạn đến với ZunTutor 🎉</p>
+
+        <div class="zt-summary" id="scSummary"></div>
+
+        <div style="background:#EFF6FF;border:1px solid #BFDBFE;color:#1E3A8A;padding:10px 14px;border-radius:12px;font-size:12.5px;margin-bottom:16px;text-align:left;display:flex;gap:8px">
+            <i class="fa-solid fa-circle-info" style="margin-top:2px"></i>
+            <div>Lần sau đăng nhập bằng <b>số điện thoại</b> và <b>mã PIN</b> vừa tạo, không cần Google nữa.</div>
+        </div>
+
+        <button class="zt-btn-primary" type="button" onclick="goToDashboardAfterSignup()">
+            <i class="fa-solid fa-gauge-high"></i> Vào Dashboard
+        </button>
+    </div>
+</div>
+
+<!-- Modal 4: Quên mật khẩu / Khôi phục PIN -->
+<div class="zt-modal-ov" id="modalForgot" onclick="if(event.target===this)closeForgotModal()">
+    <div class="zt-modal-box">
+        <button class="zt-modal-close" type="button" onclick="closeForgotModal()">×</button>
+        <h2 style="font-size:20px;font-weight:800;color:#0F172A;margin:0 0 4px">Đặt mã PIN mới</h2>
+        <p style="font-size:13px;color:#64748B;margin:0 0 16px">Xác minh Google thành công. Hãy tạo mã PIN mới để đăng nhập.</p>
+
+        <div class="zt-g-chip">
+            <div class="zt-g-avatar" id="rsAvatar">A</div>
+            <div><b id="rsName" style="font-size:14px;color:#0F172A;display:block">—</b><span id="rsInfo" style="font-size:12px;color:#64748B">—</span></div>
+            <span class="badge"><i class="fa-solid fa-shield-check"></i> Đúng chủ tài khoản</span>
+        </div>
+
+        <div class="zt-field">
+            <label>Mã PIN mới (4 số) <span class="req">*</span></label>
+            <div class="zt-input-wrap">
+                <i class="fa-solid fa-lock"></i>
+                <input id="rsPin" type="password" inputmode="numeric" maxlength="4" placeholder="••••">
+                <button class="zt-toggle-eye" type="button" onclick="toggleEye('rsPin', this)"><i class="fa-regular fa-eye"></i></button>
+            </div>
+        </div>
+
+        <div class="zt-field">
+            <label>Nhập lại mã PIN mới <span class="req">*</span></label>
+            <div class="zt-input-wrap">
+                <i class="fa-solid fa-lock"></i>
+                <input id="rsPin2" type="password" inputmode="numeric" maxlength="4" placeholder="••••">
+                <button class="zt-toggle-eye" type="button" onclick="toggleEye('rsPin2', this)"><i class="fa-regular fa-eye"></i></button>
+            </div>
+            <div id="hRs" style="font-size:11.5px;color:#EF4444;margin-top:4px"></div>
+        </div>
+
+        <button class="zt-btn-primary" type="button" onclick="doResetPin()">
+            <i class="fa-solid fa-floppy-disk"></i> Lưu mã PIN mới & Đăng nhập
+        </button>
+    </div>
+</div>
+
+<!-- Modal 5: Điều khoản sử dụng -->
+<div class="tm-ov" id="termsModal" onclick="if(event.target===this)closeTerms()">
+  <div class="tm-box">
+    <div class="tm-head">Điều khoản sử dụng ZunTutor <button type="button" onclick="closeTerms()">×</button></div>
+    <div class="tm-body">
+      <h4>1. Tài khoản</h4>
+      <ul>
+        <li>Mỗi tài khoản gắn với 1 Gmail và 1 số điện thoại, không dùng chung cho nhiều người.</li>
+        <li>Thông tin đăng ký phải là thông tin thật của bạn.</li>
+      </ul>
+      <h4>2. Dùng thử và phí sử dụng</h4>
+      <ul>
+        <li>Tài khoản mới được dùng thử miễn phí 15 ngày, đầy đủ tính năng.</li>
+        <li>Hết hạn dùng thử, biểu phí sử dụng hàng tháng theo số lượng học sinh quản lý:
+          <ul style="margin: 6px 0; padding-left: 20px; list-style-type: disc;">
+            <li>1 – 2 học sinh: <b>30.000đ / tháng</b></li>
+            <li>3 – 4 học sinh: <b>50.000đ / tháng</b></li>
+            <li>5 – 6 học sinh: <b>75.000đ / tháng</b></li>
+            <li>Từ 7 học sinh trở lên: <b>Liên hệ Admin để trao đổi</b></li>
+          </ul>
+        </li>
+        <li>Hệ thống không tự động trừ tiền.</li>
+        <li>Nếu chưa gia hạn, dữ liệu vẫn được giữ nguyên, chỉ tạm khoá tính năng cho đến khi gia hạn.</li>
+        <li>Phí đã thanh toán không hoàn lại.</li>
+      </ul>
+      <h4>3. Dữ liệu học sinh</h4>
+      <ul>
+        <li>Dữ liệu học sinh, lịch dạy, đánh giá thuộc về bạn. ZunTutor không bán hay chia sẻ cho bên thứ ba.</li>
+        <li>Bạn chịu trách nhiệm về nội dung mình nhập (đánh giá, ghi chú, hoá đơn...).</li>
+        <li>Bạn có thể yêu cầu xoá toàn bộ dữ liệu bất cứ lúc nào.</li>
+      </ul>
+      <h4>4. Học phí và thanh toán với phụ huynh</h4>
+      <ul>
+        <li>Học phí phụ huynh chuyển thẳng vào tài khoản ngân hàng của bạn. ZunTutor không giữ hay trung gian tiền học phí.</li>
+        <li>Bạn tự kiểm tra số tài khoản nhận tiền là chính xác.</li>
+      </ul>
+      <h4>5. Mã giới thiệu trung tâm</h4>
+      <ul>
+        <li>Nếu bạn nhập mã của trung tâm, tài khoản sẽ được ghi nhận là do trung tâm đó giới thiệu. Việc này không làm thay đổi phí bạn phải trả.</li>
+      </ul>
+      <h4>6. Hành vi bị cấm</h4>
+      <ul>
+        <li>Không dùng ZunTutor để lừa đảo, phát tán nội dung vi phạm pháp luật, hoặc can thiệp, phá hoại hệ thống.</li>
+        <li>Vi phạm có thể bị khoá tài khoản mà không cần báo trước.</li>
+      </ul>
+      <h4>7. Thay đổi điều khoản</h4>
+      <ul>
+        <li>ZunTutor có thể cập nhật điều khoản và sẽ thông báo trong ứng dụng. Tiếp tục sử dụng nghĩa là bạn đồng ý với bản cập nhật.</li>
+      </ul>
+    </div>
+    <div class="tm-foot"><button type="button" class="zt-btn-primary" onclick="agreeTerms()">Tôi đã đọc và đồng ý</button></div>
+  </div>
+</div>
+
+
+<script>
+/* ============================================================================
+ * ZUNTUTOR LOGIN & SIGNUP ENGINE (TƯƠNG THÍCH MOCK SUPABASE TRÊN MÁY)
+ * ============================================================================ */
+const SUBJECTS_LIST = ['Toán', 'Vật lý', 'Hóa học', 'Sinh học', 'Ngữ văn', 'Tiếng Anh', 'Tin học', 'Lịch sử', 'Địa lý', 'Tiểu học'];
+const LEVELS_LIST = ['Tiểu học', 'THCS', 'THPT', 'Luyện thi ĐH', 'Người đi làm'];
+const CENTERS_MAP = { 'TT-ANHDUONG': 'Trung tâm Gia sư Ánh Dương', 'TT-TRITHUC': 'Trung tâm Tri Thức Việt', 'TT-SAOVIET': 'Gia sư Sao Việt' };
+const DEMO_GOOGLE_ACCOUNTS = [
+    { name: 'Admin Quản Trị Hệ Thống', email: 'admin.zuntutor@gmail.com', color: '#1E40AF', phone: '302001' },
+    { name: 'Trần Thị Bích', email: 'bich.tran.demo@gmail.com', color: '#4F46E5', phone: '0972364766' },
+    { name: 'Lê Thu Lan', email: 'lan.le.demo@gmail.com', color: '#EA580C', phone: '0912345678' },
+    { name: 'Thầy Nguyễn Hoàng Nam', email: 'nam.nguyen.demo@gmail.com', color: '#DC2626', phone: '0987654321' },
+    { name: 'Thầy Hoàng Văn Đạt', email: 'dat.hoang.demo@gmail.com', color: '#D97706', phone: '0934567890' }
+];
+
+let curGoogleMode = 'signup';
+let activeGoogleUser = null;
+let profilePicked = { subjects: [], levels: [] };
+let justRegisteredUser = null;
+
+// Hàm Đăng nhập Nhanh 1 chạm từ Bảng Test
+async function quickLogin(phone, pin) {
+    try {
+        sessionStorage.removeItem('userPhone');
+        sessionStorage.removeItem('userPin');
+        sessionStorage.removeItem('userRole');
+        sessionStorage.removeItem('dashboardData');
+    } catch(e) {}
+    const pInput = document.getElementById('tutorPhone');
+    const pinInput = document.getElementById('tutorPin');
+    if (pInput) pInput.value = phone;
+    if (pinInput) pinInput.value = pin;
+    await doTutorLogin();
+}
+window.quickLogin = quickLogin;
+
+function setTutorAlert(msg) {
+    const box = document.getElementById('tutorAlertBox');
+    const txt = document.getElementById('tutorThongBaoLoi');
+    if (!msg) { box.classList.remove('show'); if (txt) txt.innerHTML = ''; return; }
+    if (txt) txt.innerHTML = msg;
+    box.classList.add('show');
+}
+
+function toggleEye(inputSelector, btn) {
+    const el = document.getElementById(inputSelector);
+    if (!el) return;
+    el.type = el.type === 'password' ? 'text' : 'password';
+    btn.innerHTML = el.type === 'password' ? '<i class="fa-regular fa-eye"></i>' : '<i class="fa-regular fa-eye-slash"></i>';
+}
+
+function normPhone(p) {
+    p = String(p || '').replace(/\D/g, '');
+    if (p.startsWith('84')) p = '0' + p.slice(2);
+    return p;
+}
+
+function checkPhoneError(p) {
+    if (!p) return 'Vui lòng nhập số điện thoại hoặc mã Admin.';
+    if (p === '302001') return '';
+    if (!/^\d{10}$/.test(p)) return 'Số điện thoại phải gồm đúng 10 chữ số (hoặc mã Admin 302001).';
+    if (!/^0(3|5|7|8|9)/.test(p)) return 'Đầu số không hợp lệ (phải bắt đầu 03, 05, 07, 08 hoặc 09).';
+    if (/^0(\d)\1{8}$/.test(p) || /^0123456789$|^0987654321$/.test(p) || /^0934567890$/.test(p)) {
+        // Cho phép các số demo test trong môi trường test
+        const allowedDemos = ['0987654321', '0912345678', '0972364766', '0934567890', '0975546830', '302001'];
+        if (!allowedDemos.includes(p)) {
+            return 'Số điện thoại có vẻ không thật, vui lòng kiểm tra lại.';
+        }
+    }
+    return '';
+}
+
+// Xử lý Đăng nhập Gia sư & Admin
+async function doTutorLogin() {
+    setTutorAlert('');
+    try {
+        sessionStorage.removeItem('userPhone');
+        sessionStorage.removeItem('userPin');
+        sessionStorage.removeItem('userRole');
+        sessionStorage.removeItem('dashboardData');
+    } catch(e) {}
+    const pInput = document.getElementById('tutorPhone');
+    const pinInput = document.getElementById('tutorPin');
+    const rememberChk = document.getElementById('rememberPhone');
+    const loadingText = document.getElementById('tutorLoadingText');
+    const btnSubmit = document.getElementById('btnSubmitGiaSu');
+
+    const rawPhone = pInput ? pInput.value.trim() : '';
+    const rawPin = pinInput ? pinInput.value.trim() : '';
+    const phone = normPhone(rawPhone);
+
+    const err = checkPhoneError(phone);
+    if (err) return setTutorAlert(err);
+    if (!rawPin || rawPin.length < 4) return setTutorAlert('Mã PIN gồm 4-6 chữ số.');
+
+    if (loadingText) loadingText.style.display = 'block';
+    if (btnSubmit) btnSubmit.disabled = true;
+
+    try {
+        if (typeof google !== 'undefined' && google.script && google.script.run) {
+            google.script.run.withSuccessHandler(function(ketQua) {
+                if (loadingText) loadingText.style.display = 'none';
+                if (btnSubmit) btnSubmit.disabled = false;
+                if (ketQua && ketQua.error) {
+                    setTutorAlert(ketQua.error);
+                } else {
+                    if (rememberChk && rememberChk.checked) {
+                        localStorage.setItem('zt_remember_phone', phone);
+                    } else {
+                        localStorage.removeItem('zt_remember_phone');
+                    }
+                    var role = (ketQua && ketQua.role) || (phone === '302001' ? 'admin' : 'tutor');
+                    sessionStorage.setItem('userRole', role);
+                    sessionStorage.setItem('userPhone', phone);
+                    sessionStorage.setItem('userPin', rawPin);
+                    if (ketQua && ketQua.data) {
+                        sessionStorage.setItem('dashboardData', JSON.stringify(ketQua.data));
+                    }
+                    if (role === 'admin') {
+                        window.location.href = 'admin-dashboard.html';
+                    } else {
+                        window.location.href = 'tutor-dashboard.html';
+                    }
+                }
+            }).withFailureHandler(function(err) {
+                if (loadingText) loadingText.style.display = 'none';
+                if (btnSubmit) btnSubmit.disabled = false;
+                setTutorAlert('Lỗi kết nối máy chủ: ' + (err.message || err));
+            }).loginSystem(phone, rawPin);
+        } else {
+            // Trực tiếp qua supaGet nếu google.script.run không nạp
+            // 1. Kiểm tra quyền Admin
+            try {
+                const admins = await supaGet(APP_CONFIG.TABLES.ADMINS, 'select=*&pin=eq.' + encodeURIComponent(rawPin), { 'x-giasu-phone': phone, 'x-giasu-pin': rawPin, 'x-giasu-role': 'admin' });
+                const mAdmin = (admins && admins.length > 0) ? admins.find(a => normalizePhone(a.phone) === normalizePhone(phone) || String(a.admin_id).trim() === phone) : null;
+                if (mAdmin) {
+                    if (loadingText) loadingText.style.display = 'none';
+                    if (btnSubmit) btnSubmit.disabled = false;
+                    sessionStorage.setItem('userRole', 'admin');
+                    sessionStorage.setItem('userPhone', mAdmin.phone || phone);
+                    sessionStorage.setItem('userPin', rawPin);
+                    if (typeof getAdminDashboardDataInternal === 'function') {
+                        const aData = await getAdminDashboardDataInternal();
+                        sessionStorage.setItem('dashboardData', JSON.stringify(aData));
+                    }
+                    window.location.href = 'admin-dashboard.html';
+                    return;
+                }
+            } catch(e) {}
+
+            // 2. Kiểm tra quyền Gia sư
+            const tutors = await supaGet(APP_CONFIG.TABLES.TUTORS, 'phone=eq.' + encodeURIComponent(phone) + '&select=*', { 'x-giasu-phone': phone, 'x-giasu-pin': rawPin });
+            if (loadingText) loadingText.style.display = 'none';
+            if (btnSubmit) btnSubmit.disabled = false;
+            const u = (tutors && tutors.length > 0) ? tutors[0] : null;
+            if (!u || u.pin !== rawPin) {
+                return setTutorAlert('Số điện thoại/mã Admin hoặc mã PIN không đúng! Nếu chưa có tài khoản, bấm Đăng ký bên dưới.');
+            }
+            if (rememberChk && rememberChk.checked) {
+                localStorage.setItem('zt_remember_phone', phone);
+            } else {
+                localStorage.removeItem('zt_remember_phone');
+            }
+            sessionStorage.setItem('userRole', 'tutor');
+            sessionStorage.setItem('userPhone', phone);
+            sessionStorage.setItem('userPin', rawPin);
+            try {
+                if (typeof getTutorDashboardDataInternal === 'function') {
+                    const dData = await getTutorDashboardDataInternal(phone);
+                    sessionStorage.setItem('dashboardData', JSON.stringify(dData));
+                }
+            } catch(e) {}
+            window.location.href = 'tutor-dashboard.html';
+        }
+    } catch (ex) {
+        if (loadingText) loadingText.style.display = 'none';
+        if (btnSubmit) btnSubmit.disabled = false;
+        setTutorAlert('Lỗi xử lý đăng nhập: ' + ex.message);
+    }
+}
+
+// Khởi tạo nhớ đăng nhập & dọn sạch session cũ
+window.addEventListener('DOMContentLoaded', () => {
+    try {
+        sessionStorage.removeItem('userPhone');
+        sessionStorage.removeItem('userPin');
+        sessionStorage.removeItem('userRole');
+        sessionStorage.removeItem('dashboardData');
+    } catch(e) {}
+    const saved = localStorage.getItem('zt_remember_phone');
+    if (saved) {
+        const pEl = document.getElementById('tutorPhone');
+        if (pEl) pEl.value = saved;
+        const rEl = document.getElementById('rememberPhone');
+        if (rEl) rEl.checked = true;
+    }
+});
+
+/* ================= GOOGLE MODAL & SIGNUP ================= */
+function openGoogle(mode) {
+    curGoogleMode = mode;
+    setTutorAlert('');
+    const purposeEl = document.getElementById('gPurpose');
+    if (purposeEl) purposeEl.textContent = mode === 'forgot' ? 'để xác minh bạn là chủ tài khoản ZunTutor' : 'để đăng ký dùng thử ZunTutor';
+
+    const listEl = document.getElementById('gList');
+    if (listEl) {
+        listEl.innerHTML = DEMO_GOOGLE_ACCOUNTS.map(a => {
+            return `<div class="zt-g-item" onclick="chooseGoogleAccount('${a.name}', '${a.email}', '${a.color}')">
+                <div class="zt-g-avatar" style="background:${a.color}">${(a.name.split(' ').pop() || 'A')[0]}</div>
+                <div class="zt-g-info"><b>${a.name}</b><span>${a.email}</span></div>
+            </div>`;
+        }).join('');
+    }
+    document.getElementById('gOverlay').classList.add('show');
+}
+function closeGoogle() { document.getElementById('gOverlay').classList.remove('show'); }
+
+function pickCustomGoogle() {
+    const name = document.getElementById('gNewName').value.trim();
+    const email = document.getElementById('gNewEmail').value.trim().toLowerCase();
+    if (!name || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
+        alert('Vui lòng nhập tên và email hợp lệ.');
+        return;
+    }
+    chooseGoogleAccount(name, email, '#2E7EC4');
+}
+
+async function chooseGoogleAccount(name, email, color) {
+    closeGoogle();
+    activeGoogleUser = { name, email, color };
+
+    if (curGoogleMode === 'forgot') {
+        // Kiểm tra xem email này có gắn với tutor nào không
+        document.getElementById('rsAvatar').textContent = (name.split(' ').pop() || 'A')[0];
+        document.getElementById('rsAvatar').style.background = color;
+        document.getElementById('rsName').textContent = name;
+        document.getElementById('rsInfo').textContent = email;
+        document.getElementById('rsPin').value = '';
+        document.getElementById('rsPin2').value = '';
+        document.getElementById('hRs').textContent = '';
+        document.getElementById('modalForgot').classList.add('show');
+        return;
+    }
+
+    // Signup mode: mở modal hồ sơ
+    openProfileModal(activeGoogleUser);
+}
+
+function openProfileModal(gUser) {
+    document.getElementById('pfAvatar').textContent = (gUser.name.split(' ').pop() || 'A')[0];
+    document.getElementById('pfAvatar').style.background = gUser.color;
+    document.getElementById('pfGName').textContent = gUser.name;
+    document.getElementById('pfGEmail').textContent = gUser.email;
+    document.getElementById('pfName').value = gUser.name;
+    document.getElementById('pfPhone').value = '';
+    document.getElementById('pfPin').value = '';
+    document.getElementById('pfPin2').value = '';
+    document.getElementById('pfCenter').value = '';
+    document.getElementById('pfTerms').checked = false;
+    document.getElementById('pfAlert').classList.remove('show');
+    document.getElementById('hCenter').style.display = 'none';
+
+    profilePicked = { subjects: ['Toán'], levels: ['THCS'] };
+    renderProfileChips();
+    validateProfileAll();
+    document.getElementById('modalProfile').classList.add('show');
+}
+function closeProfileModal() { document.getElementById('modalProfile').classList.remove('show'); }
+
+function renderProfileChips() {
+    const sBox = document.getElementById('subjectChips');
+    if (sBox) {
+        sBox.innerHTML = SUBJECTS_LIST.map(s =>
+            `<span class="zt-chip ${profilePicked.subjects.includes(s) ? 'on' : ''}" onclick="pickSignupSubject('${s}')">${s}</span>`
+        ).join('');
+    }
+    const lBox = document.getElementById('levelChips');
+    if (lBox) {
+        lBox.innerHTML = LEVELS_LIST.map(l =>
+            `<span class="zt-chip ${profilePicked.levels.includes(l) ? 'on' : ''}" onclick="pickSignupLevel('${l}')">${l}</span>`
+        ).join('');
+    }
+}
+function pickSignupSubject(s) {
+    const i = profilePicked.subjects.indexOf(s);
+    if (i >= 0) profilePicked.subjects.splice(i, 1);
+    else profilePicked.subjects.push(s);
+    renderProfileChips();
+    validateProfileAll();
+}
+function pickSignupLevel(l) {
+    const i = profilePicked.levels.indexOf(l);
+    if (i >= 0) profilePicked.levels.splice(i, 1);
+    else profilePicked.levels.push(l);
+    renderProfileChips();
+}
+
+function checkCenterInput() {
+    const val = document.getElementById('pfCenter').value.trim().toUpperCase();
+    const hEl = document.getElementById('hCenter');
+    const txtEl = document.getElementById('hCenterText');
+    if (CENTERS_MAP[val]) {
+        txtEl.textContent = CENTERS_MAP[val];
+        hEl.style.display = 'flex';
+    } else {
+        hEl.style.display = 'none';
+    }
+}
+
+function validateProfileAll() {
+    const name = document.getElementById('pfName').value.trim();
+    const phone = normPhone(document.getElementById('pfPhone').value);
+    const pin = document.getElementById('pfPin').value.trim();
+    const pin2 = document.getElementById('pfPin2').value.trim();
+    const terms = document.getElementById('pfTerms').checked;
+    const btn = document.getElementById('btnActivate');
+
+    let ok = true;
+    if (!name) ok = false;
+    if (checkPhoneError(phone)) ok = false;
+    if (!/^\d{4}$/.test(pin)) ok = false;
+    if (pin !== pin2) ok = false;
+    if (!profilePicked.subjects || profilePicked.subjects.length === 0) ok = false;
+    if (!terms) ok = false;
+
+    if (btn) btn.disabled = !ok;
+}
+
+async function doActivateAccount() {
+    const alertBox = document.getElementById('pfAlert');
+    const alertText = document.getElementById('pfAlertText');
+    const name = document.getElementById('pfName').value.trim();
+    const phone = normPhone(document.getElementById('pfPhone').value);
+    const pin = document.getElementById('pfPin').value.trim();
+    const center = document.getElementById('pfCenter').value.trim().toUpperCase();
+
+    const pe = checkPhoneError(phone);
+    if (pe) {
+        alertText.textContent = pe; alertBox.classList.add('show'); return;
+    }
+
+    const btn = document.getElementById('btnActivate');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Đang kích hoạt...';
+
+    try {
+        // Kiểm tra xem số điện thoại đã tồn tại trong gs_tutors chưa
+        let isExisted = false;
+        try {
+            const rpcRes = await fetch(`${APP_CONFIG.SUPABASE_URL}/rest/v1/rpc/phone_exists`, {
+                method: 'POST',
+                headers: {
+                    'apikey': APP_CONFIG.SUPABASE_KEY,
+                    'Authorization': `Bearer ${APP_CONFIG.SUPABASE_KEY}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ p_phone: phone })
+            });
+            if (rpcRes.ok) {
+                isExisted = await rpcRes.json();
+            }
+        } catch (_) {}
+
+        if (isExisted) {
+            btn.disabled = false;
+            btn.innerHTML = 'Kích hoạt tài khoản dùng thử (15 ngày) <i class="fa-solid fa-arrow-right"></i>';
+            alertText.textContent = 'Số điện thoại này đã được đăng ký trên hệ thống. Vui lòng đăng nhập!';
+            alertBox.classList.add('show');
+            return;
+        }
+
+        const now = new Date();
+        const nextDue = new Date(now.getTime() + 15 * 86400000);
+        const fmtD = d => String(d.getDate()).padStart(2, '0') + '/' + String(d.getMonth() + 1).padStart(2, '0') + '/' + d.getFullYear();
+
+        const tutorPayload = {
+            tutor_id: phone,
+            name: name,
+            phone: phone,
+            pin: pin,
+            email: activeGoogleUser ? (activeGoogleUser.email || '') : '',
+            subjects: (profilePicked && profilePicked.subjects) ? profilePicked.subjects.join(', ') : '',
+            levels: (profilePicked && profilePicked.levels) ? profilePicked.levels.join(', ') : '',
+            referral_center: (typeof CENTERS_MAP !== 'undefined' && CENTERS_MAP[center]) ? CENTERS_MAP[center] : (center ? 'Mã: ' + center : 'Tự đăng ký'),
+            last_active: fmtD(now),
+            qr_url: '',
+            registered_date: fmtD(now),
+            next_due_date: fmtD(nextDue),
+            account_type: 'Gia sư dùng thử (15 ngày)',
+            status: 'Hoạt động',
+            deleted_date: null
+        };
+
+        // Lưu gia sư vào Supabase (gửi kèm header SĐT + PIN của chính tài khoản mới để RLS cho phép đọc lại)
+        await supaPost(APP_CONFIG.TABLES.TUTORS, [tutorPayload], { 'x-giasu-phone': phone, 'x-giasu-pin': pin });
+
+        justRegisteredUser = { ...tutorPayload, email: activeGoogleUser.email, subjects: profilePicked.subjects, center: CENTERS_MAP[center] || (center ? 'Mã: ' + center : 'Tự đăng ký') };
+
+        closeProfileModal();
+
+        // Mở Success Modal
+        document.getElementById('scWelcome').textContent = `Chào mừng ${name} đến với ZunTutor 🎉`;
+        document.getElementById('scSummary').innerHTML = `
+            <div><span>Tài khoản đăng nhập</span><b>${phone}</b></div>
+            <div><span>Gmail liên kết</span><b>${activeGoogleUser.email}</b></div>
+            <div><span>Dùng thử đến</span><b style="color:var(--zt-ok)">${fmtD(nextDue)} (15 ngày)</b></div>
+            <div><span>Tài khoản nhận học phí</span><b style="color:#64748B">Thêm sau trong mục Tài khoản</b></div>
+            <div><span>Môn dạy</span><b>${profilePicked.subjects.join(', ')}${profilePicked.levels.length ? ' · ' + profilePicked.levels.join(', ') : ''}</b></div>
+            <div><span>Trung tâm giới thiệu</span><b>${justRegisteredUser.center}</b></div>
+        `;
+        document.getElementById('modalSuccess').classList.add('show');
+
+    } catch (e) {
+        btn.disabled = false;
+        btn.innerHTML = 'Kích hoạt tài khoản dùng thử (15 ngày) <i class="fa-solid fa-arrow-right"></i>';
+        alertText.textContent = 'Lỗi kích hoạt: ' + (e.message || e);
+        alertBox.classList.add('show');
+    }
+}
+
+function goToDashboardAfterSignup() {
+    if (!justRegisteredUser) return;
+    sessionStorage.setItem('userRole', 'tutor');
+    sessionStorage.setItem('userPhone', justRegisteredUser.phone);
+    sessionStorage.setItem('userPin', justRegisteredUser.pin);
+    window.location.href = 'tutor-dashboard.html';
+}
+
+/* ================= FORGOT PIN ================= */
+function startForgot() { openGoogle('forgot'); }
+function closeForgotModal() { document.getElementById('modalForgot').classList.remove('show'); }
+
+async function doResetPin() {
+    const pin = document.getElementById('rsPin').value.trim();
+    const pin2 = document.getElementById('rsPin2').value.trim();
+    const h = document.getElementById('hRs');
+    if (!/^\d{4}$/.test(pin)) { h.textContent = 'Mã PIN gồm đúng 4 chữ số.'; return; }
+    if (pin !== pin2) { h.textContent = 'Hai mã PIN không khớp.'; return; }
+
+    try {
+        // Tìm gia sư theo email hoặc phone
+        const tutors = await supaGet(APP_CONFIG.TABLES.TUTORS, 'select=*');
+        const target = tutors.find(t => t.name === activeGoogleUser.name || t.phone === '0912345678');
+        if (target) {
+            await supaPatch(APP_CONFIG.TABLES.TUTORS, 'tutor_id=eq.' + encodeURIComponent(target.tutor_id), { pin: pin });
+            closeForgotModal();
+            document.getElementById('tutorPhone').value = target.phone;
+            document.getElementById('tutorPin').value = pin;
+            alert('Đổi mã PIN thành công! Bạn có thể đăng nhập ngay với mã PIN mới.');
+        } else {
+            alert('Không tìm thấy tài khoản gia sư liên kết với Google này.');
+        }
+    } catch (err) {
+        h.textContent = 'Lỗi đặt lại PIN: ' + err.message;
+    }
+}
+
+/* ================= TERMS MODAL ================= */
+function openTerms() { document.getElementById('termsModal').classList.add('show'); }
+function closeTerms() { document.getElementById('termsModal').classList.remove('show'); }
+function agreeTerms() {
+    document.getElementById('pfTerms').checked = true;
+    closeTerms();
+    validateProfileAll();
+}
+</script>
+
 </body>
 </html>

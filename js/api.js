@@ -1,3 +1,52 @@
+
+// ==========================================
+// BỘ HÀM KHẮC PHỤC TRIỆT ĐỂ LỖI PHÔNG CHỮ TIẾNG VIỆT (MOJIBAKE RECOVERY)
+// ==========================================
+var WIN1252_BYTE_MAP = window.WIN1252_BYTE_MAP || {
+    0x20AC: 0x80, 0x201A: 0x82, 0x0192: 0x83, 0x201E: 0x84, 0x2026: 0x85, 0x2020: 0x86, 0x2021: 0x87,
+    0x02C6: 0x88, 0x2030: 0x89, 0x0160: 0x8A, 0x2039: 0x8B, 0x0152: 0x8C, 0x017D: 0x8E, 0x2018: 0x91,
+    0x2019: 0x92, 0x201C: 0x93, 0x201D: 0x94, 0x2022: 0x95, 0x2013: 0x96, 0x2014: 0x97, 0x02DC: 0x98,
+    0x2122: 0x99, 0x0161: 0x9A, 0x203A: 0x9B, 0x0153: 0x9C, 0x017E: 0x9E, 0x0178: 0x9F
+};
+
+function fixVietnameseMojibake(str) {
+    if (!str || typeof str !== 'string') return str;
+    const DICT = {
+        'LÃª Minh ThÆ°': 'Lê Minh Thư',
+        'Pháº¡m Háº£i Äng': 'Phạm Hải Đăng',
+        'Pháº¡m Háº£i Äƒng': 'Phạm Hải Đăng',
+        'Pháº¡m Háº£i Ä': 'Phạm Hải Đăng',
+        'Pháº¡m Háº£i Ä Äƒng': 'Phạm Hải Đăng',
+        'Nguyá»...n HoÃ ng Nam': 'Nguyễn Hoàng Nam',
+        'Nguyá»...n HoÃ ng Na': 'Nguyễn Hoàng Nam',
+        'Nguyá»…n HoÃ ng Nam': 'Nguyễn Hoàng Nam',
+        'Nguyá»…n HoÃ ng Na': 'Nguyễn Hoàng Nam',
+        'Tháº§y Tráº§n HoÃ ng Nam': 'Thầy Trần Hoàng Nam',
+        'Tháº§y Tráº§n HoÃ ng Nam': 'Thầy Trần Hoàng Nam'
+    };
+    for (const [bad, good] of Object.entries(DICT)) {
+        if (str.includes(bad)) str = str.replaceAll(bad, good);
+    }
+    if (!/[\u00C0-\u00FF\u2010-\u2030\u0150-\u017F]/.test(str)) return str;
+    try {
+        const bytes = [];
+        for (let i = 0; i < str.length; i++) {
+            const code = str.charCodeAt(i);
+            if (code < 256) {
+                bytes.push(code);
+            } else if (WIN1252_BYTE_MAP[code] !== undefined) {
+                bytes.push(WIN1252_BYTE_MAP[code]);
+            } else {
+                return str;
+            }
+        }
+        const decoded = new TextDecoder('utf-8', { fatal: false }).decode(new Uint8Array(bytes));
+        if (decoded && !decoded.includes('\ufffd')) return decoded;
+    } catch(e) {}
+    return str;
+}
+if (typeof window !== 'undefined') window.fixVietnameseMojibake = fixVietnameseMojibake;
+
 /**
  * ============================================================================
  * SUPABASE API GATEWAY - PHÂN VÙNG: HỆ THỐNG GIA SƯ 1-1 (SCOPE: GIASU)
@@ -8,11 +57,22 @@
  * - Kế thừa đầy đủ: Xóa mềm, Thùng rác, và Tự động hủy sau 10 ngày.
  */
 
+// ============================================================================
+// CHỌN DATABASE THEO NƠI CHẠY (code giống hệt nhau ở bản test và bản chính)
+// - Chạy trên máy (localhost / 127.0.0.1 / mở file trực tiếp) -> database GIẢ ở http://localhost:5500
+//   (server giả lập: node mock-db/server.js, dữ liệu nằm trong mock-db/data/*.json)
+// - Chạy trên web thật (GitHub Pages / domain) -> Supabase thật
+// ============================================================================
+var ZT_IS_LOCAL = (typeof location !== 'undefined') &&
+    (location.protocol === 'file:' || ['localhost', '127.0.0.1', '::1', '[::1]'].indexOf(location.hostname) !== -1);
+var ZT_MOCK_ORIGIN = 'http://localhost:5500';
+
 const APP_CONFIG = {
     APP_NAME: 'Hệ Thống Gia Sư',
     SCOPE: 'giasu',
-    SUPABASE_URL: 'https://iefnuwhdvzxomusvfuqz.supabase.co',
-    SUPABASE_KEY: 'sb_publishable_TSuZENBNGAJIzsnLyCAauQ_Z-KVZKlZ',
+    IS_LOCAL_TEST: ZT_IS_LOCAL,
+    SUPABASE_URL: ZT_IS_LOCAL ? ZT_MOCK_ORIGIN : 'https://iefnuwhdvzxomusvfuqz.supabase.co',
+    SUPABASE_KEY: ZT_IS_LOCAL ? 'local-mock-key' : 'sb_publishable_TSuZENBNGAJIzsnLyCAauQ_Z-KVZKlZ',
     TABLES: {
         TUTORS: 'gs_tutors',
         STUDENTS: 'gs_students',
@@ -21,11 +81,13 @@ const APP_CONFIG = {
         HOMEWORK: 'gs_homework',
         SUBMISSIONS: 'gs_submissions',
         FEEDBACKS: 'gs_feedbacks',
-        ADMINS: 'gs_admins'
+        ADMINS: 'gs_admins',
+        PAYMENTS: 'gs_payments'
     },
     // URL Google Apps Script Web App của bạn để tự động lưu bài nộp vào Google Drive
-    DRIVE_UPLOAD_URL: 'https://script.google.com/macros/s/AKfycbwQZA0UlCibTKjuq0AIJM1kfQjKwPbiIKE7-VfDjpiizjU-gaxJBuYOLTKdTmnETjbd/exec',
-    SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbwQZA0UlCibTKjuq0AIJM1kfQjKwPbiIKE7-VfDjpiizjU-gaxJBuYOLTKdTmnETjbd/exec',
+    // (Khi chạy trên máy: dùng Drive giả của mock server, file lưu ở mock-db/uploads/)
+    DRIVE_UPLOAD_URL: ZT_IS_LOCAL ? ZT_MOCK_ORIGIN + '/_mock/drive' : 'https://script.google.com/macros/s/AKfycbwQZA0UlCibTKjuq0AIJM1kfQjKwPbiIKE7-VfDjpiizjU-gaxJBuYOLTKdTmnETjbd/exec',
+    SCRIPT_URL: ZT_IS_LOCAL ? ZT_MOCK_ORIGIN + '/_mock/drive' : 'https://script.google.com/macros/s/AKfycbwQZA0UlCibTKjuq0AIJM1kfQjKwPbiIKE7-VfDjpiizjU-gaxJBuYOLTKdTmnETjbd/exec',
     HOMEWORK_DRIVE_FOLDER: 'https://drive.google.com/drive/folders/1cGu7nt0K0paWCg-9nlHgqxVp0I_6h8M8?usp=drive_link',
     ASSIGNMENT_DRIVE_FOLDER: 'https://drive.google.com/drive/folders/11z6CIwULBhR6CKcUzhvHDaTMjiUA7Iiu?usp=drive_link'
 };
@@ -36,9 +98,9 @@ function getHeaders(customHeaders = null) {
         'Authorization': `Bearer ${APP_CONFIG.SUPABASE_KEY}`,
         'Content-Type': 'application/json',
         'Prefer': 'return=representation',
-        'x-giasu-phone': sessionStorage.getItem('userPhone') || (window.tempAuth ? window.tempAuth.phone : ''),
-        'x-giasu-pin': sessionStorage.getItem('userPin') || (window.tempAuth ? window.tempAuth.pin : ''),
-        'x-giasu-role': sessionStorage.getItem('userRole') || (window.tempAuth ? window.tempAuth.role : ''),
+        'x-giasu-phone': (window.tempAuth && window.tempAuth.phone) || sessionStorage.getItem('userPhone') || '',
+        'x-giasu-pin': (window.tempAuth && window.tempAuth.pin) || sessionStorage.getItem('userPin') || '',
+        'x-giasu-role': (window.tempAuth && window.tempAuth.role) || sessionStorage.getItem('userRole') || '',
         'x-giasu-code': getStudentAccessCode()
     };
     if (customHeaders) {
@@ -64,6 +126,102 @@ function setStudentAccessCode(code) {
 function normalizePhone(p) {
     if (!p) return "";
     return String(p).replace(/\D/g, '').replace(/^84/, '0').replace(/^0+/, '');
+}
+
+function ztParseVNDate(str) {
+    if (!str) return null;
+    str = String(str).trim();
+    if (str.includes(' ')) str = str.split(' ')[0];
+    if (str.includes('/')) {
+        let parts = str.split('/');
+        if (parts.length >= 3) {
+            let d = parseInt(parts[0], 10);
+            let m = parseInt(parts[1], 10) - 1;
+            let y = parseInt(parts[2], 10);
+            let dt = new Date(y, m, d);
+            return isNaN(dt.getTime()) ? null : dt;
+        }
+    }
+    if (str.includes('-')) {
+        let parts = str.split('-');
+        if (parts.length >= 3) {
+            let y = parseInt(parts[0], 10);
+            let m = parseInt(parts[1], 10) - 1;
+            let d = parseInt(parts[2], 10);
+            let dt = new Date(y, m, d);
+            return isNaN(dt.getTime()) ? null : dt;
+        }
+    }
+    let dt = new Date(str);
+    return isNaN(dt.getTime()) ? null : dt;
+}
+
+function ztFormatVNDate(d) {
+    if (!d || !(d instanceof Date) || isNaN(d.getTime())) return '';
+    let day = String(d.getDate()).padStart(2, '0');
+    let mon = String(d.getMonth() + 1).padStart(2, '0');
+    let y = d.getFullYear();
+    return `${day}/${mon}/${y}`;
+}
+
+function ztIsTrialAccount(t) {
+    if (!t) return false;
+    let act = String(t.account_type || t.accountType || '').toLowerCase();
+    return act.includes('dùng thử') || act.includes('trial');
+}
+
+function computeTutorStatus(t) {
+    if (!t) return 'Hoạt động';
+    let s = t.status || 'Hoạt động';
+    if (s === 'Vô hiệu hóa' || s === 'Tạm khoá') return s;
+    let dueStr = t.next_due_date || t.nextBillingDate || '';
+    let dueDate = ztParseVNDate(dueStr);
+    if (!dueDate) return s;
+    let today = new Date();
+    today.setHours(0, 0, 0, 0);
+    dueDate.setHours(0, 0, 0, 0);
+    if (today > dueDate) {
+        return ztIsTrialAccount(t) ? 'Hết hạn dùng thử' : 'Hết hạn sử dụng';
+    }
+    return ztIsTrialAccount(t) ? 'Dùng thử' : 'Hoạt động';
+}
+
+function ztTierFee(studentCount, customFee) {
+    if (customFee !== undefined && customFee !== null && customFee !== '' && Number(customFee) > 0) {
+        return Number(customFee);
+    }
+    let n = Number(studentCount) || 0;
+    if (n <= 2) return 30000;
+    if (n <= 4) return 50000;
+    if (n <= 6) return 75000;
+    return 'Liên hệ admin';
+}
+
+async function ztLoadAdminContact() {
+    let defContact = { zalo: '0975546830', facebook: 'https://m.me/zuntutor', phone: '0975546830' };
+    try {
+        let fbs = await supaGet(APP_CONFIG.TABLES.FEEDBACKS, 'feedback_id=eq.SYSTEM_CONTACT');
+        if (fbs && fbs.length > 0 && fbs[0].content) {
+            let parsed = JSON.parse(fbs[0].content);
+            return {
+                zalo: parsed.zalo || defContact.zalo,
+                facebook: parsed.facebook || defContact.facebook,
+                phone: parsed.phone || defContact.phone
+            };
+        }
+    } catch(e) {}
+    try {
+        let ls = localStorage.getItem('gs_system_contact');
+        if (ls) {
+            let parsed = JSON.parse(ls);
+            return {
+                zalo: parsed.zalo || defContact.zalo,
+                facebook: parsed.facebook || defContact.facebook,
+                phone: parsed.phone || defContact.phone
+            };
+        }
+    } catch(e) {}
+    return defContact;
 }
 
 function cleanScore(s) {
@@ -481,6 +639,13 @@ class GoogleScriptRunInstance {
                 const childName = args[2] || "";
                 const norm = normalizePhone(phone);
                 
+                try {
+                    sessionStorage.removeItem('userPhone');
+                    sessionStorage.removeItem('userPin');
+                    sessionStorage.removeItem('userRole');
+                    sessionStorage.removeItem('dashboardData');
+                } catch(e) {}
+                
                 if (pin && String(pin).trim() !== "") {
                     // BẢO MẬT: không tải cả bảng PIN về trình duyệt nữa. So khớp PIN ngay trong truy vấn (pin=eq.X),
                     // chỉ trả về dòng khớp và KHÔNG select cột pin.
@@ -492,7 +657,7 @@ class GoogleScriptRunInstance {
                     window.tempAuth = { phone: rawId, pin: pinStr, role: 'admin' };
                     const GENERIC_ERR = 'Số điện thoại hoặc mã PIN không chính xác!';
                     let admins = (rawId && pinStr) ? await supaGet(APP_CONFIG.TABLES.ADMINS, `select=admin_id,name,phone,pin&${phoneOr('phone', 'admin_id')}&pin=eq.${encodeURIComponent(pinStr)}`) : [];
-                    if (!admins || admins.length === 0) {
+                    if ((!admins || admins.length === 0) && APP_CONFIG.TABLES.ADMINS !== 'gs_admins') {
                         admins = (rawId && pinStr) ? await supaGet('admins', `select=admin_id,name,phone,pin&${phoneOr('phone', 'admin_id')}&pin=eq.${encodeURIComponent(pinStr)}`) : [];
                     }
                     let mAdmin = admins.find(a => normalizePhone(a.phone) === norm || String(a.admin_id).trim() === rawId);
@@ -513,6 +678,12 @@ class GoogleScriptRunInstance {
                             if (mTutor.status === 'Vô hiệu hóa') {
                                 result = { error: 'Tài khoản của bạn đã bị vô hiệu hóa. Vui lòng liên hệ Admin!' };
                             } else {
+                                sessionStorage.setItem('userPhone', mTutor.phone || rawId);
+                                sessionStorage.setItem('userPin', pinStr);
+                                sessionStorage.setItem('userRole', 'tutor');
+                                supaPatch(APP_CONFIG.TABLES.TUTORS, `tutor_id=eq.${encodeURIComponent(mTutor.tutor_id)}`, {
+                                    last_active: new Date().toLocaleDateString('vi-VN')
+                                }).catch(() => {});
                                 result = {
                                     role: 'tutor',
                                     thongBao: "Đăng nhập với quyền Gia sư thành công!",
@@ -685,8 +856,8 @@ class GoogleScriptRunInstance {
                 let matched = schedules.filter(s => normalizePhone(s.tutor_phone) === normalizePhone(tutorPhone));
                 result = matched.map(s => ({
                     tutorPhone: s.tutor_phone,
-                    tutorName: s.tutor_name,
-                    studentName: s.student_name,
+                    tutorName: fixVietnameseMojibake(s.tutor_name),
+                    studentName: fixVietnameseMojibake(s.student_name),
                     mon: s.mon || "",
                     tue: s.tue || "",
                     wed: s.wed || "",
@@ -1650,7 +1821,7 @@ class GoogleScriptRunInstance {
             }
             
             else if (functionName === 'adminLuuGiaSu' || functionName === 'adminLuuGiaSur' || functionName === 'saveTutorAccount') {
-                const [oldPhone, name, phone, pin, qrUrl, createdDate, nextBillingDate, accountType] = args;
+                const [oldPhone, name, phone, pin, qrUrl, createdDate, nextBillingDate, accountType, email, subjects, levels, referralCenter, customFee] = args;
                 const p = phone || oldPhone;
                 let nextBilling = nextBillingDate;
                 if (!nextBilling) {
@@ -1669,26 +1840,38 @@ class GoogleScriptRunInstance {
                 }
                 
                 if (existing) {
-                    await supaPatch(APP_CONFIG.TABLES.TUTORS, `tutor_id=eq.${encodeURIComponent(existing.tutor_id)}`, {
+                    let patchData = {
                         name: name,
                         phone: p,
-                        pin: pin,
                         qr_url: qrUrl !== undefined ? qrUrl : existing.qr_url,
                         registered_date: createdDate || existing.registered_date,
                         next_due_date: nextBilling || existing.next_due_date,
                         account_type: accountType || existing.account_type || "Gia sư (1-1)"
-                    });
+                    };
+                    if (pin && String(pin).trim() !== "") patchData.pin = String(pin).trim();
+                    if (email !== undefined) patchData.email = email;
+                    if (subjects !== undefined) patchData.subjects = subjects;
+                    if (levels !== undefined) patchData.levels = levels;
+                    if (referralCenter !== undefined) patchData.referral_center = referralCenter;
+                    if (customFee !== undefined) patchData.custom_fee = customFee !== "" ? Number(customFee) : null;
+
+                    await supaPatch(APP_CONFIG.TABLES.TUTORS, `tutor_id=eq.${encodeURIComponent(existing.tutor_id)}`, patchData);
                 } else {
                     await supaPost(APP_CONFIG.TABLES.TUTORS, [{
                         tutor_id: p,
                         name: name,
                         phone: p,
-                        pin: pin,
+                        pin: pin || "1234",
                         qr_url: qrUrl || "",
                         registered_date: createdDate || new Date().toLocaleDateString('vi-VN'),
                         next_due_date: nextBilling,
                         account_type: accountType || "Gia sư (1-1)",
-                        status: "Hoạt động"
+                        status: "Hoạt động",
+                        email: email || "",
+                        subjects: subjects || "",
+                        levels: levels || "",
+                        referral_center: referralCenter || "Tự đăng ký",
+                        custom_fee: customFee ? Number(customFee) : null
                     }]);
                 }
                 result = { success: true };
@@ -1874,6 +2057,109 @@ class GoogleScriptRunInstance {
                 result = { success: true, nextDue: nextDueStr };
             }
             
+            else if (functionName === 'adminGiaHanGiaSu') {
+                const [tutorPhone, months, amount, note] = args;
+                let tutors = await supaGet(APP_CONFIG.TABLES.TUTORS, `select=*`);
+                let target = tutors.find(t => normalizePhone(t.phone) === normalizePhone(tutorPhone) || String(t.tutor_id).trim() === String(tutorPhone).trim());
+                if (!target) {
+                    result = { error: 'Không tìm thấy gia sư!' };
+                } else {
+                    let m = Number(months) || 1;
+                    let currentDue = target.next_due_date || "";
+                    let today = new Date();
+                    today.setHours(0, 0, 0, 0);
+
+                    let baseDate = ztParseVNDate(currentDue);
+                    if (!baseDate || baseDate < today) {
+                        baseDate = new Date(today);
+                    }
+                    let fromStr = ztFormatVNDate(baseDate);
+
+                    let targetDate = new Date(baseDate);
+                    targetDate.setMonth(targetDate.getMonth() + m);
+                    let toStr = ztFormatVNDate(targetDate);
+
+                    let studentsRaw = await supaGet(APP_CONFIG.TABLES.STUDENTS, `select=*`);
+                    let stCount = studentsRaw.filter(s => !s.deleted_date && (normalizePhone(s.tutor_phone) === normalizePhone(target.phone) || s.tutor_phone === target.phone)).length;
+
+                    // Cập nhật gs_tutors: chuyển sang gói 30 ngày / trả phí, trạng thái Hoạt động
+                    await supaPatch(APP_CONFIG.TABLES.TUTORS, `tutor_id=eq.${encodeURIComponent(target.tutor_id)}`, {
+                        next_due_date: toStr,
+                        status: 'Hoạt động',
+                        account_type: 'Gia sư (gói 30 ngày)'
+                    });
+
+                    // Ghi lịch sử thanh toán vào gs_payments
+                    let payId = 'PAY_' + normalizePhone(target.phone) + '_' + Date.now();
+                    let payRecord = {
+                        payment_id: payId,
+                        tutor_phone: target.phone,
+                        tutor_name: target.name || "Gia sư",
+                        amount: Number(amount) || 0,
+                        months: m,
+                        student_count: stCount,
+                        period_from: fromStr,
+                        period_to: toStr,
+                        paid_at: new Date().toLocaleString('vi-VN'),
+                        note: note || "Admin gia hạn thủ công"
+                    };
+                    try {
+                        await supaPost(APP_CONFIG.TABLES.PAYMENTS, [payRecord]);
+                    } catch(e) {
+                        console.warn('[adminGiaHanGiaSu] Lỗi lưu payment:', e);
+                    }
+
+                    result = { success: true, nextDue: toStr, payment: payRecord };
+                }
+            }
+            
+            else if (functionName === 'adminLuuLienHe') {
+                const [zalo, facebook, phone] = args;
+                let payload = JSON.stringify({
+                    zalo: String(zalo || '').trim(),
+                    facebook: String(facebook || '').trim(),
+                    phone: String(phone || '').trim()
+                });
+                try {
+                    let fbs = await supaGet(APP_CONFIG.TABLES.FEEDBACKS, 'feedback_id=eq.SYSTEM_CONTACT');
+                    if (fbs && fbs.length > 0) {
+                        await supaPatch(APP_CONFIG.TABLES.FEEDBACKS, 'feedback_id=eq.SYSTEM_CONTACT', {
+                            content: payload,
+                            submitted_at: new Date().toLocaleString('vi-VN')
+                        });
+                    } else {
+                        await supaPost(APP_CONFIG.TABLES.FEEDBACKS, [{
+                            feedback_id: 'SYSTEM_CONTACT',
+                            student_phone: 'ADMIN',
+                            student_name: 'Cài đặt liên hệ Admin',
+                            content: payload,
+                            submitted_at: new Date().toLocaleString('vi-VN')
+                        }]);
+                    }
+                } catch(e) {
+                    console.warn('[adminLuuLienHe] Lỗi lưu liên hệ:', e);
+                }
+                try {
+                    localStorage.setItem('gs_system_contact', payload);
+                } catch(err) {}
+                result = { success: true };
+            }
+            
+            else if (functionName === 'adminDatLaiPin') {
+                const [tutorPhone, newPin] = args;
+                let tutors = await supaGet(APP_CONFIG.TABLES.TUTORS, `select=*`);
+                let target = tutors.find(t => normalizePhone(t.phone) === normalizePhone(tutorPhone) || String(t.tutor_id).trim() === String(tutorPhone).trim());
+                if (!target) {
+                    result = { error: 'Không tìm thấy gia sư!' };
+                } else {
+                    let p = String(newPin || '1234').trim();
+                    await supaPatch(APP_CONFIG.TABLES.TUTORS, `tutor_id=eq.${encodeURIComponent(target.tutor_id)}`, {
+                        pin: p
+                    });
+                    result = { success: true, newPin: p };
+                }
+            }
+            
             else if (functionName === 'adminLuuMarquee') {
                 const [text] = args;
                 let cleanText = String(text || '').trim();
@@ -1981,17 +2267,27 @@ async function getTutorDashboardDataInternal(tutorPhone) {
     
     let marqueeFbs = await supaGet(APP_CONFIG.TABLES.FEEDBACKS, 'feedback_id=eq.SYSTEM_MARQUEE');
     let marqueeText = (marqueeFbs && marqueeFbs.length > 0) ? marqueeFbs[0].content : (typeof localStorage !== "undefined" ? (localStorage.getItem("gs_system_marquee") || "") : "");
-    
+    let adminContact = await ztLoadAdminContact();
+    let computedStatus = matchedTutor ? computeTutorStatus(matchedTutor) : "Hoạt động";
+    if (matchedTutor && matchedTutor.status !== computedStatus && matchedTutor.status !== 'Vô hiệu hóa') {
+        supaPatch(APP_CONFIG.TABLES.TUTORS, `tutor_id=eq.${encodeURIComponent(matchedTutor.tutor_id)}`, { status: computedStatus }).catch(() => {});
+    }
+
     return {
         tutorPhone: matchedTutor ? matchedTutor.phone : tutorPhone,
         tutorName: matchedTutor ? matchedTutor.name : "Gia sư",
         tutorPin: matchedTutor ? matchedTutor.pin : "",
         qrCode: matchedTutor ? matchedTutor.qr_url : "",
+        accountType: matchedTutor ? matchedTutor.account_type : "Gia sư (1-1)",
+        nextDueDate: matchedTutor ? matchedTutor.next_due_date : "",
+        registeredDate: matchedTutor ? matchedTutor.registered_date : "",
+        status: computedStatus,
         students: activeStudents,
         deletedStudents: deletedStudents,
         totalUnpaidIncome: totalUnpaid,
         classCount: activeStudents.length,
-        marqueeAnnouncement: marqueeText
+        marqueeAnnouncement: marqueeText,
+        adminContact: adminContact
     };
 }
 
@@ -1999,25 +2295,44 @@ async function getTutorDashboardDataInternal(tutorPhone) {
 async function getAdminDashboardDataInternal() {
     let tutorsRaw = await supaGet(APP_CONFIG.TABLES.TUTORS, `select=*`);
     let studentsRaw = await supaGet(APP_CONFIG.TABLES.STUDENTS, `select=*`);
-    let evalsRaw = await supaGet(APP_CONFIG.TABLES.EVALUATIONS, `select=*`);
     let adminsRaw = await supaGet(APP_CONFIG.TABLES.ADMINS, `select=*`);
     if (!adminsRaw || adminsRaw.length === 0) {
         adminsRaw = await supaGet('admins', `select=*`);
     }
     let marqueeFbs = await supaGet(APP_CONFIG.TABLES.FEEDBACKS, 'feedback_id=eq.SYSTEM_MARQUEE');
     let marqueeText = (marqueeFbs && marqueeFbs.length > 0) ? marqueeFbs[0].content : (typeof localStorage !== "undefined" ? (localStorage.getItem("gs_system_marquee") || "") : "");
+    let adminContact = await ztLoadAdminContact();
+    let paymentsRaw = [];
+    try { paymentsRaw = await supaGet(APP_CONFIG.TABLES.PAYMENTS, `select=*`); } catch (e) { paymentsRaw = []; }
     
-    let tutors = tutorsRaw.filter(t => !t.deleted_date).map(t => ({
-        name: t.name,
-        phone: t.phone,
-        pin: t.pin,
-        qrUrl: t.qr_url,
-        createdDate: t.registered_date || "18/07/2026",
-        nextBillingDate: t.next_due_date || "18/09/2026",
-        lastActive: t.last_active || "Vừa xong",
-        status: t.status || "Hoạt động",
-        accountType: t.account_type || "Gia sư (1-1)"
-    }));
+    // Đếm học sinh đang học của từng gia sư (để tính bậc phí)
+    const countStudentsOf = (t) => {
+        let n = normalizePhone(t.phone);
+        return studentsRaw.filter(s => !s.deleted_date && (normalizePhone(s.tutor_phone) === n || s.tutor_phone === t.phone)).length;
+    };
+    
+    // BẢO MẬT: Admin KHÔNG nhận mã PIN của gia sư
+    let tutors = tutorsRaw.filter(t => !t.deleted_date).map(t => {
+        let stCount = countStudentsOf(t);
+        return {
+            name: t.name,
+            phone: t.phone,
+            email: t.email || "",
+            subjects: t.subjects || "",
+            levels: t.levels || "",
+            referralCenter: t.referral_center || "",
+            customFee: (t.custom_fee !== undefined && t.custom_fee !== null && t.custom_fee !== '') ? Number(t.custom_fee) : null,
+            qrUrl: t.qr_url,
+            createdDate: t.registered_date || "",
+            nextBillingDate: t.next_due_date || "",
+            lastActive: t.last_active || "Chưa đăng nhập",
+            status: computeTutorStatus(t),
+            isTrial: ztIsTrialAccount(t),
+            accountType: t.account_type || "Gia sư (1-1)",
+            studentCount: stCount,
+            monthlyFee: ztTierFee(stCount, t.custom_fee)
+        };
+    });
     
     let deletedTutors = tutorsRaw.filter(t => !!t.deleted_date).map(t => ({
         name: t.name,
@@ -2033,66 +2348,39 @@ async function getAdminDashboardDataInternal() {
         tuition: s.tuition_fee || 0
     }));
     
-    // Tính toán báo cáo doanh thu & lương chi tiết theo tháng và gia sư
-    let defaultYear = new Date().getFullYear();
-    let incomeReports = {};
-    
-    evalsRaw.filter(e => !e.deleted_date).forEach(e => {
-        let att = String(e.attendance_status || '').toLowerCase();
-        let isAttended = att.includes('đã học') || att.includes('học bù') || att.includes('có mặt');
-        if (!isAttended) return;
-
-        let month = 0, year = defaultYear;
-        let dateStr = String(e.study_date || '').trim();
-        if (dateStr.includes('/')) {
-            let parts = dateStr.split('/');
-            if (parts.length >= 2) {
-                month = parseInt(parts[1], 10);
-                if (parts.length >= 3 && parts[2].length >= 4) {
-                    year = parseInt(parts[2], 10);
-                }
-            }
-        }
-        if (!month || month < 1 || month > 12) {
-            month = new Date().getMonth() + 1;
-        }
-        let mKey = 'Tháng ' + month + '/' + year;
-
-        let normPhone = normalizePhone(e.student_phone);
-        let st = studentsRaw.find(s => 
-            (normPhone && (normalizePhone(s.student_id) === normPhone || normalizePhone(s.parent_phone) === normPhone)) ||
-            (e.student_name && s.student_name && s.student_name.trim().toLowerCase() === e.student_name.trim().toLowerCase())
-        );
-
-        let fee = st ? (Number(st.tuition_fee) || 0) : 0;
-        let isPaid = String(e.paid_status || '').toLowerCase().includes('đã đóng');
-
-        let tutorPhone = e.tutor_phone || (st ? st.tutor_phone : '');
-        let normTutor = normalizePhone(tutorPhone);
-        let tutor = tutorsRaw.find(t => normalizePhone(t.phone) === normTutor || String(t.tutor_id).trim() === String(tutorPhone).trim());
-        let tKey = tutor ? tutor.phone : (tutorPhone || 'OTHER');
-        let tName = tutor ? tutor.name : 'Gia sư';
-
-        if (!incomeReports[mKey]) {
-            incomeReports[mKey] = { expected: 0, paid: 0, unpaid: 0, tutors: {} };
-        }
-        incomeReports[mKey].expected += fee;
-        if (isPaid) {
-            incomeReports[mKey].paid += fee;
-        } else {
-            incomeReports[mKey].unpaid += fee;
-        }
-
-        if (!incomeReports[mKey].tutors[tKey]) {
-            incomeReports[mKey].tutors[tKey] = { name: tName, expected: 0, paid: 0, unpaid: 0 };
-        }
-        incomeReports[mKey].tutors[tKey].expected += fee;
-        if (isPaid) {
-            incomeReports[mKey].tutors[tKey].paid += fee;
-        } else {
-            incomeReports[mKey].tutors[tKey].unpaid += fee;
-        }
+    let payments = (paymentsRaw || []).map(p => ({
+        id: p.payment_id,
+        tutorPhone: p.tutor_phone,
+        tutorName: p.tutor_name || "",
+        amount: Number(p.amount) || 0,
+        months: Number(p.months) || 1,
+        studentCount: Number(p.student_count) || 0,
+        periodFrom: p.period_from || "",
+        periodTo: p.period_to || "",
+        paidAt: p.paid_at || "",
+        note: p.note || ""
+    })).sort((a, b) => {
+        let da = ztParseVNDate(a.paidAt), db = ztParseVNDate(b.paidAt);
+        return (db ? db.getTime() : 0) - (da ? da.getTime() : 0);
     });
+    
+    // Thống kê theo trung tâm giới thiệu
+    let centerMap = {};
+    tutors.forEach(t => {
+        let key = (t.referralCenter || '').trim() || 'Tự đăng ký';
+        if (!centerMap[key]) centerMap[key] = { name: key, tutorCount: 0, activeCount: 0, trialCount: 0, expiredCount: 0, revenue: 0, tutorPhones: [] };
+        let c = centerMap[key];
+        c.tutorCount++;
+        c.tutorPhones.push(t.phone);
+        if (t.status === 'Hoạt động') { if (t.isTrial) c.trialCount++; else c.activeCount++; }
+        else if (t.status === 'Hết hạn dùng thử' || t.status === 'Hết hạn sử dụng') c.expiredCount++;
+    });
+    payments.forEach(p => {
+        let tp = normalizePhone(p.tutorPhone);
+        let c = Object.values(centerMap).find(c => c.tutorPhones.some(ph => normalizePhone(ph) === tp));
+        if (c) c.revenue += p.amount;
+    });
+    let centerStats = Object.values(centerMap).map(c => { delete c.tutorPhones; return c; }).sort((a, b) => b.tutorCount - a.tutorCount);
 
     let adminInfo = (adminsRaw && adminsRaw.length > 0) ? {
         name: adminsRaw[0].name,
@@ -2102,9 +2390,12 @@ async function getAdminDashboardDataInternal() {
     
     return {
         tutors: tutors,
-        students: students,
+        students: [],
         deletedTutors: deletedTutors,
-        incomeReports: incomeReports,
+        payments: payments,
+        centerStats: centerStats,
+        adminContact: adminContact,
+        incomeReports: {},
         marqueeAnnouncement: marqueeText,
         adminInfo: adminInfo
     };

@@ -83,6 +83,7 @@
 .nav-logo {
     width: 38px !important;
     height: 38px !important;
+    object-fit: contain !important;
     flex-shrink: 0 !important;
 }
 

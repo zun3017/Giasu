@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-    <link rel="icon" type="image/png" href="https://i.postimg.cc/66rKbPmb/trinh-duyet.png">
+    <link rel="icon" type="image/png" href="img/zuntutor_avatar_blue.png">
 
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
@@ -12,7 +12,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="ZunTutor Admin">
-    <link rel="apple-touch-icon" href="https://i.postimg.cc/66rKbPmb/trinh-duyet.png">
+    <link rel="apple-touch-icon" href="img/zuntutor_avatar_blue.png">
     <script>
         window.onerror = function(message, source, lineno, colno, error) {
             console.error("JS Error: " + message + " at " + source + ":" + lineno + ":" + colno);
@@ -871,9 +871,9 @@
     <div class="header">
         <div class="nav-container">
             <a href="index.html" class="nav-left" style="text-decoration: none; cursor: pointer;">
-                <img src="https://i.postimg.cc/66rKbPmb/trinh-duyet.png" alt="Logo" class="nav-logo">
+                <img src="img/zuntutor_avatar_blue.png" alt="ZunTutor Logo" class="nav-logo">
                 <div class="header-text">
-                    <h1>Tra cứu học tập</h1>
+                    <h1>ZunTutor</h1>
                     <p>Quản lý Gia sư 4.0</p>
                 </div>
             </a>
@@ -941,50 +941,63 @@
             <!-- 3. Admin Segmented Tab Navigation -->
             <nav class="adm-tabs-container">
                 <button class="adm-tab-pill active" id="btnAdminTabReport" onclick="switchAdminTab('report')">
-                    <i class="fa-solid fa-chart-pie"></i> Báo Cáo Học Phí
+                    <i class="fa-solid fa-chart-line"></i> Tổng Quan Kinh Doanh
                 </button>
                 <button class="adm-tab-pill" id="btnAdminTabTutors" onclick="switchAdminTab('tutors')">
                     <i class="fa-solid fa-chalkboard-user"></i> Quản Lý Gia Sư
                     <span class="adm-badge-count" id="tutorTabCountBadge">0</span>
                 </button>
-                <button class="adm-tab-pill" id="btnAdminTabStudents" onclick="switchAdminTab('students')">
-                    <i class="fa-solid fa-user-graduate"></i> Quản Lý Học Sinh
-                    <span class="adm-badge-count" id="studentTabCountBadge">0</span>
+                <button class="adm-tab-pill" id="btnAdminTabCenters" onclick="switchAdminTab('centers')">
+                    <i class="fa-solid fa-building"></i> Trung Tâm Giới Thiệu
+                    <span class="adm-badge-count" id="centerTabCountBadge">0</span>
+                </button>
+                <button class="adm-tab-pill" id="btnAdminTabSettings" onclick="switchAdminTab('settings')">
+                    <i class="fa-solid fa-sliders"></i> Cài Đặt Hệ Thống
                 </button>
             </nav>
 
-            <!-- 4. Tab 1: Financial Reports -->
+            <!-- 4. Tab 1: Financial & SaaS Overview -->
             <section id="adminTabReport" class="admin-tab-content">
-                <!-- 3 Top KPI Cards -->
-                <div class="adm-kpi-grid">
+                <!-- 4 Top KPI Cards -->
+                <div class="adm-kpi-grid" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));">
                     <div class="adm-kpi-card kpi-purple">
-                        <div class="adm-kpi-icon"><i class="fa-solid fa-money-bill-trend-up"></i></div>
+                        <div class="adm-kpi-icon"><i class="fa-solid fa-wallet"></i></div>
                         <div class="adm-kpi-info">
-                            <span class="adm-kpi-label">Doanh thu dự kiến tháng này</span>
-                            <span class="adm-kpi-val" id="admExpRev">0 đ</span>
+                            <span class="adm-kpi-label">Doanh thu phí web tháng này</span>
+                            <span class="adm-kpi-val" id="admKpiRevenue">0 đ</span>
                         </div>
                     </div>
                     <div class="adm-kpi-card kpi-green">
-                        <div class="adm-kpi-icon"><i class="fa-solid fa-wallet"></i></div>
+                        <div class="adm-kpi-icon"><i class="fa-solid fa-circle-check"></i></div>
                         <div class="adm-kpi-info">
-                            <span class="adm-kpi-label">Thực tế đã thu tháng này</span>
-                            <span class="adm-kpi-val" id="admPaidRev" style="color: #059669;">0 đ</span>
+                            <span class="adm-kpi-label">Gia sư đang hoạt động (trả phí)</span>
+                            <span class="adm-kpi-val" id="admKpiActive" style="color: #059669;">0</span>
+                        </div>
+                    </div>
+                    <div class="adm-kpi-card" style="border-left: 4px solid #3B82F6;">
+                        <div class="adm-kpi-icon" style="background: #EFF6FF; color: #2563EB;"><i class="fa-solid fa-clock"></i></div>
+                        <div class="adm-kpi-info">
+                            <span class="adm-kpi-label">Gia sư đang dùng thử (15 ngày)</span>
+                            <span class="adm-kpi-val" id="admKpiTrial" style="color: #2563EB;">0</span>
                         </div>
                     </div>
                     <div class="adm-kpi-card kpi-orange">
                         <div class="adm-kpi-icon"><i class="fa-solid fa-circle-exclamation"></i></div>
                         <div class="adm-kpi-info">
-                            <span class="adm-kpi-label">Còn nợ tháng này</span>
-                            <span class="adm-kpi-val" id="admUnpaidRev" style="color: #D97706;">0 đ</span>
+                            <span class="adm-kpi-label">Gia sư hết hạn / cần gia hạn</span>
+                            <span class="adm-kpi-val" id="admKpiExpired" style="color: #DC2626;">0</span>
                         </div>
                     </div>
                 </div>
 
-                <!-- Monthly Revenue & Salary Trend Chart -->
+                <!-- Cảnh báo gia sư sắp hết hạn (≤ 3 ngày) -->
+                <div id="adminBillingAlerts" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 24px;"></div>
+
+                <!-- Monthly Revenue Chart -->
                 <div class="adm-card">
                     <div class="adm-card-header">
                         <h2 class="adm-card-title">
-                            <i class="fa-solid fa-chart-line" style="color: #2563EB;"></i> Biểu đồ xu hướng tổng doanh thu & tiền lương theo tháng
+                            <i class="fa-solid fa-chart-line" style="color: #2563EB;"></i> Biểu đồ doanh thu phí duy trì web theo tháng
                         </h2>
                     </div>
                     <div style="position: relative; height: 300px; width: 100%;">
@@ -992,29 +1005,26 @@
                     </div>
                 </div>
 
-                <!-- Tutor Revenue Breakdown -->
+                <!-- Recent Payments History Table -->
                 <div class="adm-card">
                     <div class="adm-card-header">
                         <h2 class="adm-card-title">
-                            <i class="fa-solid fa-users-viewfinder" style="color: #2563EB;"></i> Phân chia doanh thu & lương chi tiết theo Gia sư
+                            <i class="fa-solid fa-receipt" style="color: #2563EB;"></i> Lịch sử thu phí & gia hạn gần đây
                         </h2>
-                        <div style="display: flex; align-items: center; gap: 10px;">
-                            <label for="adminReportMonthSelect" style="font-size: 13px; color: var(--adm-text-muted); font-weight: 600;">Kỳ tháng:</label>
-                            <select id="adminReportMonthSelect" onchange="renderAdminReportData()" class="adm-filter-select">
-                                <!-- Populate dynamically -->
-                            </select>
-                        </div>
                     </div>
                     
-                    <div class="adm-table-wrap desktop-table-view" style="margin-bottom: 25px;">
-                        <table class="adm-table" id="adminTutorBreakdownTable">
+                    <div class="adm-table-wrap desktop-table-view">
+                        <table class="adm-table" id="adminPaymentsTable">
                             <thead>
                                 <tr>
+                                    <th>Mã GD</th>
                                     <th>Gia Sư</th>
-                                    <th>Lương dự kiến (Cần thu)</th>
-                                    <th>Lương thực nhận (Đã thu)</th>
-                                    <th>Còn nợ (Chưa đóng)</th>
-                                    <th style="width: 150px; text-align: center;">Tỷ lệ thu hồi</th>
+                                    <th>Số Điện Thoại</th>
+                                    <th>Số Tiền</th>
+                                    <th>Số Tháng</th>
+                                    <th>Chu Kỳ Gia Hạn</th>
+                                    <th>Thời Điểm Thu</th>
+                                    <th>Ghi Chú</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -1022,50 +1032,12 @@
                             </tbody>
                         </table>
                     </div>
-                    <div id="adminTutorBreakdownMobile" class="mobile-cards-view" style="margin-bottom: 25px;"></div>
-
-                    <div style="border-top: 1px solid var(--adm-card-border); padding-top: 24px; margin-top: 10px;">
-                        <h3 class="adm-card-title" style="margin-bottom: 16px; font-size: 15px;">
-                            <i class="fa-solid fa-list-check" style="color: #2563EB;"></i> Bảng tổng hợp doanh thu toàn cơ sở qua các tháng
-                        </h3>
-                        <div class="adm-table-wrap desktop-table-view">
-                            <table class="adm-table" id="adminReportTable">
-                                <thead>
-                                    <tr>
-                                        <th>Tháng học</th>
-                                        <th>Doanh thu dự kiến</th>
-                                        <th>Thực tế đã thu</th>
-                                        <th>Còn nợ tồn</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <!-- Populate dynamically -->
-                                </tbody>
-                            </table>
-                        </div>
-                        <div id="adminReportMobile" class="mobile-cards-view"></div>
-                    </div>
+                    <div id="adminPaymentsMobile" class="mobile-cards-view"></div>
                 </div>
             </section>
 
             <!-- 5. Tab 2: Tutors Management -->
             <section id="adminTabTutors" class="admin-tab-content" style="display: none;">
-                <!-- Broadcast Announcement Configuration -->
-                <div class="adm-broadcast-box">
-                    <span style="color: #2563EB; font-size: 13px; font-weight: 700; display: inline-flex; align-items: center; gap: 8px;">
-                        <i class="fa-solid fa-bullhorn" style="color: #2563EB; font-size: 15px;"></i> Dòng chữ chạy thông báo phát thanh tới toàn bộ Gia sư (Để trống sẽ tự động ẩn)
-                    </span>
-                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                        <input type="text" id="adminMarqueeInput" placeholder="Nhập thông báo gửi đến toàn bộ gia sư... (Ví dụ: Trung tâm nghỉ lễ từ ngày...)" class="adm-search-input" style="padding-left: 14px;">
-                        <button onclick="saveAdminMarquee()" class="btn-primary-gradient" style="padding: 9px 18px; font-size: 13px;">
-                            <i class="fa-solid fa-floppy-disk"></i> Lưu thông báo
-                        </button>
-                        <button onclick="clearAdminMarquee()" class="adm-action-btn btn-logout" style="padding: 9px 16px; font-size: 13px;">
-                            <i class="fa-solid fa-trash-can"></i> Xóa
-                        </button>
-                    </div>
-                </div>
-
                 <div class="adm-card">
                     <div class="adm-card-header">
                         <h2 class="adm-card-title">
@@ -1085,13 +1057,19 @@
                     <div class="adm-toolbar">
                         <div class="adm-search-wrap">
                             <i class="fa-solid fa-magnifying-glass"></i>
-                            <input type="text" id="adminTutorSearchInput" placeholder="Tìm gia sư theo tên hoặc số điện thoại..." class="adm-search-input" oninput="onAdminTutorFilterChange()">
+                            <input type="text" id="adminTutorSearchInput" placeholder="Tìm gia sư theo tên, SĐT hoặc email..." class="adm-search-input" oninput="onAdminTutorFilterChange()">
                         </div>
                         <select id="adminTutorStatusFilter" class="adm-filter-select" onchange="onAdminTutorFilterChange()">
                             <option value="all">Tất cả trạng thái</option>
-                            <option value="active">Đang hoạt động</option>
-                            <option value="due">Đến hạn phí thuê</option>
+                            <option value="active">Đang hoạt động (trả phí)</option>
+                            <option value="trial">Đang dùng thử (15 ngày)</option>
+                            <option value="trial_expired">Hết hạn dùng thử</option>
+                            <option value="sub_expired">Hết hạn sử dụng</option>
+                            <option value="due">Sắp hết hạn (≤3 ngày)</option>
                             <option value="deactivated">Bị vô hiệu hóa</option>
+                        </select>
+                        <select id="adminTutorCenterFilter" class="adm-filter-select" onchange="onAdminTutorFilterChange()">
+                            <option value="all">Tất cả nguồn / trung tâm</option>
                         </select>
                     </div>
 
@@ -1101,14 +1079,14 @@
                                 <tr>
                                     <th>Gia Sư</th>
                                     <th>Số Điện Thoại</th>
-                                    <th>Mã PIN</th>
-                                    <th>Ngày ĐK</th>
-                                    <th>Hạn Kế</th>
+                                    <th>Email Google</th>
+                                    <th>Nguồn / Trung Tâm</th>
                                     <th style="text-align: center;">Số HS</th>
-                                    <th>Phí Thuê Web</th>
+                                    <th>Bậc Phí / Tháng</th>
+                                    <th>Hạn Sử Dụng</th>
                                     <th>Hoạt Động Cuối</th>
                                     <th style="text-align: center;">Trạng thái</th>
-                                    <th style="width: 140px; text-align: center;">Thao tác</th>
+                                    <th style="width: 170px; text-align: center;">Thao tác</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -1120,40 +1098,28 @@
                 </div>
             </section>
 
-            <!-- 6. Tab 3: Students Management -->
-            <section id="adminTabStudents" class="admin-tab-content" style="display: none;">
+            <!-- 6. Tab 3: Referral Centers Management -->
+            <section id="adminTabCenters" class="admin-tab-content" style="display: none;">
                 <div class="adm-card">
                     <div class="adm-card-header">
                         <h2 class="adm-card-title">
-                            <i class="fa-solid fa-user-graduate" style="color: #10B981;"></i> Danh sách Học sinh toàn cơ sở
+                            <i class="fa-solid fa-building" style="color: #2563EB;"></i> Thống kê nguồn & Trung tâm giới thiệu
                         </h2>
-                        <button onclick="openAdminAddStudentModal()" class="btn-primary-gradient">
-                            <i class="fa-solid fa-plus"></i> Thêm Học Sinh Mới
-                        </button>
                     </div>
+                    <p style="font-size: 13.5px; color: #64748B; margin-top: 0; margin-bottom: 18px;">
+                        Thống kê số lượng gia sư và tổng doanh thu thu được từ từng nguồn giới thiệu (dùng để đối soát hoặc theo dõi hiệu quả).
+                    </p>
 
-                    <!-- Search & Filter Toolbar for Students -->
-                    <div class="adm-toolbar">
-                        <div class="adm-search-wrap">
-                            <i class="fa-solid fa-magnifying-glass"></i>
-                            <input type="text" id="adminStudentSearchInput" placeholder="Tìm kiếm theo tên học sinh, tên phụ huynh, SĐT..." class="adm-search-input" oninput="onAdminStudentFilterChange()">
-                        </div>
-                        <select id="adminStudentTutorFilter" class="adm-filter-select" onchange="onAdminStudentFilterChange()">
-                            <option value="all">Tất cả gia sư phụ trách</option>
-                        </select>
-                    </div>
-                    
                     <div class="adm-table-wrap desktop-table-view">
-                        <table class="adm-table" id="adminStudentsTable">
+                        <table class="adm-table" id="adminCentersTable">
                             <thead>
                                 <tr>
-                                    <th>Học Sinh</th>
-                                    <th>Phụ Huynh</th>
-                                    <th>SĐT Liên Hệ</th>
-                                    <th>Học Phí / Buổi</th>
-                                    <th>Gia Sư Phụ Trách</th>
-                                    <th>Trạng Thái</th>
-                                    <th style="width: 80px; text-align: center;">Sửa</th>
+                                    <th>Tên Nguồn / Trung Tâm</th>
+                                    <th style="text-align: center;">Tổng Số Gia Sư</th>
+                                    <th style="text-align: center;">Đang Hoạt Động</th>
+                                    <th style="text-align: center;">Đang Dùng Thử</th>
+                                    <th style="text-align: center;">Đã Hết Hạn</th>
+                                    <th style="text-align: right;">Tổng Doanh Thu Đã Thu</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -1161,7 +1127,60 @@
                             </tbody>
                         </table>
                     </div>
-                    <div id="adminStudentsMobile" class="mobile-cards-view"></div>
+                    <div id="adminCentersMobile" class="mobile-cards-view"></div>
+                </div>
+            </section>
+
+            <!-- 7. Tab 4: System Settings & Contact -->
+            <section id="adminTabSettings" class="admin-tab-content" style="display: none;">
+                <!-- Dòng chữ chạy thông báo phát thanh -->
+                <div class="adm-card" style="margin-bottom: 24px;">
+                    <div class="adm-card-header">
+                        <h2 class="adm-card-title">
+                            <i class="fa-solid fa-bullhorn" style="color: #2563EB;"></i> Thông báo chạy chữ phát thanh tới toàn bộ Gia sư
+                        </h2>
+                    </div>
+                    <p style="font-size: 13px; color: #64748B; margin-top: 0; margin-bottom: 14px;">
+                        Nội dung này sẽ hiển thị thành dải chữ chạy đầu trang Dashboard của tất cả gia sư. Để trống sẽ tự động ẩn.
+                    </p>
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                        <input type="text" id="adminMarqueeInput" placeholder="Ví dụ: Hệ thống bảo trì lúc 23h ngày hôm nay..." class="adm-search-input" style="padding-left: 14px; flex: 1; min-width: 260px;">
+                        <button onclick="saveAdminMarquee()" class="btn-primary-gradient" style="padding: 9px 18px; font-size: 13px;">
+                            <i class="fa-solid fa-floppy-disk"></i> Lưu thông báo
+                        </button>
+                        <button onclick="clearAdminMarquee()" class="adm-action-btn btn-logout" style="padding: 9px 16px; font-size: 13px;">
+                            <i class="fa-solid fa-trash-can"></i> Xóa
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Cài đặt thông tin liên hệ Admin -->
+                <div class="adm-card">
+                    <div class="adm-card-header">
+                        <h2 class="adm-card-title">
+                            <i class="fa-solid fa-headset" style="color: #2563EB;"></i> Thông tin liên hệ Admin (Hiển thị cho gia sư khi hết hạn)
+                        </h2>
+                    </div>
+                    <p style="font-size: 13px; color: #64748B; margin-top: 0; margin-bottom: 18px;">
+                        Các thông tin này được dùng để tạo các nút bấm Zalo, Messenger, Hotline trên màn hình khóa khi tài khoản gia sư bị hết hạn.
+                    </p>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; margin-bottom: 20px;">
+                        <div class="modal-form-group">
+                            <label style="color: #475569; font-size: 13px; font-weight: 600;">Số Zalo Admin</label>
+                            <input type="text" id="adminContactZalo" placeholder="Ví dụ: 0975546830" class="adm-search-input" style="padding-left: 14px; margin-top: 6px;">
+                        </div>
+                        <div class="modal-form-group">
+                            <label style="color: #475569; font-size: 13px; font-weight: 600;">Link Facebook / Messenger Admin</label>
+                            <input type="text" id="adminContactMessenger" placeholder="Ví dụ: https://m.me/zuntutor" class="adm-search-input" style="padding-left: 14px; margin-top: 6px;">
+                        </div>
+                        <div class="modal-form-group">
+                            <label style="color: #475569; font-size: 13px; font-weight: 600;">Số điện thoại Hotline</label>
+                            <input type="text" id="adminContactPhone" placeholder="Ví dụ: 0975 546 830" class="adm-search-input" style="padding-left: 14px; margin-top: 6px;">
+                        </div>
+                    </div>
+                    <button type="button" onclick="saveAdminContactSettings()" class="btn-primary-gradient" style="padding: 10px 22px; font-size: 13.5px;">
+                        <i class="fa-solid fa-floppy-disk"></i> Lưu cài đặt liên hệ
+                    </button>
                 </div>
             </section>
         </div>
@@ -1197,8 +1216,9 @@
     </div>
 
     <!-- Admin Add/Edit Tutor Modal -->
+    <!-- Admin Add/Edit Tutor Modal -->
     <div id="adminEditTutorModal" class="modal-overlay" style="z-index: 2000;">
-        <div class="modal-content" style="max-width: 480px; background: #FFFFFF; border: 1px solid #DBEAFE; border-radius: 20px; box-shadow: 0 20px 45px rgba(0,0,0,0.15);">
+        <div class="modal-content" style="max-width: 500px; background: #FFFFFF; border: 1px solid #DBEAFE; border-radius: 20px; box-shadow: 0 20px 45px rgba(0,0,0,0.15);">
             <div class="modal-header" style="border-bottom: 1px solid #E2E8F0; padding-bottom: 16px;">
                 <h3 id="adminTutorModalTitle" style="color: #0F172A; margin: 0; font-size: 17px; font-weight: 700; display: flex; align-items: center; gap: 8px;"><i class="fa-solid fa-chalkboard-user" style="color: #2563EB;"></i> Cấu hình Gia sư</h3>
                 <span class="modal-close" onclick="closeAdminEditTutorModal()">&times;</span>
@@ -1209,25 +1229,48 @@
                     <label style="color: #475569; font-size: 13px; font-weight: 600;">Họ và tên Gia sư</label>
                     <input type="text" id="adminTutorName" placeholder="Ví dụ: Nguyễn Văn A" class="adm-search-input" style="padding-left: 14px; margin-top: 6px;">
                 </div>
-                <div class="modal-form-group" style="margin-top: 14px;">
-                    <label style="color: #475569; font-size: 13px; font-weight: 600;">Số điện thoại đăng nhập</label>
+                <div class="modal-form-group" style="margin-top: 12px;">
+                    <label style="color: #475569; font-size: 13px; font-weight: 600;">Số điện thoại</label>
                     <input type="text" id="adminTutorPhone" placeholder="Ví dụ: 0912345678" class="adm-search-input" style="padding-left: 14px; margin-top: 6px;">
                 </div>
-                <div class="modal-form-group" style="margin-top: 14px;">
-                    <label style="color: #475569; font-size: 13px; font-weight: 600;">Mã PIN đăng nhập (mặc định)</label>
-                    <input type="text" id="adminTutorPin" placeholder="Ví dụ: 123456" class="adm-search-input" style="padding-left: 14px; margin-top: 6px;">
+                <div class="modal-form-group" style="margin-top: 12px;">
+                    <label style="color: #475569; font-size: 13px; font-weight: 600;">Email liên kết Google</label>
+                    <input type="email" id="adminTutorEmail" placeholder="Ví dụ: tutor@gmail.com" class="adm-search-input" style="padding-left: 14px; margin-top: 6px;">
                 </div>
-                <div class="modal-form-group" style="margin-top: 14px;">
-                    <label style="color: #475569; font-size: 13px; font-weight: 600;">Ảnh mã QR chuyển khoản (Link)</label>
-                    <input type="text" id="adminTutorQrUrl" placeholder="Ví dụ: https://img.vietqr.io/image/..." class="adm-search-input" style="padding-left: 14px; margin-top: 6px;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px;">
+                    <div class="modal-form-group">
+                        <label style="color: #475569; font-size: 13px; font-weight: 600;">Môn dạy</label>
+                        <input type="text" id="adminTutorSubjects" placeholder="Ví dụ: Toán, Lý" class="adm-search-input" style="padding-left: 14px; margin-top: 6px;">
+                    </div>
+                    <div class="modal-form-group">
+                        <label style="color: #475569; font-size: 13px; font-weight: 600;">Cấp dạy</label>
+                        <input type="text" id="adminTutorLevels" placeholder="Ví dụ: Cấp 2, Cấp 3" class="adm-search-input" style="padding-left: 14px; margin-top: 6px;">
+                    </div>
                 </div>
-                <div class="modal-form-group" style="margin-top: 14px;">
-                    <label style="color: #475569; font-size: 13px; font-weight: 600;">Ngày đăng ký (dd/mm/yyyy - Để trống tự lấy hôm nay)</label>
-                    <input type="text" id="adminTutorCreatedDate" placeholder="Ví dụ: 15/07/2026" class="adm-search-input" style="padding-left: 14px; margin-top: 6px;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px;">
+                    <div class="modal-form-group">
+                        <label style="color: #475569; font-size: 13px; font-weight: 600;">Nguồn / Trung tâm</label>
+                        <input type="text" id="adminTutorReferralCenter" placeholder="Ví dụ: TT-ANHDUONG" class="adm-search-input" style="padding-left: 14px; margin-top: 6px;">
+                    </div>
+                    <div class="modal-form-group">
+                        <label style="color: #475569; font-size: 13px; font-weight: 600;">Giá riêng (nếu ≥7 HS)</label>
+                        <input type="number" id="adminTutorCustomFee" placeholder="Ví dụ: 100000" class="adm-search-input" style="padding-left: 14px; margin-top: 6px;">
+                    </div>
                 </div>
-                <div class="modal-form-group" style="margin-top: 14px;">
-                    <label style="color: #475569; font-size: 13px; font-weight: 600;">Ngày đến hạn đóng phí (dd/mm/yyyy - Để trống tự cộng 1 tháng)</label>
+                <div class="modal-form-group" style="margin-top: 12px;">
+                    <label style="color: #475569; font-size: 13px; font-weight: 600;">Ngày đến hạn đóng phí (dd/mm/yyyy)</label>
                     <input type="text" id="adminTutorNextBillingDate" placeholder="Ví dụ: 15/08/2026" class="adm-search-input" style="padding-left: 14px; margin-top: 6px;">
+                </div>
+                <div class="modal-form-group" style="margin-top: 14px; padding: 12px; background: #F8FAFC; border: 1px dashed #CBD5E1; border-radius: 12px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <div style="font-size: 13px; font-weight: 600; color: #0F172A;">Bảo mật mã PIN</div>
+                            <div style="font-size: 11.5px; color: #64748B;">Admin không xem mã PIN của gia sư.</div>
+                        </div>
+                        <button type="button" onclick="adminResetPinForCurrentTutor()" class="btn-secondary-ghost" style="font-size: 12px; padding: 6px 12px;">
+                            <i class="fa-solid fa-key"></i> Đặt lại PIN (1234)
+                        </button>
+                    </div>
                 </div>
             </div>
             <div class="modal-footer" style="border-top: 1px solid #E2E8F0; padding-top: 16px; display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap;">
@@ -1245,41 +1288,56 @@
         </div>
     </div>
 
-    <!-- Admin Add/Edit Student Modal -->
-    <div id="adminEditStudentModal" class="modal-overlay" style="z-index: 2000;">
-        <div class="modal-content" style="max-width: 480px; background: #FFFFFF; border: 1px solid #DBEAFE; border-radius: 20px; box-shadow: 0 20px 45px rgba(0,0,0,0.15);">
+    <!-- Admin Renew Modal (Gia Hạn Thủ Công Cho Gia Sư) -->
+    <div id="adminRenewModal" class="modal-overlay" style="z-index: 2000;">
+        <div class="modal-content" style="max-width: 480px; background: #FFFFFF; border: 1px solid #DBEAFE; border-radius: 24px; box-shadow: 0 20px 45px rgba(0,0,0,0.18);">
             <div class="modal-header" style="border-bottom: 1px solid #E2E8F0; padding-bottom: 16px;">
-                <h3 id="adminStudentModalTitle" style="color: #0F172A; margin: 0; font-size: 17px; font-weight: 700; display: flex; align-items: center; gap: 8px;"><i class="fa-solid fa-user-graduate" style="color: #10B981;"></i> Cấu hình Học sinh</h3>
-                <span class="modal-close" onclick="closeAdminEditStudentModal()">&times;</span>
+                <h3 style="color: #0F172A; margin: 0; font-size: 17px; font-weight: 700; display: flex; align-items: center; gap: 8px;">
+                    <i class="fa-solid fa-crown" style="color: #F59E0B;"></i> Gia hạn gói dịch vụ Gia sư
+                </h3>
+                <span class="modal-close" onclick="closeAdminRenewModal()">&times;</span>
             </div>
-            <input type="hidden" id="adminStudentOldPhone">
+            <input type="hidden" id="adminRenewTutorPhone">
             <div class="modal-body" style="padding: 20px 0;">
+                <div style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 14px; padding: 14px; margin-bottom: 16px;">
+                    <div style="font-weight: 700; color: #0F172A; font-size: 14.5px;" id="rnTutorName">Gia sư: ...</div>
+                    <div style="font-size: 12.5px; color: #64748B; margin-top: 4px;">
+                        SĐT: <b id="rnTutorPhone">...</b> · Đang dạy: <b id="rnTutorStudentCount" style="color: #2563EB;">0 học sinh</b>
+                    </div>
+                    <div style="font-size: 12.5px; color: #64748B; margin-top: 2px;">
+                        Hạn hiện tại: <b id="rnTutorCurrentDue">...</b>
+                    </div>
+                </div>
+
                 <div class="modal-form-group">
-                    <label style="color: #475569; font-size: 13px; font-weight: 600;">Họ và tên phụ huynh</label>
-                    <input type="text" id="adminStudentParentName" placeholder="Ví dụ: Trần Thị B" class="adm-search-input" style="padding-left: 14px; margin-top: 6px;">
-                </div>
-                <div class="modal-form-group" style="margin-top: 14px;">
-                    <label style="color: #475569; font-size: 13px; font-weight: 600;">Họ và tên học sinh</label>
-                    <input type="text" id="adminStudentName" placeholder="Ví dụ: Nguyễn Văn C" class="adm-search-input" style="padding-left: 14px; margin-top: 6px;">
-                </div>
-                <div class="modal-form-group" style="margin-top: 14px;">
-                    <label style="color: #475569; font-size: 13px; font-weight: 600;">Số điện thoại phụ huynh (để tra cứu)</label>
-                    <input type="text" id="adminStudentPhone" placeholder="Ví dụ: 0987654321" class="adm-search-input" style="padding-left: 14px; margin-top: 6px;">
-                </div>
-                <div class="modal-form-group" style="margin-top: 14px;">
-                    <label style="color: #475569; font-size: 13px; font-weight: 600;">Học phí / buổi dạy (VNĐ)</label>
-                    <input type="text" inputmode="numeric" id="adminStudentTuition" placeholder="Ví dụ: 200.000" oninput="formatCurrencyInput(this)" class="adm-search-input" style="padding-left: 14px; margin-top: 6px;">
-                </div>
-                <div class="modal-form-group" style="margin-top: 14px;">
-                    <label style="color: #475569; font-size: 13px; font-weight: 600;">Gia sư phụ trách giảng dạy</label>
-                    <select id="adminStudentTutorSelect" class="adm-filter-select" style="width: 100%; margin-top: 6px;">
-                        <!-- Danh sách gia sư động -->
+                    <label style="color: #475569; font-size: 13px; font-weight: 600;">Thời gian gia hạn</label>
+                    <select id="rnMonthsSelect" class="adm-filter-select" style="width: 100%; margin-top: 6px;" onchange="onAdminRenewMonthsChange()">
+                        <option value="1">1 tháng (30 ngày)</option>
+                        <option value="2">2 tháng (60 ngày)</option>
+                        <option value="3">3 tháng (1 quý)</option>
+                        <option value="6">6 tháng (Nửa năm)</option>
+                        <option value="12">12 tháng (1 năm)</option>
                     </select>
+                </div>
+
+                <div class="modal-form-group" style="margin-top: 14px;">
+                    <label style="color: #475569; font-size: 13px; font-weight: 600;">Số tiền thu (VNĐ)</label>
+                    <input type="text" inputmode="numeric" id="rnAmountInput" class="adm-search-input" style="padding-left: 14px; margin-top: 6px; font-weight: 700; color: #2563EB;">
+                    <span style="font-size: 11.5px; color: #64748B; margin-top: 4px; display: block;" id="rnFeeNote">
+                        Tự động tính theo bậc phí của gia sư
+                    </span>
+                </div>
+
+                <div class="modal-form-group" style="margin-top: 14px;">
+                    <label style="color: #475569; font-size: 13px; font-weight: 600;">Ghi chú giao dịch</label>
+                    <input type="text" id="rnNoteInput" placeholder="Ví dụ: Đã nhận tiền qua Zalo / MB Bank" class="adm-search-input" style="padding-left: 14px; margin-top: 6px;">
                 </div>
             </div>
             <div class="modal-footer" style="border-top: 1px solid #E2E8F0; padding-top: 16px; display: flex; justify-content: flex-end; gap: 10px;">
-                <button onclick="closeAdminEditStudentModal()" class="btn-secondary-ghost">Hủy</button>
-                <button onclick="saveAdminStudent()" class="btn-primary-gradient" id="btnSaveAdminStudent">Lưu lại</button>
+                <button type="button" onclick="closeAdminRenewModal()" class="btn-secondary-ghost">Hủy</button>
+                <button type="button" onclick="submitAdminRenewTutor()" class="btn-primary-gradient" id="btnSubmitAdminRenew">
+                    <i class="fa-solid fa-check"></i> Xác nhận gia hạn
+                </button>
             </div>
         </div>
     </div>
@@ -1393,11 +1451,31 @@
             };
         }
 
-        window.addEventListener('DOMContentLoaded', () => {
-            var data = JSON.parse(sessionStorage.getItem('dashboardData') || 'null');
+        window.addEventListener('DOMContentLoaded', async () => {
+            var data = null;
+            try { data = JSON.parse(sessionStorage.getItem('dashboardData') || 'null'); } catch(e) {}
             var role = sessionStorage.getItem('userRole');
             var phone = sessionStorage.getItem('userPhone');
             var pin = sessionStorage.getItem('userPin');
+
+            if (role === 'admin' && phone && (!data || !data.tutors)) {
+                try {
+                    if (typeof google !== 'undefined' && google.script && google.script.run) {
+                        data = await new Promise(resolve => {
+                            google.script.run.withSuccessHandler(res => resolve(res)).getAdminDashboardData();
+                        });
+                        if (data && !data.error) {
+                            sessionStorage.setItem('dashboardData', JSON.stringify(data));
+                        }
+                    } else if (typeof getAdminDashboardDataInternal === 'function') {
+                        data = await getAdminDashboardDataInternal();
+                        if (data) sessionStorage.setItem('dashboardData', JSON.stringify(data));
+                    }
+                } catch(err) {
+                    console.warn('Fallback admin data load:', err);
+                }
+            }
+
             if (!data || role !== 'admin' || !phone || !pin) {
                 sessionStorage.clear();
                 window.location.href = 'tutor-login.html';

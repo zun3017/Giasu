@@ -2,1525 +2,1163 @@ var adminDataGlobal = null;
 var currentAdminPhone = "";
 var currentAdminTab = "report";
 var adminRevenueChartInstance = null;
-var pinVerifyAction = "deleteStudent";
+var pinVerifyAction = "deleteTutor";
 
-        // --- Custom in-app notification and confirmation dialogs ---
-        function showToast(message, type = 'info') {
-            var container = document.getElementById('toastContainer');
-            if (!container) return;
-            
-            var toast = document.createElement('div');
-            toast.style.padding = '14px 22px';
-            toast.style.borderRadius = '14px';
-            toast.style.color = '#1E293B';
-            toast.style.background = '#FFFFFF';
-            toast.style.fontSize = '13.5px';
-            toast.style.fontWeight = '600';
-            toast.style.boxShadow = '0 10px 30px rgba(0,0,0,0.12)';
-            toast.style.pointerEvents = 'auto';
-            toast.style.animation = 'slideIn 0.3s ease forwards';
-            toast.style.fontFamily = 'Plus Jakarta Sans, Inter, sans-serif';
-            toast.style.display = 'flex';
-            toast.style.alignItems = 'center';
-            toast.style.gap = '10px';
-            toast.style.borderWidth = '1px';
-            toast.style.borderStyle = 'solid';
-            toast.style.borderColor = '#E2E8F0';
-            
-            var safeMessage = escapeHtml(message);
-            if (type === 'success') {
-                toast.style.borderLeft = '4px solid #10B981';
-                toast.innerHTML = '<i class="fa-solid fa-circle-check" style="color:#10B981; font-size:16px;"></i> ' + safeMessage;
-            } else if (type === 'error') {
-                toast.style.borderLeft = '4px solid #EF4444';
-                toast.innerHTML = '<i class="fa-solid fa-circle-xmark" style="color:#EF4444; font-size:16px;"></i> ' + safeMessage;
-            } else {
-                toast.style.borderLeft = '4px solid #2563EB';
-                toast.innerHTML = '<i class="fa-solid fa-circle-info" style="color:#2563EB; font-size:16px;"></i> ' + safeMessage;
-            }
-            
-            container.appendChild(toast);
-            
-            setTimeout(function() {
-                toast.style.animation = 'slideOut 0.3s ease forwards';
-                setTimeout(function() {
-                    toast.remove();
-                }, 300);
-            }, 3000);
-        }
+// --- Custom in-app notification and confirmation dialogs ---
+function showToast(message, type = 'info') {
+    var container = document.getElementById('toastContainer');
+    if (!container) return;
+    
+    var toast = document.createElement('div');
+    toast.style.padding = '14px 22px';
+    toast.style.borderRadius = '14px';
+    toast.style.color = '#1E293B';
+    toast.style.background = '#FFFFFF';
+    toast.style.fontSize = '13.5px';
+    toast.style.fontWeight = '600';
+    toast.style.boxShadow = '0 10px 30px rgba(0,0,0,0.12)';
+    toast.style.pointerEvents = 'auto';
+    toast.style.animation = 'slideIn 0.3s ease forwards';
+    toast.style.fontFamily = 'Plus Jakarta Sans, Inter, sans-serif';
+    toast.style.display = 'flex';
+    toast.style.alignItems = 'center';
+    toast.style.gap = '10px';
+    toast.style.borderWidth = '1px';
+    toast.style.borderStyle = 'solid';
+    toast.style.borderColor = '#E2E8F0';
+    
+    var safeMessage = escapeHtml(message);
+    if (type === 'success') {
+        toast.style.borderLeft = '4px solid #10B981';
+        toast.innerHTML = '<i class="fa-solid fa-circle-check" style="color:#10B981; font-size:16px;"></i> ' + safeMessage;
+    } else if (type === 'error') {
+        toast.style.borderLeft = '4px solid #EF4444';
+        toast.innerHTML = '<i class="fa-solid fa-circle-xmark" style="color:#EF4444; font-size:16px;"></i> ' + safeMessage;
+    } else {
+        toast.style.borderLeft = '4px solid #2563EB';
+        toast.innerHTML = '<i class="fa-solid fa-circle-info" style="color:#2563EB; font-size:16px;"></i> ' + safeMessage;
+    }
+    
+    container.appendChild(toast);
+    
+    setTimeout(function() {
+        toast.style.animation = 'slideOut 0.3s ease forwards';
+        setTimeout(function() {
+            toast.remove();
+        }, 300);
+    }, 3000);
+}
 
-        function showCustomConfirm(message, onConfirm) {
-            document.getElementById('confirmModalMessage').innerText = message;
-            var modal = document.getElementById('customConfirmModal');
-            modal.style.display = 'flex';
-            
-            var btnCancel = document.getElementById('btnConfirmCancel');
-            var btnOk = document.getElementById('btnConfirmOk');
-            
-            btnCancel.onclick = function() {
-                modal.style.display = 'none';
-            };
-            
-            btnOk.onclick = function() {
-                modal.style.display = 'none';
-                onConfirm();
-            };
-        }
+function showCustomConfirm(message, onConfirm) {
+    document.getElementById('confirmModalMessage').innerText = message;
+    var modal = document.getElementById('customConfirmModal');
+    modal.style.display = 'flex';
+    
+    var btnCancel = document.getElementById('btnConfirmCancel');
+    var btnOk = document.getElementById('btnConfirmOk');
+    
+    btnCancel.onclick = function() {
+        modal.style.display = 'none';
+    };
+    
+    btnOk.onclick = function() {
+        modal.style.display = 'none';
+        onConfirm();
+    };
+}
 
-        function getInitials(name) {
-            if (!name) return "?";
-            var parts = name.trim().split(/\s+/);
-            if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
-            return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
-        }
+function escapeHtml(s) {
+    return String(s || '').replace(/[&<>"']/g, function(m) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m];
+    });
+}
 
-        function copyPhoneToClipboard(text) {
-            if (!text) return;
-            if (navigator.clipboard && navigator.clipboard.writeText) {
-                navigator.clipboard.writeText(text).then(function() {
-                    showToast("Đã sao chép: " + text, "success");
-                }).catch(function() {
-                    fallbackCopyText(text);
-                });
-            } else {
-                fallbackCopyText(text);
-            }
-        }
-        function fallbackCopyText(text) {
-            var el = document.createElement('textarea');
-            el.value = text;
-            el.style.position = 'fixed';
-            el.style.left = '-9999px';
-            document.body.appendChild(el);
-            el.select();
-            try {
-                document.execCommand('copy');
-                showToast("Đã sao chép: " + text, "success");
-            } catch(e) {
-                showToast("Không thể sao chép tự động: " + text, "error");
-            }
-            document.body.removeChild(el);
-        }
-        window.copyPhoneToClipboard = copyPhoneToClipboard;
+function jsStr(s) {
+    return String(s || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+}
 
-        function populateStudentTutorFilterDropdown() {
-            var filterSelect = document.getElementById('adminStudentTutorFilter');
-            if (!filterSelect) return;
-            var currentVal = filterSelect.value || "all";
-            filterSelect.innerHTML = '<option value="all">Tất cả gia sư</option>';
-            if (adminDataGlobal && adminDataGlobal.tutors) {
-                adminDataGlobal.tutors.forEach(function(t) {
-                    var opt = document.createElement('option');
-                    opt.value = t.phone;
-                    opt.innerText = t.name + " (" + t.phone + ")";
-                    if (t.phone === currentVal) opt.selected = true;
-                    filterSelect.appendChild(opt);
-                });
-            }
-        }
+function getInitials(name) {
+    if (!name) return "?";
+    var parts = name.trim().split(/\s+/);
+    if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
+    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
 
-        function onAdminTutorFilterChange() {
-            renderAdminTutorsList();
-        }
-        window.onAdminTutorFilterChange = onAdminTutorFilterChange;
+function copyPhoneToClipboard(text) {
+    if (!text) return;
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(function() {
+            showToast("Đã sao chép: " + text, "success");
+        }).catch(function() {
+            fallbackCopyText(text);
+        });
+    } else {
+        fallbackCopyText(text);
+    }
+}
+function fallbackCopyText(text) {
+    var el = document.createElement('textarea');
+    el.value = text;
+    el.style.position = 'fixed';
+    el.style.left = '-9999px';
+    document.body.appendChild(el);
+    el.select();
+    try {
+        document.execCommand('copy');
+        showToast("Đã sao chép: " + text, "success");
+    } catch(e) {
+        showToast("Không thể sao chép tự động: " + text, "error");
+    }
+    document.body.removeChild(el);
+}
+window.copyPhoneToClipboard = copyPhoneToClipboard;
 
-        function onAdminStudentFilterChange() {
-            renderAdminStudentsList();
+function parseDateHelper(dateStr) {
+    if (typeof ztParseVNDate === 'function') return ztParseVNDate(dateStr);
+    if (!dateStr) return null;
+    var s = String(dateStr).trim().split(' ')[0];
+    if (s.includes('/')) {
+        var parts = s.split('/');
+        if (parts.length >= 3) {
+            var d = parseInt(parts[0], 10);
+            var m = parseInt(parts[1], 10) - 1;
+            var y = parseInt(parts[2], 10);
+            return new Date(y, m, d);
         }
-        window.onAdminStudentFilterChange = onAdminStudentFilterChange;
+    }
+    return new Date(s);
+}
 
-        function renderAdminView(data) {
-            if (!data) data = {};
-            if (!data.tutors) data.tutors = [];
-            if (!data.students) data.students = [];
-            if (!data.incomeReports) data.incomeReports = {};
-            adminDataGlobal = data;
-            
-            // Khởi tạo số điện thoại Admin hiện tại nếu chưa có
-            if (!currentAdminPhone) {
-                currentAdminPhone = sessionStorage.getItem('userPhone') || (document.getElementById('maHocSinh') ? document.getElementById('maHocSinh').value : "") || "302001";
-            }
-            
-            // Ẩn màn hình chính và các nhân vật 3D nếu tồn tại
-            var mainScr = document.getElementById('mainScreen');
-            if (mainScr) mainScr.style.display = 'none';
-            var deskSurf = document.getElementById('deskSurface');
-            if (deskSurf) deskSurf.style.display = 'none';
-            var boy = document.getElementById('charBoy');
-            if (boy) boy.style.display = 'none';
-            var girl = document.getElementById('charGirl');
-            if (girl) girl.style.display = 'none';
-            var resBox = document.getElementById('resultBox');
-            if (resBox) resBox.style.display = 'none';
-            var tutorDash = document.getElementById('tutorDashboardBox');
-            if (tutorDash) tutorDash.style.display = 'none';
-            
-            // Giữ nguyên header ngoài hệ thống (.header) hiển thị đồng nhất
-            
-            // Hiển thị Admin Dashboard
-            document.getElementById('adminDashboardBox').style.display = 'block';
-            
-            // Cập nhật tên hiển thị
-            var adminNameEl = document.getElementById('adminNameDisplay');
-            if (adminNameEl) {
-                var adminDisplayName = (data.adminInfo && data.adminInfo.name) ? data.adminInfo.name : ((data.tutors && data.tutors.find(t => normalizePhone(t.phone) === normalizePhone(currentAdminPhone)))?.name || "Quản trị viên");
-                adminNameEl.innerText = "Xin chào, Admin " + adminDisplayName;
-            }
-            
-            // Cập nhật badge số lượng trên các tab
-            var totalTutors = (data.tutors || []).length;
-            var totalStudents = (data.students || []).length;
-            var tBadge = document.getElementById('tutorTabCountBadge');
-            if (tBadge) tBadge.innerText = totalTutors;
-            var sBadge = document.getElementById('studentTabCountBadge');
-            if (sBadge) sBadge.innerText = totalStudents;
-            
-            // Nạp dropdown lọc gia sư cho học sinh
-            populateStudentTutorFilterDropdown();
-            
-            // Nạp thông báo chạy chữ vào ô input
-            var marqueeInput = document.getElementById('adminMarqueeInput');
-            if (marqueeInput) {
-                marqueeInput.value = data.marqueeAnnouncement || "";
-            }
-            
-            // Render dữ liệu từng tab
-            renderAdminReportDropdown();
-            renderAdminTutorsList();
-            renderAdminStudentsList();
+// Kiểm tra xem gia sư sắp hết hạn (≤3 ngày) hoặc đã quá hạn
+function isBillingDue(dateStr) {
+    if (!dateStr) return false;
+    var dt = parseDateHelper(dateStr);
+    if (!dt || isNaN(dt.getTime())) return false;
+    var today = new Date();
+    today.setHours(0, 0, 0, 0);
+    dt.setHours(0, 0, 0, 0);
+    var diffDays = Math.ceil((dt - today) / (1000 * 60 * 60 * 24));
+    return diffDays <= 3;
+}
+
+// Phí thuê web ZunTutor theo biểu phí bậc thang
+function calculateTutorWebFee(sCount, customFee) {
+    if (customFee !== undefined && customFee !== null && customFee !== "" && Number(customFee) > 0) {
+        return { amount: Number(customFee), text: Number(customFee).toLocaleString('vi-VN') + "đ", isCustom: true };
+    }
+    var n = Number(sCount) || 0;
+    if (n <= 2) return { amount: 30000, text: "30.000đ", isCustom: false };
+    if (n <= 4) return { amount: 50000, text: "50.000đ", isCustom: false };
+    if (n <= 6) return { amount: 75000, text: "75.000đ", isCustom: false };
+    return { amount: 0, text: "Liên hệ Admin (≥7 HS)", isCustom: true };
+}
+
+// ==========================================
+// RENDER ADMIN MAIN VIEW
+// ==========================================
+function renderAdminView(data) {
+    if (!data) data = {};
+    if (!data.tutors) data.tutors = [];
+    if (!data.payments) data.payments = [];
+    if (!data.centerStats) data.centerStats = [];
+    adminDataGlobal = data;
+    
+    if (!currentAdminPhone) {
+        currentAdminPhone = sessionStorage.getItem('userPhone') || (document.getElementById('maHocSinh') ? document.getElementById('maHocSinh').value : "") || "302001";
+    }
+    
+    // Ẩn các màn hình khác
+    var mainScr = document.getElementById('mainScreen');
+    if (mainScr) mainScr.style.display = 'none';
+    var tutorDash = document.getElementById('tutorDashboardBox');
+    if (tutorDash) tutorDash.style.display = 'none';
+    
+    // Hiển thị Admin Dashboard
+    var admBox = document.getElementById('adminDashboardBox');
+    if (admBox) admBox.style.display = 'block';
+    
+    // Cập nhật tên hiển thị
+    var adminNameEl = document.getElementById('adminNameDisplay');
+    if (adminNameEl) {
+        var adminDisplayName = (data.adminInfo && data.adminInfo.name) ? data.adminInfo.name : "Quản trị viên";
+        adminNameEl.innerText = "Xin chào, Admin " + adminDisplayName;
+    }
+    
+    // Cập nhật badges số lượng
+    var totalTutors = (data.tutors || []).length;
+    var totalCenters = (data.centerStats || []).length;
+    var tBadge = document.getElementById('tutorTabCountBadge');
+    if (tBadge) tBadge.innerText = totalTutors;
+    var cBadge = document.getElementById('centerTabCountBadge');
+    if (cBadge) cBadge.innerText = totalCenters;
+    
+    // Render dữ liệu từng phần
+    renderAdminBusinessReport();
+    populateTutorCenterFilterDropdown();
+    renderAdminTutorsList();
+    renderAdminCentersList();
+    renderAdminSettings();
+}
+
+function switchAdminTab(tabName) {
+    currentAdminTab = tabName;
+    var tabs = ['report', 'tutors', 'centers', 'settings'];
+    tabs.forEach(t => {
+        var btn = document.getElementById('btnAdminTab' + t.charAt(0).toUpperCase() + t.slice(1));
+        var content = document.getElementById('adminTab' + t.charAt(0).toUpperCase() + t.slice(1));
+        if (t === tabName) {
+            if (btn) btn.classList.add('active');
+            if (content) content.style.display = 'block';
+        } else {
+            if (btn) btn.classList.remove('active');
+            if (content) content.style.display = 'none';
         }
+    });
+}
 
-        function switchAdminTab(tabName) {
-            currentAdminTab = tabName;
-            var tabs = ['report', 'tutors', 'students'];
-            tabs.forEach(t => {
-                var btn = document.getElementById('btnAdminTab' + t.charAt(0).toUpperCase() + t.slice(1));
-                var content = document.getElementById('adminTab' + t.charAt(0).toUpperCase() + t.slice(1));
-                if (t === tabName) {
-                    if (btn) btn.classList.add('active');
-                    if (content) content.style.display = 'block';
-                } else {
-                    if (btn) btn.classList.remove('active');
-                    if (content) content.style.display = 'none';
-                }
+// ==========================================
+// 1. TAB TỔNG QUAN KINH DOANH (SAAS)
+// ==========================================
+function renderAdminBusinessReport() {
+    if (!adminDataGlobal) return;
+    var tutors = adminDataGlobal.tutors || [];
+    var payments = adminDataGlobal.payments || [];
+    
+    // 1. Tính toán KPIs
+    var today = new Date();
+    var curMonth = today.getMonth() + 1;
+    var curYear = today.getFullYear();
+    
+    var mrrThisMonth = 0;
+    payments.forEach(p => {
+        var dt = parseDateHelper(p.paidAt);
+        if (dt && (dt.getMonth() + 1 === curMonth) && (dt.getFullYear() === curYear)) {
+            mrrThisMonth += Number(p.amount) || 0;
+        }
+    });
+    // Fallback nếu trong tháng chưa có khoản nạp nào, tính tổng toàn bộ các khoản đã nạp gần đây
+    if (mrrThisMonth === 0 && payments.length > 0) {
+        mrrThisMonth = payments.reduce((acc, p) => acc + (Number(p.amount) || 0), 0);
+    }
+    
+    var countActive = 0;
+    var countTrial = 0;
+    var countExpired = 0;
+    var dueAlerts = [];
+    
+    tutors.forEach(t => {
+        var isDeact = (t.status === 'Vô hiệu hóa');
+        var isDue = isBillingDue(t.nextBillingDate) && !isDeact;
+        var s = t.status || 'Hoạt động';
+        
+        if (isDeact) {
+            // không tính vào active/trial
+        } else if (s === 'Hết hạn dùng thử' || s === 'Hết hạn sử dụng' || isDue) {
+            countExpired++;
+            dueAlerts.push(t);
+        } else if (t.isTrial || s === 'Dùng thử') {
+            countTrial++;
+        } else {
+            countActive++;
+        }
+    });
+    
+    var kpiRevEl = document.getElementById('admKpiRevenue');
+    if (kpiRevEl) kpiRevEl.innerText = mrrThisMonth.toLocaleString('vi-VN') + " đ";
+    var kpiActEl = document.getElementById('admKpiActive');
+    if (kpiActEl) kpiActEl.innerText = countActive;
+    var kpiTriEl = document.getElementById('admKpiTrial');
+    if (kpiTriEl) kpiTriEl.innerText = countTrial;
+    var kpiExpEl = document.getElementById('admKpiExpired');
+    if (kpiExpEl) kpiExpEl.innerText = countExpired;
+    
+    // 2. Cảnh báo gia sư sắp hết hạn (≤3 ngày) hoặc đã hết hạn
+    var alertContainer = document.getElementById('adminBillingAlerts');
+    if (alertContainer) {
+        if (dueAlerts.length > 0) {
+            var alertHtml = "";
+            dueAlerts.forEach(t => {
+                var feeInfo = calculateTutorWebFee(t.studentCount, t.customFee);
+                alertHtml += `
+                    <div class="adm-alert-card" style="background:#FFF1F2; border:1px solid #FECDD3; border-radius:14px; padding:12px 18px; display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap;">
+                        <div style="display:flex; align-items:center; gap:10px;">
+                            <i class="fa-solid fa-triangle-exclamation" style="font-size:18px; color:#EF4444;"></i>
+                            <span style="color:#9F1239; font-size:13.5px;">
+                                Gia sư <b style="color:#0F172A;">${escapeHtml(t.name)}</b> (${t.phone}) · Đang dạy <b>${t.studentCount} HS</b> · Hạn: <b style="color:#DC2626;">${escapeHtml(t.nextBillingDate || 'Hết hạn')}</b>
+                                · Phí: <b>${escapeHtml(feeInfo.text)}</b>
+                            </span>
+                        </div>
+                        <button onclick="openAdminRenewModal('${jsStr(t.phone)}')" class="adm-btn-action btn-pay" style="padding:7px 16px; font-size:13px; border-radius:10px; background:#2563EB; color:#fff; border:0; cursor:pointer; font-weight:700;">
+                            <i class="fa-solid fa-crown"></i> Gia hạn ngay
+                        </button>
+                    </div>
+                `;
             });
+            alertContainer.innerHTML = alertHtml;
+            alertContainer.style.display = "flex";
+        } else {
+            alertContainer.innerHTML = "";
+            alertContainer.style.display = "none";
         }
+    }
+    
+    // 3. Biểu đồ doanh thu phí duy trì web
+    renderAdminRevenueChart(payments);
+    
+    // 4. Bảng lịch sử thu phí
+    renderAdminPaymentsList(payments);
+}
 
-        // 1. Report Tab
-        function renderAdminReportDropdown() {
-            var select = document.getElementById('adminReportMonthSelect');
-            if (!select) return;
-            select.innerHTML = "";
-            
-            var reports = adminDataGlobal.incomeReports || {};
-            var months = Object.keys(reports);
-            
-            if (months.length === 0) {
-                var curMonthStr = "Tháng " + (new Date().getMonth() + 1) + "/" + new Date().getFullYear();
-                months.push(curMonthStr);
-                reports[curMonthStr] = { expected: 0, paid: 0, unpaid: 0, tutors: {} };
+function renderAdminRevenueChart(payments) {
+    if (typeof Chart === 'undefined') return;
+    var canvas = document.getElementById('adminRevenueChartCanvas');
+    if (!canvas) return;
+    
+    if (adminRevenueChartInstance) {
+        try { adminRevenueChartInstance.destroy(); } catch(e) {}
+    }
+    
+    // Gom doanh thu theo tháng (từ payments)
+    var monthlyRev = {};
+    var today = new Date();
+    // Tạo sẵn 6 tháng gần nhất
+    for (var i = 5; i >= 0; i--) {
+        var d = new Date(today.getFullYear(), today.getMonth() - i, 1);
+        var k = "Thg " + (d.getMonth() + 1) + "/" + d.getFullYear();
+        monthlyRev[k] = 0;
+    }
+    
+    payments.forEach(p => {
+        var dt = parseDateHelper(p.paidAt);
+        if (dt) {
+            var k = "Thg " + (dt.getMonth() + 1) + "/" + dt.getFullYear();
+            if (monthlyRev[k] !== undefined) {
+                monthlyRev[k] += Number(p.amount) || 0;
             }
-            
-            months.forEach(m => {
-                var opt = document.createElement('option');
-                opt.value = m;
-                opt.innerText = m;
-                select.appendChild(opt);
-            });
-            
-            renderAdminReportData();
         }
-
-        function parseMonthYear(mStr) {
-            var parts = mStr.replace("Tháng ", "").split("/");
-            if (parts.length === 2) {
-                return { month: parseInt(parts[0]), year: parseInt(parts[1]) };
-            }
-            return { month: 1, year: 2000 };
-        }
-
-        function renderAdminReportData() {
-            var select = document.getElementById('adminReportMonthSelect');
-            if (!select) return;
-            var selectedMonth = select.value;
-            
-            var reports = adminDataGlobal.incomeReports || {};
-            var report = reports[selectedMonth] || { expected: 0, paid: 0, unpaid: 0, tutors: {} };
-            
-            // Cập nhật thẻ tóm tắt doanh thu
-            document.getElementById('admExpRev').innerText = report.expected.toLocaleString('vi-VN') + "đ";
-            document.getElementById('admPaidRev').innerText = report.paid.toLocaleString('vi-VN') + "đ";
-            document.getElementById('admUnpaidRev').innerText = report.unpaid.toLocaleString('vi-VN') + "đ";
-            
-            // 1. Cập nhật Bảng phân rã theo Gia sư cho tháng chọn (Desktop & Mobile)
-            var breakdownBody = document.querySelector('#adminTutorBreakdownTable tbody');
-            var breakdownMobile = document.getElementById('adminTutorBreakdownMobile');
-            
-            if (breakdownBody) {
-                breakdownBody.innerHTML = "";
-                var tutorsData = report.tutors || {};
-                var tutorKeys = Object.keys(tutorsData);
-                
-                if (tutorKeys.length === 0) {
-                    breakdownBody.innerHTML = "<tr><td colspan='5' style='text-align:center; color:#64748B;'>Không có dữ liệu buổi học nào trong tháng này.</td></tr>";
-                    if (breakdownMobile) {
-                        breakdownMobile.innerHTML = "<div style='text-align:center; color:#64748B; padding: 20px; font-size: 13px;'><i class='fa-solid fa-circle-info'></i> Không có dữ liệu buổi học nào trong tháng này.</div>";
-                    }
-                } else {
-                    var mobileHtml = "";
-                    tutorKeys.forEach((tKey, idx) => {
-                        var tReport = tutorsData[tKey];
-                        var pct = tReport.expected > 0 ? Math.min(100, Math.round((tReport.paid / tReport.expected) * 100)) : 0;
-                        var rate = pct + "%";
-                        var barColor = pct >= 80 ? '#10B981' : (pct >= 50 ? '#2563EB' : '#F59E0B');
-                        var initials = getInitials(tReport.name);
-                        
-                        // Desktop
-                        var tr = document.createElement('tr');
-                        tr.innerHTML = "<td>" +
-                                         "<div class='adm-user-cell'>" +
-                                           "<span class='adm-avatar-circle' style='width:32px; height:32px; font-size:12px;'>" + escapeHtml(initials) + "</span>" +
-                                           "<b style='color:#0F172A; font-size:13.5px;'>" + escapeHtml(tReport.name) + "</b>" +
-                                         "</div>" +
-                                       "</td>" +
-                                       "<td style='color:#2563EB; font-weight:700;'>" + tReport.expected.toLocaleString('vi-VN') + "đ</td>" +
-                                       "<td style='color:#059669; font-weight:700;'>" + tReport.paid.toLocaleString('vi-VN') + "đ</td>" +
-                                       "<td style='color:#D97706; font-weight:700;'>" + tReport.unpaid.toLocaleString('vi-VN') + "đ</td>" +
-                                       "<td>" +
-                                         "<div style='display:flex; flex-direction:column; gap:4px; min-width:90px;'>" +
-                                           "<div style='display:flex; justify-content:space-between; font-size:11px;'><span style='color:#64748B;'>Thu hồi</span><b style='color:#0F172A;'>" + rate + "</b></div>" +
-                                           "<div class='adm-progress-bar'><div class='adm-progress-fill' style='width:" + pct + "%; background:" + barColor + ";'></div></div>" +
-                                         "</div>" +
-                                       "</td>";
-                        breakdownBody.appendChild(tr);
-                        
-                        // Mobile
-                        mobileHtml += "<div class='accordion-item'>";
-                        mobileHtml += "  <div class='accordion-header' onclick='toggleAdminTutorBreakdownAccordion(" + idx + ")'>";
-                        mobileHtml += "    <div class='accordion-header-title'>";
-                        mobileHtml += "      <span class='adm-avatar-circle' style='width:26px; height:26px; font-size:10px;'>" + escapeHtml(initials) + "</span>";
-                        mobileHtml += "      <span>" + escapeHtml(tReport.name) + "</span>";
-                        mobileHtml += "      <span class='badge' style='background:#EFF6FF; color:#2563EB; margin-bottom: 0; padding: 3px 8px; font-size: 11px; font-weight:700; border-radius:999px;'></span>";
-                        mobileHtml += "    </div>";
-                        mobileHtml += "    <div class='accordion-header-status'><i class='fa-solid fa-chevron-down' id='adm-tutor-bd-chevron-" + idx + "'></i></div>";
-                        mobileHtml += "  </div>";
-                        mobileHtml += "  <div class='accordion-body' id='adm-tutor-bd-body-" + idx + "' style='display: none;'>";
-                        mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Lương dự kiến</span><span class='accordion-body-val' style='color:#2563EB; font-weight:bold;'>" + tReport.expected.toLocaleString('vi-VN') + "đ</span></div>";
-                        mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Lương thực tế</span><span class='accordion-body-val' style='color:#059669; font-weight:bold;'>" + tReport.paid.toLocaleString('vi-VN') + "đ</span></div>";
-                        mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Còn nợ</span><span class='accordion-body-val' style='color:#D97706; font-weight:bold;'>" + tReport.unpaid.toLocaleString('vi-VN') + "đ</span></div>";
-                        mobileHtml += "  </div>";
-                        mobileHtml += "</div>";
-                    });
-                    if (breakdownMobile) {
-                        breakdownMobile.innerHTML = mobileHtml;
-                    }
-                }
-            }
-            
-            // 2. Cập nhật bảng tổng hợp doanh thu toàn cơ sở qua các tháng (Desktop & Mobile)
-            var tableBody = document.querySelector('#adminReportTable tbody');
-            var reportMobile = document.getElementById('adminReportMobile');
-            
-            if (tableBody) {
-                tableBody.innerHTML = "";
-                
-                var sortedMonths = Object.keys(reports).sort(function(a, b) {
-                    var pa = parseMonthYear(a);
-                    var pb = parseMonthYear(b);
-                    if (pa.year !== pb.year) return pa.year - pb.year;
-                    return pa.month - pb.month;
-                });
-
-                var reportMobileHtml = "";
-                sortedMonths.forEach((m, idx) => {
-                    var r = reports[m];
-                    
-                    // Desktop
-                    var tr = document.createElement('tr');
-                    tr.innerHTML = "<td><b style='color:#0F172A;'>" + escapeHtml(m) + "</b></td>" +
-                                   "<td style='color:#2563EB; font-weight:700;'>" + r.expected.toLocaleString('vi-VN') + "đ</td>" +
-                                   "<td style='color:#059669; font-weight:700;'>" + r.paid.toLocaleString('vi-VN') + "đ</td>" +
-                                   "<td style='color:#D97706; font-weight:700;'>" + r.unpaid.toLocaleString('vi-VN') + "đ</td>";
-                    tableBody.appendChild(tr);
-                    
-                    // Mobile
-                    reportMobileHtml += "<div class='accordion-item'>";
-                    reportMobileHtml += "  <div class='accordion-header' onclick='toggleAdminReportAccordion(" + idx + ")'>";
-                    reportMobileHtml += "    <div class='accordion-header-title'>";
-                    reportMobileHtml += "      <span>" + escapeHtml(m) + "</span>";
-                    reportMobileHtml += "    </div>";
-                    reportMobileHtml += "    <div class='accordion-header-status'><i class='fa-solid fa-chevron-down' id='adm-report-chevron-" + idx + "'></i></div>";
-                    reportMobileHtml += "  </div>";
-                    reportMobileHtml += "  <div class='accordion-body' id='adm-report-body-" + idx + "' style='display: none;'>";
-                    reportMobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Dự kiến thu</span><span class='accordion-body-val' style='color:#2563EB; font-weight:bold;'>" + r.expected.toLocaleString('vi-VN') + "đ</span></div>";
-                    reportMobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Thực tế đã thu</span><span class='accordion-body-val' style='color:#059669; font-weight:bold;'>" + r.paid.toLocaleString('vi-VN') + "đ</span></div>";
-                    reportMobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Còn nợ</span><span class='accordion-body-val' style='color:#D97706; font-weight:bold;'>" + r.unpaid.toLocaleString('vi-VN') + "đ</span></div>";
-                    reportMobileHtml += "  </div>";
-                    reportMobileHtml += "</div>";
-                });
-                
-                if (reportMobile) {
-                    reportMobile.innerHTML = reportMobileHtml;
-                }
-            }
-
-            // 3. Vẽ biểu đồ xu hướng tiền lương/doanh thu theo tháng
-            renderAdminRevenueChart(reports);
-        }
-
-        function renderAdminRevenueChart(reports) {
-            if (typeof Chart === 'undefined') {
-                console.warn("Chart.js chưa được tải, bỏ qua vẽ biểu đồ");
-                return;
-            }
-            var canvas = document.getElementById('adminRevenueChartCanvas');
-            if (!canvas) return;
-
-            if (adminRevenueChartInstance) {
-                try {
-                    adminRevenueChartInstance.destroy();
-                } catch(e) {}
-                adminRevenueChartInstance = null;
-            }
-
-            var sortedMonths = Object.keys(reports || {}).sort(function(a, b) {
-                var pa = parseMonthYear(a);
-                var pb = parseMonthYear(b);
-                if (pa.year !== pb.year) return pa.year - pb.year;
-                return pa.month - pb.month;
-            });
-
-            var labels = sortedMonths.map(m => m.replace("Tháng ", "T"));
-            var expectedData = sortedMonths.map(m => (reports[m] ? reports[m].expected : 0));
-            var paidData = sortedMonths.map(m => (reports[m] ? reports[m].paid : 0));
-
-            try {
-                var ctx = canvas.getContext('2d');
-                adminRevenueChartInstance = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: labels,
-                    datasets: [
-                        {
-                            label: 'Lương dự kiến (Tổng học phí)',
-                            data: expectedData,
-                            borderColor: '#2563EB',
-                            backgroundColor: 'rgba(37, 99, 235, 0.08)',
-                            fill: true,
-                            tension: 0.35,
-                            borderWidth: 3,
-                            pointBackgroundColor: '#2563EB',
-                            pointBorderColor: '#FFFFFF',
-                            pointRadius: 6,
-                            pointBorderWidth: 2,
-                            pointHoverRadius: 8,
-                            pointHoverBorderWidth: 3
-                        },
-                        {
-                            label: 'Lương thực thu (Thực tế đã đóng)',
-                            data: paidData,
-                            borderColor: '#10B981',
-                            backgroundColor: 'rgba(16, 185, 129, 0.08)',
-                            fill: true,
-                            tension: 0.35,
-                            borderWidth: 3,
-                            pointBackgroundColor: '#10B981',
-                            pointBorderColor: '#FFFFFF',
-                            pointRadius: 6,
-                            pointBorderWidth: 2,
-                            pointHoverRadius: 8,
-                            pointHoverBorderWidth: 3
-                        }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            labels: {
-                                color: '#475569',
-                                font: { family: 'Plus Jakarta Sans, Inter', size: 12, weight: '600' }
-                            }
-                        },
-                        tooltip: {
-                            backgroundColor: '#0F172A',
-                            titleColor: '#FFFFFF',
-                            bodyColor: '#E2E8F0',
-                            titleFont: { family: 'Plus Jakarta Sans, Inter', weight: 'bold', size: 12 },
-                            bodyFont: { family: 'Plus Jakarta Sans, Inter', size: 11 },
-                            borderColor: '#3B82F6',
-                            borderWidth: 1,
-                            padding: 10,
-                            boxPadding: 4,
-                            callbacks: {
-                                label: function(context) {
-                                    return context.dataset.label + ': ' + context.raw.toLocaleString('vi-VN') + 'đ';
-                                }
-                            }
-                        }
-                    },
-                    scales: {
-                        x: {
-                            grid: { color: 'rgba(226, 232, 240, 0.8)' },
-                            ticks: { color: '#64748B', font: { family: 'Plus Jakarta Sans, Inter', size: 11 } }
-                        },
-                        y: {
-                            min: 0,
-                            grid: { color: 'rgba(226, 232, 240, 0.8)' },
-                            ticks: {
-                                color: '#64748B',
-                                font: { family: 'Plus Jakarta Sans, Inter', size: 11 },
-                                callback: function(value) {
-                                    if (value >= 1000000) {
-                                        return (value / 1000000) + 'M';
-                                    }
-                                    return value.toLocaleString('vi-VN');
-                                }
-                            }
-                        }
+    });
+    
+    var labels = Object.keys(monthlyRev);
+    var dataVals = labels.map(k => monthlyRev[k]);
+    
+    var ctx = canvas.getContext('2d');
+    adminRevenueChartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Doanh thu phí duy trì web (VNĐ)',
+                data: dataVals,
+                backgroundColor: 'rgba(37, 99, 235, 0.85)',
+                borderColor: '#2563EB',
+                borderWidth: 1.5,
+                borderRadius: 8
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(v) { return v.toLocaleString('vi-VN') + ' đ'; }
                     }
                 }
-            });
-            } catch(chartErr) {
-                console.warn("Lỗi khi vẽ biểu đồ doanh thu:", chartErr);
-            }
-        }
-
-        // 2. Tutors Management Tab
-        // Helper tính số học sinh hoạt động của 1 gia sư
-        function getActiveStudentsForTutor(tPhone) {
-            if (!adminDataGlobal.students) return 0;
-            var normT = normalizePhone(tPhone);
-            return adminDataGlobal.students.filter(s => 
-                normalizePhone(s.tutorPhone) === normT && 
-                (!s.deletedDate || s.deletedDate.trim() === "")
-            ).length;
-        }
-
-        // Kiểm tra xem đã đến kỳ đóng phí thuê web chưa (đúng ngày chốt chu kỳ)
-        function isBillingDue(dateStr) {
-            if (!dateStr) return false;
-            try {
-                var parts = dateStr.split("/");
-                if (parts.length === 3) {
-                    var d = parseInt(parts[0], 10);
-                    var m = parseInt(parts[1], 10) - 1;
-                    var y = parseInt(parts[2], 10);
-                    var billDate = new Date(y, m, d);
-                    billDate.setHours(0,0,0,0);
-                    
-                    var today = new Date();
-                    today.setHours(0,0,0,0);
-                    
-                    return billDate <= today;
+            },
+            plugins: {
+                tooltip: {
+                    callbacks: {
+                        label: function(c) { return " Doanh thu: " + c.raw.toLocaleString('vi-VN') + " đ"; }
+                    }
                 }
-            } catch (e) {
-                console.error("Lỗi isBillingDue: ", e);
             }
+        }
+    });
+}
+
+function renderAdminPaymentsList(payments) {
+    var tbody = document.querySelector('#adminPaymentsTable tbody');
+    var mobileWrap = document.getElementById('adminPaymentsMobile');
+    if (!tbody) return;
+    tbody.innerHTML = "";
+    
+    if (!payments || payments.length === 0) {
+        tbody.innerHTML = "<tr><td colspan='8' style='text-align:center; color:#64748B; padding:25px;'>Chưa có lịch sử thanh toán nào.</td></tr>";
+        if (mobileWrap) mobileWrap.innerHTML = "<div style='text-align:center; color:#64748B; padding:20px; font-size:13px;'>Chưa có giao dịch gia hạn nào.</div>";
+        return;
+    }
+    
+    var mobileHtml = "";
+    payments.forEach((p, idx) => {
+        var tr = document.createElement('tr');
+        var amtStr = (Number(p.amount) || 0).toLocaleString('vi-VN') + " đ";
+        tr.innerHTML = `
+            <td><span style="font-family:monospace; font-size:11.5px; color:#64748B;">${escapeHtml(p.id)}</span></td>
+            <td><b style="color:#0F172A;">${escapeHtml(p.tutorName)}</b></td>
+            <td>${escapeHtml(p.tutorPhone)}</td>
+            <td><b style="color:#059669;">${amtStr}</b></td>
+            <td><span style="background:#EFF6FF; color:#2563EB; font-weight:700; padding:2px 8px; border-radius:6px;">${p.months} tháng</span></td>
+            <td><span style="font-size:12px; color:#475569;">${escapeHtml(p.periodFrom)} → ${escapeHtml(p.periodTo)}</span></td>
+            <td><span style="font-size:12px; color:#64748B;">${escapeHtml(p.paidAt)}</span></td>
+            <td><span style="font-size:12px; color:#64748B;">${escapeHtml(p.note || '-')}</span></td>
+        `;
+        tbody.appendChild(tr);
+        
+        mobileHtml += `
+            <div class="accordion-item" style="border:1px solid #E2E8F0; border-radius:14px; margin-bottom:10px; padding:12px 14px; background:#fff;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                    <b style="color:#0F172A; font-size:14px;">${escapeHtml(p.tutorName)}</b>
+                    <b style="color:#059669; font-size:14px;">${amtStr}</b>
+                </div>
+                <div style="font-size:12px; color:#64748B; display:flex; justify-content:space-between;">
+                    <span>SĐT: ${escapeHtml(p.tutorPhone)}</span>
+                    <span>Gia hạn: <b>${p.months} tháng</b></span>
+                </div>
+                <div style="font-size:11.5px; color:#94A3B8; margin-top:4px;">
+                    ${escapeHtml(p.periodFrom)} → ${escapeHtml(p.periodTo)} · ${escapeHtml(p.paidAt)}
+                </div>
+            </div>
+        `;
+    });
+    if (mobileWrap) mobileWrap.innerHTML = mobileHtml;
+}
+
+// ==========================================
+// 2. TAB QUẢN LÝ GIA SƯ (SAAS & BẢO MẬT)
+// ==========================================
+function populateTutorCenterFilterDropdown() {
+    var select = document.getElementById('adminTutorCenterFilter');
+    if (!select || !adminDataGlobal) return;
+    var currentVal = select.value || "all";
+    select.innerHTML = '<option value="all">Tất cả nguồn / trung tâm</option>';
+    
+    var set = new Set();
+    (adminDataGlobal.tutors || []).forEach(t => {
+        var c = (t.referralCenter || '').trim();
+        if (c) set.add(c);
+    });
+    
+    Array.from(set).sort().forEach(c => {
+        var opt = document.createElement('option');
+        opt.value = c;
+        opt.innerText = c;
+        if (c === currentVal) opt.selected = true;
+        select.appendChild(opt);
+    });
+}
+
+function onAdminTutorFilterChange() {
+    renderAdminTutorsList();
+}
+window.onAdminTutorFilterChange = onAdminTutorFilterChange;
+
+function renderAdminTutorsList() {
+    var tbody = document.querySelector('#adminTutorsTable tbody');
+    var mobileContainer = document.getElementById('adminTutorsMobile');
+    if (!tbody) return;
+    tbody.innerHTML = "";
+    
+    var tutors = (adminDataGlobal && adminDataGlobal.tutors) ? adminDataGlobal.tutors : [];
+    if (tutors.length === 0) {
+        tbody.innerHTML = "<tr><td colspan='10' style='text-align:center; color:#64748B; padding:30px;'>Không có gia sư nào trên hệ thống.</td></tr>";
+        if (mobileContainer) mobileContainer.innerHTML = "<div style='text-align:center; color:#64748B; padding: 25px; font-size: 13px;'>Không có gia sư nào trên hệ thống.</div>";
+        return;
+    }
+    
+    var searchInput = document.getElementById('adminTutorSearchInput');
+    var searchVal = searchInput ? searchInput.value.trim().toLowerCase() : "";
+    var statusFilterEl = document.getElementById('adminTutorStatusFilter');
+    var statusFilter = statusFilterEl ? statusFilterEl.value : "all";
+    var centerFilterEl = document.getElementById('adminTutorCenterFilter');
+    var centerFilter = centerFilterEl ? centerFilterEl.value : "all";
+    
+    var filteredTutors = tutors.filter(t => {
+        var isDeact = (t.status === "Vô hiệu hóa");
+        var isDue = isBillingDue(t.nextBillingDate) && !isDeact;
+        var s = t.status || "Hoạt động";
+        
+        if (statusFilter === "active" && (isDeact || t.isTrial || s.includes('Hết hạn'))) return false;
+        if (statusFilter === "trial" && (!t.isTrial || isDeact || s === 'Hết hạn dùng thử')) return false;
+        if (statusFilter === "trial_expired" && s !== 'Hết hạn dùng thử') return false;
+        if (statusFilter === "sub_expired" && s !== 'Hết hạn sử dụng') return false;
+        if (statusFilter === "due" && !isDue) return false;
+        if (statusFilter === "deactivated" && !isDeact) return false;
+        
+        if (centerFilter !== "all" && (t.referralCenter || '').trim() !== centerFilter) {
             return false;
         }
-
-        // 2. Tutors Management Tab
-        function renderAdminTutorsList() {
-            var tbody = document.querySelector('#adminTutorsTable tbody');
-            var mobileContainer = document.getElementById('adminTutorsMobile');
-            
-            if (!tbody) return;
-            tbody.innerHTML = "";
-            
-            var dueAlerts = [];
-            var alertContainer = document.getElementById('adminBillingAlerts');
-            
-            if (!adminDataGlobal.tutors || adminDataGlobal.tutors.length === 0) {
-                tbody.innerHTML = "<tr><td colspan='10' style='text-align:center; color:#64748B; padding:30px;'>Không có gia sư nào trên hệ thống.</td></tr>";
-                if (mobileContainer) {
-                    mobileContainer.innerHTML = "<div style='text-align:center; color:#64748B; padding: 25px; font-size: 13px;'><i class='fa-solid fa-circle-info'></i> Không có gia sư nào trên hệ thống.</div>";
-                }
-                if (alertContainer) {
-                    alertContainer.style.display = "none";
-                    alertContainer.innerHTML = "";
-                }
-                return;
-            }
-            
-            // Tính toán danh sách cảnh báo đến hạn phí web cho toàn bộ gia sư
-            adminDataGlobal.tutors.forEach(t => {
-                var sCount = getActiveStudentsForTutor(t.phone);
-                var webFee = Math.ceil(sCount / 2) * 30000;
-                var isCurrentlyDeactivated = (t.status === "Vô hiệu hóa");
-                var isDue = isBillingDue(t.nextBillingDate) && !isCurrentlyDeactivated;
-                if (isDue) {
-                    dueAlerts.push({
-                        name: t.name,
-                        phone: t.phone,
-                        nextBillingDate: t.nextBillingDate,
-                        students: sCount,
-                        fee: webFee
-                    });
-                }
-            });
-
-            // Vẽ hộp cảnh báo đỏ lên đầu trang Admin
-            if (alertContainer) {
-                if (dueAlerts.length > 0) {
-                    var alertHtml = "";
-                    dueAlerts.forEach(a => {
-                        alertHtml += `
-                            <div class="adm-alert-card">
-                                <div style="display: flex; align-items: center; gap: 10px;">
-                                    <i class="fa-solid fa-triangle-exclamation" style="font-size: 18px; color: #EF4444;"></i>
-                                    <span style="color:#991B1B; font-size:13.5px;">Gia sư <b style="color:#0F172A;">${escapeHtml(a.name)}</b> (${a.students} HS) đến hạn đóng tiền thuê Web: <b style="color: #FFF; background: #DC2626; padding: 2px 8px; border-radius: 6px;">${a.fee.toLocaleString('vi-VN')}đ</b> (Hạn: ${escapeHtml(a.nextBillingDate)})</span>
-                                </div>
-                                <button onclick="confirmQuickPaid('${jsStr(a.phone)}', '${jsStr(a.name)}')" class="adm-btn-action btn-pay" style="padding: 7px 16px; font-size: 13px; border-radius: 10px;"><i class="fa-solid fa-check"></i> Xác nhận đã thu</button>
-                            </div>
-                        `;
-                    });
-                    alertContainer.innerHTML = alertHtml;
-                    alertContainer.style.display = "flex";
-                } else {
-                    alertContainer.innerHTML = "";
-                    alertContainer.style.display = "none";
-                }
-            }
-
-            // Lọc dữ liệu theo Search và Trạng thái
-            var searchInput = document.getElementById('adminTutorSearchInput');
-            var searchVal = searchInput ? searchInput.value.trim().toLowerCase() : "";
-            var statusFilterEl = document.getElementById('adminTutorStatusFilter');
-            var statusFilter = statusFilterEl ? statusFilterEl.value : "all";
-
-            var filteredTutors = adminDataGlobal.tutors.filter(t => {
-                var isCurrentlyDeactivated = (t.status === "Vô hiệu hóa");
-                var isDue = isBillingDue(t.nextBillingDate) && !isCurrentlyDeactivated;
-
-                if (statusFilter === "active" && (isCurrentlyDeactivated || isDue)) return false;
-                if (statusFilter === "due" && !isDue) return false;
-                if (statusFilter === "deactivated" && !isCurrentlyDeactivated) return false;
-
-                if (searchVal) {
-                    var matchName = (t.name || "").toLowerCase().includes(searchVal);
-                    var matchPhone = (t.phone || "").toLowerCase().includes(searchVal);
-                    var matchPin = (t.pin || "").toLowerCase().includes(searchVal);
-                    if (!matchName && !matchPhone && !matchPin) return false;
-                }
-                return true;
-            });
-
-            if (filteredTutors.length === 0) {
-                tbody.innerHTML = "<tr><td colspan='10' style='text-align:center; color:#64748B; padding:30px;'><i class='fa-solid fa-magnifying-glass'></i> Không tìm thấy gia sư nào phù hợp với bộ lọc.</td></tr>";
-                if (mobileContainer) {
-                    mobileContainer.innerHTML = "<div style='text-align:center; color:#64748B; padding: 25px; font-size: 13px;'><i class='fa-solid fa-magnifying-glass'></i> Không tìm thấy gia sư nào phù hợp với bộ lọc.</div>";
-                }
-                return;
-            }
-
-            var mobileHtml = "";
-            filteredTutors.forEach((t, idx) => {
-                 var sCount = getActiveStudentsForTutor(t.phone);
-                 var webFee = Math.ceil(sCount / 2) * 30000;
-                 var isCurrentlyDeactivated = (t.status === "Vô hiệu hóa");
-                 var isDue = isBillingDue(t.nextBillingDate) && !isCurrentlyDeactivated;
-                 var initials = getInitials(t.name);
-                 
-                 var statusPill = "";
-                 if (isCurrentlyDeactivated) {
-                     statusPill = "<span class='adm-status-pill status-locked'><i class='fa-solid fa-ban'></i> Đã khóa</span>";
-                 } else if (isDue) {
-                     statusPill = "<span class='adm-status-pill status-due'><i class='fa-solid fa-triangle-exclamation'></i> Đến hạn</span>";
-                 } else {
-                     statusPill = "<span class='adm-status-pill status-active'><i class='fa-solid fa-circle-check'></i> Hoạt động</span>";
-                 }
-                 
-                 var quickPayBtn = "";
-                 if (isDue && !isCurrentlyDeactivated) {
-                     quickPayBtn = "<button class='adm-btn-action btn-pay' onclick='confirmQuickPaid(\"" + jsStr(t.phone) + "\", \"" + jsStr(t.name) + "\")' title='Xác nhận đã thu'><i class='fa-solid fa-check'></i> Thu</button>";
-                 }
-                 
-                 var lockBtn = isCurrentlyDeactivated ?
-                     "<button class='adm-btn-action btn-unlock' onclick='quickToggleTutorStatus(\"" + jsStr(t.phone) + "\", \"" + jsStr(t.name) + "\", true)' title='Kích hoạt lại tài khoản'><i class='fa-solid fa-unlock'></i> Mở</button>" :
-                     "<button class='adm-btn-action btn-lock' onclick='quickToggleTutorStatus(\"" + jsStr(t.phone) + "\", \"" + jsStr(t.name) + "\", false)' title='Vô hiệu hóa tài khoản'><i class='fa-solid fa-lock'></i> Khóa</button>";
-
-                 var lastActiveDisplay = t.lastActive ? escapeHtml(t.lastActive) : "<i style='color:#94A3B8;'>Chưa vào</i>";
-                 
-                 // Desktop row
-                 var tr = document.createElement('tr');
-                 if (isCurrentlyDeactivated) {
-                     tr.style.opacity = "0.75";
-                 }
-                 
-                 tr.innerHTML = "<td>" +
-                                  "<div class='adm-user-cell'>" +
-                                    "<span class='adm-avatar-circle'>" + escapeHtml(initials) + "</span>" +
-                                    "<div>" +
-                                      "<div style='font-weight:700; color:#0F172A; font-size:13.5px;'>" + escapeHtml(t.name) + "</div>" +
-                                      "<div style='font-size:11px; color:#64748B;'>" + sCount + " học sinh</div>" +
-                                    "</div>" +
-                                  "</div>" +
-                                "</td>" +
-                                "<td>" +
-                                  "<div class='adm-phone-tag'>" +
-                                    "<span>" + escapeHtml(t.phone) + "</span>" +
-                                    "<button type='button' class='adm-copy-btn' onclick='copyPhoneToClipboard(\"" + jsStr(t.phone) + "\")' title='Sao chép SĐT'><i class='fa-regular fa-copy'></i></button>" +
-                                  "</div>" +
-                                "</td>" +
-                                "<td><span class='adm-pin-badge'>" + escapeHtml(t.pin) + "</span></td>" +
-                                "<td><span style='font-size:12px; color:#64748B;'>" + escapeHtml(t.createdDate || "-") + "</span></td>" +
-                                "<td>" +
-                                  "<span class='adm-due-badge" + (isDue ? " is-due" : "") + "'>" +
-                                    "<i class='" + (isDue ? "fa-solid fa-triangle-exclamation" : "fa-regular fa-calendar-check") + "'></i> " +
-                                    escapeHtml(t.nextBillingDate || "-") +
-                                  "</span>" +
-                                "</td>" +
-                                "<td style='text-align:center;'><span style='font-weight:700; color:#0F172A; background:#F1F5F9; border:1px solid #E2E8F0; padding:4px 10px; border-radius:8px;'>" + sCount + "</span></td>" +
-                                "<td><b style='color:#2563EB; font-size:13.5px;'>" + webFee.toLocaleString('vi-VN') + "đ</b></td>" +
-                                "<td style='font-size:11.5px; color:#64748B;'>" + lastActiveDisplay + "</td>" +
-                                "<td style='text-align:center;'>" + statusPill + "</td>" +
-                                "<td style='text-align:center;'>" +
-                                  "<div style='display:inline-flex; align-items:center; gap:6px;'>" +
-                                    "<button class='adm-btn-action btn-edit' onclick='openAdminEditTutorModal(\"" + jsStr(t.phone) + "\")' title='Sửa thông tin'><i class='fa-solid fa-pen-to-square'></i> Sửa</button>" +
-                                    quickPayBtn +
-                                    lockBtn +
-                                  "</div>" +
-                                "</td>";
-                 tbody.appendChild(tr);
-                 
-                 // Mobile accordion view
-                 var mobilePayBtn = "";
-                 if (isDue && !isCurrentlyDeactivated) {
-                     mobilePayBtn = "<button class='adm-btn-action btn-pay' onclick='confirmQuickPaid(\"" + jsStr(t.phone) + "\", \"" + jsStr(t.name) + "\")' style='font-size:12px; padding:5px 12px;'><i class='fa-solid fa-check'></i> Xác nhận thu</button>";
-                 }
-                 var mobileLockBtn = isCurrentlyDeactivated ?
-                     "<button class='adm-btn-action btn-unlock' onclick='quickToggleTutorStatus(\"" + jsStr(t.phone) + "\", \"" + jsStr(t.name) + "\", true)' style='font-size:12px; padding:5px 12px;'><i class='fa-solid fa-unlock'></i> Mở</button>" :
-                     "<button class='adm-btn-action btn-lock' onclick='quickToggleTutorStatus(\"" + jsStr(t.phone) + "\", \"" + jsStr(t.name) + "\", false)' style='font-size:12px; padding:5px 12px;'><i class='fa-solid fa-lock'></i> Khóa</button>";
-                 var mobileEditBtn = "<button class='adm-btn-action btn-edit' onclick='openAdminEditTutorModal(\"" + jsStr(t.phone) + "\")' style='font-size:12px; padding:5px 12px;'><i class='fa-solid fa-pen-to-square'></i> Sửa</button>";
-                 
-                 mobileHtml += "<div class='accordion-item' style='" + (isCurrentlyDeactivated ? "border: 1px solid #FDE68A;" : (isDue ? "border: 1px solid #FECACA;" : "")) + "'>";
-                 mobileHtml += "  <div class='accordion-header' onclick='toggleAdminTutorAccordion(" + idx + ")'>";
-                 mobileHtml += "    <div class='accordion-header-title'>";
-                 mobileHtml += "      <span class='adm-avatar-circle' style='width:28px; height:28px; font-size:11px;'>" + escapeHtml(initials) + "</span>";
-                 mobileHtml += "      <span style='font-weight:700; color:#0F172A;'>" + escapeHtml(t.name) + "</span>";
-                 mobileHtml += "      " + statusPill;
-                 mobileHtml += "    </div>";
-                 mobileHtml += "    <div class='accordion-header-status'><i class='fa-solid fa-chevron-down' id='adm-tutor-chevron-" + idx + "'></i></div>";
-                 mobileHtml += "  </div>";
-                 mobileHtml += "  <div class='accordion-body' id='adm-tutor-body-" + idx + "' style='display: none;'>";
-                 mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Số điện thoại</span><span class='accordion-body-val'><div class='adm-phone-tag'><span>" + escapeHtml(t.phone) + "</span><button type='button' class='adm-copy-btn' onclick='copyPhoneToClipboard(\"" + jsStr(t.phone) + "\")'><i class='fa-regular fa-copy'></i></button></div></span></div>";
-                 mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Mã PIN</span><span class='accordion-body-val'><span class='adm-pin-badge'>" + escapeHtml(t.pin) + "</span></span></div>";
-                 mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Ngày đăng ký</span><span class='accordion-body-val'>" + escapeHtml(t.createdDate || "-") + "</span></div>";
-                 mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Ngày hạn kế</span><span class='accordion-body-val' style='" + (isDue ? "color:#DC2626; font-weight:bold;" : "color:#1E293B;") + "'>" + escapeHtml(t.nextBillingDate || "-") + "</span></div>";
-                 mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Số HS hoạt động</span><span class='accordion-body-val'><b>" + sCount + "</b></span></div>";
-                 mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Phí thuê Web</span><span class='accordion-body-val'><b style='color:#2563EB;'>" + webFee.toLocaleString('vi-VN') + "đ</b></span></div>";
-                 mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Hoạt động cuối</span><span class='accordion-body-val'>" + lastActiveDisplay + "</span></div>";
-                 mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Thao tác</span><span class='accordion-body-val' style='display:flex; gap:6px; flex-wrap:wrap;'>" + mobilePayBtn + mobileLockBtn + mobileEditBtn + "</span></div>";
-                 mobileHtml += "  </div>";
-                 mobileHtml += "</div>";
-            });
-            
-            if (mobileContainer) {
-                mobileContainer.innerHTML = mobileHtml;
-            }
+        
+        if (searchVal) {
+            var matchName = (t.name || "").toLowerCase().includes(searchVal);
+            var matchPhone = (t.phone || "").toLowerCase().includes(searchVal);
+            var matchEmail = (t.email || "").toLowerCase().includes(searchVal);
+            if (!matchName && !matchPhone && !matchEmail) return false;
         }
-
-        // 3. Students Management Tab
-        function renderAdminStudentsList() {
-            var tbody = document.querySelector('#adminStudentsTable tbody');
-            var mobileContainer = document.getElementById('adminStudentsMobile');
-            
-            if (!tbody) return;
-            tbody.innerHTML = "";
-            
-            if (!adminDataGlobal.students || adminDataGlobal.students.length === 0) {
-                tbody.innerHTML = "<tr><td colspan='7' style='text-align:center; color:#64748B; padding:30px;'>Không có học sinh nào trên hệ thống.</td></tr>";
-                if (mobileContainer) {
-                    mobileContainer.innerHTML = "<div style='text-align:center; color:#64748B; padding: 25px; font-size: 13px;'><i class='fa-solid fa-circle-info'></i> Không có học sinh nào trên hệ thống.</div>";
-                }
-                return;
-            }
-
-            // Lọc dữ liệu theo Search và Gia sư phụ trách
-            var searchInput = document.getElementById('adminStudentSearchInput');
-            var searchVal = searchInput ? searchInput.value.trim().toLowerCase() : "";
-            var tutorFilterEl = document.getElementById('adminStudentTutorFilter');
-            var tutorFilter = tutorFilterEl ? tutorFilterEl.value : "all";
-
-            var filteredStudents = adminDataGlobal.students.filter(st => {
-                if (tutorFilter !== "all" && normalizePhone(st.tutorPhone) !== normalizePhone(tutorFilter)) {
-                    return false;
-                }
-                if (searchVal) {
-                    var matchName = (st.name || "").toLowerCase().includes(searchVal);
-                    var matchParent = (st.parentName || "").toLowerCase().includes(searchVal);
-                    var matchPhone = (st.phone || "").toLowerCase().includes(searchVal);
-                    if (!matchName && !matchParent && !matchPhone) return false;
-                }
-                return true;
-            });
-
-            if (filteredStudents.length === 0) {
-                tbody.innerHTML = "<tr><td colspan='7' style='text-align:center; color:#64748B; padding:30px;'><i class='fa-solid fa-magnifying-glass'></i> Không tìm thấy học sinh nào phù hợp với bộ lọc.</td></tr>";
-                if (mobileContainer) {
-                    mobileContainer.innerHTML = "<div style='text-align:center; color:#64748B; padding: 25px; font-size: 13px;'><i class='fa-solid fa-magnifying-glass'></i> Không tìm thấy học sinh nào phù hợp với bộ lọc.</div>";
-                }
-                return;
-            }
-            
-            var mobileHtml = "";
-            filteredStudents.forEach((st, idx) => {
-                var isDeleted = !!st.deletedDate && st.deletedDate.trim() !== "";
-                var statusPill = isDeleted ?
-                    "<span class='adm-status-pill status-locked'><i class='fa-solid fa-trash-can'></i> Đã xóa (" + escapeHtml(st.deletedDate.split(" ")[0]) + ")</span>" :
-                    "<span class='adm-status-pill status-active'><i class='fa-solid fa-circle-check'></i> Hoạt động</span>";
-                
-                var tObj = adminDataGlobal.tutors ? adminDataGlobal.tutors.find(t => normalizePhone(t.phone) === normalizePhone(st.tutorPhone)) : null;
-                var tName = escapeHtml(tObj ? tObj.name : (st.tutorPhone || "Chưa gán"));
-                var stTuitionNum = Number(st.tuition) || 0;
-                var tuitionDisplay = escapeHtml(st.tuition != null && st.tuition.toLocaleString ? st.tuition.toLocaleString('vi-VN') : st.tuition);
-                var editStudentArgs = "\"" + jsStr(st.phone) + "\", \"" + jsStr(st.parentName) + "\", \"" + jsStr(st.name) + "\", " + stTuitionNum + ", \"" + jsStr(st.tutorPhone) + "\"";
-                var initials = getInitials(st.name);
-                
-                // Desktop
-                var tr = document.createElement('tr');
-                if (isDeleted) {
-                    tr.style.opacity = "0.7";
-                }
-                tr.innerHTML = "<td>" +
-                                 "<div class='adm-user-cell'>" +
-                                   "<span class='adm-avatar-circle' style='background:linear-gradient(135deg, #10B981, #059669);'>" + escapeHtml(initials) + "</span>" +
-                                   "<div style='font-weight:700; color:#0F172A; font-size:13.5px;'>" + escapeHtml(st.name) + "</div>" +
-                                 "</div>" +
-                               "</td>" +
-                               "<td><span style='color:#475569;'>" + escapeHtml(st.parentName || "-") + "</span></td>" +
-                               "<td>" +
-                                 "<div class='adm-phone-tag'>" +
-                                   "<span>" + escapeHtml(st.phone) + "</span>" +
-                                   "<button type='button' class='adm-copy-btn' onclick='copyPhoneToClipboard(\"" + jsStr(st.phone) + "\")' title='Sao chép SĐT'><i class='fa-regular fa-copy'></i></button>" +
-                                 "</div>" +
-                               "</td>" +
-                               "<td><b style='color:#2563EB; font-size:13px; font-weight:800;'>" + tuitionDisplay + "đ</b></td>" +
-                               "<td><span class='adm-tag-tutor'><i class='fa-solid fa-chalkboard-user'></i> " + tName + "</span></td>" +
-                               "<td>" + statusPill + "</td>" +
-                               "<td style='text-align:center;'>" +
-                                 "<button class='adm-btn-action btn-edit' onclick='openAdminEditStudentModal(" + editStudentArgs + ")' title='Sửa học sinh'><i class='fa-solid fa-pen-to-square'></i> Sửa</button>" +
-                               "</td>";
-                tbody.appendChild(tr);
-                
-                // Mobile
-                var editBtn = "<button class='adm-btn-action btn-edit' onclick='openAdminEditStudentModal(" + editStudentArgs + ")' style='font-size:12px; padding:5px 12px;'><i class='fa-solid fa-pen-to-square'></i> Chỉnh sửa</button>";
-                
-                mobileHtml += "<div class='accordion-item' style='" + (isDeleted ? "opacity: 0.75; border-color: #FDE68A;" : "") + "'>";
-                mobileHtml += "  <div class='accordion-header' onclick='toggleAdminStudentAccordion(" + idx + ")'>";
-                mobileHtml += "    <div class='accordion-header-title'>";
-                mobileHtml += "      <span class='adm-avatar-circle' style='width:28px; height:28px; font-size:11px; background:linear-gradient(135deg, #10B981, #059669);'>" + escapeHtml(initials) + "</span>";
-                mobileHtml += "      <span style='font-weight:700; color:#0F172A;'>" + escapeHtml(st.name) + "</span>";
-                mobileHtml += "      " + statusPill;
-                mobileHtml += "    </div>";
-                mobileHtml += "    <div class='accordion-header-status'><i class='fa-solid fa-chevron-down' id='adm-student-chevron-" + idx + "'></i></div>";
-                mobileHtml += "  </div>";
-                mobileHtml += "  <div class='accordion-body' id='adm-student-body-" + idx + "' style='display: none;'>";
-                mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Tên phụ huynh</span><span class='accordion-body-val'>" + escapeHtml(st.parentName || "-") + "</span></div>";
-                mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>SĐT Phụ Huynh</span><span class='accordion-body-val'><div class='adm-phone-tag'><span>" + escapeHtml(st.phone) + "</span><button type='button' class='adm-copy-btn' onclick='copyPhoneToClipboard(\"" + jsStr(st.phone) + "\")'><i class='fa-regular fa-copy'></i></button></div></span></div>";
-                mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Học phí/buổi</span><span class='accordion-body-val' style='font-weight:800; color:#2563EB;'>" + tuitionDisplay + "đ</span></div>";
-                mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Gia sư</span><span class='accordion-body-val'><span class='adm-tag-tutor'><i class='fa-solid fa-chalkboard-user'></i> " + tName + "</span></span></div>";
-                mobileHtml += "    <div class='accordion-body-row'><span class='accordion-body-label'>Thao tác</span><span class='accordion-body-val'>" + editBtn + "</span></div>";
-                mobileHtml += "  </div>";
-                mobileHtml += "</div>";
-            });
-            
-            if (mobileContainer) {
-                mobileContainer.innerHTML = mobileHtml;
-            }
-        }
-
-        // --- Admin Modals ---
-        function openAdminAccountModal() {
-            var adminInfo = (adminDataGlobal && adminDataGlobal.adminInfo) ? adminDataGlobal.adminInfo : {};
-            document.getElementById('adminAccName').value = adminInfo.name || "Quản trị viên";
-            document.getElementById('adminAccPhone').value = adminInfo.phone || currentAdminPhone || "";
-            document.getElementById('adminAccPin').value = adminInfo.pin || sessionStorage.getItem('userPin') || "";
-            document.getElementById('adminAccountModal').style.display = "flex";
-        }
-        function closeAdminAccountModal() {
-            document.getElementById('adminAccountModal').style.display = "none";
-        }
-        function saveAdminAccount() {
-            var name = document.getElementById('adminAccName').value.trim();
-            var phone = document.getElementById('adminAccPhone').value.trim();
-            var pin = document.getElementById('adminAccPin').value.trim();
-            
-            if (!name || !phone || !pin) {
-                showToast("Vui lòng nhập đầy đủ thông tin!", "error");
-                return;
-            }
-            
-            var btn = document.getElementById('btnSaveAdminAccount');
-            btn.disabled = true;
-            btn.innerText = "Đang lưu...";
-            
-            google.script.run
-                .withSuccessHandler(function(res) {
-                    btn.disabled = false;
-                    btn.innerText = "Cập nhật";
-                    if (res.error) {
-                        showToast("Lỗi: " + res.error, "error");
-                    } else {
-                        showToast("Cập nhật tài khoản Admin thành công!", "success");
-                        currentAdminPhone = phone;
-                        sessionStorage.setItem('userPhone', phone);
-                        sessionStorage.setItem('userPin', pin);
-                        if (document.getElementById('maPin')) document.getElementById('maPin').value = pin;
-                        if (adminDataGlobal && adminDataGlobal.adminInfo) {
-                            adminDataGlobal.adminInfo.name = name;
-                            adminDataGlobal.adminInfo.phone = phone;
-                            adminDataGlobal.adminInfo.pin = pin;
-                        }
-                        var adminNameEl = document.getElementById('adminNameDisplay');
-                        if (adminNameEl) adminNameEl.innerText = "Xin chào, " + name;
-                        closeAdminAccountModal();
-                        refreshAdminDashboard();
-                    }
-                })
-                .withFailureHandler(function(err) {
-                    btn.disabled = false;
-                    btn.innerText = "Cập nhật";
-                    showToast("Lỗi kết nối: " + err.toString(), "error");
-                })
-                .adminCapNhatTaiKhoanAdmin(currentAdminPhone, name, phone, pin);
-        }
-
-        // Admin Edit Tutor Modal
-        function openAdminAddTutorModal() {
-            document.getElementById('adminTutorModalTitle').innerHTML = '<i class="fa-solid fa-chalkboard-user"></i> Thêm Gia Sư Mới';
-            document.getElementById('adminTutorOldPhone').value = "";
-            document.getElementById('adminTutorName').value = "";
-            document.getElementById('adminTutorPhone').value = "";
-            document.getElementById('adminTutorPin').value = "";
-            document.getElementById('adminTutorQrUrl').value = "";
-            document.getElementById('adminTutorCreatedDate').value = "";
-            document.getElementById('adminTutorNextBillingDate').value = "";
-            document.getElementById('btnDeleteAdminTutor').style.display = "none";
-            document.getElementById('btnDeactivateAdminTutor').style.display = "none";
-            document.getElementById('adminEditTutorModal').style.display = "flex";
+        return true;
+    });
+    
+    if (filteredTutors.length === 0) {
+        tbody.innerHTML = "<tr><td colspan='10' style='text-align:center; color:#64748B; padding:30px;'><i class='fa-solid fa-magnifying-glass'></i> Không tìm thấy gia sư nào phù hợp với bộ lọc.</td></tr>";
+        if (mobileContainer) mobileContainer.innerHTML = "<div style='text-align:center; color:#64748B; padding: 25px; font-size: 13px;'><i class='fa-solid fa-magnifying-glass'></i> Không tìm thấy gia sư nào phù hợp.</div>";
+        return;
+    }
+    
+    var mobileHtml = "";
+    filteredTutors.forEach((t, idx) => {
+        var sCount = t.studentCount || 0;
+        var feeInfo = calculateTutorWebFee(sCount, t.customFee);
+        var isDeact = (t.status === "Vô hiệu hóa");
+        var isDue = isBillingDue(t.nextBillingDate) && !isDeact;
+        var initials = getInitials(t.name);
+        
+        // Status pill
+        var statusPill = "";
+        if (isDeact) {
+            statusPill = "<span class='adm-status-pill status-locked'><i class='fa-solid fa-ban'></i> Đã khóa</span>";
+        } else if (t.status === 'Hết hạn dùng thử') {
+            statusPill = "<span class='adm-status-pill' style='background:#FEF2F2; color:#DC2626; border:1px solid #FECACA;'><i class='fa-solid fa-lock'></i> Hết hạn thử</span>";
+        } else if (t.status === 'Hết hạn sử dụng') {
+            statusPill = "<span class='adm-status-pill' style='background:#FEF2F2; color:#DC2626; border:1px solid #FECACA;'><i class='fa-solid fa-hourglass-end'></i> Hết hạn 30 ngày</span>";
+        } else if (isDue) {
+            statusPill = "<span class='adm-status-pill status-due'><i class='fa-solid fa-triangle-exclamation'></i> Sắp hết hạn</span>";
+        } else if (t.isTrial || (t.accountType || '').includes('dùng thử')) {
+            statusPill = "<span class='adm-status-pill' style='background:#EFF6FF; color:#2563EB; border:1px solid #BFDBFE;'><i class='fa-solid fa-clock'></i> Dùng thử</span>";
+        } else {
+            statusPill = "<span class='adm-status-pill status-active'><i class='fa-solid fa-circle-check'></i> Hoạt động</span>";
         }
         
-        function openAdminEditTutorModal(phone) {
-            var tutor = (adminDataGlobal && adminDataGlobal.tutors) ? adminDataGlobal.tutors.find(t => t.phone === phone || normalizePhone(t.phone) === normalizePhone(phone)) : null;
-            if (!tutor) return;
-            
-            document.getElementById('adminTutorModalTitle').innerHTML = '<i class="fa-solid fa-chalkboard-user"></i> Sửa Thông Tin Gia Sư';
-            document.getElementById('adminTutorOldPhone').value = tutor.phone;
-            document.getElementById('adminTutorName').value = tutor.name;
-            document.getElementById('adminTutorPhone').value = tutor.phone;
-            document.getElementById('adminTutorPin').value = tutor.pin;
-            document.getElementById('adminTutorQrUrl').value = tutor.qrUrl || "";
-            document.getElementById('adminTutorCreatedDate').value = tutor.createdDate || "";
-            document.getElementById('adminTutorNextBillingDate').value = tutor.nextBillingDate || "";
-            document.getElementById('btnDeleteAdminTutor').style.display = "flex";
-            
-            // Thiết lập nút Vô hiệu hóa
-            var btnDeact = document.getElementById('btnDeactivateAdminTutor');
-            if (btnDeact) {
-                btnDeact.style.display = "flex";
-                if (tutor.status === "Vô hiệu hóa") {
-                    btnDeact.innerHTML = '<i class="fa-solid fa-user-check"></i> Kích hoạt lại';
-                    btnDeact.style.background = "#ECFDF5";
-                    btnDeact.style.border = "1px solid #A7F3D0";
-                    btnDeact.style.color = "#059669";
-                } else {
-                    btnDeact.innerHTML = '<i class="fa-solid fa-user-slash"></i> Vô hiệu hóa';
-                    btnDeact.style.background = "#FFFBEB";
-                    btnDeact.style.border = "1px solid #FDE68A";
-                    btnDeact.style.color = "#D97706";
-                }
-            }
-            
-            document.getElementById('adminEditTutorModal').style.display = "flex";
-        }
+        var lockBtn = isDeact ?
+            `<button class='adm-btn-action btn-unlock' onclick='quickToggleTutorStatus("${jsStr(t.phone)}", "${jsStr(t.name)}", true)' title='Mở khóa'><i class='fa-solid fa-unlock'></i> Mở</button>` :
+            `<button class='adm-btn-action btn-lock' onclick='quickToggleTutorStatus("${jsStr(t.phone)}", "${jsStr(t.name)}", false)' title='Khóa tài khoản'><i class='fa-solid fa-lock'></i> Khóa</button>`;
         
-        function closeAdminEditTutorModal() {
-            document.getElementById('adminEditTutorModal').style.display = "none";
-        }
+        var renewBtn = `<button class='adm-btn-action btn-pay' onclick='openAdminRenewModal("${jsStr(t.phone)}")' title='Gia hạn dịch vụ'><i class='fa-solid fa-crown'></i> Gia hạn</button>`;
+        var editBtn = `<button class='adm-btn-action btn-edit' onclick='openAdminEditTutorModal("${jsStr(t.phone)}")' title='Sửa thông tin'><i class='fa-solid fa-pen-to-square'></i> Sửa</button>`;
         
-        function saveAdminTutor() {
-            var oldPhone = document.getElementById('adminTutorOldPhone').value;
-            var name = document.getElementById('adminTutorName').value.trim();
-            var phone = document.getElementById('adminTutorPhone').value.trim();
-            var pin = document.getElementById('adminTutorPin').value.trim();
-            var qrUrl = document.getElementById('adminTutorQrUrl').value.trim();
-            var createdDate = document.getElementById('adminTutorCreatedDate').value.trim();
-            var nextBillingDate = document.getElementById('adminTutorNextBillingDate').value.trim();
-            
-            if(!name || !phone || !pin) {
-                showToast("Vui lòng điền đầy đủ các ô!", "error");
-                return;
-            }
-            
-            var btn = document.getElementById('btnSaveAdminTutor');
-            btn.disabled = true;
-            btn.innerText = "Đang lưu...";
-            
-            google.script.run
-                .withSuccessHandler(function(res) {
-                    btn.disabled = false;
-                    btn.innerText = "Lưu lại";
-                    if(res.error) {
-                        showToast("Lỗi: " + res.error, "error");
-                    } else {
-                        showToast("Lưu thông tin gia sư thành công!", "success");
-                        closeAdminEditTutorModal();
-                        refreshAdminDashboard();
-                    }
-                })
-                .withFailureHandler(function(err) {
-                    btn.disabled = false;
-                    btn.innerText = "Lưu lại";
-                    showToast("Lỗi kết nối: " + err.toString(), "error");
-                })
-                .adminLuuGiaSu(oldPhone, name, phone, pin, qrUrl, createdDate, nextBillingDate);
-        }
-
-        // Xóa/Khôi phục & Thùng rác Gia sư JS Controllers
-        function confirmDeleteAdminTutor() {
-            pinVerifyAction = "deleteTutor";
-            var desc = document.getElementById('confirmPinModalText');
-            if (desc) desc.innerText = "Vui lòng nhập mã PIN Admin để xác nhận đưa gia sư vào thùng rác.";
-            document.getElementById('confirmTutorPinInput').value = "";
-            document.getElementById('pinConfirmModal').style.display = "flex";
-        }
-
-        function closePinConfirmModal() {
-            document.getElementById('pinConfirmModal').style.display = "none";
-        }
-
-        function submitPinVerifyForDelete() {
-            var inputPin = document.getElementById('confirmTutorPinInput').value.trim();
-            var adminPin = (document.getElementById('maPin') ? document.getElementById('maPin').value.trim() : "") || sessionStorage.getItem('userPin') || (adminDataGlobal && adminDataGlobal.adminInfo ? adminDataGlobal.adminInfo.pin : "") || "";
-            var currentAdminTutor = (adminDataGlobal && adminDataGlobal.tutors) ? adminDataGlobal.tutors.find(t => t.phone === currentAdminPhone) : null;
-            var validPin = adminPin || (currentAdminTutor ? currentAdminTutor.pin : "");
-            
-            if (inputPin && (inputPin === validPin || inputPin === adminPin || (currentAdminTutor && inputPin === currentAdminTutor.pin))) {
-                closePinConfirmModal();
-                if (pinVerifyAction === "deleteTutor") {
-                    closeAdminEditTutorModal();
-                    deleteTutorBackend();
-                } else if (pinVerifyAction === "deleteStudent") {
-                    closeAdminEditStudentModal();
-                    deleteStudentBackend();
-                }
-            } else {
-                showToast("Mã PIN xác thực của Admin không chính xác!", "error");
-            }
-        }
-
-        function deleteTutorBackend() {
-             var phone = document.getElementById('adminTutorOldPhone').value;
-             var name = document.getElementById('adminTutorName').value;
-             
-             showCustomConfirm("Xác nhận đưa gia sư " + name + " vào thùng rác? Gia sư sẽ ẩn khỏi danh sách và sẽ bị xóa vĩnh viễn sau 10 ngày.", function() {
-                 google.script.run
-                     .withSuccessHandler(function(res) {
-                         if (res.error) {
-                             showToast("Lỗi: " + res.error, "error");
-                         } else {
-                             showToast("Đã đưa gia sư vào thùng rác thành công!", "success");
-                             refreshAdminDashboard();
-                         }
-                     })
-                     .withFailureHandler(function(err) {
-                         showToast("Lỗi kết nối hoặc hệ thống: " + err.toString(), "error");
-                     })
-                     .xoaGiaSuTamThoi(phone);
-             });
-         }
-
-        function openTutorTrashModal() {
-            renderTrashTutorList();
-            document.getElementById('tutorTrashModal').style.display = "flex";
-        }
-
-        function closeTutorTrashModal() {
-            document.getElementById('tutorTrashModal').style.display = "none";
-        }
-
-        function restoreTutor(phone) {
-            google.script.run
-                .withSuccessHandler(function(res) {
-                    if (res.error) {
-                        showToast("Lỗi: " + res.error, "error");
-                    } else {
-                        showToast("Khôi phục gia sư thành công!", "success");
-                        closeTutorTrashModal();
-                        refreshAdminDashboard();
-                    }
-                })
-                .withFailureHandler(function(err) {
-                    showToast("Lỗi kết nối hoặc hệ thống: " + err.toString(), "error");
-                })
-                .khoiPhucGiaSu(phone);
-        }
-
-        function renderTrashTutorList() {
-            var container = document.getElementById('trashTutorList');
-            if (!container) return;
-            container.innerHTML = "";
-            
-            var deletedTutors = adminDataGlobal.deletedTutors || [];
-            if (deletedTutors.length === 0) {
-                container.innerHTML = "<p style='text-align:center; color:#64748B; padding: 20px 0;'>Thùng rác trống.</p>";
-                return;
-            }
-            
-            deletedTutors.forEach(t => {
-                var card = document.createElement('div');
-                card.className = "trash-student-card";
-                card.style.display = "flex";
-                card.style.justify = "space-between";
-                card.style.alignItems = "center";
-                card.style.background = "#F8FAFC";
-                card.style.padding = "12px 16px";
-                card.style.borderRadius = "12px";
-                card.style.border = "1px solid #E2E8F0";
-                
-                var info = document.createElement('div');
-                info.innerHTML = "<p style='margin:0; color:#0F172A; font-weight:bold;'>" + escapeHtml(t.name) + "</p>" +
-                                 "<p style='margin:3px 0 0; color:#64748B; font-size:12px;'>SĐT: " + escapeHtml(t.phone) + " | Đã xóa: " + escapeHtml(t.deletedDate.split(" ")[0]) + "</p>";
-                
-                var btnRestore = document.createElement('button');
-                btnRestore.className = "btn-primary-gradient";
-                btnRestore.style.padding = "6px 14px";
-                btnRestore.style.fontSize = "12px";
-                btnRestore.style.borderRadius = "10px";
-                btnRestore.innerHTML = "<i class='fa-solid fa-trash-arrow-up'></i> Khôi phục";
-                btnRestore.onclick = function() {
-                    restoreTutor(t.phone);
-                };
-                
-                card.appendChild(info);
-                card.appendChild(btnRestore);
-                container.appendChild(card);
-            });
-        }
-
-        // Admin Edit Student Modal
-        function openAdminAddStudentModal() {
-            var btnDel = document.getElementById('btnDeleteAdminStudent');
-            if (btnDel) btnDel.style.display = "none";
-            document.getElementById('adminStudentModalTitle').innerHTML = '<i class="fa-solid fa-user-graduate"></i> Thêm Học Sinh Mới';
-            document.getElementById('adminStudentOldPhone').value = "";
-            document.getElementById('adminStudentParentName').value = "";
-            document.getElementById('adminStudentName').value = "";
-            document.getElementById('adminStudentPhone').value = "";
-            document.getElementById('adminStudentTuition').value = "";
-            
-            populateAdminTutorSelect("");
-            document.getElementById('adminEditStudentModal').style.display = "flex";
-        }
-
-        function openAdminEditStudentModal(phone, parentName, name, tuition, tutorPhone) {
-            var btnDel = document.getElementById('btnDeleteAdminStudent');
-            if (btnDel) btnDel.style.display = "flex";
-            document.getElementById('adminStudentModalTitle').innerHTML = '<i class="fa-solid fa-user-graduate"></i> Sửa Thông Tin Học Sinh';
-            document.getElementById('adminStudentOldPhone').value = phone;
-            document.getElementById('adminStudentParentName').value = parentName;
-            document.getElementById('adminStudentName').value = name;
-            document.getElementById('adminStudentPhone').value = phone;
-            document.getElementById('adminStudentTuition').value = tuition ? formatNumberWithDots(tuition) : "";
-            
-            populateAdminTutorSelect(tutorPhone);
-            document.getElementById('adminEditStudentModal').style.display = "flex";
-        }
-
-        function closeAdminEditStudentModal() {
-            document.getElementById('adminEditStudentModal').style.display = "none";
-        }
-
-        function populateAdminTutorSelect(selectedPhone) {
-            var select = document.getElementById('adminStudentTutorSelect');
-            if(!select) return;
-            select.innerHTML = '<option value="">-- Chọn Gia Sư Phụ Trách --</option>';
-            
-            adminDataGlobal.tutors.forEach(t => {
-                var opt = document.createElement('option');
-                opt.value = t.phone;
-                opt.innerText = t.name + " (" + t.phone + ")";
-                if (t.phone === selectedPhone) {
-                    opt.selected = true;
-                }
-                select.appendChild(opt);
-            });
-        }
-
+        var tr = document.createElement('tr');
+        if (isDeact) tr.style.opacity = "0.75";
         
-        function confirmDeleteAdminStudent() {
-            pinVerifyAction = "deleteStudent";
-            var desc = document.getElementById('confirmPinModalText');
-            if (desc) desc.innerText = "Vui lòng nhập mã PIN Admin để xác nhận đưa học sinh vào thùng rác.";
-            document.getElementById('confirmTutorPinInput').value = "";
-            document.getElementById('pinConfirmModal').style.display = "flex";
-        }
-
-        function deleteStudentBackend() {
-             var phone = document.getElementById('adminStudentOldPhone').value;
-             var name = document.getElementById('adminStudentName').value;
-             
-             showCustomConfirm("Xác nhận đưa học sinh " + name + " vào thùng rác? Học sinh sẽ ẩn khỏi danh sách và sẽ bị xóa vĩnh viễn sau 10 ngày.", function() {
-                 google.script.run
-                     .withSuccessHandler(function(res) {
-                         if (res.error) {
-                             showToast("Lỗi: " + res.error, "error");
-                         } else {
-                             showToast("Đã đưa học sinh vào thùng rác thành công!", "success");
-                             refreshAdminDashboard();
-                         }
-                     })
-                     .withFailureHandler(function(err) {
-                         showToast("Lỗi kết nối hoặc hệ thống: " + err.toString(), "error");
-                     })
-                     .adminXoaHocSinhTamThoi(phone);
-             });
-        }
-
-        function saveAdminStudent() {
-            var oldPhone = document.getElementById('adminStudentOldPhone').value;
-            var parentName = document.getElementById('adminStudentParentName').value.trim();
-            var studentName = document.getElementById('adminStudentName').value.trim();
-            var phone = document.getElementById('adminStudentPhone').value.trim();
-            var tuition = document.getElementById('adminStudentTuition').value.trim();
-            var tutorPhone = document.getElementById('adminStudentTutorSelect').value;
-            
-            if(!parentName || !studentName || !phone || !tuition || !tutorPhone) {
-                showToast("Vui lòng điền và chọn đầy đủ thông tin!", "error");
-                return;
-            }
-            
-            var btn = document.getElementById('btnSaveAdminStudent');
-            btn.disabled = true;
-            btn.innerText = "Đang lưu...";
-            
-            google.script.run
-                .withSuccessHandler(function(res) {
-                    btn.disabled = false;
-                    btn.innerText = "Lưu lại";
-                    if(res.error) {
-                        showToast("Lỗi: " + res.error, "error");
-                    } else {
-                        showToast("Lưu thông tin học sinh thành công!", "success");
-                        closeAdminEditStudentModal();
-                        refreshAdminDashboard();
-                    }
-                })
-                .withFailureHandler(function(err) {
-                    btn.disabled = false;
-                    btn.innerText = "Lưu lại";
-                    showToast("Lỗi kết nối: " + err.toString(), "error");
-                })
-                .adminLuuHocSinh(oldPhone, parentName, studentName, phone, parseFloat(String(tuition).replace(/\D/g, '')) || 0, tutorPhone);
-        }
-
-        function refreshAdminDashboard(silent) {
-            var refreshBtn = document.getElementById('btnRefreshAdmin');
-            if (refreshBtn) {
-                refreshBtn.innerHTML = '<i class="fa-solid fa-arrows-rotate fa-spin"></i> Đang tải...';
-            }
-            if (!silent && typeof showToast === 'function') {
-                showToast("Đang đồng bộ dữ liệu mới nhất...", "info");
-            }
-            
-            var phone = sessionStorage.getItem('userPhone') || (document.getElementById('maHocSinh') ? document.getElementById('maHocSinh').value : "") || "";
-            var pin = sessionStorage.getItem('userPin') || (document.getElementById('maPin') ? document.getElementById('maPin').value : "") || "";
-
-            google.script.run
-                .withSuccessHandler(function(res) {
-                    if (refreshBtn) {
-                        refreshBtn.innerHTML = '<i class="fa-solid fa-arrows-rotate"></i> Làm mới';
-                    }
-                    if (res && res.error) {
-                        if (typeof showToast === 'function') showToast(res.error, "error");
-                        if (res.error.includes("Từ chối truy cập")) {
-                            var cached = sessionStorage.getItem('dashboardData');
-                            if (!cached) {
-                                setTimeout(function() { window.location.href = 'tutor-login.html'; }, 1500);
-                            }
-                        }
-                        return;
-                    }
-                    var data = (res && res.data) ? res.data : res;
-                    if (data && (data.tutors || data.students)) {
-                        sessionStorage.setItem('dashboardData', JSON.stringify(data));
-                        renderAdminView(data);
-                        if (!silent && typeof showToast === 'function') {
-                            showToast("Đã cập nhật dữ liệu mới nhất!", "success");
-                        }
-                    }
-                })
-                .withFailureHandler(function(err) {
-                    if (refreshBtn) {
-                        refreshBtn.innerHTML = '<i class="fa-solid fa-arrows-rotate"></i> Làm mới';
-                    }
-                    console.warn("Lỗi làm mới dashboard admin:", err);
-                    if (!silent && typeof showToast === 'function') {
-                        showToast("Lỗi làm mới: " + err.toString(), "error");
-                    }
-                })
-                .getAdminDashboardData(phone, pin);
-        }
-
-        // Các hàm phụ trợ hóa đơn của Gia sư đã được di chuyển sang đúng file js/tutor.js.
+        tr.innerHTML = `
+            <td>
+                <div class='adm-user-cell'>
+                    <span class='adm-avatar-circle'>${escapeHtml(initials)}</span>
+                    <div>
+                        <div style='font-weight:700; color:#0F172A; font-size:13.5px;'>${escapeHtml(t.name)}</div>
+                        <div style='font-size:11.5px; color:#64748B;'>${escapeHtml(t.subjects || 'Gia sư')}</div>
+                    </div>
+                </div>
+            </td>
+            <td>
+                <div class='adm-phone-tag'>
+                    <span>${escapeHtml(t.phone)}</span>
+                    <button type='button' class='adm-copy-btn' onclick='copyPhoneToClipboard("${jsStr(t.phone)}")'><i class='fa-regular fa-copy'></i></button>
+                </div>
+            </td>
+            <td><span style='font-size:12.5px; color:#475569;'>${escapeHtml(t.email || '-')}</span></td>
+            <td><span style='font-size:12px; background:#F1F5F9; padding:2px 8px; border-radius:6px; font-weight:600;'>${escapeHtml(t.referralCenter || 'Tự đăng ký')}</span></td>
+            <td style='text-align:center;'><span style='font-weight:700; color:#0F172A; background:#F1F5F9; border:1px solid #E2E8F0; padding:3px 10px; border-radius:8px;'>${sCount}</span></td>
+            <td><b style='color:${feeInfo.isCustom ? "#D97706" : "#2563EB"}; font-size:13px;'>${escapeHtml(feeInfo.text)}</b></td>
+            <td>
+                <span class='adm-due-badge${isDue ? " is-due" : ""}'>
+                    <i class='${isDue ? "fa-solid fa-triangle-exclamation" : "fa-regular fa-calendar-check"}'></i>
+                    ${escapeHtml(t.nextBillingDate || "-")}
+                </span>
+            </td>
+            <td style='font-size:11.5px; color:#64748B;'>${escapeHtml(t.lastActive || "Chưa vào")}</td>
+            <td style='text-align:center;'>${statusPill}</td>
+            <td style='text-align:center;'>
+                <div style='display:inline-flex; align-items:center; gap:5px;'>
+                    ${renewBtn}
+                    ${editBtn}
+                    ${lockBtn}
+                </div>
+            </td>
+        `;
+        tbody.appendChild(tr);
         
-        function isSinglePageApp() {
-            return (document.getElementById('mainScreen') !== null);
-        }
+        // Mobile card view
+        mobileHtml += `
+            <div class='accordion-item' style='border:1px solid ${isDeact ? "#FDE68A" : (isDue ? "#FECACA" : "#E2E8F0")}; margin-bottom:10px; border-radius:14px; background:#fff; overflow:hidden;'>
+                <div class='accordion-header' onclick='toggleAdminTutorAccordion(${idx})' style='padding:12px 14px; display:flex; justify-content:space-between; align-items:center; cursor:pointer;'>
+                    <div style='display:flex; align-items:center; gap:10px;'>
+                        <span class='adm-avatar-circle' style='width:32px; height:32px; font-size:12px;'>${escapeHtml(initials)}</span>
+                        <div>
+                            <div style='font-weight:700; color:#0F172A; font-size:13.5px;'>${escapeHtml(t.name)}</div>
+                            <div style='font-size:11.5px; color:#64748B;'>${escapeHtml(t.phone)} · ${sCount} HS</div>
+                        </div>
+                    </div>
+                    <div style='display:flex; align-items:center; gap:8px;'>
+                        ${statusPill}
+                        <i class='fa-solid fa-chevron-down' id='adm-tutor-chevron-${idx}' style='color:#94A3B8; font-size:12px;'></i>
+                    </div>
+                </div>
+                <div class='accordion-body' id='adm-tutor-body-${idx}' style='display:none; padding:12px 14px; border-top:1px solid #F1F5F9; background:#FAFBFD;'>
+                    <div style='font-size:12.5px; color:#475569; display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:12px;'>
+                        <div>Email: <b>${escapeHtml(t.email || '-')}</b></div>
+                        <div>Nguồn: <b>${escapeHtml(t.referralCenter || 'Tự đăng ký')}</b></div>
+                        <div>Bậc phí: <b style='color:#2563EB;'>${escapeHtml(feeInfo.text)}</b></div>
+                        <div>Hạn dùng: <b style='color:${isDue ? "#DC2626" : "#0F172A"};'>${escapeHtml(t.nextBillingDate || '-')}</b></div>
+                    </div>
+                    <div style='display:flex; gap:8px;'>
+                        <button onclick='openAdminRenewModal("${jsStr(t.phone)}")' class='adm-btn-action btn-pay' style='flex:1; justify-content:center; padding:7px;'><i class='fa-solid fa-crown'></i> Gia hạn</button>
+                        <button onclick='openAdminEditTutorModal("${jsStr(t.phone)}")' class='adm-btn-action btn-edit' style='flex:1; justify-content:center; padding:7px;'><i class='fa-solid fa-pen-to-square'></i> Sửa</button>
+                        <button onclick='quickToggleTutorStatus("${jsStr(t.phone)}", "${jsStr(t.name)}", ${isDeact})' class='adm-btn-action ${isDeact ? "btn-unlock" : "btn-lock"}' style='padding:7px 12px;'>${isDeact ? "Mở" : "Khóa"}</button>
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+    if (mobileContainer) mobileContainer.innerHTML = mobileHtml;
+}
 
-        function quayLai() {
-            if (adminRevenueChartInstance) {
-                adminRevenueChartInstance.destroy();
-                adminRevenueChartInstance = null;
-            }
-            sessionStorage.clear();
-            if (isSinglePageApp()) {
-                var adminDb = document.getElementById('adminDashboardBox');
-                if (adminDb) adminDb.style.display = 'none';
-                var mainScr = document.getElementById('mainScreen');
-                if (mainScr) mainScr.style.display = 'flex';
-                navigateToPage('tutor');
-            } else {
-                window.location.href = 'tutor-login.html';
-            }
-        }
-
-        function toggleAdminTutorBreakdownAccordion(idx) {
-            var body = document.getElementById('adm-tutor-bd-body-' + idx);
-            if (!body) return;
-            var item = body.closest('.accordion-item');
-            var chevron = document.getElementById('adm-tutor-bd-chevron-' + idx);
-            
-            if (body.style.display === 'block') {
-                body.style.display = 'none';
-                if (item) item.classList.remove('active');
-                if (chevron) {
-                    chevron.classList.remove('fa-chevron-up');
-                    chevron.classList.add('fa-chevron-down');
-                }
-            } else {
-                body.style.display = 'block';
-                if (item) item.classList.add('active');
-                if (chevron) {
-                    chevron.classList.remove('fa-chevron-down');
-                    chevron.classList.add('fa-chevron-up');
-                }
-            }
-        }
-
-        function toggleAdminReportAccordion(idx) {
-            var body = document.getElementById('adm-report-body-' + idx);
-            if (!body) return;
-            var item = body.closest('.accordion-item');
-            var chevron = document.getElementById('adm-report-chevron-' + idx);
-            
-            if (body.style.display === 'block') {
-                body.style.display = 'none';
-                if (item) item.classList.remove('active');
-                if (chevron) {
-                    chevron.classList.remove('fa-chevron-up');
-                    chevron.classList.add('fa-chevron-down');
-                }
-            } else {
-                body.style.display = 'block';
-                if (item) item.classList.add('active');
-                if (chevron) {
-                    chevron.classList.remove('fa-chevron-down');
-                    chevron.classList.add('fa-chevron-up');
-                }
-            }
-        }
-
-        function toggleAdminTutorAccordion(idx) {
-            var body = document.getElementById('adm-tutor-body-' + idx);
-            if (!body) return;
-            var item = body.closest('.accordion-item');
-            var chevron = document.getElementById('adm-tutor-chevron-' + idx);
-            
-            if (body.style.display === 'block') {
-                body.style.display = 'none';
-                if (item) item.classList.remove('active');
-                if (chevron) {
-                    chevron.classList.remove('fa-chevron-up');
-                    chevron.classList.add('fa-chevron-down');
-                }
-            } else {
-                body.style.display = 'block';
-                if (item) item.classList.add('active');
-                if (chevron) {
-                    chevron.classList.remove('fa-chevron-down');
-                    chevron.classList.add('fa-chevron-up');
-                }
-            }
-        }
-
-        function toggleAdminStudentAccordion(idx) {
-            var body = document.getElementById('adm-student-body-' + idx);
-            if (!body) return;
-            var item = body.closest('.accordion-item');
-            var chevron = document.getElementById('adm-student-chevron-' + idx);
-            
-            if (body.style.display === 'block') {
-                body.style.display = 'none';
-                if (item) item.classList.remove('active');
-                if (chevron) {
-                    chevron.classList.remove('fa-chevron-up');
-                    chevron.classList.add('fa-chevron-down');
-                }
-            } else {
-                body.style.display = 'block';
-                if (item) item.classList.add('active');
-                if (chevron) {
-                    chevron.classList.remove('fa-chevron-down');
-                    chevron.classList.add('fa-chevron-up');
-                }
-            }
-        }
-
-        // --- Cải tiến Admin quản lý Phí thuê Web và Marquee ---
-        function confirmQuickPaid(phone, name) {
-            showCustomConfirm("Xác nhận đã nhận tiền thuê Web của gia sư " + name + " cho chu kỳ này và tự động gia hạn thêm 1 tháng?", function() {
-                showToast("Đang cập nhật lên hệ thống...", "info");
-                google.script.run
-                    .withSuccessHandler(function(res) {
-                        if (res.error) {
-                            showToast("Lỗi: " + res.error, "error");
-                        } else {
-                            showToast("Xác nhận đóng phí thuê web và gia hạn thành công!", "success");
-                            
-                            // Cập nhật ngay trên cache cục bộ để giao diện đổi tức thì
-                            if (adminDataGlobal && adminDataGlobal.tutors) {
-                                var t = adminDataGlobal.tutors.find(x => x.phone === phone || normalizePhone(x.phone) === normalizePhone(phone));
-                                if (t) {
-                                    if (res.nextDue) t.nextBillingDate = res.nextDue;
-                                    t.status = "Hoạt động";
-                                }
-                                sessionStorage.setItem('dashboardData', JSON.stringify(adminDataGlobal));
-                                renderAdminTutorsList();
-                            }
-                            
-                            refreshAdminDashboard();
-                        }
-                    })
-                    .withFailureHandler(function(err) {
-                        showToast("Lỗi kết nối: " + err.toString(), "error");
-                    })
-                    .adminXacNhanDongTienTutor(phone);
-            });
-        }
-
-        // Hàm chuyển đổi trạng thái Vô hiệu hóa / Kích hoạt lại gia sư
-         function toggleTutorDeactivateStatus() {
-             var phone = document.getElementById('adminTutorOldPhone').value;
-             var name = document.getElementById('adminTutorName').value;
-             var tutor = (adminDataGlobal && adminDataGlobal.tutors) ? adminDataGlobal.tutors.find(t => t.phone === phone || normalizePhone(t.phone) === normalizePhone(phone)) : null;
-             if (!tutor) return;
-             
-             var isCurrentlyDeactivated = (tutor.status === 'Vô hiệu hóa');
-             var newStatus = isCurrentlyDeactivated ? 'Hoạt động' : 'Vô hiệu hóa';
-             var actionText = isCurrentlyDeactivated ? 'kích hoạt lại' : 'vô hiệu hóa';
-             
-             showCustomConfirm('Xác nhận ' + actionText + ' tài khoản gia sư ' + name + '?', function() {
-                 showToast('Đang cập nhật trạng thái gia sư...', 'info');
-                 google.script.run
-                     .withSuccessHandler(function(res) {
-                         if (res.error) {
-                             showToast('Lỗi: ' + res.error, 'error');
-                         } else {
-                             showToast((isCurrentlyDeactivated ? 'Kích hoạt lại' : 'Vô hiệu hóa') + ' tài khoản gia sư thành công!', 'success');
-                             closeAdminEditTutorModal();
-                             refreshAdminDashboard();
-                         }
-                     })
-                     .withFailureHandler(function(err) {
-                         showToast('Lỗi kết nối: ' + err.toString(), 'error');
-                     })
-                     .adminSetTutorStatus(phone, newStatus);
-             });
-         }
-
-         function quickToggleTutorStatus(phone, name, isCurrentlyDeactivated) {
-             var actionText = isCurrentlyDeactivated ? 'kích hoạt lại' : 'vô hiệu hóa';
-             var newStatus = isCurrentlyDeactivated ? 'Hoạt động' : 'Vô hiệu hóa';
-             
-             showCustomConfirm('Xác nhận ' + actionText + ' tài khoản gia sư ' + name + '?', function() {
-                 showToast('Đang cập nhật trạng thái gia sư...', 'info');
-                 google.script.run
-                     .withSuccessHandler(function(res) {
-                         if (res.error) {
-                             showToast('Lỗi: ' + res.error, 'error');
-                         } else {
-                             showToast((isCurrentlyDeactivated ? 'Kích hoạt lại' : 'Vô hiệu hóa') + ' tài khoản gia sư thành công!', 'success');
-                             refreshAdminDashboard();
-                         }
-                     })
-                     .withFailureHandler(function(err) {
-                         showToast('Lỗi kết nối: ' + err.toString(), 'error');
-                     })
-                     .adminSetTutorStatus(phone, newStatus);
-             });
-         }
-
+// ==========================================
+// 3. TAB THỐNG KÊ TRUNG TÂM GIỚI THIỆU
+// ==========================================
+function renderAdminCentersList() {
+    var tbody = document.querySelector('#adminCentersTable tbody');
+    var mobileWrap = document.getElementById('adminCentersMobile');
+    if (!tbody) return;
+    tbody.innerHTML = "";
+    
+    var centerStats = (adminDataGlobal && adminDataGlobal.centerStats) ? adminDataGlobal.centerStats : [];
+    if (centerStats.length === 0) {
+        tbody.innerHTML = "<tr><td colspan='6' style='text-align:center; color:#64748B; padding:25px;'>Chưa có dữ liệu nguồn giới thiệu.</td></tr>";
+        if (mobileWrap) mobileWrap.innerHTML = "<div style='text-align:center; color:#64748B; padding:20px; font-size:13px;'>Chưa có dữ liệu nguồn giới thiệu.</div>";
+        return;
+    }
+    
+    var mobileHtml = "";
+    centerStats.forEach(c => {
+        var revStr = (Number(c.revenue) || 0).toLocaleString('vi-VN') + " đ";
+        var tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td><b style="color:#0F172A; font-size:14px;"><i class="fa-solid fa-building" style="color:#2563EB; margin-right:6px;"></i> ${escapeHtml(c.name)}</b></td>
+            <td style="text-align:center;"><b style="background:#F1F5F9; border:1px solid #E2E8F0; padding:3px 10px; border-radius:8px;">${c.tutorCount}</b></td>
+            <td style="text-align:center;"><span style="color:#059669; font-weight:700;">${c.activeCount}</span></td>
+            <td style="text-align:center;"><span style="color:#2563EB; font-weight:700;">${c.trialCount}</span></td>
+            <td style="text-align:center;"><span style="color:#DC2626; font-weight:700;">${c.expiredCount}</span></td>
+            <td style="text-align:right;"><b style="color:#059669; font-size:14px;">${revStr}</b></td>
+        `;
+        tbody.appendChild(tr);
         
-        function clearAdminMarquee() {
-            showCustomConfirm("Bạn có chắc chắn muốn xóa dòng chữ chạy thông báo này không?", function() {
-                var input = document.getElementById('adminMarqueeInput');
-                if (input) input.value = "";
-                
-                showToast("Đang xóa thông báo...", "info");
-                google.script.run
-                    .withSuccessHandler(function(res) {
-                        if (res.error) {
-                            showToast("Lỗi: " + res.error, "error");
-                        } else {
-                            showToast("Đã xóa dòng chạy chữ thông báo thành công!", "success");
-                            if (adminDataGlobal) {
-                                adminDataGlobal.marqueeAnnouncement = "";
-                            }
-                        }
-                    })
-                    .withFailureHandler(function(err) {
-                        showToast("Lỗi hệ thống: " + err.toString(), "error");
-                    })
-                    .adminLuuMarquee("");
-            });
-        }
-        window.clearAdminMarquee = clearAdminMarquee;
+        mobileHtml += `
+            <div class="accordion-item" style="border:1px solid #E2E8F0; border-radius:14px; margin-bottom:10px; padding:14px; background:#fff;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                    <b style="color:#0F172A; font-size:14px;"><i class="fa-solid fa-building" style="color:#2563EB;"></i> ${escapeHtml(c.name)}</b>
+                    <b style="color:#059669; font-size:14px;">${revStr}</b>
+                </div>
+                <div style="font-size:12.5px; color:#475569; display:flex; justify-content:space-between;">
+                    <span>Tổng: <b>${c.tutorCount} gia sư</b></span>
+                    <span>Hoạt động: <b style="color:#059669;">${c.activeCount}</b></span>
+                    <span>Dùng thử: <b style="color:#2563EB;">${c.trialCount}</b></span>
+                    <span>Hết hạn: <b style="color:#DC2626;">${c.expiredCount}</b></span>
+                </div>
+            </div>
+        `;
+    });
+    if (mobileWrap) mobileWrap.innerHTML = mobileHtml;
+}
 
-        function saveAdminMarquee() {
-            var text = document.getElementById('adminMarqueeInput').value.trim();
-            var btn = document.querySelector('button[onclick="saveAdminMarquee()"]');
+// ==========================================
+// 4. TAB CÀI ĐẶT HỆ THỐNG & LIÊN HỆ ADMIN
+// ==========================================
+function renderAdminSettings() {
+    if (!adminDataGlobal) return;
+    var c = adminDataGlobal.adminContact || {};
+    var zInput = document.getElementById('adminContactZalo');
+    if (zInput) zInput.value = c.zalo || "0975546830";
+    var mInput = document.getElementById('adminContactMessenger');
+    if (mInput) mInput.value = c.facebook || "https://m.me/zuntutor";
+    var pInput = document.getElementById('adminContactPhone');
+    if (pInput) pInput.value = c.phone || "0975 546 830";
+    
+    var mqInput = document.getElementById('adminMarqueeInput');
+    if (mqInput) mqInput.value = adminDataGlobal.marqueeAnnouncement || "";
+}
+
+function saveAdminContactSettings() {
+    var zalo = document.getElementById('adminContactZalo').value.trim();
+    var messenger = document.getElementById('adminContactMessenger').value.trim();
+    var phone = document.getElementById('adminContactPhone').value.trim();
+    
+    showToast("Đang lưu cài đặt liên hệ...", "info");
+    google.script.run
+        .withSuccessHandler(function(res) {
+            if (res && res.error) {
+                showToast("Lỗi: " + res.error, "error");
+            } else {
+                showToast("Đã lưu thông tin liên hệ Admin thành công!", "success");
+                if (adminDataGlobal) {
+                    adminDataGlobal.adminContact = { zalo: zalo, facebook: messenger, phone: phone };
+                }
+            }
+        })
+        .withFailureHandler(function(err) {
+            showToast("Lỗi kết nối: " + err.toString(), "error");
+        })
+        .adminLuuLienHe(zalo, messenger, phone);
+}
+window.saveAdminContactSettings = saveAdminContactSettings;
+
+// ==========================================
+// MODAL GIA HẠN GIA SƯ (SAAS MANUAL RENEW)
+// ==========================================
+function openAdminRenewModal(phone) {
+    if (!adminDataGlobal || !adminDataGlobal.tutors) return;
+    var tutor = adminDataGlobal.tutors.find(t => t.phone === phone || normalizePhone(t.phone) === normalizePhone(phone));
+    if (!tutor) return;
+    
+    document.getElementById('adminRenewTutorPhone').value = tutor.phone;
+    document.getElementById('rnTutorName').innerText = "Gia sư: " + tutor.name;
+    document.getElementById('rnTutorPhone').innerText = tutor.phone;
+    document.getElementById('rnTutorStudentCount').innerText = (tutor.studentCount || 0) + " học sinh";
+    document.getElementById('rnTutorCurrentDue').innerText = tutor.nextBillingDate || "Chưa có";
+    
+    var mSel = document.getElementById('rnMonthsSelect');
+    if (mSel) mSel.value = "1";
+    
+    document.getElementById('rnNoteInput').value = "Thanh toán gói 1 tháng qua Zalo";
+    onAdminRenewMonthsChange();
+    
+    document.getElementById('adminRenewModal').style.display = "flex";
+}
+window.openAdminRenewModal = openAdminRenewModal;
+
+function closeAdminRenewModal() {
+    var m = document.getElementById('adminRenewModal');
+    if (m) m.style.display = "none";
+}
+window.closeAdminRenewModal = closeAdminRenewModal;
+
+function onAdminRenewMonthsChange() {
+    var phone = document.getElementById('adminRenewTutorPhone').value;
+    var tutor = adminDataGlobal.tutors.find(t => t.phone === phone || normalizePhone(t.phone) === normalizePhone(phone));
+    if (!tutor) return;
+    
+    var months = parseInt(document.getElementById('rnMonthsSelect').value, 10) || 1;
+    var feeInfo = calculateTutorWebFee(tutor.studentCount, tutor.customFee);
+    var unitPrice = feeInfo.amount || 50000;
+    var total = unitPrice * months;
+    
+    var amtInput = document.getElementById('rnAmountInput');
+    if (amtInput) amtInput.value = total;
+    
+    var noteEl = document.getElementById('rnFeeNote');
+    if (noteEl) {
+        noteEl.innerText = feeInfo.isCustom ? 
+            "Gia sư có giá riêng thỏa thuận: " + unitPrice.toLocaleString('vi-VN') + " đ/tháng" :
+            "Bậc phí " + (tutor.studentCount || 0) + " học sinh: " + unitPrice.toLocaleString('vi-VN') + " đ/tháng";
+    }
+}
+window.onAdminRenewMonthsChange = onAdminRenewMonthsChange;
+
+function submitAdminRenewTutor() {
+    var phone = document.getElementById('adminRenewTutorPhone').value;
+    var months = parseInt(document.getElementById('rnMonthsSelect').value, 10) || 1;
+    var amount = Number(document.getElementById('rnAmountInput').value) || 0;
+    var note = document.getElementById('rnNoteInput').value.trim();
+    
+    var btn = document.getElementById('btnSubmitAdminRenew');
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang gia hạn...';
+    }
+    
+    google.script.run
+        .withSuccessHandler(function(res) {
             if (btn) {
-                btn.disabled = true;
-                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang lưu...';
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-check"></i> Xác nhận gia hạn';
             }
-            
-            google.script.run
-                .withSuccessHandler(function(res) {
-                    if (btn) {
-                        btn.disabled = false;
-                        btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Lưu thông báo';
+            if (res && res.error) {
+                showToast("Lỗi: " + res.error, "error");
+            } else {
+                showToast("Gia hạn thành công! Hạn mới đến: " + (res.nextDue || ""), "success");
+                closeAdminRenewModal();
+                
+                // Cập nhật bộ nhớ cục bộ
+                if (adminDataGlobal && adminDataGlobal.tutors) {
+                    var t = adminDataGlobal.tutors.find(x => x.phone === phone || normalizePhone(x.phone) === normalizePhone(phone));
+                    if (t) {
+                        t.nextBillingDate = res.nextDue;
+                        t.status = "Hoạt động";
+                        t.isTrial = false;
                     }
-                    if (res.error) {
-                        showToast("Lỗi: " + res.error, "error");
-                    } else {
-                        showToast("Lưu dòng chạy chữ thông báo thành công!", "success");
-                        // Cập nhật lại cache cục bộ
-                        if (adminDataGlobal) {
-                            adminDataGlobal.marqueeAnnouncement = text;
-                        }
-                    }
-                })
-                .withFailureHandler(function(err) {
-                    if (btn) {
-                        btn.disabled = false;
-                        btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Lưu thông báo';
-                    }
-                    showToast("Lỗi hệ thống: " + err.toString(), "error");
-                })
-                .adminLuuMarquee(text);
+                }
+                if (res.payment && adminDataGlobal.payments) {
+                    adminDataGlobal.payments.unshift({
+                        id: res.payment.payment_id,
+                        tutorPhone: res.payment.tutor_phone,
+                        tutorName: res.payment.tutor_name,
+                        amount: res.payment.amount,
+                        months: res.payment.months,
+                        periodFrom: res.payment.period_from,
+                        periodTo: res.payment.period_to,
+                        paidAt: res.payment.paid_at,
+                        note: res.payment.note
+                    });
+                }
+                
+                renderAdminBusinessReport();
+                renderAdminTutorsList();
+                refreshAdminDashboard(true);
+            }
+        })
+        .withFailureHandler(function(err) {
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-check"></i> Xác nhận gia hạn';
+            }
+            showToast("Lỗi kết nối: " + err.toString(), "error");
+        })
+        .adminGiaHanGiaSu(phone, months, amount, note);
+}
+window.submitAdminRenewTutor = submitAdminRenewTutor;
+
+// ==========================================
+// MODAL THÊM / SỬA GIA SƯ
+// ==========================================
+function openAdminAddTutorModal() {
+    document.getElementById('adminTutorModalTitle').innerHTML = '<i class="fa-solid fa-chalkboard-user"></i> Thêm Gia Sư Mới';
+    document.getElementById('adminTutorOldPhone').value = "";
+    document.getElementById('adminTutorName').value = "";
+    document.getElementById('adminTutorPhone').value = "";
+    document.getElementById('adminTutorEmail').value = "";
+    document.getElementById('adminTutorSubjects').value = "";
+    document.getElementById('adminTutorLevels').value = "";
+    document.getElementById('adminTutorReferralCenter').value = "";
+    document.getElementById('adminTutorCustomFee').value = "";
+    document.getElementById('adminTutorNextBillingDate').value = "";
+    document.getElementById('btnDeleteAdminTutor').style.display = "none";
+    document.getElementById('btnDeactivateAdminTutor').style.display = "none";
+    document.getElementById('adminEditTutorModal').style.display = "flex";
+}
+window.openAdminAddTutorModal = openAdminAddTutorModal;
+
+function openAdminEditTutorModal(phone) {
+    var tutor = (adminDataGlobal && adminDataGlobal.tutors) ? adminDataGlobal.tutors.find(t => t.phone === phone || normalizePhone(t.phone) === normalizePhone(phone)) : null;
+    if (!tutor) return;
+    
+    document.getElementById('adminTutorModalTitle').innerHTML = '<i class="fa-solid fa-chalkboard-user"></i> Sửa Thông Tin Gia Sư';
+    document.getElementById('adminTutorOldPhone').value = tutor.phone;
+    document.getElementById('adminTutorName').value = tutor.name;
+    document.getElementById('adminTutorPhone').value = tutor.phone;
+    document.getElementById('adminTutorEmail').value = tutor.email || "";
+    document.getElementById('adminTutorSubjects').value = tutor.subjects || "";
+    document.getElementById('adminTutorLevels').value = tutor.levels || "";
+    document.getElementById('adminTutorReferralCenter').value = tutor.referralCenter || "";
+    document.getElementById('adminTutorCustomFee').value = tutor.customFee || "";
+    document.getElementById('adminTutorNextBillingDate').value = tutor.nextBillingDate || "";
+    document.getElementById('btnDeleteAdminTutor').style.display = "flex";
+    
+    var btnDeact = document.getElementById('btnDeactivateAdminTutor');
+    if (btnDeact) {
+        btnDeact.style.display = "flex";
+        if (tutor.status === "Vô hiệu hóa") {
+            btnDeact.innerHTML = '<i class="fa-solid fa-user-check"></i> Kích hoạt lại';
+            btnDeact.style.background = "#ECFDF5";
+            btnDeact.style.border = "1px solid #A7F3D0";
+            btnDeact.style.color = "#059669";
+        } else {
+            btnDeact.innerHTML = '<i class="fa-solid fa-user-slash"></i> Vô hiệu hóa';
+            btnDeact.style.background = "#FFFBEB";
+            btnDeact.style.border = "1px solid #FDE68A";
+            btnDeact.style.color = "#D97706";
         }
-        window.saveAdminMarquee = saveAdminMarquee;
+    }
+    
+    document.getElementById('adminEditTutorModal').style.display = "flex";
+}
+window.openAdminEditTutorModal = openAdminEditTutorModal;
+
+function closeAdminEditTutorModal() {
+    document.getElementById('adminEditTutorModal').style.display = "none";
+}
+window.closeAdminEditTutorModal = closeAdminEditTutorModal;
+
+function adminResetPinForCurrentTutor() {
+    var phone = document.getElementById('adminTutorOldPhone').value || document.getElementById('adminTutorPhone').value;
+    if (!phone) return;
+    showCustomConfirm("Bạn có chắc chắn muốn đặt lại mã PIN của gia sư này về '1234'?", function() {
+        showToast("Đang đặt lại mã PIN...", "info");
+        google.script.run
+            .withSuccessHandler(function(res) {
+                if (res && res.error) showToast("Lỗi: " + res.error, "error");
+                else showToast("Đã đặt lại mã PIN thành công về 1234!", "success");
+            })
+            .withFailureHandler(function(err) {
+                showToast("Lỗi: " + err.toString(), "error");
+            })
+            .adminDatLaiPin(phone, "1234");
+    });
+}
+window.adminResetPinForCurrentTutor = adminResetPinForCurrentTutor;
+
+function saveAdminTutor() {
+    var oldPhone = document.getElementById('adminTutorOldPhone').value;
+    var name = document.getElementById('adminTutorName').value.trim();
+    var phone = document.getElementById('adminTutorPhone').value.trim();
+    var email = document.getElementById('adminTutorEmail').value.trim();
+    var subjects = document.getElementById('adminTutorSubjects').value.trim();
+    var levels = document.getElementById('adminTutorLevels').value.trim();
+    var referralCenter = document.getElementById('adminTutorReferralCenter').value.trim();
+    var customFee = document.getElementById('adminTutorCustomFee').value.trim();
+    var nextBillingDate = document.getElementById('adminTutorNextBillingDate').value.trim();
+    
+    if(!name || !phone) {
+        showToast("Vui lòng nhập tên và số điện thoại gia sư!", "error");
+        return;
+    }
+    
+    var btn = document.getElementById('btnSaveAdminTutor');
+    btn.disabled = true;
+    btn.innerText = "Đang lưu...";
+    
+    // adminLuuGiaSu args: [oldPhone, name, phone, pin, qrUrl, createdDate, nextBillingDate, accountType, email, subjects, levels, referralCenter, customFee]
+    google.script.run
+        .withSuccessHandler(function(res) {
+            btn.disabled = false;
+            btn.innerText = "Lưu lại";
+            if(res && res.error) {
+                showToast("Lỗi: " + res.error, "error");
+            } else {
+                showToast("Lưu thông tin gia sư thành công!", "success");
+                closeAdminEditTutorModal();
+                refreshAdminDashboard();
+            }
+        })
+        .withFailureHandler(function(err) {
+            btn.disabled = false;
+            btn.innerText = "Lưu lại";
+            showToast("Lỗi kết nối: " + err.toString(), "error");
+        })
+        .adminLuuGiaSu(oldPhone, name, phone, "", "", "", nextBillingDate, "", email, subjects, levels, referralCenter, customFee);
+}
+window.saveAdminTutor = saveAdminTutor;
+
+// ==========================================
+// THAO TÁC XÓA & THÙNG RÁC GIA SƯ
+// ==========================================
+function confirmDeleteAdminTutor() {
+    pinVerifyAction = "deleteTutor";
+    var desc = document.getElementById('confirmPinModalText');
+    if (desc) desc.innerText = "Vui lòng nhập mã PIN Admin để xác nhận đưa gia sư vào thùng rác.";
+    document.getElementById('confirmTutorPinInput').value = "";
+    document.getElementById('pinConfirmModal').style.display = "flex";
+}
+window.confirmDeleteAdminTutor = confirmDeleteAdminTutor;
+
+function closePinConfirmModal() {
+    document.getElementById('pinConfirmModal').style.display = "none";
+}
+window.closePinConfirmModal = closePinConfirmModal;
+
+function submitPinVerifyForDelete() {
+    var inputPin = document.getElementById('confirmTutorPinInput').value.trim();
+    var adminPin = sessionStorage.getItem('userPin') || (adminDataGlobal && adminDataGlobal.adminInfo ? adminDataGlobal.adminInfo.pin : "") || "1234";
+    
+    if (inputPin && inputPin === adminPin) {
+        closePinConfirmModal();
+        closeAdminEditTutorModal();
+        deleteTutorBackend();
+    } else {
+        showToast("Mã PIN xác thực của Admin không chính xác!", "error");
+    }
+}
+window.submitPinVerifyForDelete = submitPinVerifyForDelete;
+
+function deleteTutorBackend() {
+    var phone = document.getElementById('adminTutorOldPhone').value;
+    var name = document.getElementById('adminTutorName').value;
+    
+    showCustomConfirm("Xác nhận đưa gia sư " + name + " vào thùng rác? Dữ liệu sẽ tạm ẩn và có thể khôi phục bất cứ lúc nào.", function() {
+        google.script.run
+            .withSuccessHandler(function(res) {
+                if (res && res.error) {
+                    showToast("Lỗi: " + res.error, "error");
+                } else {
+                    showToast("Đã đưa gia sư vào thùng rác thành công!", "success");
+                    refreshAdminDashboard();
+                }
+            })
+            .withFailureHandler(function(err) {
+                showToast("Lỗi kết nối: " + err.toString(), "error");
+            })
+            .xoaGiaSuTamThoi(phone);
+    });
+}
+
+function openTutorTrashModal() {
+    var modal = document.getElementById('tutorTrashModal');
+    var list = document.getElementById('trashTutorList');
+    if (!modal || !list) return;
+    list.innerHTML = "";
+    
+    var deleted = (adminDataGlobal && adminDataGlobal.deletedTutors) ? adminDataGlobal.deletedTutors : [];
+    if (deleted.length === 0) {
+        list.innerHTML = "<div style='text-align:center; color:#64748B; padding:20px; font-size:13px;'><i class='fa-solid fa-trash-can-arrow-up'></i> Thùng rác hiện đang trống.</div>";
+    } else {
+        deleted.forEach(t => {
+            var row = document.createElement('div');
+            row.style.cssText = "display:flex; justify-content:space-between; align-items:center; padding:12px 14px; background:#F8FAFC; border:1px solid #E2E8F0; border-radius:12px;";
+            row.innerHTML = `
+                <div>
+                    <div style="font-weight:700; color:#0F172A; font-size:13.5px;">${escapeHtml(t.name)}</div>
+                    <div style="font-size:12px; color:#64748B;">SĐT: ${escapeHtml(t.phone)} · Ngày xóa: ${escapeHtml(t.deletedDate || 'Gần đây')}</div>
+                </div>
+                <button type="button" onclick="restoreTutor('${jsStr(t.phone)}', '${jsStr(t.name)}')" class="btn-primary-gradient" style="padding:6px 14px; font-size:12.5px;">
+                    <i class="fa-solid fa-rotate-left"></i> Khôi phục
+                </button>
+            `;
+            list.appendChild(row);
+        });
+    }
+    modal.style.display = "flex";
+}
+window.openTutorTrashModal = openTutorTrashModal;
+
+function closeTutorTrashModal() {
+    var m = document.getElementById('tutorTrashModal');
+    if (m) m.style.display = "none";
+}
+window.closeTutorTrashModal = closeTutorTrashModal;
+
+function restoreTutor(phone, name) {
+    showCustomConfirm("Khôi phục tài khoản cho gia sư " + name + "?", function() {
+        showToast("Đang khôi phục gia sư...", "info");
+        google.script.run
+            .withSuccessHandler(function(res) {
+                if (res && res.error) showToast("Lỗi: " + res.error, "error");
+                else {
+                    showToast("Đã khôi phục gia sư thành công!", "success");
+                    closeTutorTrashModal();
+                    refreshAdminDashboard();
+                }
+            })
+            .withFailureHandler(function(err) {
+                showToast("Lỗi: " + err.toString(), "error");
+            })
+            .khoiPhucGiaSu(phone);
+    });
+}
+window.restoreTutor = restoreTutor;
+
+function quickToggleTutorStatus(phone, name, isCurrentlyDeactivated) {
+    var actionText = isCurrentlyDeactivated ? 'kích hoạt lại' : 'vô hiệu hóa';
+    var newStatus = isCurrentlyDeactivated ? 'Hoạt động' : 'Vô hiệu hóa';
+    
+    showCustomConfirm('Xác nhận ' + actionText + ' tài khoản gia sư ' + name + '?', function() {
+        showToast('Đang cập nhật trạng thái gia sư...', 'info');
+        google.script.run
+            .withSuccessHandler(function(res) {
+                if (res && res.error) {
+                    showToast('Lỗi: ' + res.error, 'error');
+                } else {
+                    showToast((isCurrentlyDeactivated ? 'Kích hoạt lại' : 'Vô hiệu hóa') + ' tài khoản gia sư thành công!', 'success');
+                    refreshAdminDashboard();
+                }
+            })
+            .withFailureHandler(function(err) {
+                showToast('Lỗi kết nối: ' + err.toString(), 'error');
+            })
+            .adminSetTutorStatus(phone, newStatus);
+    });
+}
+window.quickToggleTutorStatus = quickToggleTutorStatus;
+
+function toggleTutorDeactivateStatus() {
+    var phone = document.getElementById('adminTutorOldPhone').value;
+    var name = document.getElementById('adminTutorName').value;
+    var tutor = (adminDataGlobal && adminDataGlobal.tutors) ? adminDataGlobal.tutors.find(t => t.phone === phone || normalizePhone(t.phone) === normalizePhone(phone)) : null;
+    if (!tutor) return;
+    quickToggleTutorStatus(phone, name, tutor.status === 'Vô hiệu hóa');
+    closeAdminEditTutorModal();
+}
+window.toggleTutorDeactivateStatus = toggleTutorDeactivateStatus;
+
+// Accordion toggle helpers
+function toggleAdminTutorAccordion(idx) {
+    var body = document.getElementById('adm-tutor-body-' + idx);
+    if (!body) return;
+    var chevron = document.getElementById('adm-tutor-chevron-' + idx);
+    if (body.style.display === 'block') {
+        body.style.display = 'none';
+        if (chevron) { chevron.classList.remove('fa-chevron-up'); chevron.classList.add('fa-chevron-down'); }
+    } else {
+        body.style.display = 'block';
+        if (chevron) { chevron.classList.remove('fa-chevron-down'); chevron.classList.add('fa-chevron-up'); }
+    }
+}
+window.toggleAdminTutorAccordion = toggleAdminTutorAccordion;
+
+// ==========================================
+// THÔNG BÁO DÒNG CHỮ CHẠY (MARQUEE)
+// ==========================================
+function clearAdminMarquee() {
+    showCustomConfirm("Bạn có chắc chắn muốn xóa dòng chữ chạy thông báo này không?", function() {
+        var input = document.getElementById('adminMarqueeInput');
+        if (input) input.value = "";
+        
+        showToast("Đang xóa thông báo...", "info");
+        google.script.run
+            .withSuccessHandler(function(res) {
+                if (res && res.error) {
+                    showToast("Lỗi: " + res.error, "error");
+                } else {
+                    showToast("Đã xóa dòng chạy chữ thông báo thành công!", "success");
+                    if (adminDataGlobal) {
+                        adminDataGlobal.marqueeAnnouncement = "";
+                    }
+                }
+            })
+            .withFailureHandler(function(err) {
+                showToast("Lỗi hệ thống: " + err.toString(), "error");
+            })
+            .adminLuuMarquee("");
+    });
+}
+window.clearAdminMarquee = clearAdminMarquee;
+
+function saveAdminMarquee() {
+    var text = document.getElementById('adminMarqueeInput').value.trim();
+    showToast("Đang lưu dòng chữ chạy...", "info");
+    google.script.run
+        .withSuccessHandler(function(res) {
+            if (res && res.error) {
+                showToast("Lỗi: " + res.error, "error");
+            } else {
+                showToast("Lưu dòng chạy chữ thông báo thành công!", "success");
+                if (adminDataGlobal) {
+                    adminDataGlobal.marqueeAnnouncement = text;
+                }
+            }
+        })
+        .withFailureHandler(function(err) {
+            showToast("Lỗi hệ thống: " + err.toString(), "error");
+        })
+        .adminLuuMarquee(text);
+}
+window.saveAdminMarquee = saveAdminMarquee;
+
+// ==========================================
+// TỰ ĐỘNG ĐỒNG BỘ DỮ LIỆU ADMIN
+// ==========================================
+function refreshAdminDashboard(silent) {
+    var phone = sessionStorage.getItem('userPhone') || currentAdminPhone;
+    var pin = sessionStorage.getItem('userPin') || "";
+    
+    google.script.run
+        .withSuccessHandler(function(res) {
+            var data = (res && res.data) ? res.data : res;
+            if (data && data.tutors) {
+                sessionStorage.setItem('dashboardData', JSON.stringify(data));
+                renderAdminView(data);
+                if (!silent) showToast("Đã cập nhật dữ liệu mới nhất!", "success");
+            }
+        })
+        .withFailureHandler(function(err) {
+            console.warn("Lỗi làm mới admin dashboard:", err);
+        })
+        .getAdminDashboardData(phone, pin);
+}
+window.refreshAdminDashboard = refreshAdminDashboard;

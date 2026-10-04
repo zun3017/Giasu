@@ -12,11 +12,22 @@
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
     
     <style>
+        /* === BỘ PHÔNG CHỮ VIỆT HÓA CHUẨN ĐỒNG BỘ TOÀN DIỆN === */
+        *, body, button, input, select, textarea,
+        .fc, .fc *,
+        .fc-col-header-cell-cushion, .fc-daygrid-day-number,
+        .fc-event, .fc-event-title, .fc-event-time {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
+        }
+        i, [class*="fa-"], .fa-solid, .fa-regular {
+            font-family: "Font Awesome 6 Free" !important;
+        }
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Inter', sans-serif;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
         }
 
         /* === FULL-SCREEN LAYOUT NHƯ GOOGLE CALENDAR === */
@@ -264,7 +275,7 @@
             color: #8892B0;
             cursor: pointer;
             transition: all 0.2s;
-            font-family: 'Inter', sans-serif;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
         }
         .color-scope-btn.active {
             background: rgba(142, 77, 255, 0.2);
@@ -386,7 +397,7 @@
             align-items: center;
             gap: 5px;
             transition: all 0.2s;
-            font-family: 'Inter', sans-serif;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
             margin-right: 15px;
         }
         .btn-sheet-toggle-header:hover {
@@ -613,7 +624,7 @@
             padding: 8px 18px;
             font-size: 13px;
             cursor: pointer;
-            font-family: 'Inter', sans-serif;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
             transition: 0.2s;
         }
         .btn-rec-cancel:hover { border-color: rgba(255,255,255,0.35); color: #FFF; }
@@ -626,7 +637,7 @@
             font-size: 13px;
             font-weight: 700;
             cursor: pointer;
-            font-family: 'Inter', sans-serif;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
             transition: 0.2s;
         }
         .btn-rec-ok:hover { opacity: 0.88; }
@@ -1075,7 +1086,7 @@
                 </div>
             </div>
             <div>
-                <a href="index.html" class="modal-btn modal-btn-secondary" style="text-decoration: none; display: inline-flex; align-items: center; gap: 8px; padding: 10px 22px; border-radius: 20px; font-weight: bold; font-size: 13.5px; font-family: 'Inter', sans-serif; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15); color: #FFF; transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.12)'" onmouseout="this.style.background='rgba(255,255,255,0.06)'">
+                <a href="index.html" class="modal-btn modal-btn-secondary" style="text-decoration: none; display: inline-flex; align-items: center; gap: 8px; padding: 10px 22px; border-radius: 20px; font-weight: bold; font-size: 13.5px; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15); color: #FFF; transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.12)'" onmouseout="this.style.background='rgba(255,255,255,0.06)'">
                     <i class="fa-solid fa-arrow-left"></i> Quay lại Dashboard
                 </a>
             </div>
@@ -1613,7 +1624,7 @@
             });
             
             var calendarEl = document.getElementById('calendar');
-            const initialViewType = 'timeGridWeek';
+            const initialViewType = 'dayGridMonth';
 
             calendar = new FullCalendar.Calendar(calendarEl, {
                 initialView: initialViewType,

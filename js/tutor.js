@@ -1,3 +1,52 @@
+
+// ==========================================
+// BỘ HÀM KHẮC PHỤC TRIỆT ĐỂ LỖI PHÔNG CHỮ TIẾNG VIỆT (MOJIBAKE RECOVERY)
+// ==========================================
+var WIN1252_BYTE_MAP = window.WIN1252_BYTE_MAP || {
+    0x20AC: 0x80, 0x201A: 0x82, 0x0192: 0x83, 0x201E: 0x84, 0x2026: 0x85, 0x2020: 0x86, 0x2021: 0x87,
+    0x02C6: 0x88, 0x2030: 0x89, 0x0160: 0x8A, 0x2039: 0x8B, 0x0152: 0x8C, 0x017D: 0x8E, 0x2018: 0x91,
+    0x2019: 0x92, 0x201C: 0x93, 0x201D: 0x94, 0x2022: 0x95, 0x2013: 0x96, 0x2014: 0x97, 0x02DC: 0x98,
+    0x2122: 0x99, 0x0161: 0x9A, 0x203A: 0x9B, 0x0153: 0x9C, 0x017E: 0x9E, 0x0178: 0x9F
+};
+
+function fixVietnameseMojibake(str) {
+    if (!str || typeof str !== 'string') return str;
+    const DICT = {
+        'LÃª Minh ThÆ°': 'Lê Minh Thư',
+        'Pháº¡m Háº£i Äng': 'Phạm Hải Đăng',
+        'Pháº¡m Háº£i Äƒng': 'Phạm Hải Đăng',
+        'Pháº¡m Háº£i Ä': 'Phạm Hải Đăng',
+        'Pháº¡m Háº£i Ä Äƒng': 'Phạm Hải Đăng',
+        'Nguyá»...n HoÃ ng Nam': 'Nguyễn Hoàng Nam',
+        'Nguyá»...n HoÃ ng Na': 'Nguyễn Hoàng Nam',
+        'Nguyá»…n HoÃ ng Nam': 'Nguyễn Hoàng Nam',
+        'Nguyá»…n HoÃ ng Na': 'Nguyễn Hoàng Nam',
+        'Tháº§y Tráº§n HoÃ ng Nam': 'Thầy Trần Hoàng Nam',
+        'Tháº§y Tráº§n HoÃ ng Nam': 'Thầy Trần Hoàng Nam'
+    };
+    for (const [bad, good] of Object.entries(DICT)) {
+        if (str.includes(bad)) str = str.replaceAll(bad, good);
+    }
+    if (!/[\u00C0-\u00FF\u2010-\u2030\u0150-\u017F]/.test(str)) return str;
+    try {
+        const bytes = [];
+        for (let i = 0; i < str.length; i++) {
+            const code = str.charCodeAt(i);
+            if (code < 256) {
+                bytes.push(code);
+            } else if (WIN1252_BYTE_MAP[code] !== undefined) {
+                bytes.push(WIN1252_BYTE_MAP[code]);
+            } else {
+                return str;
+            }
+        }
+        const decoded = new TextDecoder('utf-8', { fatal: false }).decode(new Uint8Array(bytes));
+        if (decoded && !decoded.includes('\ufffd')) return decoded;
+    } catch(e) {}
+    return str;
+}
+if (typeof window !== 'undefined') window.fixVietnameseMojibake = fixVietnameseMojibake;
+
 window.__tutorThemeKey = window.__tutorThemeKey || function () { var p = ''; try { p = sessionStorage.getItem('userPhone') || ''; } catch (e) {} if (!p) { try { var d = JSON.parse(sessionStorage.getItem('dashboardData') || 'null'); p = (d && (d.tutorPhone || d.phone)) || ''; } catch (e) {} } var dir = (location.pathname || '/').replace(/[^\/]*$/, ''); return 'tutorTheme::' + dir + '::' + (p || 'guest'); };
 var tutorChartInstance = null;
 var tutorDataGlobal = null;
@@ -547,6 +596,9 @@ function renderTutorKpiCards(data, selM, selY) {
 window.renderTutorKpiCards = renderTutorKpiCards;
 
 function renderUpcomingSchedule(scheduleList, selM, selY) {
+    if (Array.isArray(scheduleList)) {
+        scheduleList.forEach(s => { if (s && s.studentName) s.studentName = fixVietnameseMojibake(s.studentName); });
+    }
     var todayListEl = document.getElementById('upcomingTodayList');
     var tomorrowListEl = document.getElementById('upcomingTomorrowList');
     var todayTitleEl = document.getElementById('upcomingTodayHeaderTitle');
@@ -630,6 +682,7 @@ function renderUpcomingSchedule(scheduleList, selM, selY) {
         if (Array.isArray(sched)) {
             sched.forEach(function(s) {
                 if (!s || !s.studentName) return;
+                s.studentName = fixVietnameseMojibake(s.studentName);
                 var norm = s.studentName.trim().toLowerCase();
                 if (!seenStudentMap.has(norm)) {
                     var copy = Object.assign({}, s);
@@ -5377,7 +5430,21 @@ window.initTutorSidebarState = initTutorSidebarState;
 
         function renderTutorView(data) {
             tutorDataGlobal = data;
+            if (data && Array.isArray(data.students)) {
+                data.students.forEach(st => { st.name = fixVietnameseMojibake(st.name); });
+            }
+            if (data && data.tutorName) data.tutorName = fixVietnameseMojibake(data.tutorName);
             currentTutorPhone = document.getElementById('maHocSinh').value.trim();
+            if (tutorDataGlobal) {
+                try {
+                    var bInfo = localStorage.getItem('tutorBankInfo_' + currentTutorPhone);
+                    if (bInfo) {
+                        var parsedBank = JSON.parse(bInfo);
+                        if (parsedBank.bankName && !tutorDataGlobal.bankName) tutorDataGlobal.bankName = parsedBank.bankName;
+                        if (parsedBank.stk && !tutorDataGlobal.accountNumber) tutorDataGlobal.accountNumber = parsedBank.stk;
+                    }
+                } catch(e) {}
+            }
             
             var mainScr = document.getElementById('mainScreen');
             if (mainScr) mainScr.style.display = 'none';
@@ -6098,6 +6165,71 @@ window.initTutorSidebarState = initTutorSidebarState;
         
         var currentTutorQrBase64 = "";
 
+        function switchQrSourceMode(mode) {
+            var tabAuto = document.getElementById('tabQrAutoBtn');
+            var tabUpload = document.getElementById('tabQrUploadBtn');
+            var autoPanel = document.getElementById('qrAutoPanel');
+            var uploadPanel = document.getElementById('qrUploadPanel');
+            
+            if (mode === 'upload') {
+                if (tabAuto) {
+                    tabAuto.style.background = 'transparent';
+                    tabAuto.style.color = 'var(--text-secondary)';
+                }
+                if (tabUpload) {
+                    tabUpload.style.background = 'var(--color-primary)';
+                    tabUpload.style.color = '#fff';
+                }
+                if (autoPanel) autoPanel.style.display = 'none';
+                if (uploadPanel) uploadPanel.style.display = 'flex';
+            } else {
+                if (tabAuto) {
+                    tabAuto.style.background = 'var(--color-primary)';
+                    tabAuto.style.color = '#fff';
+                }
+                if (tabUpload) {
+                    tabUpload.style.background = 'transparent';
+                    tabUpload.style.color = 'var(--text-secondary)';
+                }
+                if (autoPanel) autoPanel.style.display = 'flex';
+                if (uploadPanel) uploadPanel.style.display = 'none';
+            }
+        }
+
+        function generateAutoVietQr() {
+            var bankSel = document.getElementById('accBankSelect');
+            var numInp = document.getElementById('accBankNumber');
+            var holderInp = document.getElementById('accBankHolder');
+            var qrImg = document.getElementById('accQrImg');
+            var qrText = document.getElementById('accQrText');
+            var btnRemove = document.getElementById('btnRemoveTutorQr');
+
+            var bankCode = bankSel ? bankSel.value.trim() : '';
+            var bankNum = numInp ? numInp.value.trim().replace(/\s+/g, '') : '';
+            var holder = holderInp ? holderInp.value.trim().toUpperCase() : '';
+
+            if (bankCode && bankNum) {
+                var url = "https://img.vietqr.io/image/" + bankCode + "-" + bankNum + "-compact2.png" + (holder ? ("?accountName=" + encodeURIComponent(holder)) : "");
+                currentTutorQrBase64 = url;
+                if (qrImg) {
+                    qrImg.src = url;
+                    qrImg.style.display = 'block';
+                }
+                if (qrText) qrText.style.display = 'none';
+                if (btnRemove) btnRemove.style.display = 'inline-flex';
+            } else {
+                if (currentTutorQrBase64 && currentTutorQrBase64.includes('img.vietqr.io')) {
+                    currentTutorQrBase64 = '';
+                    if (qrImg) {
+                        qrImg.src = '';
+                        qrImg.style.display = 'none';
+                    }
+                    if (qrText) qrText.style.display = 'block';
+                    if (btnRemove) btnRemove.style.display = 'none';
+                }
+            }
+        }
+
         function handleTutorQrFileSelect(input) {
             if (!input || !input.files || !input.files[0]) return;
             var file = input.files[0];
@@ -6194,6 +6326,9 @@ window.initTutorSidebarState = initTutorSidebarState;
             var btnRemove = document.getElementById('btnRemoveTutorQr');
             var urlInp = document.getElementById('accQrUrlInput');
             var fileInp = document.getElementById('accQrFileInput');
+            var bankSel = document.getElementById('accBankSelect');
+            var bankNum = document.getElementById('accBankNumber');
+            var bankHolder = document.getElementById('accBankHolder');
             
             if (qrImg) {
                 qrImg.src = "";
@@ -6203,7 +6338,20 @@ window.initTutorSidebarState = initTutorSidebarState;
             if (btnRemove) btnRemove.style.display = "none";
             if (urlInp) urlInp.value = "";
             if (fileInp) fileInp.value = "";
-            showToast("Đã gỡ ảnh QR. Nhấn 'Cập nhật tài khoản' để lưu thay đổi.", "info");
+            if (bankSel) bankSel.value = "";
+            if (bankNum) bankNum.value = "";
+            
+            var phone = (tutorDataGlobal && tutorDataGlobal.tutorPhone) ? tutorDataGlobal.tutorPhone : currentTutorPhone;
+            if (phone) {
+                try {
+                    localStorage.removeItem('tutorBankInfo_' + phone);
+                } catch(e) {}
+            }
+            if (tutorDataGlobal) {
+                tutorDataGlobal.bankName = "";
+                tutorDataGlobal.accountNumber = "";
+            }
+            showToast("Đã gỡ ảnh/mã QR. Nhấn 'Cập nhật tài khoản' để lưu thay đổi.", "info");
         }
 
         /* ============================================================
@@ -6452,8 +6600,48 @@ window.initTutorSidebarState = initTutorSidebarState;
             var btnRemove = document.getElementById('btnRemoveTutorQr');
             var urlInp = document.getElementById('accQrUrlInput');
             var fileInp = document.getElementById('accQrFileInput');
+            var bankSel = document.getElementById('accBankSelect');
+            var bankNum = document.getElementById('accBankNumber');
+            var bankHolder = document.getElementById('accBankHolder');
             if (fileInp) fileInp.value = "";
-            
+            if (urlInp) urlInp.value = "";
+
+            var phoneForBank = (tutorDataGlobal && tutorDataGlobal.tutorPhone) ? tutorDataGlobal.tutorPhone : currentTutorPhone;
+            var savedBankInfo = null;
+            try {
+                var rawB = localStorage.getItem('tutorBankInfo_' + phoneForBank);
+                if (rawB) savedBankInfo = JSON.parse(rawB);
+            } catch(e) {}
+
+            var isVietQr = currentTutorQrBase64 && currentTutorQrBase64.includes('img.vietqr.io');
+            var vqrBank = "";
+            var vqrStk = "";
+            var vqrHolder = "";
+
+            if (isVietQr) {
+                var m = currentTutorQrBase64.match(/img\.vietqr\.io\/image\/([a-zA-Z0-9]+)-([a-zA-Z0-9]+)/);
+                if (m) {
+                    vqrBank = m[1];
+                    vqrStk = m[2];
+                }
+                var mName = currentTutorQrBase64.match(/accountName=([^&]+)/);
+                if (mName) {
+                    try {
+                        vqrHolder = decodeURIComponent(mName[1]);
+                    } catch(e) {
+                        vqrHolder = mName[1];
+                    }
+                }
+            }
+
+            var finalBank = vqrBank || (savedBankInfo && savedBankInfo.bank) || "";
+            var finalStk = vqrStk || (savedBankInfo && savedBankInfo.stk) || "";
+            var finalHolder = vqrHolder || (savedBankInfo && savedBankInfo.holder) || ((tutorDataGlobal && tutorDataGlobal.tutorName) ? tutorDataGlobal.tutorName.toUpperCase() : "");
+
+            if (bankSel) bankSel.value = finalBank;
+            if (bankNum) bankNum.value = finalStk;
+            if (bankHolder) bankHolder.value = finalHolder;
+
             if (currentTutorQrBase64) {
                 if (qrImg) {
                     qrImg.src = currentTutorQrBase64;
@@ -6461,8 +6649,14 @@ window.initTutorSidebarState = initTutorSidebarState;
                 }
                 if (qrText) qrText.style.display = "none";
                 if (btnRemove) btnRemove.style.display = "inline-flex";
-                if (urlInp) {
-                    urlInp.value = currentTutorQrBase64.startsWith('http') ? currentTutorQrBase64 : "";
+
+                if (isVietQr || (!currentTutorQrBase64.startsWith('data:') && finalBank && finalStk)) {
+                    switchQrSourceMode('auto');
+                } else {
+                    switchQrSourceMode('upload');
+                    if (urlInp && currentTutorQrBase64.startsWith('http')) {
+                        urlInp.value = currentTutorQrBase64;
+                    }
                 }
             } else {
                 if (qrImg) {
@@ -6471,7 +6665,7 @@ window.initTutorSidebarState = initTutorSidebarState;
                 }
                 if (qrText) qrText.style.display = "block";
                 if (btnRemove) btnRemove.style.display = "none";
-                if (urlInp) urlInp.value = "";
+                switchQrSourceMode('auto');
             }
             
             document.getElementById('tutorAccountModal').style.display = "flex";
@@ -6530,6 +6724,38 @@ window.initTutorSidebarState = initTutorSidebarState;
                     experience: experience
                 }));
             } catch(e) {}
+            
+            // Lưu thông tin ngân hàng nếu có
+            var bankSel = document.getElementById('accBankSelect');
+            var bankNum = document.getElementById('accBankNumber');
+            var bankHolder = document.getElementById('accBankHolder');
+            var bCode = bankSel ? bankSel.value.trim() : "";
+            var bNum = bankNum ? bankNum.value.trim().replace(/\s+/g, '') : "";
+            var bHolder = bankHolder ? bankHolder.value.trim().toUpperCase() : "";
+            var bText = (bankSel && bankSel.selectedIndex > 0) ? bankSel.options[bankSel.selectedIndex].text : "";
+
+            if (bCode && bNum) {
+                try {
+                    localStorage.setItem('tutorBankInfo_' + phone, JSON.stringify({
+                        bank: bCode,
+                        bankName: bText,
+                        stk: bNum,
+                        holder: bHolder
+                    }));
+                } catch(e) {}
+                if (tutorDataGlobal) {
+                    tutorDataGlobal.bankName = bText || bCode;
+                    tutorDataGlobal.accountNumber = bNum;
+                }
+            } else if (!currentTutorQrBase64) {
+                try {
+                    localStorage.removeItem('tutorBankInfo_' + phone);
+                } catch(e) {}
+                if (tutorDataGlobal) {
+                    tutorDataGlobal.bankName = "";
+                    tutorDataGlobal.accountNumber = "";
+                }
+            }
             
             var confirmMsg = "Bạn có chắc chắn muốn cập nhật thông tin tài khoản và mã QR?";
             if(phone !== tutorDataGlobal.tutorPhone) {
@@ -7674,22 +7900,12 @@ window.initTutorSidebarState = initTutorSidebarState;
                 nhanXet: nhanXet
             };
             
-            document.getElementById('prevStudentName').innerText = tempLessonData.studentName;
-            document.getElementById('prevTuan').innerText = tempLessonData.tuan;
-            document.getElementById('prevNgay').innerText = tempLessonData.ngay;
-            document.getElementById('prevMon').innerText = tempLessonData.mon;
-            document.getElementById('prevTrangThai').innerText = tempLessonData.trangThai;
-            document.getElementById('prevBtvn').innerText = tempLessonData.btvn;
-            document.getElementById('prevDiemDau').innerText = tempLessonData.diemDau;
-            document.getElementById('prevDiemDinhKi').innerText = tempLessonData.diemDinhKi;
-            document.getElementById('prevNoiDung').innerText = tempLessonData.noiDung;
-            var prevNxEl = document.getElementById('prevNhanXet');
-            if (prevNxEl) prevNxEl.innerText = tempLessonData.nhanXet || "—";
-            
-            document.getElementById('previewLessonModal').style.display = "flex";
+            // Bỏ bước popup xác nhận đăng, bấm Tiếp tục là đăng luôn
+            submitLessonLog();
         }
         function closePreviewLessonModal() {
-            document.getElementById('previewLessonModal').style.display = "none";
+            var m = document.getElementById('previewLessonModal');
+            if (m) m.style.display = "none";
         }
         function submitLessonLog() {
             if(!tempLessonData) return;

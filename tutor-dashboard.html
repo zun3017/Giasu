@@ -1,10 +1,9 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-    <script>window.__tutorThemeKey = window.__tutorThemeKey || function () { var p = ''; try { p = sessionStorage.getItem('userPhone') || ''; } catch (e) {} if (!p) { try { var d = JSON.parse(sessionStorage.getItem('dashboardData') || 'null'); p = (d && (d.tutorPhone || d.phone)) || ''; } catch (e) {} } var dir = (location.pathname || '/').replace(/[^\/]*$/, ''); return 'tutorTheme::' + dir + '::' + (p || 'guest'); };</script>
-    <link rel="icon" type="image/png" href="https://i.postimg.cc/66rKbPmb/trinh-duyet.png">
-
     <meta charset="UTF-8">
+    <script>window.__tutorThemeKey = window.__tutorThemeKey || function () { var p = ''; try { p = sessionStorage.getItem('userPhone') || ''; } catch (e) {} if (!p) { try { var d = JSON.parse(sessionStorage.getItem('dashboardData') || 'null'); p = (d && (d.tutorPhone || d.phone)) || ''; } catch (e) {} } var dir = (location.pathname || '/').replace(/[^\/]*$/, ''); return 'tutorTheme::' + dir + '::' + (p || 'guest'); };</script>
+    <link rel="icon" type="image/png" href="img/zuntutor_avatar_blue.png">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Hệ thống Tra cứu Học tập</title>
     <!-- PWA Settings -->
@@ -12,8 +11,8 @@
     <meta name="theme-color" content="#0B0826">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Gia Sư">
-    <link rel="apple-touch-icon" href="https://i.postimg.cc/66rKbPmb/trinh-duyet.png">
+    <meta name="apple-mobile-web-app-title" content="ZunTutor">
+    <link rel="apple-touch-icon" href="img/zuntutor_avatar_blue.png">
     <script>
         window.onerror = function(message, source, lineno, colno, error) {
             console.error("JS Error: " + message + " at " + source + ":" + lineno + ":" + colno);
@@ -110,6 +109,221 @@
         .sidebar-collapse-btn {
             z-index: 1005 !important;
         }
+
+        /* ===== TUTOR LOCK / EXPIRED BANNER & STATUS BADGES ===== */
+        .tutor-lock-banner {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 16px 20px;
+            border-radius: 16px;
+            margin: 16px 0 20px;
+            box-shadow: 0 4px 20px -4px rgba(0, 0, 0, 0.08);
+            animation: fadeInDown 0.35s ease;
+        }
+        .tutor-lock-banner.trial-expired {
+            background: linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%);
+            border: 1.5px solid #FCD34D;
+            color: #92400E;
+        }
+        .tutor-lock-banner.sub-expired {
+            background: linear-gradient(135deg, #FEF2F2 0%, #FEE2E2 100%);
+            border: 1.5px solid #FCA5A5;
+            color: #991B1B;
+        }
+        .tutor-lock-banner.near-expiry {
+            background: linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%);
+            border: 1.5px solid #F59E0B;
+            color: #92400E;
+            position: relative;
+            padding-right: 68px; /* Khoảng trống an toàn để nút X không bao giờ dính/đè lên nút Zalo */
+        }
+        .tutor-lock-banner.near-expiry .lock-icon-wrap {
+            background: #F59E0B;
+            color: #fff;
+            box-shadow: 0 4px 12px rgba(245, 158, 11, 0.35);
+        }
+        .tutor-lock-banner.near-expiry .lock-info h4 { color: #B45309; }
+        .tutor-lock-banner.near-expiry .lock-actions {
+            margin-right: 8px;
+        }
+        .tutor-lock-banner-close {
+            position: absolute;
+            top: 14px;
+            right: 14px;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: rgba(180, 83, 9, 0.12);
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: 800;
+            color: #92400E;
+            transition: all 0.15s ease;
+            line-height: 1;
+            z-index: 10;
+        }
+        .tutor-lock-banner-close:hover {
+            background: rgba(180, 83, 9, 0.25);
+            color: #78350F;
+            transform: scale(1.08);
+        }
+        .tutor-lock-banner .lock-icon-wrap {
+            width: 48px;
+            height: 48px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            flex-shrink: 0;
+        }
+        .tutor-lock-banner.trial-expired .lock-icon-wrap {
+            background: #F59E0B;
+            color: #fff;
+            box-shadow: 0 4px 12px rgba(245, 158, 11, 0.35);
+        }
+        .tutor-lock-banner.sub-expired .lock-icon-wrap {
+            background: #EF4444;
+            color: #fff;
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.35);
+        }
+        .tutor-lock-banner .lock-info {
+            flex: 1;
+            min-width: 0;
+        }
+        .tutor-lock-banner .lock-info h4 {
+            margin: 0 0 4px;
+            font-size: 15px;
+            font-weight: 800;
+        }
+        .tutor-lock-banner.trial-expired .lock-info h4 { color: #B45309; }
+        .tutor-lock-banner.sub-expired .lock-info h4 { color: #B91C1C; }
+        .tutor-lock-banner .lock-info p {
+            margin: 0;
+            font-size: 13px;
+            line-height: 1.5;
+            color: #475569;
+        }
+        .tutor-lock-banner .lock-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-shrink: 0;
+            flex-wrap: wrap;
+        }
+        .tutor-lock-banner .btn-renew {
+            background: #2563EB;
+            color: #fff;
+            font-weight: 700;
+            font-size: 13px;
+            padding: 9px 18px;
+            border-radius: 10px;
+            border: none;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+        }
+        .tutor-lock-banner .btn-renew:hover {
+            background: #1D4ED8;
+            transform: translateY(-1px);
+        }
+        .tutor-lock-banner .btn-contact {
+            background: #fff;
+            color: #334155;
+            border: 1.5px solid #CBD5E1;
+            font-weight: 600;
+            font-size: 13px;
+            padding: 8px 14px;
+            border-radius: 10px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+        .tutor-lock-banner .btn-contact:hover {
+            border-color: #94A3B8;
+            background: #F8FAFC;
+        }
+        @media (max-width: 768px) {
+            .tutor-lock-banner {
+                flex-direction: column !important;
+                align-items: flex-start !important;
+                padding: 16px !important;
+                gap: 12px !important;
+            }
+            .tutor-lock-banner.near-expiry {
+                padding-top: 18px !important;
+                padding-right: 48px !important;
+            }
+            .tutor-lock-banner .lock-actions {
+                width: 100% !important;
+                margin-top: 4px !important;
+                margin-right: 0 !important;
+            }
+            .tutor-lock-banner .btn-renew {
+                width: 100% !important;
+                justify-content: center !important;
+            }
+        }
+        .badge-locked-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 10.5px;
+            font-weight: 800;
+            margin-top: 3px;
+            line-height: 1.4;
+        }
+        .badge-locked-pill.trial {
+            background: #FEF3C7;
+            color: #D97706;
+            border: 1px solid #FCD34D;
+        }
+        .badge-locked-pill.sub {
+            background: #FEE2E2;
+            color: #DC2626;
+            border: 1px solid #FCA5A5;
+        }
+        .badge-locked-pill.active {
+            background: #ECFDF5;
+            color: #059669;
+            border: 1px solid #A7F3D0;
+        }
+        .badge-locked-pill.expiring {
+            background: #FFF7ED;
+            color: #EA580C;
+            border: 1px solid #FDBA74;
+        }
+
+        /* Renew Modal Styling */
+        .rn-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            margin: 14px 0;
+            background: #F8FAFC;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid #E2E8F0;
+        }
+        .rn-table th, .rn-table td {
+            padding: 9px 14px;
+            text-align: left;
+            border-bottom: 1px solid #E2E8F0;
+        }
+        .rn-table th { background: #F1F5F9; font-weight: 700; color: #475569; }
+        .rn-table tr.highlight { background: #EFF6FF; font-weight: 700; color: #1D4ED8; }
 
         /* ================= INVOICE STYLES (APPROVED E-RECEIPT) ================= */
         .invoice-container {
@@ -644,6 +858,7 @@
                     <div class="sidebar-user-info">
                         <div class="sidebar-user-title">Gia Sư 4.0</div>
                         <div class="sidebar-user-name" id="sidebarTutorName">Gia sư</div>
+                        <span id="sidebarTutorStatusBadge" class="badge-locked-pill active" style="display:none"></span>
                     </div>
                 </div>
                 <button type="button" class="sidebar-mobile-close-btn" onclick="toggleTutorMobileSidebar(false)" aria-label="Đóng menu" title="Đóng menu">
@@ -717,6 +932,7 @@
                     <div class="mobile-header-brand">
                         <span class="mobile-brand-title">Gia Sư 4.0</span>
                         <span class="mobile-brand-name" id="mobileHeaderTutorName">Gia sư</span>
+                        <span id="mobileHeaderTutorStatusBadge" class="badge-locked-pill active" style="display:none"></span>
                     </div>
                 </div>
                 <div class="mobile-header-actions">
@@ -741,6 +957,9 @@
                     <p>Tổng quan hệ thống giảng dạy</p>
                 </div>
             </div>
+
+            <!-- Banner cảnh báo khóa / hết hạn dùng thử / hết hạn 30 ngày -->
+            <div id="tutorLockBannerContainer" style="display:none; padding: 0 10px;"></div>
 
         <!-- SECTION TỔNG QUAN -->
         <div id="tutorSectionOverview" class="tutor-section" style="display: block;">
@@ -1551,37 +1770,112 @@
                     <input type="text" id="accTotalSessions" class="readonly-value" readonly>
                 </div>
             </div>
-            <div class="modal-form-group" style="text-align: center; display: flex; flex-direction: column; align-items: center; background: var(--bg-card-alt); border: 1px dashed var(--border-color); border-radius: 14px; padding: 15px; margin-top: 10px;">
-                <label style="text-align: center; width: 100%; font-weight: 700; color: var(--color-primary); display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-size: 14px;">
-                    <i class="fa-solid fa-qrcode"></i> ẢNH MÃ QR THANH TOÁN / CHUYỂN KHOẢN
+            <div class="modal-form-group" style="background: var(--bg-card-alt); border: 1px dashed var(--border-color); border-radius: 14px; padding: 15px; margin-top: 10px;">
+                <label style="text-align: center; width: 100%; font-weight: 700; color: var(--color-primary); display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-size: 14px; margin-bottom: 4px;">
+                    <i class="fa-solid fa-qrcode"></i> MÃ QR THANH TOÁN / CHUYỂN KHOẢN
                 </label>
-                <span style="color: var(--text-secondary); font-size: 12px; margin: 4px 0 10px; line-height: 1.4;">
-                    Đăng ảnh mã QR ngân hàng của bạn để hiển thị trên Phiếu học phí gửi cho Phụ huynh
-                </span>
-                
-                <div id="accQrPreviewContainer" style="width: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100px;">
-                    <img id="accQrImg" src="" style="max-width: 220px; max-height: 220px; width: auto; height: auto; border-radius: 12px; border: 1px solid var(--border-card); object-fit: contain; display: none; box-shadow: 0 4px 20px rgba(0,0,0,0.5); background: #FFF; padding: 6px;">
-                    <div id="accQrText" style="color: var(--text-secondary); font-size: 13px; margin: 10px 0;">
-                        <i class="fa-regular fa-image" style="font-size: 28px; display: block; margin-bottom: 6px; opacity: 0.5;"></i>
-                        Chưa có ảnh mã QR
+                <div style="text-align: center; color: var(--text-secondary); font-size: 12px; margin-bottom: 12px; line-height: 1.4;">
+                    Hiển thị trên Phiếu học phí để Phụ huynh quét chuyển khoản học phí nhanh chóng
+                </div>
+
+                <!-- Tùy chọn nguồn mã QR: Tự chọn ngân hàng & STK hoặc Tải ảnh -->
+                <div style="display: flex; width: 100%; background: var(--bg-card); padding: 4px; border-radius: 10px; margin-bottom: 14px; border: 1px solid var(--border-card); gap: 4px; box-sizing: border-box;">
+                    <button type="button" id="tabQrAutoBtn" onclick="switchQrSourceMode('auto')" style="flex: 1; padding: 8px 10px; font-size: 12.5px; font-weight: 600; border-radius: 7px; border: none; cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; justify-content: center; gap: 6px; background: var(--color-primary); color: #fff;">
+                        <i class="fa-solid fa-building-columns"></i> Chọn Ngân hàng & STK
+                    </button>
+                    <button type="button" id="tabQrUploadBtn" onclick="switchQrSourceMode('upload')" style="flex: 1; padding: 8px 10px; font-size: 12.5px; font-weight: 600; border-radius: 7px; border: none; cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; justify-content: center; gap: 6px; background: transparent; color: var(--text-secondary);">
+                        <i class="fa-solid fa-cloud-arrow-up"></i> Tải ảnh / Dán link QR
+                    </button>
+                </div>
+
+                <!-- TAB 1: TỰ ĐỘNG THEO NGÂN HÀNG & STK (VIETQR) -->
+                <div id="qrAutoPanel" style="width: 100%; display: flex; flex-direction: column; gap: 10px; text-align: left; margin-bottom: 12px; box-sizing: border-box;">
+                    <div>
+                        <label style="display: block; font-size: 12px; font-weight: 600; color: var(--text-primary); margin-bottom: 4px;">
+                            <i class="fa-solid fa-landmark"></i> Ngân hàng thụ hưởng <span style="color:#EF4444">*</span>
+                        </label>
+                        <select id="accBankSelect" onchange="generateAutoVietQr()" style="width: 100%; padding: 8px 12px; font-size: 13px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-input); color: var(--text-primary); outline: none; box-sizing: border-box;">
+                            <option value="">-- Chọn ngân hàng thụ hưởng --</option>
+                            <option value="MB">MBBank - Ngân hàng Quân Đội</option>
+                            <option value="VCB">Vietcombank - Ngân hàng Ngoại Thương</option>
+                            <option value="TCB">Techcombank - Ngân hàng Kỹ Thương</option>
+                            <option value="ICB">VietinBank - Ngân hàng Công Thương</option>
+                            <option value="BIDV">BIDV - Ngân hàng Đầu tư và Phát triển</option>
+                            <option value="ACB">ACB - Ngân hàng Á Châu</option>
+                            <option value="VPB">VPBank - Ngân hàng Việt Nam Thịnh Vượng</option>
+                            <option value="TPB">TPBank - Ngân hàng Tiên Phong</option>
+                            <option value="VBA">Agribank - Ngân hàng Nông nghiệp & PTNT</option>
+                            <option value="STB">Sacombank - Ngân hàng Sài Gòn Thương Tín</option>
+                            <option value="HDB">HDBank - Ngân hàng Phát triển TP.HCM</option>
+                            <option value="VIB">VIB - Ngân hàng Quốc tế</option>
+                            <option value="SHB">SHB - Ngân hàng Sài Gòn - Hà Nội</option>
+                            <option value="MSB">MSB - Ngân hàng Hàng Hải</option>
+                            <option value="OCB">OCB - Ngân hàng Phương Đông</option>
+                            <option value="LPB">LPBank - Ngân hàng Lộc Phát Việt Nam</option>
+                            <option value="SEAB">SeABank - Ngân hàng Đông Nam Á</option>
+                            <option value="CAKE">Cake by VPBank</option>
+                            <option value="TIMO">Timo by BVBank</option>
+                            <option value="VTLMONEY">Viettel Money</option>
+                            <option value="VNPTMONEY">VNPT Money</option>
+                            <option value="BAB">BacABank - Ngân hàng Bắc Á</option>
+                            <option value="PVCB">PVcomBank - Ngân hàng Đại Chúng</option>
+                            <option value="EIB">Eximbank - Xuất Nhập Khẩu</option>
+                            <option value="NAB">Nam A Bank</option>
+                            <option value="ABB">ABBank - Ngân hàng An Bình</option>
+                            <option value="BVB">BaoViet Bank</option>
+                            <option value="KLB">Kienlongbank</option>
+                            <option value="VBB">VietBank</option>
+                            <option value="SGICB">Saigonbank</option>
+                            <option value="SHBVN">Shinhan Bank</option>
+                            <option value="WOO">Woori Bank</option>
+                        </select>
+                    </div>
+
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                        <div style="flex: 1; min-width: 140px;">
+                            <label style="display: block; font-size: 12px; font-weight: 600; color: var(--text-primary); margin-bottom: 4px;">
+                                <i class="fa-solid fa-credit-card"></i> Số tài khoản (STK) <span style="color:#EF4444">*</span>
+                            </label>
+                            <input type="text" id="accBankNumber" placeholder="Nhập số tài khoản..." oninput="generateAutoVietQr()" style="width: 100%; padding: 8px 12px; font-size: 13px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-input); color: var(--text-primary); outline: none; box-sizing: border-box;">
+                        </div>
+                        <div style="flex: 1; min-width: 140px;">
+                            <label style="display: block; font-size: 12px; font-weight: 600; color: var(--text-primary); margin-bottom: 4px;">
+                                <i class="fa-solid fa-user-tag"></i> Tên chủ tài khoản
+                            </label>
+                            <input type="text" id="accBankHolder" placeholder="NGUYEN VAN A" oninput="this.value = this.value.toUpperCase(); generateAutoVietQr()" style="width: 100%; padding: 8px 12px; font-size: 13px; text-transform: uppercase; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-input); color: var(--text-primary); outline: none; box-sizing: border-box;">
+                        </div>
+                    </div>
+                    <div style="font-size: 11.5px; color: var(--text-secondary); display: flex; align-items: center; gap: 6px; margin-top: 2px;">
+                        <i class="fa-solid fa-circle-check" style="color: #10B981;"></i>
+                        <span>Mã VietQR tự động sinh ngay khi nhập STK & ngân hàng.</span>
                     </div>
                 </div>
 
-                <!-- Input file ẩn -->
-                <input type="file" id="accQrFileInput" accept="image/*" style="display: none;" onchange="handleTutorQrFileSelect(this)">
-
-                <div style="display: flex; gap: 10px; margin-top: 12px; flex-wrap: wrap; justify-content: center;">
-                    <button type="button" onclick="document.getElementById('accQrFileInput').click()" class="modal-btn" style="width: auto; padding: 8px 18px; font-size: 13px; border-radius: 8px; font-weight: bold; display: inline-flex; align-items: center; gap: 6px; background: var(--btn-bg); border: 1px solid var(--color-primary); color: var(--btn-text); cursor: pointer; box-shadow: var(--shadow-primary);">
-                        <i class="fa-solid fa-cloud-arrow-up"></i> Tải ảnh mã QR lên
-                    </button>
-                    <button type="button" id="btnRemoveTutorQr" onclick="removeTutorQr()" class="modal-btn" style="width: auto; padding: 8px 14px; font-size: 12px; border-radius: 8px; font-weight: bold; display: none; align-items: center; gap: 5px; background: rgba(239, 68, 68, 0.15); border: 1px solid #EF4444; color: #EF4444; cursor: pointer;">
-                        <i class="fa-solid fa-trash-can"></i> Xóa ảnh
-                    </button>
+                <!-- TAB 2: TẢI ẢNH CÓ SẴN HOẶC DÁN LINK -->
+                <div id="qrUploadPanel" style="width: 100%; display: none; flex-direction: column; gap: 10px; margin-bottom: 12px; box-sizing: border-box;">
+                    <!-- Input file ẩn -->
+                    <input type="file" id="accQrFileInput" accept="image/*" style="display: none;" onchange="handleTutorQrFileSelect(this)">
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;">
+                        <button type="button" onclick="document.getElementById('accQrFileInput').click()" class="modal-btn" style="width: auto; padding: 8px 18px; font-size: 13px; border-radius: 8px; font-weight: bold; display: inline-flex; align-items: center; gap: 6px; background: var(--btn-bg); border: 1px solid var(--color-primary); color: var(--btn-text); cursor: pointer; box-shadow: var(--shadow-primary);">
+                            <i class="fa-solid fa-cloud-arrow-up"></i> Tải ảnh mã QR lên
+                        </button>
+                    </div>
+                    <!-- Ô dán link ảnh nếu muốn -->
+                    <div style="width: 100%; display: flex; align-items: center; gap: 6px;">
+                        <input type="text" id="accQrUrlInput" placeholder="Hoặc dán liên kết ảnh mã QR (URL)..." style="flex: 1; padding: 8px 12px; font-size: 12px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-input); color: var(--text-primary); outline: none; box-sizing: border-box;" oninput="handleTutorQrUrlInput(this.value)">
+                    </div>
                 </div>
 
-                <!-- Ô dán link ảnh nếu muốn -->
-                <div style="width: 100%; margin-top: 10px; display: flex; align-items: center; gap: 6px;">
-                    <input type="text" id="accQrUrlInput" placeholder="Hoặc dán liên kết ảnh mã QR (URL)..." style="flex: 1; padding: 7px 12px; font-size: 12px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-input); color: var(--text-primary); outline: none;" oninput="handleTutorQrUrlInput(this.value)">
+                <!-- VÙNG PREVIEW MÃ QR -->
+                <div id="accQrPreviewContainer" style="width: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 120px; background: rgba(0,0,0,0.06); border-radius: 12px; padding: 14px; border: 1px dashed var(--border-color); box-sizing: border-box;">
+                    <img id="accQrImg" src="" style="max-width: 220px; max-height: 220px; width: auto; height: auto; border-radius: 12px; border: 1px solid var(--border-card); object-fit: contain; display: none; box-shadow: 0 4px 20px rgba(0,0,0,0.5); background: #FFF; padding: 6px;">
+                    <div id="accQrText" style="color: var(--text-secondary); font-size: 13px; margin: 10px 0; text-align: center;">
+                        <i class="fa-regular fa-image" style="font-size: 28px; display: block; margin-bottom: 6px; opacity: 0.5;"></i>
+                        Chưa có ảnh mã QR
+                    </div>
+                    <button type="button" id="btnRemoveTutorQr" onclick="removeTutorQr()" class="modal-btn" style="width: auto; padding: 6px 14px; font-size: 12px; border-radius: 8px; font-weight: 600; display: none; align-items: center; gap: 5px; background: rgba(239, 68, 68, 0.15); border: 1px solid #EF4444; color: #EF4444; cursor: pointer; margin-top: 10px;">
+                        <i class="fa-solid fa-trash-can"></i> Xóa ảnh / Làm lại
+                    </button>
                 </div>
             </div>
             <div class="modal-footer">
@@ -2151,8 +2445,8 @@
         </div>
     </div>
 
-    <!-- 5. Modal Preview Nhật ký buổi học (Preview Modal) -->
-    <div id="previewLessonModal" class="modal-overlay" style="z-index: 1001;">
+    <!-- 5. Modal Preview Nhật ký buổi học (Đã bỏ theo yêu cầu: nhấn Tiếp tục là đăng luôn) -->
+    <div id="previewLessonModal" class="modal-overlay" style="display: none !important;">
         <div class="modal-content">
             <div class="modal-header">
                 <h3><i class="fa-solid fa-clipboard-check"></i> Xác nhận thông tin buổi học</h3>
@@ -3633,11 +3927,228 @@
             }
         }, { passive: true });
 
-        window.addEventListener('DOMContentLoaded', () => {
-            var data = JSON.parse(sessionStorage.getItem('dashboardData'));
+        function ztDashboardParseDate(s) {
+            if (!s) return null;
+            if (typeof window.ztParseVNDate === 'function') {
+                var p = window.ztParseVNDate(s);
+                if (p && !isNaN(p.getTime())) return p;
+            }
+            s = String(s).trim().split(' ')[0];
+            if (s.includes('/')) {
+                var parts = s.split('/');
+                if (parts.length >= 3) {
+                    var d = parseInt(parts[0], 10);
+                    var m = parseInt(parts[1], 10) - 1;
+                    var y = parseInt(parts[2], 10);
+                    return new Date(y, m, d);
+                }
+            }
+            if (s.includes('-')) {
+                var parts = s.split('-');
+                if (parts.length >= 3) {
+                    var y = parseInt(parts[0], 10);
+                    var m = parseInt(parts[1], 10) - 1;
+                    var d = parseInt(parts[2], 10);
+                    return new Date(y, m, d);
+                }
+            }
+            var dt = new Date(s);
+            return isNaN(dt.getTime()) ? null : dt;
+        }
+
+        function renderTutorAccountStatusBanner(data) {
+            var container = document.getElementById('tutorLockBannerContainer');
+            var escapeHtml = window.escapeHtml || function(s){ return String(s||'').replace(/[&<>"']/g, function(m){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]; }); };
+            var status = String((data && data.status) || '').trim();
+            var accType = String((data && data.accountType) || '').trim();
+            var nextDue = String((data && data.nextDueDate) || '').trim();
+            var sCount = (data && data.students && data.students.length) || 0;
+            var adminContact = (data && data.adminContact) || { zalo: '0975546830', facebook: 'https://m.me/zuntutor', phone: '0975546830' };
+
+            var dueDate = ztDashboardParseDate(nextDue);
+            var daysRemaining = null;
+            if (dueDate) {
+                var today = new Date();
+                today.setHours(0, 0, 0, 0);
+                var dClone = new Date(dueDate.getTime());
+                dClone.setHours(0, 0, 0, 0);
+                daysRemaining = Math.round((dClone.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+            }
+            
+            var isTrialExpired = status.includes('Hết hạn dùng thử') || status.includes('hết hạn dùng thử') ||
+                                 (accType.includes('dùng thử') && (status === 'Tạm khóa' || status === 'Tạm khoá')) ||
+                                 (accType.includes('dùng thử') && daysRemaining !== null && daysRemaining < 0);
+            var isSubExpired = status.includes('Hết hạn sử dụng') || status.includes('Hết hạn 30 ngày') ||
+                               status.includes('hết hạn sử dụng') || (accType.includes('30 ngày') && (status === 'Tạm khóa' || status === 'Tạm khoá')) ||
+                               (!accType.includes('dùng thử') && daysRemaining !== null && daysRemaining < 0);
+
+            var isNearExpiry = (!isTrialExpired && !isSubExpired) && (daysRemaining !== null && daysRemaining >= 0 && daysRemaining <= 3);
+
+            var sideBadge = document.getElementById('sidebarTutorStatusBadge');
+            var mobBadge = document.getElementById('mobileHeaderTutorStatusBadge');
+            var expiredOverlay = document.getElementById('tutorExpiredOverlay');
+            
+            if (isTrialExpired || isSubExpired) {
+                if (expiredOverlay) {
+                    expiredOverlay.style.display = 'flex';
+                    var zBtn = document.getElementById('btnLockZalo');
+                    if (zBtn) {
+                        var zaloNum = adminContact.zalo || '0975546830';
+                        zBtn.href = 'https://zalo.me/' + String(zaloNum).replace(/\D/g, '');
+                        zBtn.innerHTML = '<i class="fa-solid fa-comment-dots" style="font-size: 17px;"></i> Nhắn tin Zalo Admin: ' + zaloNum;
+                    }
+                    var mBtn = document.getElementById('btnLockMessenger');
+                    if (mBtn) mBtn.href = adminContact.facebook || 'https://m.me/zuntutor';
+                    var pBtn = document.getElementById('btnLockPhone');
+                    if (pBtn) pBtn.href = 'tel:' + String(adminContact.phone || '0975546830').replace(/\D/g, '');
+                    var pTxt = document.getElementById('txtLockPhone');
+                    if (pTxt) pTxt.textContent = adminContact.phone || '0975 546 830';
+                    var titleEl = document.getElementById('expiredLockTitle');
+                    if (titleEl) {
+                        titleEl.textContent = isTrialExpired ? 'Gói dùng thử 15 ngày đã kết thúc' : 'Gói sử dụng 30 ngày đã hết hạn';
+                    }
+                }
+
+                if (container) {
+                    container.innerHTML = `
+                        <div class="tutor-lock-banner ${isTrialExpired ? 'trial-expired' : 'sub-expired'}">
+                            <div class="lock-icon-wrap"><i class="fa-solid fa-lock"></i></div>
+                            <div class="lock-info">
+                                <h4>${isTrialExpired ? 'Gói dùng thử 15 ngày đã kết thúc' : 'Gói sử dụng 30 ngày đã hết hạn'}</h4>
+                                <p>Dữ liệu <b>${sCount} học sinh</b> của bạn được bảo lưu nguyên vẹn 100%. Vui lòng liên hệ Admin để tiếp tục gia hạn.</p>
+                            </div>
+                            <div class="lock-actions">
+                                <a href="https://zalo.me/${String(adminContact.zalo||'0975546830').replace(/\D/g,'')}" target="_blank" class="btn-renew" style="text-decoration:none;"><i class="fa-solid fa-comment-dots"></i> Nhắn tin Zalo Admin: ${adminContact.zalo||'0975546830'}</a>
+                            </div>
+                        </div>
+                    `;
+                    container.style.display = 'block';
+                }
+
+                if (sideBadge) {
+                    sideBadge.className = 'badge-locked-pill ' + (isTrialExpired ? 'trial' : 'sub');
+                    sideBadge.innerHTML = '<i class="fa-solid fa-lock"></i> ' + (isTrialExpired ? 'Hết hạn dùng thử' : 'Hết hạn 30 ngày');
+                    sideBadge.style.display = 'inline-flex';
+                }
+                if (mobBadge) {
+                    mobBadge.className = 'badge-locked-pill ' + (isTrialExpired ? 'trial' : 'sub');
+                    mobBadge.innerHTML = '<i class="fa-solid fa-lock"></i> ' + (isTrialExpired ? 'Hết hạn thử' : 'Hết hạn 30 ngày');
+                    mobBadge.style.display = 'inline-flex';
+                }
+            } else if (isNearExpiry) {
+                if (expiredOverlay) expiredOverlay.style.display = 'none';
+
+                var dismissKey = 'zt_dismiss_due_alert_' + String(nextDue || '');
+                var isDismissed = false;
+                try {
+                    isDismissed = (sessionStorage.getItem(dismissKey) === '1');
+                } catch(e) {}
+
+                if (container) {
+                    if (isDismissed) {
+                        container.innerHTML = '';
+                        container.style.display = 'none';
+                    } else {
+                        var remainingMsg = (daysRemaining === 0)
+                            ? '<b>hôm nay là ngày cuối cùng</b>'
+                            : `chỉ còn <b>${daysRemaining} ngày</b>`;
+                        container.innerHTML = `
+                            <div class="tutor-lock-banner near-expiry" id="tutorNearExpiryBanner">
+                                <button type="button" class="tutor-lock-banner-close" onclick="dismissTutorDueAlert('${escapeHtml(nextDue)}')" title="Đóng thông báo" aria-label="Đóng thông báo">✕</button>
+                                <div class="lock-icon-wrap"><i class="fa-solid fa-bell"></i></div>
+                                <div class="lock-info">
+                                    <h4>Thông báo: Gói dịch vụ sắp hết hạn!</h4>
+                                    <p>Tài khoản của bạn ${remainingMsg} sử dụng (thời điểm hết hạn: <b>${escapeHtml(nextDue)}</b>). Vui lòng liên hệ Admin gia hạn để đảm bảo công việc dạy học không bị gián đoạn.</p>
+                                </div>
+                                <div class="lock-actions">
+                                    <a href="https://zalo.me/${String(adminContact.zalo||'0975546830').replace(/\D/g,'')}" target="_blank" class="btn-renew" style="text-decoration:none;"><i class="fa-solid fa-comment-dots"></i> Nhắn tin Zalo Admin: ${adminContact.zalo||'0975546830'}</a>
+                                </div>
+                            </div>
+                        `;
+                        container.style.display = 'block';
+                    }
+                }
+
+                var sideText = (daysRemaining === 0) ? 'Sắp hết hạn (hôm nay)' : `Sắp hết hạn (còn ${daysRemaining} ngày)`;
+                var mobText = (daysRemaining === 0) ? 'Hôm nay hết hạn' : `Còn ${daysRemaining} ngày`;
+                if (sideBadge) {
+                    sideBadge.className = 'badge-locked-pill expiring';
+                    sideBadge.innerHTML = '<i class="fa-solid fa-clock"></i> ' + sideText;
+                    sideBadge.style.display = 'inline-flex';
+                }
+                if (mobBadge) {
+                    mobBadge.className = 'badge-locked-pill expiring';
+                    mobBadge.innerHTML = '<i class="fa-solid fa-clock"></i> ' + mobText;
+                    mobBadge.style.display = 'inline-flex';
+                }
+            } else {
+                if (expiredOverlay) expiredOverlay.style.display = 'none';
+                if (container) { container.innerHTML = ''; container.style.display = 'none'; }
+                if (sideBadge) { sideBadge.className = 'badge-locked-pill active'; sideBadge.innerHTML = '<i class="fa-solid fa-circle-check"></i> Đang hoạt động'; sideBadge.style.display = 'inline-flex'; }
+                if (mobBadge) { mobBadge.className = 'badge-locked-pill active'; mobBadge.innerHTML = '<i class="fa-solid fa-circle-check"></i> Hoạt động'; mobBadge.style.display = 'inline-flex'; }
+            }
+        }
+        window.renderTutorAccountStatusBanner = renderTutorAccountStatusBanner;
+
+        function dismissTutorDueAlert(nextDue) {
+            try {
+                sessionStorage.setItem('zt_dismiss_due_alert_' + String(nextDue || ''), '1');
+            } catch(e) {}
+            var container = document.getElementById('tutorLockBannerContainer');
+            if (container) {
+                container.innerHTML = '';
+                container.style.display = 'none';
+            }
+        }
+        window.dismissTutorDueAlert = dismissTutorDueAlert;
+
+        function openRenewModal() {
+            var zBtn = document.getElementById('btnLockZalo');
+            if (zBtn && zBtn.href && zBtn.href !== '#') {
+                window.open(zBtn.href, '_blank');
+            } else {
+                window.open('https://zalo.me/0975546830', '_blank');
+            }
+        }
+        window.openRenewModal = openRenewModal;
+        function closeRenewModal() {}
+        window.closeRenewModal = closeRenewModal;
+
+        function openContactSupportModal() {
+            var m = document.getElementById('modalContactSupport');
+            if (m) m.style.display = 'flex';
+        }
+        window.openContactSupportModal = openContactSupportModal;
+        function closeContactSupportModal() {
+            var m = document.getElementById('modalContactSupport');
+            if (m) m.style.display = 'none';
+        }
+        window.closeContactSupportModal = closeContactSupportModal;
+
+        window.addEventListener('DOMContentLoaded', async () => {
             var role = sessionStorage.getItem('userRole');
             var phone = sessionStorage.getItem('userPhone');
             var pin = sessionStorage.getItem('userPin');
+            var data = null;
+            try {
+                data = JSON.parse(sessionStorage.getItem('dashboardData'));
+            } catch(e) {}
+
+            if ((!data || !data.students) && role === 'tutor' && phone) {
+                try {
+                    if (typeof google !== 'undefined' && google.script && google.script.run) {
+                        data = await new Promise(resolve => {
+                            google.script.run.withSuccessHandler(res => resolve(res)).getTutorDashboardData(phone);
+                        });
+                        if (data && !data.error) {
+                            sessionStorage.setItem('dashboardData', JSON.stringify(data));
+                        }
+                    }
+                } catch(err) {
+                    console.warn('Fallback load dashboard error:', err);
+                }
+            }
+
             if (!data || role !== 'tutor') {
                 window.location.href = 'tutor-login.html';
                 return;
@@ -3648,6 +4159,9 @@
             if (document.getElementById('maPin')) document.getElementById('maPin').value = pin;
             
             renderTutorView(data);
+            if (typeof renderTutorAccountStatusBanner === 'function') {
+                renderTutorAccountStatusBanner(data);
+            }
 
             var mobName = document.getElementById('mobileHeaderTutorName');
             if (mobName && data.tutorName) mobName.innerText = data.tutorName;
@@ -4019,6 +4533,60 @@
       <span style="opacity:0.65; font-size:11px;">Hệ thống 36 Theme</span>
     </div>
   </div>
+</div>
+
+<!-- KHUNG KHÓA TOÀN MÀN HÌNH KHI HẾT HẠN (LÀM MỜ TẤT CẢ VÙNG NGOÀI) -->
+<div id="tutorExpiredOverlay" style="display: none; position: fixed; inset: 0; z-index: 999999; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); align-items: center; justify-content: center; padding: 20px;">
+    <div style="background: #ffffff; border-radius: 28px; padding: 36px 28px; width: 100%; max-width: 440px; text-align: center; box-shadow: 0 25px 60px -15px rgba(0,0,0,0.45); border: 1px solid rgba(226,232,240,0.9);">
+        <div style="width: 68px; height: 68px; border-radius: 50%; background: #FEF2F2; color: #DC2626; font-size: 30px; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 18px; box-shadow: 0 8px 16px -4px rgba(220, 38, 38, 0.2);">
+            <i class="fa-solid fa-lock"></i>
+        </div>
+        <h3 id="expiredLockTitle" style="font-size: 20px; font-weight: 800; color: #0F172A; margin: 0 0 8px;">Tài khoản đã hết hạn</h3>
+        <p style="font-size: 15px; font-weight: 700; color: #DC2626; margin: 0 0 12px;">
+            Liên hệ admin để tiếp tục gia hạn
+        </p>
+        <p id="expiredLockDesc" style="font-size: 13.5px; color: #64748B; margin: 0 0 20px; line-height: 1.55;">
+            Toàn bộ dữ liệu học sinh & buổi dạy của bạn vẫn được <b>bảo lưu an toàn 100%</b> trên hệ thống.
+        </p>
+
+        <!-- Nút liên hệ Admin qua Inbox / Gọi điện -->
+        <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px;">
+            <a id="btnLockZalo" href="https://zalo.me/0975546830" target="_blank" style="display: flex; align-items: center; justify-content: center; gap: 8px; height: 48px; background: #0068FF; color: #fff; text-decoration: none; border-radius: 14px; font-weight: 700; font-size: 14.5px;">
+                <i class="fa-solid fa-comment-dots" style="font-size: 17px;"></i> Nhắn tin Zalo Admin: 0975546830
+            </a>
+            <a id="btnLockMessenger" href="#" target="_blank" style="display: flex; align-items: center; justify-content: center; gap: 10px; height: 48px; background: #0084FF; color: #fff; text-decoration: none; border-radius: 14px; font-weight: 700; font-size: 14.5px;">
+                <i class="fa-brands fa-facebook-messenger" style="font-size: 17px;"></i> Nhắn tin Messenger
+            </a>
+            <a id="btnLockPhone" href="#" style="display: flex; align-items: center; justify-content: center; gap: 10px; height: 46px; background: #F8FAFC; border: 1.5px solid #E2E8F0; color: #0F172A; text-decoration: none; border-radius: 14px; font-weight: 700; font-size: 14px;">
+                <i class="fa-solid fa-phone" style="color: #10B981;"></i> Gọi hotline: <span id="txtLockPhone">0975 546 830</span>
+            </a>
+        </div>
+
+        <button type="button" onclick="quayLai()" style="border: 0; background: transparent; color: #94A3B8; font-size: 13px; font-weight: 600; cursor: pointer; text-decoration: underline; padding: 6px 12px;">
+            <i class="fa-solid fa-arrow-right-from-bracket"></i> Đăng xuất tài khoản
+        </button>
+    </div>
+</div>
+
+<!-- MODAL HỖ TRỢ ADMIN -->
+<div id="modalContactSupport" class="modal-overlay" style="display: none; z-index: 2400;" onclick="if(event.target===this)closeContactSupportModal()">
+    <div class="modal-content" style="max-width: 440px; border-radius: 24px; padding: 24px; text-align: center; background: #fff; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);">
+        <div style="width: 52px; height: 52px; border-radius: 50%; background: #EFF6FF; color: #2563EB; font-size: 24px; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px;">
+            <i class="fa-solid fa-headset"></i>
+        </div>
+        <h3 style="margin: 0 0 6px; font-size: 18px; font-weight: 800; color: #0F172A;">Hỗ trợ kỹ thuật ZunTutor</h3>
+        <p style="font-size: 13px; color: #64748B; margin: 0 0 16px; line-height: 1.5;">
+            Nếu bạn cần hỗ trợ gia hạn, mở khóa tài khoản hoặc tư vấn gói dạy nhiều học sinh:
+        </p>
+        <div style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 12px; padding: 12px; text-align: left; font-size: 13px; color: #1E293B; margin-bottom: 16px;">
+            <div>📱 <b>Zalo / Hotline:</b> 0975 546 830</div>
+            <div style="margin-top: 6px;">✉️ <b>Email:</b> support@zuntutor.com</div>
+            <div style="margin-top: 6px;">⏰ <b>Thời gian hỗ trợ:</b> 08:00 – 22:00 hàng ngày</div>
+        </div>
+        <button type="button" onclick="closeContactSupportModal()" style="width: 100%; height: 40px; border: 0; background: #2563EB; color: #fff; font-weight: 700; border-radius: 10px; cursor: pointer;">
+            Đã hiểu
+        </button>
+    </div>
 </div>
 
 <!-- ONBOARDING TOUR (HƯỚNG DẪN SỬ DỤNG LẦN ĐẦU) -->
