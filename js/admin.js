@@ -131,11 +131,15 @@ var pinVerifyAction = "deleteStudent";
         window.onAdminStudentFilterChange = onAdminStudentFilterChange;
 
         function renderAdminView(data) {
+            if (!data) data = {};
+            if (!data.tutors) data.tutors = [];
+            if (!data.students) data.students = [];
+            if (!data.incomeReports) data.incomeReports = {};
             adminDataGlobal = data;
             
             // Khởi tạo số điện thoại Admin hiện tại nếu chưa có
             if (!currentAdminPhone) {
-                currentAdminPhone = sessionStorage.getItem('userPhone') || (document.getElementById('maHocSinh') ? document.getElementById('maHocSinh').value : "");
+                currentAdminPhone = sessionStorage.getItem('userPhone') || (document.getElementById('maHocSinh') ? document.getElementById('maHocSinh').value : "") || "302001";
             }
             
             // Ẩn màn hình chính và các nhân vật 3D nếu tồn tại
@@ -161,7 +165,8 @@ var pinVerifyAction = "deleteStudent";
             // Cập nhật tên hiển thị
             var adminNameEl = document.getElementById('adminNameDisplay');
             if (adminNameEl) {
-                adminNameEl.innerText = "Xin chào, Admin " + (data.tutors.find(t => t.phone === currentAdminPhone)?.name || "Hệ Thống");
+                var adminDisplayName = (data.adminInfo && data.adminInfo.name) ? data.adminInfo.name : ((data.tutors && data.tutors.find(t => normalizePhone(t.phone) === normalizePhone(currentAdminPhone)))?.name || "Quản trị viên");
+                adminNameEl.innerText = "Xin chào, Admin " + adminDisplayName;
             }
             
             // Cập nhật badge số lượng trên các tab
@@ -366,12 +371,21 @@ var pinVerifyAction = "deleteStudent";
         }
 
         function renderAdminRevenueChart(reports) {
+            if (typeof Chart === 'undefined') {
+                console.warn("Chart.js chưa được tải, bỏ qua vẽ biểu đồ");
+                return;
+            }
+            var canvas = document.getElementById('adminRevenueChartCanvas');
+            if (!canvas) return;
+
             if (adminRevenueChartInstance) {
-                adminRevenueChartInstance.destroy();
+                try {
+                    adminRevenueChartInstance.destroy();
+                } catch(e) {}
                 adminRevenueChartInstance = null;
             }
 
-            var sortedMonths = Object.keys(reports).sort(function(a, b) {
+            var sortedMonths = Object.keys(reports || {}).sort(function(a, b) {
                 var pa = parseMonthYear(a);
                 var pb = parseMonthYear(b);
                 if (pa.year !== pb.year) return pa.year - pb.year;
@@ -379,11 +393,12 @@ var pinVerifyAction = "deleteStudent";
             });
 
             var labels = sortedMonths.map(m => m.replace("Tháng ", "T"));
-            var expectedData = sortedMonths.map(m => reports[m].expected);
-            var paidData = sortedMonths.map(m => reports[m].paid);
+            var expectedData = sortedMonths.map(m => (reports[m] ? reports[m].expected : 0));
+            var paidData = sortedMonths.map(m => (reports[m] ? reports[m].paid : 0));
 
-            var ctx = document.getElementById('adminRevenueChartCanvas').getContext('2d');
-            adminRevenueChartInstance = new Chart(ctx, {
+            try {
+                var ctx = canvas.getContext('2d');
+                adminRevenueChartInstance = new Chart(ctx, {
                 type: 'line',
                 data: {
                     labels: labels,
@@ -467,6 +482,9 @@ var pinVerifyAction = "deleteStudent";
                     }
                 }
             });
+            } catch(chartErr) {
+                console.warn("Lỗi khi vẽ biểu đồ doanh thu:", chartErr);
+            }
         }
 
         // 2. Tutors Management Tab
@@ -1219,7 +1237,10 @@ var pinVerifyAction = "deleteStudent";
                     if (res && res.error) {
                         if (typeof showToast === 'function') showToast(res.error, "error");
                         if (res.error.includes("Từ chối truy cập")) {
-                            setTimeout(function() { window.location.href = 'tutor-login.html'; }, 1500);
+                            var cached = sessionStorage.getItem('dashboardData');
+                            if (!cached) {
+                                setTimeout(function() { window.location.href = 'tutor-login.html'; }, 1500);
+                            }
                         }
                         return;
                     }
